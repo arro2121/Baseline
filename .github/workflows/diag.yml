@@ -1,0 +1,23 @@
+name: Alerts check
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml", ".github/diag/*.mjs"]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Push end to end
+        run: |
+          cd .github/diag && npm init -y >/dev/null && npm i http_ece@1 >/dev/null 2>&1 && cd ../..
+          sleep 200
+          TTS=1 node .github/diag/push_e2e.mjs 2>&1 | tee .github/diag/push.log || true
+      - name: Save
+        run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag/push.log .github/diag/*.mp3 && git commit -q -m "Push check results" && git pull -q --rebase && git push || echo nothing
