@@ -270,6 +270,8 @@ function play(p, lg) {
     clock: p.clock?.displayValue || null, away: p.awayScore ?? null, home: p.homeScore ?? null, scoring: !!p.scoringPlay,
     team: p.team?.id ? String(p.team.id) : (p.start?.team?.id ? String(p.start.team.id) : null),
     down: p.start?.downDistanceText || null, turnover: !!p.isTurnover || kind === "int" || kind === "fumble", seq: Number(p.sequenceNumber || 0),
+    whoId: p.participants?.[0]?.athlete?.id ? String(p.participants[0].athlete.id) : null, whoName: p.participants?.[0]?.athlete?.displayName || null,
+    whoPhoto: p.participants?.[0]?.athlete?.headshot?.href || null,
     kind, minor: MINOR.has(kind) || (lg === "nhl" && kind === "play"), points: p.scoreValue || null, x: okXY ? c.x : null, y: okXY ? c.y : null,
     yards: p.start?.yardsToEndzone != null ? { from: 100 - p.start.yardsToEndzone, to: p.end?.yardsToEndzone != null ? 100 - p.end.yardsToEndzone : null, gain: p.statYardage ?? null,
       down: p.end?.down ?? null, dist: p.end?.distance ?? null, team: p.start?.team?.id ? String(p.start.team.id) : null } : null };
@@ -289,7 +291,8 @@ function mlbPlays(list, homeId, awayId) {
       out.push(base(p, { text: p.text, kind: evt(p), scoring: !!p.scoringPlay || st === "S" }));
     } else if (st === "A") {                                                     // "Valdez pitches to Wood": a new at-bat
       const m = /^(.*?) pitches to (.*)$/.exec(p.text || "");
-      ab = { start: p, pitcher: m?.[1] || null, batter: m?.[2] || null, pitches: [], hit: null, outs: p.outs ?? null };
+      const who = t => (p.participants || []).find(x => x.type === t)?.athlete?.id;
+      ab = { start: p, pitcher: m?.[1] || null, batter: m?.[2] || null, batterId: who("batter") || null, pitches: [], hit: null, outs: p.outs ?? null };
     } else if (st === "P" && ab) {
       const k = /ball in play/i.test(p.text || "") ? "x" : /^ball/i.test(t) || /hit by pitch/i.test(t) ? "b" : /foul/i.test(t) ? "f" : "s";
       ab.pitches.push({ k, speed: p.pitchVelocity || null, pitch: p.pitchType?.text || null });
@@ -301,7 +304,7 @@ function mlbPlays(list, homeId, awayId) {
       const kind = /homered|home run/.test(x) ? "hr" : /tripled/.test(x) ? "hit3" : /doubled/.test(x) ? "hit2" : /singled|reached on/.test(x) ? "hit1"
         : /struck out/.test(x) ? "k" : /walked|hit by pitch/.test(x) ? "walk" : "out";
       const hit = p.hitCoordinate || ab?.hit || null;
-      out.push(base(p, { text: p.text || "", kind, scoring: !!p.scoringPlay || st === "S", batter: ab?.batter || null, pitcher: ab?.pitcher || null,
+      out.push(base(p, { text: p.text || "", kind, scoring: !!p.scoringPlay || st === "S", batter: ab?.batter || null, pitcher: ab?.pitcher || null, whoId: ab?.batterId || null,
         pitches: (ab?.pitches || []).map(q => q.k), outs: p.outs ?? null, x: hit ? hit.x : null, y: hit ? hit.y : null, trajectory: p.trajectory || null }));
       ab = null;
     } else if (st === "C") {                                              // pitching change
@@ -310,7 +313,7 @@ function mlbPlays(list, homeId, awayId) {
       out.push(base(p, { text: p.text, kind: evt(p), scoring: !!p.scoringPlay }));   // stolen bases, wild pitches…
     }
   });
-  if (ab && ab.batter) out.push({ ...base(ab.start, { text: `${ab.batter} batting against ${ab.pitcher}`, kind: "atbat", batter: ab.batter, pitcher: ab.pitcher,
+  if (ab && ab.batter) out.push({ ...base(ab.start, { text: `${ab.batter} batting against ${ab.pitcher}`, kind: "atbat", batter: ab.batter, pitcher: ab.pitcher, whoId: ab.batterId,
     pitches: ab.pitches.map(q => q.k), live: true }), id: String(ab.start.id) + "-now" });
   return out;
 }
@@ -341,16 +344,21 @@ export function normGame(d, lg) {
       return { id: String(x.sequence ?? i), text: x.text || "", clock: x.time?.displayValue || null, period: q.period?.number ?? null, head: periodHead(q, "epl"),
         away: sc[0], home: sc[1],
         scoring: kind === "goal" || x.play?.scoringPlay === true, type: x.play?.type?.text || null, seq: Number(x.sequence ?? i),
-        team: x.play?.team?.id ? String(x.play.team.id) : byName[x.play?.team?.displayName] || null, kind, minor: MINOR.has(kind) }; });
+        team: x.play?.team?.id ? String(x.play.team.id) : byName[x.play?.team?.displayName] || null, kind, minor: MINOR.has(kind),
+        whoName: x.play?.participants?.[0]?.athlete?.displayName || null }; });
   } else if (Array.isArray(d.keyEvents)) {
     plays = d.keyEvents.map((x, i) => { const kind = kindOf(x, "epl");
       return { id: String(x.id ?? i), text: x.text || x.type?.text || "", clock: x.clock?.displayValue || null, period: x.period?.number ?? null, head: periodHead(x, "epl"),
         scoring: !!x.scoringPlay, type: x.type?.text || null, seq: i, team: x.team?.id ? String(x.team.id) : null, kind, minor: MINOR.has(kind) }; });
   }
   const seen = new Set(); plays = plays.filter(p => !seen.has(p.id) && seen.add(p.id));
+
   // baseball's sequence numbers restart with every batter, so it keeps ESPN's list order; the others sort by sequence
   if (lg !== "mlb" && plays.every(p => p.seq > 0)) plays.sort((a, b) => a.seq - b.seq);
   plays.forEach((p, i) => { p.ord = i; });
+  const roster = attachPlayers(plays, d, lg);
+  const videos = gameVideos(d);
+  linkVideos(plays, videos, roster);
   plays.reverse();                                  // newest first
   const wp = Array.isArray(d.winprobability) && d.winprobability.length ? d.winprobability[d.winprobability.length - 1].homeWinPercentage : null;
   // where things stand right now, for the animated field
@@ -359,7 +367,70 @@ export function normGame(d, lg) {
   if (lg === "mlb" && sit) situation = { balls: sit.balls ?? 0, strikes: sit.strikes ?? 0, outs: sit.outs ?? 0, bases: [!!sit.onFirst, !!sit.onSecond, !!sit.onThird] };
   if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
-    homeWinProb: typeof wp === "number" ? wp : null, situation, plays: plays.slice(0, 300), count: plays.length };
+    homeWinProb: typeof wp === "number" ? wp : null, situation, videos, plays: plays.slice(0, 300), count: plays.length };
+}
+// every player ESPN lists for the game, with a photo, so plays can show who made them
+const HEADSHOT = { mlb: "mlb", nfl: "nfl", nba: "nba", nhl: "nhl", epl: "soccer" };
+function playersOf(d, lg) {
+  const byId = {}, add = a => { if (!a || !a.id) return; const id = String(a.id);
+    byId[id] = byId[id] || { id, name: a.displayName || a.fullName || "", short: a.shortName || "", photo: a.headshot?.href || `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${id}.png` }; };
+  for (const tm of d.boxscore?.players || []) for (const st of tm.statistics || []) for (const x of st.athletes || []) add(x.athlete);
+  for (const r of d.rosters || []) for (const x of r.roster || []) add(x.athlete);
+  return byId;
+}
+const nameKey = s => String(s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function attachPlayers(plays, d, lg) {
+  const byId = playersOf(d, lg), list = Object.values(byId), byName = {};
+  for (const a of list) byName[nameKey(a.name)] = a;
+  // football text names players like "M.Stafford" or "K.Williams"
+  const nfl = lg === "nfl" ? list.map(a => { const parts = a.name.split(" "); return { a, key: nameKey(`${parts[0][0]}.${parts.slice(1).join(" ")}`) }; }).filter(x => x.key.length > 3) : [];
+  for (const p of plays) {
+    let a = (p.whoId && byId[p.whoId]) || (p.whoName && byName[nameKey(p.whoName)]) || null;
+    if (!a && p.whoId) a = { id: p.whoId, name: p.whoName || p.batter || "", photo: p.whoPhoto || `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${p.whoId}.png` };
+    if (!a && nfl.length && p.text) {
+      const t = nameKey(p.text); let best = null;
+      for (const x of nfl) { const i = t.indexOf(x.key); if (i >= 0 && (!best || i < best.i)) best = { i, a: x.a }; }
+      a = best && best.a;
+    }
+    if (a) p.who = { id: a.id, name: a.name || p.whoName || p.batter || "", photo: p.whoPhoto || a.photo };
+    delete p.whoId; delete p.whoName; delete p.whoPhoto;
+  }
+  return list;
+}
+// ESPN's highlight clips for the game
+function gameVideos(d) {
+  return (d.videos || []).map(v => ({ id: String(v.id), title: v.headline || "", thumb: v.thumbnail || null, dur: v.duration || null,
+    mp4: v.links?.source?.HD?.href || v.links?.source?.href || null, web: v.links?.web?.href || null,
+    geo: v.geoRestrictions?.type === "whitelist" ? v.geoRestrictions.countries || null : null })).filter(v => v.mp4).slice(0, 20);
+}
+// match a clip to the play it shows: players named in the headline, the kind of play, and "2nd"/"4th" when a player did it more than once
+const CLIP_WORDS = { hr: /home run|homer|\bhr\b|smash|crush|blast/, hit1: /single|rbi/, hit2: /double|rbi/, hit3: /triple|rbi/,
+  td: /\btd\b|touchdown|end zone|on the board|grab|catch/, int: /pick|\bint\b|intercept/, fumble: /fumble/, fg: /field goal|\bfg\b/, sack: /sack/,
+  goal: /goal|scores|nets|winner|equali/, made3: /three|3-pointer/, made: /dunk|layup|jumper|bucket|slam/, save: /save|stop/ };
+const GAME_CLIP = /highlights|reflects|pokes fun|recap|press|injur|shaken up|\b\d+ (tds|touchdowns|goals|home runs|homers|hrs)\b/;
+const words = s => " " + nameKey(s).replace(/[^a-z0-9]+/g, " ").trim() + " ";
+function linkVideos(plays, videos, roster = []) {
+  const people = [...roster.map(a => a.name), ...plays.filter(p => p.who).map(p => p.who.name)];
+  const used = new Set(), surnames = [...new Set(people.map(n => words(n).trim().split(" ").pop()).filter(x => x.length >= 3))];
+  for (const [vi, v] of videos.entries()) {
+    const h = words(v.title);
+    if (GAME_CLIP.test(h)) continue;
+    const named = surnames.filter(x => h.includes(" " + x + " "));
+    if (!named.length) continue;
+    const cands = [];
+    for (const p of plays) {                                   // plays are still in game order here
+      if (used.has(p.id) || !p.who) continue;
+      const t = words(p.text + " " + p.who.name), hits = named.filter(x => t.includes(" " + x + " ")).length;
+      const kindOk = !!(CLIP_WORDS[p.kind] && CLIP_WORDS[p.kind].test(h));
+      if (!hits || (!kindOk && !p.scoring && !p.turnover)) continue;
+      cands.push({ p, score: hits * 2 + (kindOk ? 2 : 0) + (p.scoring || p.turnover ? 1 : 0) });
+    }
+    if (!cands.length) continue;
+    const top = Math.max(...cands.map(c => c.score)), best = cands.filter(c => c.score === top);
+    const nth = /\b(\d+)(st|nd|rd|th)\b/.exec(h);
+    const pick = nth ? best[Math.min(best.length, +nth[1]) - 1] : best[0];
+    pick.p.video = vi; used.add(pick.p.id);
+  }
 }
 /* ESPN's API at site.api.espn.com turns away browsers and Cloudflare, so read the copy espn.com itself uses
    (site.web.api.espn.com), then the feed behind ESPN's pages (cdn.espn.com), then the old address. The page reuses this code. */
