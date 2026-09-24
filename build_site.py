@@ -13,37 +13,51 @@ key = lambda s: re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", s).encode("a
 
 
 PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#2556A3">
+<meta name="theme-color" content="#140F3A">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Baseline">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">"""
+<meta name="apple-mobile-web-app-title" content="Cosmo Sports">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="application-name" content="Cosmo Sports">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cosmo Sports">
+<meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
+<meta property="og:description" content="Live scores, animated play-by-play, real replays, box scores, standings, team pages, news and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<meta property="og:image" content="__SITE__og-image.png">
+<meta property="og:url" content="__SITE__">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="__SITE__og-image.png">
+<link rel="canonical" href="__SITE__">"""
 
 MANIFEST = {
-    "id": "./", "name": "Baseline Tennis", "short_name": "Baseline", "lang": "en", "dir": "ltr",
-    "description": "Tennis match predictions for every ATP and WTA pro: win chances, live scores with live win probability, player ratings and profiles, a betting-edge checker and bet tracker, watchlist alerts, and daily games.",
-    "categories": ["sports", "entertainment", "utilities"],
+    "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
+    "description": "Every game, every league, one app. Live scores, animated play-by-play with real highlight replays, box scores, standings, team pages with schedules and rosters, news, and data-driven win predictions for the NFL, NBA, MLB, NHL, Premier League and tennis. Follow your teams across every league.",
+    "categories": ["sports", "news", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
-    "background_color": "#EDF0ED", "theme_color": "#2556A3",
+    "background_color": "#140F3A", "theme_color": "#140F3A",
     "icons": [
         {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
         {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
         {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
-        {"src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png"}],
+        {"src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png"},
+        {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
     "screenshots": [
-        {"src": "screenshots/phone-predict.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Match prediction on the court"},
-        {"src": "screenshots/phone-live.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live scores"},
-        {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Daily Player and games"},
-        {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Baseline on a computer"}],
+        {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
+        {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
+        {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
+        {"src": "screenshots/phone-team.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Team pages with schedule and roster"},
+        {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Cosmo Sports on a computer"}],
     "shortcuts": [
-        {"name": "Live scores", "url": "./?tab=live", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Watchlist", "url": "./?tab=watch", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Daily Player", "url": "./?tab=play", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}],
+        {"name": "Following", "short_name": "Following", "url": "./?sport=following", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Find a team", "short_name": "Search", "url": "./?search=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Tennis live scores", "short_name": "Tennis", "url": "./?tab=live", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}],
 }
 
-SW = """// Baseline offline helper and notifications. The app opens instantly and still works without signal,
+SW = """// Cosmo Sports offline helper and notifications. The app opens instantly and still works without signal,
 // showing the last ratings and scores it saw. Build: __STAMP__
 const CACHE = "baseline-__STAMP__";
 const SHELL = ["./", "index.html", "live.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
@@ -65,8 +79,8 @@ self.addEventListener("fetch", e => {
 });
 // Match alerts from the alerts service arrive here, even when the app is closed.
 self.addEventListener("push", e => {
-  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Baseline", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Baseline", { body: d.body || "", tag: d.tag || "baseline", renotify: true,
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Cosmo Sports", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Cosmo Sports", { body: d.body || "", tag: d.tag || "cosmo", renotify: true,
     icon: "icon-192.png", badge: "icon-192.png", data: { url: d.url || "./?tab=watch" } }));
 });
 self.addEventListener("notificationclick", e => {
@@ -157,7 +171,9 @@ def main(hosted=True, out="docs/index.html"):
                .replace("/*DATA*/", json.dumps(snap, separators=(",", ":")).replace("<", "\\u003c")))
     if hosted:
         stamp = str(snap.get("built", "")) + "-" + str(len(html))
-        html = html.replace("<!--PWA-->", PWA_HEAD)
+        repo = os.environ.get("GITHUB_REPOSITORY", "")                 # owner/name on GitHub Actions: the site's public address
+        site = f"https://{repo.split('/')[0].lower()}.github.io/{repo.split('/')[1]}/" if "/" in repo else ""
+        html = html.replace("<!--PWA-->", PWA_HEAD.replace("__SITE__", site))
         write_pwa(os.path.dirname(out), stamp)
         # names the alerts service uses to match API names like "J. Sinner"
         json.dump([{"name": p["name"], "tour": t} for t in ("atp", "wta") for p in snap[t]["players"]],

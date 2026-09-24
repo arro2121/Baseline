@@ -167,20 +167,21 @@ def espn_logos(lg):
             logos = t.get("logos") or []
             logo = next((l["href"] for l in logos if "default" in l.get("rel", [])), None) or (logos[0]["href"] if logos else None)
             for f in fields:
-                if logo and t.get(f): out.setdefault(key(t[f]), logo)
+                if logo and t.get(f): out.setdefault(key(t[f]), (logo, str(t.get("id", ""))))
     return out
 
 def add_logos(out, prev_lg, use_espn):
     """Give every team its logo, keeping the last known one when ESPN can't be reached."""
     for lg, L in out["leagues"].items():
-        old = {key(t["name"]): t.get("logo") for t in prev_lg.get(lg, {}).get("teams", [])}
+        old = {key(t["name"]): (t.get("logo"), t.get("espn_id")) for t in prev_lg.get(lg, {}).get("teams", [])}
         logos = {}
         if use_espn:
             try: logos = espn_logos(lg)
             except Exception as e: print(f"ESPN logos for {lg} unavailable ({e}); keeping the saved ones")
         for t in L["teams"]:
-            logo = logos.get(key(t["name"])) or old.get(key(t["name"]))
+            logo, espn_id = logos.get(key(t["name"])) or old.get(key(t["name"])) or (None, None)
             if logo: t["logo"] = logo
+            if espn_id: t["espn_id"] = espn_id              # opens the team's page in the app
 
 def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), previous=None, use_espn=False):
     feed = json.load(open(feed_path))
