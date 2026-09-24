@@ -418,6 +418,12 @@ dialog.modal.wide{max-width:640px}
 .gteam i{width:6px;height:26px;border-radius:3px;background:var(--line)}
 .gteam .nm{display:flex;align-items:center;gap:8px;min-width:0;font-weight:700}
 .gteam .nm > img{width:24px;height:24px;object-fit:contain}
+.gteam .nm .tlogo{width:38px;height:38px;box-shadow:none;background:transparent}
+.gteam .nm .tlogo img{width:100%;height:100%}
+.gteam .nm .tlogo.txt{background:var(--line);width:34px;height:34px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gteam .nm .tlogo:not(.txt){background:#fff;padding:4px}}
+:root[data-theme="dark"] .gteam .nm .tlogo:not(.txt){background:#fff;padding:4px}
+.gteam{padding:6px 0}
 .tcell{display:inline-flex;align-items:center;gap:9px}
 .tbadge.haslogo{background:#fff!important;display:grid;place-items:center}.tbadge.haslogo img{width:74%;height:74%;object-fit:contain}
 .gteam .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
