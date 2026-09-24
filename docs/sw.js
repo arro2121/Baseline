@@ -1,6 +1,6 @@
-// Baseline offline helper and notifications. The app opens instantly and still works without signal,
-// showing the last ratings and scores it saw. Build: 20260924-2084575
-const CACHE = "baseline-20260924-2084575";
+// Cosmo Sports offline helper and notifications. The app opens instantly and still works without signal,
+// showing the last ratings and scores it saw. Build: 20260924-2148941
+const CACHE = "baseline-20260924-2148941";
 const SHELL = ["./", "index.html", "live.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -20,8 +20,8 @@ self.addEventListener("fetch", e => {
 });
 // Match alerts from the alerts service arrive here, even when the app is closed.
 self.addEventListener("push", e => {
-  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Baseline", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Baseline", { body: d.body || "", tag: d.tag || "baseline", renotify: true,
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Cosmo Sports", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Cosmo Sports", { body: d.body || "", tag: d.tag || "cosmo", renotify: true,
     icon: "icon-192.png", badge: "icon-192.png", data: { url: d.url || "./?tab=watch" } }));
 });
 self.addEventListener("notificationclick", e => {

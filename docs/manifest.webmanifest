@@ -1,14 +1,14 @@
 {
  "id": "./",
- "name": "Baseline Tennis",
- "short_name": "Baseline",
+ "name": "Cosmo Sports",
+ "short_name": "Cosmo Sports",
  "lang": "en",
  "dir": "ltr",
- "description": "Tennis match predictions for every ATP and WTA pro: win chances, live scores with live win probability, player ratings and profiles, a betting-edge checker and bet tracker, watchlist alerts, and daily games.",
+ "description": "Every game, every league, one app. Live scores, animated play-by-play with real highlight replays, box scores, standings, team pages with schedules and rosters, news, and data-driven win predictions for the NFL, NBA, MLB, NHL, Premier League and tennis. Follow your teams across every league.",
  "categories": [
   "sports",
-  "entertainment",
-  "utilities"
+  "news",
+  "entertainment"
  ],
  "start_url": "./",
  "scope": "./",
@@ -17,8 +17,8 @@
   "standalone"
  ],
  "orientation": "any",
- "background_color": "#EDF0ED",
- "theme_color": "#2556A3",
+ "background_color": "#140F3A",
+ "theme_color": "#140F3A",
  "icons": [
   {
    "src": "icon-192.png",
@@ -40,62 +40,77 @@
    "src": "icon-1024.png",
    "sizes": "1024x1024",
    "type": "image/png"
+  },
+  {
+   "src": "favicon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml"
   }
  ],
  "screenshots": [
   {
-   "src": "screenshots/phone-predict.png",
+   "src": "screenshots/phone-games.png",
    "sizes": "780x1688",
    "type": "image/png",
    "form_factor": "narrow",
-   "label": "Match prediction on the court"
+   "label": "Live games with logos and win chances"
   },
   {
-   "src": "screenshots/phone-live.png",
+   "src": "screenshots/phone-pbp.png",
    "sizes": "780x1688",
    "type": "image/png",
    "form_factor": "narrow",
-   "label": "Live scores"
+   "label": "Animated play-by-play and real replays"
   },
   {
-   "src": "screenshots/phone-play.png",
+   "src": "screenshots/phone-box.png",
    "sizes": "780x1688",
    "type": "image/png",
    "form_factor": "narrow",
-   "label": "Daily Player and games"
+   "label": "Full box scores"
+  },
+  {
+   "src": "screenshots/phone-team.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Team pages with schedule and roster"
   },
   {
    "src": "screenshots/desktop.png",
    "sizes": "1280x800",
    "type": "image/png",
    "form_factor": "wide",
-   "label": "Baseline on a computer"
+   "label": "Cosmo Sports on a computer"
   }
  ],
  "shortcuts": [
   {
-   "name": "Live scores",
+   "name": "Following",
+   "short_name": "Following",
+   "url": "./?sport=following",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Find a team",
+   "short_name": "Search",
+   "url": "./?search=1",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Tennis live scores",
+   "short_name": "Tennis",
    "url": "./?tab=live",
-   "icons": [
-    {
-     "src": "icon-192.png",
-     "sizes": "192x192"
-    }
-   ]
-  },
-  {
-   "name": "Watchlist",
-   "url": "./?tab=watch",
-   "icons": [
-    {
-     "src": "icon-192.png",
-     "sizes": "192x192"
-    }
-   ]
-  },
-  {
-   "name": "Daily Player",
-   "url": "./?tab=play",
    "icons": [
     {
      "src": "icon-192.png",
