@@ -1,31 +1,16 @@
 set +e
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
-get() { curl -sS -m 20 -A "$UA" -H "Origin: https://arro2121.github.io" -D /tmp/h -o /tmp/b -w "%{http_code}" "$1"; echo " $(grep -i '^access-control-allow-origin' /tmp/h | tr -d '\r') $(wc -c </tmp/b)B"; }
-for lg in "mlb" "nfl" "nhl" "nba" "soccer:eng.1"; do
-  sp=${lg%%:*}; q=""; [ "$sp" = soccer ] && q="&league=${lg#*:}"
-  u="https://cdn.espn.com/core/$sp/scoreboard?xhr=1$q"; echo "== $u"; get "$u"
-  python3 - <<'PY'
-import json; d=json.load(open('/tmp/b'))
-print(" top:", list(d)[:12]); c=d.get('content',{}); print(" content:", list(c)[:12])
-sb=c.get('sbData') or {}; print(" sbData:", list(sb)[:10]); ev=sb.get('events',[])
-print(" events:", len(ev))
-if ev:
-  e=ev[0]; print(" ev keys:", list(e)[:15]); comp=e['competitions'][0]; print(" comp keys:", list(comp)[:25])
-  print(" state:", e.get('status',{}).get('type',{}).get('state'), "id", e['id'])
-  open('/tmp/id','w').write(e['id'])
-  ins=[x['id'] for x in ev if x.get('status',{}).get('type',{}).get('state') in ('in','post')]
-  if ins: open('/tmp/id','w').write(ins[0])
-PY
-  id=$(cat /tmp/id 2>/dev/null); rm -f /tmp/id
-  for kind in game playbyplay; do
-    u="https://cdn.espn.com/core/$sp/$kind?xhr=1&gameId=$id$q"; echo "-- $u"; get "$u"
-    python3 - <<'PY'
-import json
+get() { code=$(curl -sS -m 20 -A "$UA" -H "Origin: https://arro2121.github.io" -D /tmp/h -o /tmp/b -w "%{http_code}" "$1"); echo "$code $(grep -i -E '^(access-control-allow-origin|location)' /tmp/h | tr -d '\r' | tr '\n' ' ') $(wc -c </tmp/b)B  $1"; }
+keys() { python3 -c "
+import json,sys
 try: d=json.load(open('/tmp/b'))
-except Exception as e: print(" not json", open('/tmp/b').read()[:150]); raise SystemExit
-g=d.get('gamepackageJSON') or {}
-print(" top:", list(d)[:10]); print(" gamepackageJSON:", list(g)[:30])
-print(" header comps:", bool(g.get('header',{}).get('competitions')), "plays:", len(g.get('plays') or []), "drives:", bool(g.get('drives')), "commentary:", len(g.get('commentary') or []), "keyEvents:", len(g.get('keyEvents') or []), "wp:", len(g.get('winprobability') or []))
-PY
-  done
-done
+except Exception: print('   not json'); sys.exit()
+g=d.get('gamepackageJSON') or {}; sb=(d.get('content') or {}).get('sbData') or {}
+print('   events', len(sb.get('events',[])) if sb else '-', '| gp', list(g)[:14], '| plays', len(g.get('plays') or []), 'commentary', len(g.get('commentary') or []), 'keyEvents', len(g.get('keyEvents') or []))"; }
+for u in "https://site.web.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard" "https://site.web.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard" "https://site.web.api.espn.com/apis/site/v2/sports/soccer/eng.1/summary?event=401879276"; do get "$u"; done
+get "https://cdn.espn.com/core/nhl/scoreboard?xhr=1&dates=20261010"; keys
+get "https://cdn.espn.com/core/nhl/scoreboard?xhr=1&league=nhl"; keys
+get "https://cdn.espn.com/core/hockey/scoreboard?xhr=1&league=nhl"; keys
+get "https://cdn.espn.com/core/nhl/schedule?xhr=1"; keys
+for p in match game commentary matchstats; do get "https://cdn.espn.com/core/soccer/$p?xhr=1&gameId=401879276"; keys; done
+get "https://cdn.espn.com/core/soccer/scoreboard?xhr=1&league=eng.1&dates=20260920"; keys
