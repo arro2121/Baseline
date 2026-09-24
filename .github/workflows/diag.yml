@@ -1,0 +1,19 @@
+name: Alerts check
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for the deploy
+        run: sleep 200
+      - name: Probe
+        run: |
+          W=$(python3 -c "import json,urllib.request;print(json.load(urllib.request.urlopen('https://raw.githubusercontent.com/${{ github.repository }}/main/site_config.json'))['alerts_url'])")
+          echo "== /"; curl -s -m 20 "$W/"; echo
+          echo "== ask"; curl -s -m 90 -X POST -H 'Content-Type: application/json' -d '{"messages":[{"role":"user","content":"How did the Detroit Tigers do yesterday, and who do they play next?"}],"context":"Teams they follow: MLB: Detroit Tigers"}' "$W/ask"; echo
+          echo "== site"; curl -s -m 20 "https://${{ github.repository_owner }}.github.io/Baseline/" | grep -o "Daily 3\|Rating Rumble\|Spoiler shield\|onbDlg" | sort | uniq -c
+          echo "== manifest"; curl -s -m 20 "https://${{ github.repository_owner }}.github.io/Baseline/manifest.webmanifest" | python3 -c "import json,sys;m=json.load(sys.stdin);print(m['name'],len(m['shortcuts']),len(m['screenshots']))"
+          echo "== privacy"; curl -s -o /dev/null -w "%{http_code}\n" "https://${{ github.repository_owner }}.github.io/Baseline/privacy.html"
