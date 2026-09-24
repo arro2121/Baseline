@@ -11,4 +11,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - run: cd .github/diag && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null 2>&1 && node probe.mjs
+      - run: cd .github/diag && bash probe.sh
