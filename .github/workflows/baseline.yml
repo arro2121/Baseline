@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
   schedule:
-    - cron: "*/5 * * * *"    # live scores (skipped automatically once the alerts service is running)
+    - cron: "*/5 * * * *"    # live: a backup copy of the scores on the site itself (plus tennis when there is no alerts service)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
   workflow_dispatch:
     inputs:
@@ -112,15 +112,23 @@ jobs:
       - uses: actions/checkout@v4
       - id: check
         run: |
-          if grep -q '"alerts_url": *"http' site_config.json 2>/dev/null; then echo "skip=1" >> "$GITHUB_OUTPUT"; echo "The alerts service provides live scores; nothing to do."; fi
           if [ ! -f docs/index.html ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; echo "Not built yet."; fi
+          if grep -q '"alerts_url": *"http' site_config.json 2>/dev/null; then echo "alerts=1" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/setup-python@v5
-        if: steps.check.outputs.skip != '1'
+        if: steps.check.outputs.skip != '1' && steps.check.outputs.alerts != '1'
         with: { python-version: "3.12" }
-      - name: Fetch live scores
-        if: steps.check.outputs.skip != '1'
+      - name: Fetch live tennis
+        if: steps.check.outputs.skip != '1' && steps.check.outputs.alerts != '1'
         env: { API_TENNIS_KEY: "${{ secrets.API_TENNIS_KEY }}" }
         run: python updater.py live
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.skip != '1'
+        with: { node-version: "22" }
+      - name: Publish a backup copy of today's scores
+        if: steps.check.outputs.skip != '1'
+        run: |
+          (cd alerts && npm install --no-audit --no-fund --silent)
+          node alerts/snapshot.mjs || echo "Snapshot skipped"
       - uses: actions/configure-pages@v5
         if: steps.check.outputs.skip != '1'
       - uses: actions/upload-pages-artifact@v3

@@ -11,6 +11,10 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
   links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
+* **Arcade:** six quick tap-to-play games with best scores saved on the phone: Home Run Derby, Penalty Shootout,
+  Free Throw Frenzy, Field Goal Challenge, Top Shelf (hockey) and a Logo Quiz of every team.
+* **Listen Live:** tap 🎧 Listen in any live game and the phone reads new key plays, scores, period changes and the
+  final aloud, like a radio call. Speed is in Settings; the spoiler shield keeps it silent until you reveal.
 * **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center.
 * **Notifications:** game starts, scoring plays, close finishes, final scores and a 9 AM morning briefing for your
   teams and any game you tap the bell on, even with the app closed.
@@ -96,7 +100,10 @@ Same steps, or upload all the unzipped files (including the hidden `.github` fol
 **About the data sources:** MLB's and the NHL's APIs are run by the leagues themselves, are free and need no key.
 ESPN's feed is free and needs no key too, but it's unofficial and could change without notice; the app tries
 several ESPN addresses before giving up, and your alerts service caches results so it asks ESPN at most once
-every couple of minutes however many people use the app. All of these allow personal, non-commercial use, so keep
+every couple of minutes however many people use the app. Every request has a time limit and one retry, and
+every five minutes GitHub also publishes a copy of today's scores to the site itself (`scores.json`). If a phone's
+network blocks ESPN and the alerts service (some school, work and hotel Wi-Fi, VPNs and content blockers do), the
+app shows that copy, a few minutes behind and labeled as such, instead of an error. All of these allow personal, non-commercial use, so keep
 the app free and ad-free. There is no free official feed with the same detail for the NFL, NBA or Premier League.
 
 **Ask Cosmo (the AI companion)** runs on your Cloudflare account's free Workers AI allowance, with no extra key
@@ -118,7 +125,7 @@ No model is certain. Bet only what you can afford to lose.
 | When | What happens |
 | --- | --- |
 | While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
-| Every 2 minutes | Live tennis scores update |
+| Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
 | Every night | New results and rankings download, every rating recalculates, and the site republishes |
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.

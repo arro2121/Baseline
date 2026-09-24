@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -472,6 +472,8 @@ dialog.modal.wide{max-width:640px}
 .bases b.on{background:#E0A106;border-color:#E0A106}
 .teamnote{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
 .teamnote b{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:6px}
+.neterr .btn{display:block;margin:14px auto 0}
+.stalenote{font-size:.8rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0 0 12px}
 .ptable td .bar{display:inline-block;height:5px;border-radius:99px;background:var(--accent);opacity:.55;vertical-align:middle;margin-right:8px}
 .predgrid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end}
 .predgrid label{display:flex;flex-direction:column;gap:5px;font-size:.78rem;color:var(--muted)}
@@ -553,7 +555,9 @@ dialog.modal.wide{max-width:640px}
 
 /* play-by-play */
 .ghd{padding:calc(18px + env(safe-area-inset-top,0px)) 60px 16px 22px;background:var(--board);color:var(--board-ink)}
-.ghd .st{font-size:.78rem;color:var(--board-dim);display:flex;gap:8px;align-items:center}
+.ghd .st{font-size:.78rem;color:var(--board-dim);display:flex;flex-wrap:wrap;gap:8px 6px;align-items:center}
+.ghd .st .sharebtn.cardbtn{margin-left:0}
+#gListen[aria-pressed="true"]{background:rgba(95,227,163,.2);border-color:#5FE3A3}
 .ghd .row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:10px}
 .ghd .tn{display:flex;align-items:center;gap:10px;font-weight:800;font-stretch:112%;font-size:1.05rem;min-width:0}
 .ghd .tn img{width:30px;height:30px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}
@@ -1214,6 +1218,35 @@ body:has(dialog[open]) .askfab{display:none}
 .askfine{margin:0;padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));font-size:.7rem;color:var(--faint);text-align:center}
 /* ---------- Play: Daily 3, Rating Rumble ---------- */
 .setrow.wrapr{flex-wrap:wrap}.setrow.wrapr > div:first-child{flex:1 1 220px}
+/* arcade */
+.arcade{margin-bottom:18px}
+.arcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.arccard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;border-radius:14px;border:1px solid rgba(185,139,255,.3);color:var(--ink);text-align:left;cursor:pointer;font:inherit;
+  background:radial-gradient(120% 100% at 100% 0%,rgba(122,61,245,.28),transparent 60%),var(--surface-2);transition:transform .15s,border-color .15s,box-shadow .15s}
+.arccard:hover,.arccard:focus-visible{transform:translateY(-2px);border-color:rgba(185,139,255,.7);box-shadow:0 10px 24px -12px rgba(122,61,245,.8)}
+.arccard b{font-size:.92rem}.arccard small{color:var(--muted);font-size:.75rem;font-weight:650}
+.arcicon{font-size:1.7rem;line-height:1}
+dialog.arcd{padding:0;border:0;margin:auto;width:min(440px,100%);height:min(820px,100%);max-width:100%;max-height:100%;border-radius:20px;color:#fff;background:#07051A;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+dialog.arcd::backdrop{background:rgba(4,2,16,.75);backdrop-filter:blur(4px)}
+.arcwrap{display:flex;flex-direction:column;height:100%;padding-bottom:env(safe-area-inset-bottom,0px)}
+.archead{display:flex;align-items:flex-start;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 8px 18px}
+.archead > div{flex:1;min-width:0}.archead h2{margin:0;font-size:1.1rem;font-stretch:110%}.archead p{margin:2px 0 0;font-size:.76rem;color:#C9B8FF;line-height:1.35}
+.archead .xbtn{position:static;flex:none}
+.archud{display:flex;justify-content:space-between;align-items:baseline;padding:0 18px 6px;font-size:.82rem;color:#C9B8FF;min-height:26px}
+.archud b{font-size:1.3rem;color:#fff;font-variant-numeric:tabular-nums}.archud b small{font-size:.7rem;color:#C9B8FF;margin-left:4px;font-weight:700}
+.arcstage{position:relative;flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#arcCanvas{display:block;touch-action:none;border-radius:14px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.arcover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(7,5,26,.55);backdrop-filter:blur(2px)}
+.arcpanel{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:300px;padding:22px;border-radius:18px;background:rgba(21,12,64,.92);border:1px solid rgba(185,139,255,.4);animation:arcIn .35s cubic-bezier(.2,1.4,.4,1)}
+.arcpanel .arcicon{font-size:2.6rem}.arcpanel b{font-size:1.25rem}.arcpanel p{margin:0;color:#DCD2FF;font-size:.88rem;line-height:1.4}.arcpanel small{color:#C9B8FF}
+.arcpanel .arcscore{font-size:3rem;font-weight:900;color:#FFD678;line-height:1}.arcpanel .arcscore small{display:block;font-size:.8rem;color:#C9B8FF;font-weight:700;margin-top:4px}
+.arcpanel .dbtns{display:flex;gap:8px;margin-top:6px}
+@keyframes arcIn{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.arcchoices{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px 14px}
+.arcopt{padding:12px 8px;border-radius:12px;border:1px solid rgba(185,139,255,.35);background:rgba(40,24,110,.6);color:#fff;font:inherit;font-weight:750;font-size:.86rem;cursor:pointer;transition:background .2s,opacity .2s}
+.arcopt.right{background:#1E8A5A;border-color:#5FE3A3}.arcopt.wrong{background:#8A1E3A;border-color:#FF7D8E}.arcopt.dim{opacity:.45}
+@media (max-width:760px){ dialog.arcd{width:100%;height:100%;border-radius:0} .arcgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (prefers-reduced-motion:reduce){ .arcpanel{animation:none} }
 .playgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;align-items:start}
 .dnote{margin:-4px 0 10px;color:var(--muted);font-size:.82rem}
 .daily{background:linear-gradient(160deg,rgba(122,61,245,.18),var(--surface) 55%);border-color:rgba(185,139,255,.35)}
@@ -1509,6 +1542,12 @@ dialog.onb p{margin:0 0 12px}
 
 <dialog id="profile" class="drawer" aria-labelledby="pName"><div class="pbody" id="pbody"></div></dialog>
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
+<dialog id="arcDlg" class="arcd" aria-labelledby="arcTitle"><div class="arcwrap">
+  <header class="archead"><div><h2 id="arcTitle">Arcade</h2><p id="arcSub"></p></div><button type="button" class="xbtn" id="arcClose" aria-label="Close">✕</button></header>
+  <div class="archud" id="arcHud"></div>
+  <div class="arcstage"><canvas id="arcCanvas" aria-label="Game screen"></canvas><div class="arcover" id="arcOver" hidden></div></div>
+  <div class="arcchoices" id="arcChoices" hidden></div>
+</div></dialog>
 <dialog id="onbDlg" class="modal onb" aria-label="Welcome to Cosmo Sports"><div class="dlg" id="onbBody"></div></dialog>
 <button class="askfab" id="askFab" type="button" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span><span>Ask Cosmo</span></button>
 <dialog id="askDlg" class="drawer askd" aria-labelledby="askTitle"><div class="askwrap">
@@ -1567,6 +1606,8 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Spoiler shield"><button type="button" data-spoil="off">Off</button><button type="button" data-spoil="mine">My teams</button><button type="button" data-spoil="all">All games</button></div></div>
     <div class="setrow"><div><b>Sound effects</b><small>Short sounds for scores, picks and games</small></div>
       <div class="seg" role="group" aria-label="Sound effects"><button type="button" data-snd="0">Off</button><button type="button" data-snd="1">On</button></div></div>
+    <div class="setrow" id="voiceRow"><div><b>Listen Live voice</b><small>How fast plays are read aloud when you tap 🎧 Listen in a live game</small></div>
+      <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Play</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
@@ -2257,10 +2298,14 @@ function linkVideos(plays, videos, roster = []) {
 const ESPN_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/", CDN = "https://cdn.espn.com/core/";
 const CDN_PAGE = { scoreboard: "scoreboard", game: "game", playbyplay: "playbyplay" }, CDN_SOCCER = { scoreboard: "scoreboard", game: "match", playbyplay: "commentary" };
 const cdnUrl = (lg, kind, q = "") => lg === "epl" ? `${CDN}soccer/${CDN_SOCCER[kind]}?xhr=1&league=eng.1${q}` : `${CDN}${lg}/${CDN_PAGE[kind]}?xhr=1${q}`;
-async function getJSON(url, fetchImpl) {
-  const r = await fetchImpl(url);
-  if (!r.ok) throw new Error(`ESPN ${r.status}`);
-  return r.json();
+async function getJSON(url, fetchImpl, ms = 10000) {  // a source that hangs (a blocked or slow network) gives up so the next one gets a turn
+  const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = ac && setTimeout(() => ac.abort(), ms);
+  try {
+    const r = await fetchImpl(url, ac ? { signal: ac.signal } : undefined);
+    if (!r.ok) throw new Error(`ESPN ${r.status}`);
+    return await r.json();
+  } finally { if (timer) clearTimeout(timer); }
 }
 async function firstOf(tries) {                     // the first source that answers wins
   let err;
@@ -2511,7 +2556,7 @@ async function mlbScoreboard(dates, fetchImpl) {
 }
 async function mlbGame(id, fetchImpl) {
   const pk = String(id).replace(/^m/, "");
-  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
+  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl, 20000), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
     getJSON(`${MLB_API}v1/game/${pk}/content`, fetchImpl).catch(() => null)]);
   return normMlbGame(feed, wp, content);
 }
@@ -2669,12 +2714,44 @@ async function espnTeam(lg, id, fetchImpl = fetch) {
   return { scoreboard: (lg, dates) => espnScoreboard(lg, undefined, dates), game: (lg, id) => espnGame(lg, id),
     standings: lg => espnStandings(lg), news: (lg, team) => espnNews(lg, team), team: (lg, id) => espnTeam(lg, id) };
 })();
-// ESPN first, then the alerts service as a backup
+// ESPN (or MLB's own API) straight from the phone, then the alerts service; every source has a time limit, and the
+// whole chain gets one more try, because phones switch networks and a blocked or sleepy source shouldn't blank the app
+async function fetchJSON(url, ms = 12000){
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+  try { const r = await fetch(url, { signal: ac.signal }); if (!r.ok) throw new Error("HTTP " + r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
 async function espnOr(direct, viaAlerts){
   let err = new Error("no source");
-  if (direct) try { return await direct(); } catch (e) { err = e; }
-  if (!ALERTS_URL) throw err;
-  const r = await fetch(viaAlerts); if (!r.ok) throw err; return r.json();
+  for (let round = 0; round < 2; round++){
+    if (round) await new Promise(r => setTimeout(r, 800));
+    if (direct) try { return await direct(); } catch (e) { err = e; }
+    if (ALERTS_URL && viaAlerts) try { return await fetchJSON(viaAlerts); } catch (e) { err = e; }
+  }
+  console.warn("Couldn't reach a score source:", err && err.message);
+  throw err;
+}
+// Last resort for today's scores: a copy the site itself publishes every few minutes (scores.json), so a network that
+// blocks ESPN and the alerts service still gets results, a little behind.
+let SNAP = null, SNAP_AT = 0;
+async function snapBoard(lg){
+  if (!SNAP || Date.now() - SNAP_AT > 60000){ SNAP = await fetchJSON("scores.json?t=" + Math.floor(Date.now() / 60000), 10000); SNAP_AT = Date.now(); }
+  const b = SNAP && SNAP.boards && SNAP.boards[lg], age = Date.now() - Date.parse(SNAP.asof);
+  if (!b || !(age < 6 * 3600e3)) throw new Error("no recent copy");
+  return { ...b, asof: b.asof || SNAP.asof, games: (b.games || []).map(g => ({ ...g })), stale: SNAP.asof };
+}
+function netErrHtml(what){
+  return `<div class="teamnote neterr"><b>Couldn't load ${what}</b>The score services didn't answer on this connection. Some Wi-Fi networks, VPNs and content blockers stop sports sites; switching to mobile data usually fixes it. Cosmo keeps trying on its own.<button class="btn primary" type="button" id="netRetry">Try again</button></div>`;
+}
+function staleNote(asof){
+  if (!asof) return "";
+  const m = Math.max(1, Math.round((Date.now() - Date.parse(asof)) / 60000));
+  return `<div class="stalenote">Live sources are out of reach, so these scores are from ${m < 90 ? m + " min" : Math.round(m / 60) + " h"} ago. They refresh when the connection allows.</div>`;
+}
+async function fetchBoard(lg, day, fresh){
+  const via = `${ALERTS_URL}/sports/${lg}/scoreboard?${day ? `dates=${day}&` : ""}t=${Math.floor(Date.now() / 20000)}`;
+  try { return await espnOr(lg === "tennis" ? null : () => ESPN_DIRECT.scoreboard(lg, day), via); }
+  catch (e) { if (day || fresh) throw e; return snapBoard(lg); }
 }
 const hold = p => { const q = 1-p; return Math.pow(p,4)*(1+4*q+10*q*q) + 20*Math.pow(p*q,3)*p*p/(p*p+q*q); };
 function gameFrom(p, a, b){
@@ -2730,6 +2807,8 @@ function renderSettings(){
   document.querySelectorAll("[data-spoil]").forEach(b => b.setAttribute("aria-pressed", (SPOIL.on ? SPOIL.scope : "off") === b.dataset.spoil));
   document.querySelectorAll("[data-snd]").forEach(b => b.setAttribute("aria-pressed", String(SND ? 1 : 0) === b.dataset.snd));
   document.querySelectorAll("[data-deftour]").forEach(b => b.setAttribute("aria-pressed", b.dataset.deftour === SET.tour));
+  document.querySelectorAll("[data-vrate]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vrate === voiceRate()));
+  const vr = $("#voiceRow"); if (vr) vr.hidden = !("speechSynthesis" in window);
   $("#startSel").value = lsGet("startSport", "");
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
   document.querySelectorAll("[data-oddsfmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.oddsfmt === SET.odds));
@@ -2738,6 +2817,7 @@ function renderSettings(){
 document.querySelectorAll("[data-spoil]").forEach(b => b.addEventListener("click", () => { const v = b.dataset.spoil; SPOIL.on = v !== "off"; if (SPOIL.on) SPOIL.scope = v; saveSpoil(); renderSettings(); toast(SPOIL.on ? "Spoiler shield is on" : "Spoiler shield is off");
   if (SPORT === "universe") drawUniverse(); else if (SPORT === "following") renderFollowing(); else if (SPORT !== "tennis" && SPORT !== "play" && !$("#tt-games").hidden && SB[SPORT]) drawGames(); }));
 document.querySelectorAll("[data-snd]").forEach(b => b.addEventListener("click", () => { SND = b.dataset.snd === "1"; lsSet("sounds", SND); renderSettings(); sfx("tap"); }));
+document.querySelectorAll("[data-vrate]").forEach(b => b.addEventListener("click", () => { lsSet("voiceRate", +b.dataset.vrate); renderSettings(); if (canListen()){ speechSynthesis.cancel(); say("This is how Listen Live sounds.", true); } }));
 document.querySelectorAll("[data-deftour]").forEach(b => b.addEventListener("click", () => { SET.tour = b.dataset.deftour; saveSet(); renderSettings(); }));
 $("#startSel").addEventListener("change", e => { lsSet("startSport", e.target.value); toast(e.target.value ? "Saved" : "The app will open where you left off"); });
 document.querySelectorAll("[data-oddsfmt]").forEach(b => b.addEventListener("click", () => { SET.odds = b.dataset.oddsfmt; saveSet(); renderSettings(); update(); }));
@@ -3280,16 +3360,18 @@ function toggleFav(lg, name, quiet){
   if (SPORT === lg && !$("#tt-games").hidden) drawGames();
   if (SPORT === "following") renderFollowing();
 }
-const PREV_SCORE = {};
+const PREV_SCORE = {}, SB_BUSY = {};
 async function loadScoreboard(quiet){
   const lg = SPORT, day = GDATE[lg] || "";
   if (quiet && day && SB[lg] && SB[lg].day === day) return;         // another day's results don't change
+  if (quiet && SB_BUSY[lg]) return; SB_BUSY[lg] = true;
   try {
-    const d = await espnOr(() => ESPN_DIRECT.scoreboard(lg, day), `${ALERTS_URL}/sports/${lg}/scoreboard?${day ? `dates=${day}&` : ""}t=${Math.floor(Date.now()/20000)}`);
+    const d = await fetchBoard(lg, day);
     if ((GDATE[lg] || "") !== day) return;                         // the viewer moved to another day meanwhile
-    d.day = day; SB[lg] = d; gradePicks(lg, d.games);
-    learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away]));
-  } catch { if (!quiet) SB[lg] = { error: true, games: [], day }; }
+    d.day = day; SB[lg] = d;
+    try { gradePicks(lg, d.games); learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away])); } catch (e) { console.warn(e); }
+  } catch { if (!quiet || !SB[lg] || SB[lg].error) SB[lg] = { error: true, games: [], day }; }
+  finally { SB_BUSY[lg] = false; }
   if (!$("#tt-games").hidden && SPORT === lg) drawGames();
 }
 function renderGames(){
@@ -3308,11 +3390,11 @@ function dateBar(){
 function bindDateBar(){ $("#tt-games").querySelectorAll("[data-day]").forEach(b => b.onclick = () => { const n = +b.dataset.day; if (!n){ GDATE[SPORT] = ""; SB[SPORT] = null; renderGames(); } else shiftDay(SPORT, n); }); }
 function drawGames(){
   const d = SB[SPORT], day = GDATE[SPORT] || "";
-  if (!d || d.error){ $("#tt-games").innerHTML = dateBar() + `<div class="teamnote"><b>Couldn't load games</b>ESPN didn't respond. Trying again shortly.</div>`; bindDateBar(); return; }
+  if (!d || d.error){ $("#tt-games").innerHTML = dateBar() + netErrHtml("games"); bindDateBar(); $("#netRetry").onclick = () => { SB[SPORT] = null; renderGames(); }; return; }
   if (!d.games.length){ $("#tt-games").innerHTML = dateBar() + `<div class="teamnote"><b>No ${LEAGUE_LABEL[SPORT]} games ${day ? "on " + esc(dayLabel(day)) : "today"}</b>Use the arrows to check another day, or Predict for any matchup.</div>`; bindDateBar(); return; }
   const ml = v => v == null ? null : 1 / (1 + (v > 0 ? v/100 : 100/-v));
   const favFirst = [...d.games].sort((a, b) => (isFav(SPORT, b.home.name) || isFav(SPORT, b.away.name)) - (isFav(SPORT, a.home.name) || isFav(SPORT, a.away.name)));
-  $("#tt-games").innerHTML = dateBar() + `<div class="ggrid">${favFirst.map(g => {
+  $("#tt-games").innerHTML = dateBar() + staleNote(d.stale) + `<div class="ggrid">${favFirst.map(g => {
     const H = findTeam(g.home.name), A = findTeam(g.away.name), p = H && A ? teamPredict(H, A, g.neutral) : null;
     const live = g.status.state === "in", post = g.status.state === "post";
     const hs = +g.home.score, as = +g.away.score;
@@ -3349,12 +3431,16 @@ async function openGame(lg, id){
   $("#gbody").innerHTML = `<div class="plays"><div class="teamnote">${cosmoLoad("Loading play-by-play…")}</div></div>`;
   if (!$("#gameDlg").open) $("#gameDlg").showModal();
   const url = lg === "tennis" ? `${ALERTS_URL}/tennis/game/${id}` : `${ALERTS_URL}/sports/${lg}/game/${id}`;
+  let busy = false;
   const load = async () => {
+    if (busy) return; busy = true;                    // a slow network mustn't stack refreshes on top of each other
     try {
       const via = url + `?t=${Math.floor(Date.now()/10000)}`;
-      drawGame(await espnOr(lg === "tennis" ? null : () => ESPN_DIRECT.game(lg, id), via), lg);
+      const g = await espnOr(lg === "tennis" ? null : () => ESPN_DIRECT.game(lg, id), via);
+      try { drawGame(g, lg); } catch (e) { console.error("drawGame", e); }
     }
-    catch { if (!GSEEN.size) $("#gbody").innerHTML = `<div class="plays"><div class="teamnote"><b>Couldn't load play-by-play</b>Trying again in a few seconds.</div></div>`; }
+    catch { if (!GSEEN.size) $("#gbody").innerHTML = `<div class="plays"><div class="teamnote"><b>Couldn't load play-by-play</b>The score services didn't answer on this connection. Cosmo tries again every few seconds; switching between Wi-Fi and mobile data often helps.</div></div>`; }
+    finally { busy = false; }
   };
   await load(); gTimer = setInterval(load, 15000);
 }
@@ -3874,7 +3960,7 @@ function drawGame(g, lg){
     $("#gbody").innerHTML = `<header class="ghd" id="gHead"></header><div class="gfield" id="gScene" hidden></div><div class="pbar" id="gBar"></div><div class="plays" id="gList"></div>`;
   }
   const tn = t => `<div class="tn">${logoChip(t, "big", lg)}<span>${esc(t.name || "")}</span></div>`;
-  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button><button class="sharebtn cardbtn" id="gAsk" type="button">Ask</button>${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
+  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button><button class="sharebtn cardbtn" id="gAsk" type="button">Ask</button>${g.status?.state === "in" ? listenBtn(g, lg) : ""}${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
     <div class="row">${tn(A)}<div class="big">${esc(A.score ?? "")}</div></div>
     <div class="row">${tn(H)}<div class="big">${esc(H.score ?? "")}</div></div>
     ${g.status?.state === "pre" && g.date ? `<div class="countdown">Starts in <b data-launch="${esc(g.date)}" data-big="1"></b></div>` : ""}
@@ -3884,6 +3970,7 @@ function drawGame(g, lg){
   $("#gShare").onclick = () => shareGame(g, lg);
   $("#gCard").onclick = () => openCard(g, lg);
   $("#gAsk").onclick = () => openAsk();
+  bindListen(g, lg); listenUpdate(g, lg);
   const bh = $("#gHead [data-bell]"); if (bh) bh.onclick = async () => { if (await toggleBell(lg, g)) drawGame(g, lg); };
   if (scored){ nova($("#gHead")); sfx("score"); const [pa, ph] = (G_PREV_SC[g.id] || "").split("-"); document.querySelectorAll("#gHead .big").forEach((b, i) => { if ((i ? ph : pa) !== String(i ? H.score : A.score)) b.classList.add("roll"); }); }
   G_PREV_SC[g.id] = sk;
@@ -3895,6 +3982,68 @@ function drawGame(g, lg){
   drawGameTabs(g, lg, first);
   if (!live) { clearInterval(gTimer); gTimer = null; }
 }
+/* ================= Listen Live: the game read aloud, like a radio call ================= */
+// Uses the phone's own voice (speechSynthesis), so it's free and works offline once the plays arrive. New key plays,
+// scores, period changes and the final are spoken in plain language; the spoiler shield keeps it silent until you reveal.
+const LISTEN = { key: null, seen: new Set(), score: null, period: null, final: false };
+const canListen = () => "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+function voiceRate(){ return +lsGet("voiceRate", 1.05) || 1.05; }
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v => /^en(-|_|$)/i.test(v.lang));
+  return vs.find(v => /Samantha|Google US English|Aaron|Ava|Nathan/i.test(v.name)) || vs.find(v => /en-US/i.test(v.lang) && v.localService) || vs[0] || null;
+}
+function say(text, urgent){
+  if (!canListen() || !text) return;
+  if (urgent) speechSynthesis.cancel();
+  if (speechSynthesis.pending && !urgent) return;            // never build up a backlog behind a busy game
+  const u = new SpeechSynthesisUtterance(String(text).replace(/\s+/g, " ").replace(/\bvs\.?\s/gi, "versus ").replace(/(\d+)-(\d+)/g, "$1 to $2"));
+  const v = pickVoice(); if (v) u.voice = v; u.lang = (v && v.lang) || "en-US"; u.rate = voiceRate(); u.pitch = 1;
+  speechSynthesis.speak(u);
+}
+const lnm = t => (t && (t.short || t.name)) || "";
+function scoreLine(g){
+  const A = g.away || {}, H = g.home || {}, a = +A.score || 0, h = +H.score || 0;
+  if (g.status?.state === "pre") return `${lnm(A)} at ${lnm(H)} hasn't started yet.`;
+  if (a === h) return `It's tied at ${a}.`;
+  const lead = a > h ? A : H, hi = Math.max(a, h), lo = Math.min(a, h);
+  return g.status?.state === "post" ? `${lnm(lead)} won, ${hi} to ${lo}.` : `${lnm(lead)} lead ${hi} to ${lo}.`;
+}
+function listenOn(){ return LISTEN.key != null && $("#gameDlg").open; }
+function listenStart(g, lg){
+  LISTEN.key = lg + "/" + g.id; LISTEN.seen = new Set((g.plays || []).map(p => p.id)); LISTEN.score = `${g.away?.score}-${g.home?.score}`;
+  LISTEN.period = g.status?.short || ""; LISTEN.final = g.status?.state === "post";
+  const last = [...(g.plays || [])].reverse().find(p => !p.live && p.text);
+  say(`Listening to ${lnm(g.away)} at ${lnm(g.home)}. ${g.status?.state === "in" ? (g.status.detail || g.status.short || "") + ". " : ""}${scoreLine(g)}${last && g.status?.state === "in" ? " Last play: " + last.text : ""}`, true);
+  if (g.status?.state === "post") setTimeout(() => { if (LISTEN.key === lg + "/" + g.id) listenStop(true); }, 200);
+}
+function listenStop(quiet){ LISTEN.key = null; if (!quiet && canListen()) speechSynthesis.cancel(); document.querySelectorAll("#gListen").forEach(b => b.setAttribute("aria-pressed", "false")); }
+function listenUpdate(g, lg){
+  if (!listenOn() || LISTEN.key !== lg + "/" + g.id) return;
+  const fresh = (g.plays || []).filter(p => !LISTEN.seen.has(p.id) && !p.live);
+  (g.plays || []).forEach(p => { if (!p.live) LISTEN.seen.add(p.id); });
+  const sk = `${g.away?.score}-${g.home?.score}`, scored = sk !== LISTEN.score; LISTEN.score = sk;
+  const lines = [];
+  const per = g.status?.short || "";
+  if (per && per !== LISTEN.period && g.status?.state === "in" && !/\d:\d/.test(per)) lines.push(g.status.detail || per);
+  LISTEN.period = per;
+  const key = fresh.filter(p => isKey(p, lg)).slice(-2);
+  for (const p of key){ const T = (g.teams || {})[p.team]; lines.push(`${p.scoring && T ? lnm(T) + " score! " : ""}${p.text}`); }
+  if (scored && g.status?.state !== "post") lines.push(scoreLine(g));
+  if (g.status?.state === "post" && !LISTEN.final){ LISTEN.final = true; lines.push(`That's the final. ${scoreLine(g)}`); }
+  if (lines.length) say(lines.join(" "));
+  if (LISTEN.final) setTimeout(() => listenStop(true), 100);
+}
+function listenBtn(g, lg){
+  if (!canListen() || lg === "tennis") return "";
+  const on = LISTEN.key === lg + "/" + g.id;
+  return `<button class="sharebtn cardbtn" id="gListen" type="button" aria-pressed="${on}" title="Hear new plays read aloud">${on ? "🔊 Listening" : "🎧 Listen"}</button>`;
+}
+function bindListen(g, lg){
+  const b = $("#gListen"); if (!b) return;
+  b.onclick = () => { if (LISTEN.key === lg + "/" + g.id){ listenStop(); toast("Listen Live is off"); } else { listenStart(g, lg); if (g.status?.state === "in") toast("Listen Live is on. New plays will be read aloud."); } drawGame(g, lg); };
+}
+if (canListen()){ try { speechSynthesis.getVoices(); speechSynthesis.addEventListener?.("voiceschanged", () => {}); } catch {} }
+
 /* ================= Box score, game info, standings, news, team pages, following, search, sharing ================= */
 let GTAB = "plays", G_LAST = null, BOXTEAM = "away"; const G_SCORE = {}, G_PREV_SC = {};
 const PERIOD_LABEL = { mlb: i => String(i + 1), nfl: i => i < 4 ? String(i + 1) : "OT", nba: i => i < 4 ? String(i + 1) : "OT" + (i > 4 ? i - 3 : ""), nhl: i => i < 3 ? String(i + 1) : i === 3 ? "OT" : "SO", epl: i => ["1H", "2H"][i] || "ET" };
@@ -4303,6 +4452,305 @@ function sfx(kind){
   } catch {}
 }
 
+/* ================= Arcade: quick sports mini-games (canvas, touch or mouse) ================= */
+const ARC = { g: null, s: null, raf: 0, last: 0, W: 360, H: 560, ctx: null, scale: 1, running: false };
+const arcBest = id => +lsGet("arc-" + id, 0) || 0;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function arcOpen(id){
+  const g = GAMES.find(x => x.id === id); if (!g) return;
+  ARC.g = g; const dlg = $("#arcDlg"); $("#arcTitle").textContent = g.name; $("#arcSub").textContent = g.how;
+  if (!dlg.open) dlg.showModal();
+  arcIntro();
+}
+function arcSize(){
+  const c = $("#arcCanvas"), box = c.parentElement.getBoundingClientRect(), dpr = Math.min(2.5, devicePixelRatio || 1);
+  const s = Math.min(box.width / ARC.W, box.height / ARC.H);
+  c.style.width = ARC.W * s + "px"; c.style.height = ARC.H * s + "px"; c.width = Math.round(ARC.W * s * dpr); c.height = Math.round(ARC.H * s * dpr);
+  ARC.scale = s; ARC.ctx = c.getContext("2d"); ARC.ctx.setTransform(s * dpr, 0, 0, s * dpr, 0, 0);
+}
+function arcIntro(){
+  ARC.running = false; cancelAnimationFrame(ARC.raf);
+  const g = ARC.g, best = arcBest(g.id);
+  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(g.name)}</b><p>${esc(g.how)}</p>${best ? `<small>Your best: ${best}${g.unit ? " " + g.unit : ""}</small>` : ""}<button class="btn primary" type="button" data-arc="start">Play</button></div>`;
+  $("#arcOver").hidden = false; $("#arcChoices").hidden = true; ARC.s = null; arcSize(); drawArcBg();
+}
+function arcStart(){
+  $("#arcOver").hidden = true; $("#arcChoices").hidden = true; ARC.s = { score: 0, t: 0, over: false, fx: [] }; ARC.g.init(ARC.s); arcSize(); ARC.running = true; ARC.last = performance.now(); sfx("tap");
+  const loop = now => { if (!ARC.running) return; const dt = Math.min(.05, (now - ARC.last) / 1000); ARC.last = now; ARC.s.t += dt;
+    ARC.g.update(ARC.s, dt); arcFx(dt); ARC.g.draw(ARC.ctx, ARC.s); arcHud(); if (ARC.s.over){ arcEnd(); return; } ARC.raf = requestAnimationFrame(loop); };
+  ARC.raf = requestAnimationFrame(loop);
+}
+function arcEnd(){
+  ARC.running = false; const g = ARC.g, sc = Math.round(ARC.s.score), best = arcBest(g.id), rec = sc > best;
+  if (rec) lsSet("arc-" + g.id, sc); sfx(rec ? "win" : "lose");
+  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${rec ? "New best!" : "Game over"}</b><p class="arcscore">${sc}<small>${g.unit || "points"}</small></p>${ARC.s.note ? `<p>${esc(ARC.s.note)}</p>` : ""}<small>Best: ${Math.max(sc, best)}</small>
+    <span class="dbtns"><button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-arc="start">Play again</button></span></div>`;
+  $("#arcOver").hidden = false; if (SPORT === "play") drawPlay();
+}
+function arcHud(){ const s = ARC.s, g = ARC.g; $("#arcHud").innerHTML = `<span>${g.hud ? g.hud(s) : ""}</span><b>${Math.round(s.score)}<small>${g.unit || "pts"}</small></b>`; }
+// particles and floating words shared by every game
+function arcBurst(x, y, col, n = 18){ for (let i = 0; i < n; i++){ const a = rnd(0, 6.283), v = rnd(60, 220); ARC.s.fx.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: rnd(.5, 1), max: 1, col, r: rnd(1.5, 3.5) }); } }
+function arcWord(x, y, text, col = "#fff"){ ARC.s.fx.push({ x, y, vx: 0, vy: -40, life: 1.2, max: 1.2, text, col }); }
+function arcFx(dt){ for (const p of ARC.s.fx){ p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; if (!p.text) p.vy += 300 * dt; } ARC.s.fx = ARC.s.fx.filter(p => p.life > 0); }
+function drawFx(c){
+  for (const p of ARC.s.fx){ c.globalAlpha = clamp(p.life / p.max, 0, 1);
+    if (p.text){ c.fillStyle = p.col; c.font = "900 26px Archivo, system-ui, sans-serif"; c.textAlign = "center"; c.fillText(p.text, p.x, p.y); }
+    else { c.fillStyle = p.col; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.283); c.fill(); } }
+  c.globalAlpha = 1; c.textAlign = "left";
+}
+function drawArcBg(){
+  const c = ARC.ctx; if (!c) return;
+  const g = c.createLinearGradient(0, 0, 0, ARC.H); g.addColorStop(0, "#150C40"); g.addColorStop(1, "#07051A"); c.fillStyle = g; c.fillRect(0, 0, ARC.W, ARC.H);
+  let seed = 7; const r = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  c.fillStyle = "#fff"; for (let i = 0; i < 70; i++){ c.globalAlpha = .2 + r() * .6; c.fillRect(r() * ARC.W, r() * ARC.H * .55, 1.3, 1.3); } c.globalAlpha = 1;
+}
+const glow = (c, col, blur) => { c.shadowColor = col; c.shadowBlur = blur; };
+const noGlow = c => { c.shadowBlur = 0; };
+function meter(c, x, y, w, h, pos, zone){   // a sliding aim bar with a sweet spot
+  c.fillStyle = "rgba(255,255,255,.12)"; c.fillRect(x, y, w, h);
+  if (zone){ c.fillStyle = "rgba(95,227,163,.35)"; c.fillRect(x + w / 2 - zone * w / 2, y, zone * w, h); }
+  c.fillStyle = "#fff"; glow(c, "#B98BFF", 10); c.fillRect(x + pos * w - 2, y - 4, 4, h + 8); noGlow(c);
+}
+const osc = (t, speed) => (Math.sin(t * speed) + 1) / 2;
+
+/* ---- Home Run Derby: time your swing ---- */
+const DERBY = { id: "derby", name: "Home Run Derby", icon: "⚾", unit: "HR", how: "Tap when the pitch reaches the plate. Ten outs; every perfect swing is a home run.",
+  init(s){ s.outs = 0; s.pitch = null; s.wait = 1; s.swing = 0; s.dist = 0; s.streak = 0; },
+  hud: s => `Outs ${s.outs}/10${s.streak > 1 ? ` · ${s.streak} in a row` : ""}`,
+  newPitch(s){ const fast = Math.random() < .7; s.pitch = { t: 0, dur: fast ? rnd(.62, .78) - Math.min(.18, s.score * .012) : rnd(.95, 1.15), drift: rnd(-24, 24), hit: null }; },
+  update(s, dt){
+    s.swing = Math.max(0, s.swing - dt * 4);
+    if (!s.pitch){ s.wait -= dt; if (s.wait <= 0) this.newPitch(s); return; }
+    const p = s.pitch; p.t += dt;
+    if (p.hit){ p.hit.t += dt; if (p.hit.t > 1.6){ s.pitch = null; s.wait = .7; } return; }
+    if (p.t > p.dur + .25){ s.outs++; s.streak = 0; arcWord(180, 300, "STRIKE", "#FF7D8E"); s.pitch = null; s.wait = .8; if (s.outs >= 10){ s.over = true; s.note = `Longest: ${s.dist} ft`; } }
+  },
+  tap(s){
+    s.swing = 1; const p = s.pitch; if (!p || p.hit) return;
+    const off = Math.abs(p.t - p.dur);
+    if (off < .06){ const d = Math.round(rnd(405, 475)); s.score++; s.streak++; s.dist = Math.max(s.dist, d); p.hit = { t: 0, kind: "hr", d, dir: rnd(-.8, .8) }; arcWord(180, 250, `${d} FT!`, "#FFD678"); arcBurst(180, 380, "#FFD678", 26); sfx("score"); }
+    else if (off < .12){ const d = Math.round(rnd(360, 404)); if (d >= 385){ s.score++; s.streak++; s.dist = Math.max(s.dist, d); p.hit = { t: 0, kind: "hr", d, dir: rnd(-.9, .9) }; arcWord(180, 250, `${d} FT`, "#fff"); sfx("win"); } else { s.outs++; s.streak = 0; p.hit = { t: 0, kind: "fly", d, dir: rnd(-.9, .9) }; arcWord(180, 250, "Caught at the wall", "#C9B8FF"); } }
+    else if (off < .22){ s.outs++; s.streak = 0; p.hit = { t: 0, kind: "foul", dir: Math.random() < .5 ? -1.4 : 1.4 }; arcWord(180, 250, "FOUL", "#C9B8FF"); }
+    else return;
+    if (s.outs >= 10){ s.over = true; s.note = `Longest: ${s.dist} ft`; }
+  },
+  draw(c, s){
+    drawArcBg();
+    // the field from behind the plate
+    const grd = c.createLinearGradient(0, 200, 0, ARC.H); grd.addColorStop(0, "#1E6B3A"); grd.addColorStop(1, "#2F8A4A"); c.fillStyle = grd;
+    c.beginPath(); c.moveTo(0, 230); c.quadraticCurveTo(180, 150, 360, 230); c.lineTo(360, 560); c.lineTo(0, 560); c.fill();
+    c.fillStyle = "#6B4A2E"; c.beginPath(); c.moveTo(0, 230); c.quadraticCurveTo(180, 150, 360, 230); c.lineTo(360, 222); c.quadraticCurveTo(180, 140, 0, 222); c.fill();
+    c.fillStyle = "#C4905A"; c.beginPath(); c.ellipse(180, 470, 120, 50, 0, 0, 6.283); c.fill(); c.beginPath(); c.ellipse(180, 300, 26, 10, 0, 0, 6.283); c.fill();
+    c.fillStyle = "#fff"; c.beginPath(); c.moveTo(170, 478); c.lineTo(190, 478); c.lineTo(190, 484); c.lineTo(180, 490); c.lineTo(170, 484); c.fill();
+    // the hit zone lights up as the pitch arrives: swing when the ball is inside the ring
+    const pz = s.pitch && !s.pitch.hit ? clamp(1 - Math.abs(s.pitch.t - s.pitch.dur) / .35, 0, 1) : 0;
+    c.strokeStyle = `rgba(255,214,120,${.25 + pz * .75})`; c.lineWidth = 2 + pz * 3; glow(c, "#FFD678", pz * 18); c.beginPath(); c.ellipse(180, 476, 22 + (1 - pz) * 10, 12 + (1 - pz) * 5, 0, 0, 6.283); c.stroke(); noGlow(c);
+    // pitcher
+    c.fillStyle = "#E7E2FF"; c.beginPath(); c.arc(180, 286, 7, 0, 6.283); c.fill(); c.fillRect(176, 292, 8, 14);
+    const p = s.pitch;
+    if (p && !p.hit){ const k = clamp(p.t / p.dur, 0, 1.3), y = 296 + k * 180, x = 180 + p.drift * k * k, r = 3 + k * 6;
+      c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(x, y + 10 + k * 8, r, r * .4, 0, 0, 6.283); c.fill();
+      glow(c, "#fff", 10); c.fillStyle = "#fff"; c.beginPath(); c.arc(x, y, r, 0, 6.283); c.fill(); noGlow(c); }
+    if (p && p.hit){ const h = p.hit, t = h.t, k = Math.min(1, t / (h.kind === "foul" ? .8 : 1.3));
+      const x = 180 + h.dir * 160 * k, y = 470 - (h.kind === "foul" ? 200 : 330) * Math.sin(k * 1.4) , r = Math.max(1.5, 8 - k * 6);
+      glow(c, h.kind === "hr" ? "#FFD678" : "#fff", 16); c.fillStyle = "#fff"; c.beginPath(); c.arc(x, y, r, 0, 6.283); c.fill(); noGlow(c);
+      if (h.kind === "hr" && t > 1.1 && t < 1.2) arcBurst(x, y, "#FF7AC8", 20); }
+    // batter and bat
+    c.save(); c.translate(205, 470); c.rotate(-1.9 + s.swing * 2.6); c.fillStyle = "#D9A36B"; c.fillRect(0, -3, 62, 6); c.restore();
+    c.fillStyle = "#9DB0FF"; c.beginPath(); c.arc(214, 442, 10, 0, 6.283); c.fill(); c.fillRect(206, 452, 16, 34);
+    drawFx(c);
+  } };
+
+/* ---- Penalty Shootout: aim and beat the keeper ---- */
+const PENS = { id: "pens", name: "Penalty Shootout", icon: "⚽", unit: "goals", how: "Tap when the target is where you want to shoot. Corners beat the keeper; aim too wide and you miss. Ten kicks.",
+  init(s){ s.kick = 0; s.shot = null; s.keeper = 180; s.kdir = 1; s.aimT = rnd(0, 6); s.streak = 0; },
+  hud: s => `Kick ${Math.min(10, s.kick + 1)}/10`,
+  aim(s){ return { x: 180 + Math.sin(s.aimT * 1.9) * 150, y: 150 + Math.sin(s.aimT * 1.3 + 1) * 45 }; },
+  update(s, dt){
+    s.aimT += dt * (1 + s.kick * .06);
+    if (!s.shot){ s.keeper += s.kdir * dt * 40; if (Math.abs(s.keeper - 180) > 30) s.kdir *= -1; return; }
+    const sh = s.shot; sh.t += dt;
+    if (sh.t < .45){ const dive = clamp((sh.t - .12) / .3, 0, 1); s.keeper = sh.k0 + (sh.kx - sh.k0) * dive; }
+    if (sh.t > .45 && !sh.done){ sh.done = true;
+      const inGoal = sh.x > 52 && sh.x < 308 && sh.y > 88 && sh.y < 212, saved = inGoal && Math.abs(sh.x - s.keeper) < 44 && sh.y > 110;
+      if (!inGoal){ arcWord(180, 290, sh.x < 52 || sh.x > 308 ? "WIDE" : "OVER", "#FF7D8E"); s.streak = 0; sfx("lose"); }
+      else if (saved){ arcWord(180, 290, "SAVED", "#FF7D8E"); s.streak = 0; sfx("lose"); }
+      else { s.score++; s.streak++; arcWord(180, 290, s.streak > 2 ? `GOAL! x${s.streak}` : "GOAL!", "#5FE3A3"); arcBurst(sh.x, sh.y, "#5FE3A3", 26); sfx("score"); } }
+    if (sh.t > 1.3){ s.shot = null; s.kick++; if (s.kick >= 10){ s.over = true; s.note = s.score >= 8 ? "Ice cold from the spot." : s.score >= 5 ? "Solid shootout." : "The keeper had your number."; } }
+  },
+  tap(s){ if (s.shot) return; const a = this.aim(s); const guess = Math.random() < .55 ? a.x : rnd(80, 280);
+    s.shot = { t: 0, x: a.x, y: a.y, k0: s.keeper, kx: clamp(guess, 90, 270) }; sfx("tap"); },
+  draw(c, s){
+    drawArcBg();
+    c.fillStyle = "#2B7F3F"; c.fillRect(0, 212, 360, 348); for (let i = 0; i < 6; i++){ c.fillStyle = i % 2 ? "rgba(0,0,0,.06)" : "rgba(255,255,255,.03)"; c.fillRect(0, 212 + i * 58, 360, 58); }
+    // net and posts
+    c.strokeStyle = "rgba(255,255,255,.25)"; c.lineWidth = 1; for (let x = 56; x <= 304; x += 12){ c.beginPath(); c.moveTo(x, 90); c.lineTo(x, 212); c.stroke(); } for (let y = 90; y <= 212; y += 12){ c.beginPath(); c.moveTo(52, y); c.lineTo(308, y); c.stroke(); }
+    c.strokeStyle = "#fff"; c.lineWidth = 6; c.beginPath(); c.moveTo(52, 214); c.lineTo(52, 88); c.lineTo(308, 88); c.lineTo(308, 214); c.stroke();
+    c.strokeStyle = "rgba(255,255,255,.6)"; c.lineWidth = 2; c.beginPath(); c.moveTo(20, 300); c.lineTo(340, 300); c.stroke(); c.beginPath(); c.arc(180, 440, 3, 0, 6.283); c.fillStyle = "#fff"; c.fill();
+    // keeper
+    const kx = s.keeper, dv = s.shot ? clamp((s.shot.t - .12) / .3, 0, 1) : 0, lean = s.shot ? Math.sign(s.shot.kx - s.shot.k0) * dv : 0;
+    c.save(); c.translate(kx, 185); c.rotate(lean * .9); c.fillStyle = "#F2C200"; c.fillRect(-10, -34, 20, 36); c.beginPath(); c.arc(0, -42, 9, 0, 6.283); c.fill();
+    c.fillRect(-30, -32, 20, 7); c.fillRect(10, -32, 20, 7); c.restore();
+    // aim target
+    if (!s.shot){ const a = this.aim(s); glow(c, "#FF7AC8", 14); c.strokeStyle = "#FF7AC8"; c.lineWidth = 3; c.beginPath(); c.arc(a.x, a.y, 12, 0, 6.283); c.stroke(); c.beginPath(); c.moveTo(a.x - 18, a.y); c.lineTo(a.x + 18, a.y); c.moveTo(a.x, a.y - 18); c.lineTo(a.x, a.y + 18); c.stroke(); noGlow(c); }
+    // ball
+    const b = s.shot ? (() => { const k = clamp(s.shot.t / .45, 0, 1); return { x: 180 + (s.shot.x - 180) * k, y: 440 + (s.shot.y - 440) * k - Math.sin(k * 3.14) * 30, r: 11 - k * 5 }; })() : { x: 180, y: 440, r: 11 };
+    glow(c, "#fff", 10); c.fillStyle = "#fff"; c.beginPath(); c.arc(b.x, b.y, b.r, 0, 6.283); c.fill(); noGlow(c); c.fillStyle = "#222"; c.beginPath(); c.arc(b.x, b.y, b.r * .35, 0, 6.283); c.fill();
+    // kicks
+    for (let i = 0; i < 10; i++){ c.fillStyle = i < s.kick ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.15)"; c.beginPath(); c.arc(62 + i * 26, 530, 6, 0, 6.283); c.fill(); }
+    drawFx(c);
+  } };
+
+/* ---- Free Throw Frenzy: hit the sweet spot, beat the clock ---- */
+const HOOPS = { id: "hoops", name: "Free Throw Frenzy", icon: "🏀", unit: "points", how: "Tap when the marker is in the green. Swishes build a streak that multiplies your points. 30 seconds.",
+  init(s){ s.left = 30; s.combo = 1; s.shot = null; s.mt = 0; },
+  hud: s => `${Math.ceil(s.left)}s · x${s.combo}`,
+  update(s, dt){ s.left -= dt; if (s.left <= 0){ s.over = true; s.note = `Best combo x${s.bestCombo || 1}`; return; }
+    s.mt += dt * (2.2 + s.combo * .35); if (s.shot){ s.shot.t += dt; if (s.shot.t > .9) s.shot = null; } },
+  tap(s){ if (s.shot) return; const pos = osc(s.mt, 1), off = Math.abs(pos - .5), zone = Math.max(.07, .18 - s.combo * .015);
+    const kind = off < zone / 2 ? "swish" : off < zone ? "rim" : "miss";
+    s.shot = { t: 0, kind, side: pos < .5 ? -1 : 1 };
+    setTimeout(() => { if (!ARC.s || ARC.s !== s || s.over) return;
+      if (kind === "miss"){ s.combo = 1; arcWord(180, 180, "Brick", "#FF7D8E"); sfx("lose"); }
+      else { const pts = (kind === "swish" ? 3 : 2) * s.combo; s.score += pts; if (kind === "swish"){ s.combo = Math.min(8, s.combo + 1); s.bestCombo = Math.max(s.bestCombo || 1, s.combo); arcBurst(180, 120, "#FF9C7A", 22); } arcWord(180, 180, kind === "swish" ? `SWISH +${pts}` : `+${pts}`, kind === "swish" ? "#FFD678" : "#fff"); sfx(kind === "swish" ? "score" : "tap"); } }, 520); },
+  draw(c, s){
+    drawArcBg();
+    const fl = c.createLinearGradient(0, 330, 0, 560); fl.addColorStop(0, "#9A6433"); fl.addColorStop(1, "#C98B4F"); c.fillStyle = fl; c.fillRect(0, 330, 360, 230);
+    c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 2; c.beginPath(); c.ellipse(180, 430, 90, 26, 0, 0, 6.283); c.stroke();
+    // backboard and hoop
+    c.fillStyle = "rgba(255,255,255,.9)"; c.fillRect(120, 50, 120, 76); c.strokeStyle = "#FF6A1A"; c.lineWidth = 3; c.strokeRect(160, 80, 40, 30);
+    c.fillStyle = "#555"; c.fillRect(176, 126, 8, 210);
+    c.strokeStyle = "#FF6A1A"; c.lineWidth = 4; c.beginPath(); c.ellipse(180, 128, 26, 6, 0, 0, 6.283); c.stroke();
+    c.strokeStyle = "rgba(255,255,255,.7)"; c.lineWidth = 1.2; for (let i = -3; i <= 3; i++){ c.beginPath(); c.moveTo(180 + i * 8, 130); c.lineTo(180 + i * 5, 160); c.stroke(); }
+    // ball in flight
+    let bx = 180, by = 440, br = 16;
+    if (s.shot){ const k = clamp(s.shot.t / .55, 0, 1), miss = s.shot.kind === "miss", rim = s.shot.kind === "rim";
+      bx = 180 + (miss ? s.shot.side * 30 * k : rim ? Math.sin(k * 12) * 4 * k : 0); by = 440 - 330 * k + 180 * k * k + (k >= 1 ? (s.shot.t - .55) * 260 : 0); br = 16 - k * 5; }
+    c.fillStyle = "#E8691E"; glow(c, "#FF9C7A", 12); c.beginPath(); c.arc(bx, by, br, 0, 6.283); c.fill(); noGlow(c);
+    c.strokeStyle = "rgba(0,0,0,.4)"; c.lineWidth = 1.2; c.beginPath(); c.arc(bx, by, br, 0, 6.283); c.moveTo(bx - br, by); c.lineTo(bx + br, by); c.stroke();
+    meter(c, 50, 500, 260, 14, osc(s.mt, 1), Math.max(.07, .18 - s.combo * .015));
+    drawFx(c);
+  } };
+
+/* ---- Field Goal Challenge: set the direction, then the power ---- */
+const KICK = { id: "kick", name: "Field Goal Challenge", icon: "🏈", unit: "yds", how: "Tap to lock the direction, then tap again for power. Every make moves you back five yards. Three misses and you're done.",
+  init(s){ s.yd = 25; s.lives = 3; s.phase = "aim"; s.mt = 0; s.wind = rnd(-1, 1); s.ball = null; s.longest = 0; },
+  hud: s => `${s.yd} yd try · ${"❤".repeat(s.lives)}`,
+  update(s, dt){ s.mt += dt;
+    if (s.ball){ const b = s.ball; b.t += dt;
+      if (b.t > 1.1 && !b.done){ b.done = true;
+        const good = Math.abs(b.x) < 1 && b.pow >= b.need;
+        if (good){ s.score = Math.max(s.score, s.yd); s.longest = s.yd; arcWord(180, 200, `GOOD from ${s.yd}!`, "#5FE3A3"); arcBurst(180, 120, "#5FE3A3", 30); sfx("score"); s.yd += 5; }
+        else { s.lives--; arcWord(180, 200, b.pow < b.need ? "Short!" : b.x < 0 ? "Wide left" : "Wide right", "#FF7D8E"); sfx("lose"); } }
+      if (b.t > 1.9){ s.ball = null; s.phase = "aim"; s.wind = rnd(-1, 1) * Math.min(1.6, .6 + s.yd / 50); if (s.lives <= 0){ s.over = true; s.note = `Longest make: ${s.longest || 0} yards`; } } } },
+  tap(s){ if (s.ball) return;
+    if (s.phase === "aim"){ s.dir = osc(s.mt, 2.4 + s.yd / 25) * 2 - 1; s.phase = "power"; s.mt = 0; sfx("tap"); return; }
+    const pow = osc(s.mt * 1.1 - 1.57, 2.6 + s.yd / 30), need = clamp((s.yd - 15) / 55, .25, .95);
+    s.ball = { t: 0, x: s.dir * 1.6 + s.wind * .55 + rnd(-.12, .12), pow, need }; s.phase = "fly"; sfx("tap"); },
+  draw(c, s){
+    drawArcBg();
+    const turf = c.createLinearGradient(0, 180, 0, 560); turf.addColorStop(0, "#1F6B35"); turf.addColorStop(1, "#3C9A4E"); c.fillStyle = turf; c.beginPath(); c.moveTo(130, 180); c.lineTo(230, 180); c.lineTo(360, 560); c.lineTo(0, 560); c.fill();
+    c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 1.5; for (let i = 0; i < 7; i++){ const y = 200 + i * i * 8 + i * 20; const w = 55 + (y - 180) * .34; c.beginPath(); c.moveTo(180 - w, y); c.lineTo(180 + w, y); c.stroke(); }
+    // uprights
+    c.strokeStyle = "#F2C200"; c.lineWidth = 5; glow(c, "#F2C200", 10); c.beginPath(); c.moveTo(180, 200); c.lineTo(180, 160); c.moveTo(150, 160); c.lineTo(210, 160); c.moveTo(150, 160); c.lineTo(150, 70); c.moveTo(210, 160); c.lineTo(210, 70); c.stroke(); noGlow(c);
+    // wind
+    c.fillStyle = "#C9B8FF"; c.font = "800 14px Archivo, system-ui, sans-serif"; c.textAlign = "center"; c.fillText(`Wind ${s.wind < -.05 ? "←" : s.wind > .05 ? "→" : "·"} ${Math.round(Math.abs(s.wind) * 12)} mph`, 180, 40); c.textAlign = "left";
+    // ball
+    if (s.ball){ const b = s.ball, k = clamp(b.t / 1.1, 0, 1), reach = Math.min(1, b.pow / b.need);
+      const x = 180 + b.x * 30 * k * reach * 1.15, y = 470 - (470 - 115) * k * reach - Math.sin(k * 3.14) * 40, r = 12 - 8 * k;
+      c.fillStyle = "#8B4513"; glow(c, "#FFD678", 10); c.beginPath(); c.ellipse(x, y, r, r * .62, b.t * 8, 0, 6.283); c.fill(); noGlow(c); }
+    else { c.fillStyle = "#8B4513"; c.beginPath(); c.ellipse(180, 470, 12, 7.5, 0, 0, 6.283); c.fill(); }
+    if (s.phase === "aim"){ const d = osc(s.mt, 2.4 + s.yd / 25) * 2 - 1; c.strokeStyle = "#FF7AC8"; c.lineWidth = 3; glow(c, "#FF7AC8", 12); c.beginPath(); c.moveTo(180, 450); c.lineTo(180 + d * 60, 300); c.stroke(); noGlow(c); }
+    if (s.phase === "power"){ const pw = osc(s.mt * 1.1 - 1.57, 2.6 + s.yd / 30), need = clamp((s.yd - 15) / 55, .25, .95);
+      c.fillStyle = "rgba(255,255,255,.12)"; c.fillRect(320, 300, 16, 200); c.fillStyle = "rgba(95,227,163,.35)"; c.fillRect(320, 300, 16, 200 * (1 - need));
+      c.fillStyle = "#FFD678"; c.fillRect(320, 500 - 200 * pw, 16, 200 * pw); c.fillStyle = "#fff"; c.fillText("POWER", 306, 292); }
+    drawFx(c);
+  } };
+
+/* ---- Top Shelf: hit the targets before they vanish ---- */
+const SHELF = { id: "shelf", name: "Top Shelf", icon: "🏒", unit: "points", how: "Targets light up in the net. Tap them before they fade, but never hit the goalie. 30 seconds.",
+  init(s){ s.left = 30; s.targets = []; s.spawn = .5; s.goalie = 180; s.gd = 1; s.pucks = []; },
+  hud: s => `${Math.ceil(s.left)}s`,
+  update(s, dt){ s.left -= dt; if (s.left <= 0){ s.over = true; return; }
+    s.goalie += s.gd * dt * (70 + s.score * 1.2); if (s.goalie < 110 || s.goalie > 250) s.gd *= -1;
+    s.spawn -= dt; if (s.spawn <= 0){ s.spawn = Math.max(.35, .9 - s.score * .012); s.targets.push({ x: rnd(80, 280), y: rnd(120, 230), life: Math.max(.8, 1.7 - s.score * .02), max: 0, gold: Math.random() < .15 }); s.targets[s.targets.length - 1].max = s.targets[s.targets.length - 1].life; }
+    for (const t of s.targets) t.life -= dt; s.targets = s.targets.filter(t => t.life > 0);
+    for (const p of s.pucks) p.t += dt; s.pucks = s.pucks.filter(p => p.t < .25); },
+  tapAt(s, x, y){
+    if (Math.abs(x - s.goalie) < 30 && y > 150 && y < 260){ s.score = Math.max(0, s.score - 3); arcWord(s.goalie, 140, "Stopped! -3", "#FF7D8E"); sfx("lose"); return; }
+    const t = s.targets.find(t => Math.hypot(t.x - x, t.y - y) < 30);
+    s.pucks.push({ x, y, t: 0 });
+    if (t){ const pts = t.gold ? 5 : 1; s.score += pts; s.targets = s.targets.filter(q => q !== t); arcBurst(t.x, t.y, t.gold ? "#FFD678" : "#8FF3FF", 16); arcWord(t.x, t.y - 12, `+${pts}`, t.gold ? "#FFD678" : "#fff"); sfx(t.gold ? "score" : "tap"); } },
+  draw(c, s){
+    drawArcBg();
+    c.fillStyle = "#E7EEF3"; c.fillRect(0, 280, 360, 280); c.strokeStyle = "#D64541"; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 300); c.lineTo(360, 300); c.stroke();
+    c.fillStyle = "rgba(142,195,240,.5)"; c.beginPath(); c.ellipse(180, 300, 90, 26, 0, 3.14, 6.283); c.fill();
+    // net
+    c.fillStyle = "rgba(255,255,255,.08)"; c.fillRect(60, 100, 240, 180); c.strokeStyle = "rgba(255,255,255,.2)"; c.lineWidth = 1; for (let x = 60; x <= 300; x += 14){ c.beginPath(); c.moveTo(x, 100); c.lineTo(x, 280); c.stroke(); } for (let y = 100; y <= 280; y += 14){ c.beginPath(); c.moveTo(60, y); c.lineTo(300, y); c.stroke(); }
+    c.strokeStyle = "#D64541"; c.lineWidth = 7; c.beginPath(); c.moveTo(60, 282); c.lineTo(60, 100); c.lineTo(300, 100); c.lineTo(300, 282); c.stroke();
+    for (const t of s.targets){ const k = t.life / t.max; glow(c, t.gold ? "#FFD678" : "#8FF3FF", 16); c.strokeStyle = t.gold ? "#FFD678" : "#8FF3FF"; c.lineWidth = 4; c.globalAlpha = .4 + k * .6;
+      c.beginPath(); c.arc(t.x, t.y, 20, 0, 6.283); c.stroke(); c.beginPath(); c.arc(t.x, t.y, 20 * k, -1.57, -1.57 + 6.283 * k); c.lineWidth = 2; c.stroke(); c.globalAlpha = 1; noGlow(c); }
+    // goalie
+    const g = s.goalie; c.fillStyle = "#1C2B39"; c.fillRect(g - 26, 200, 52, 62); c.fillStyle = "#F2F2F2"; c.fillRect(g - 30, 250, 20, 30); c.fillRect(g + 10, 250, 20, 30); c.beginPath(); c.arc(g, 190, 13, 0, 6.283); c.fillStyle = "#fff"; c.fill();
+    for (const p of s.pucks){ c.fillStyle = "#111"; c.beginPath(); c.ellipse(p.x, p.y, 8, 5, 0, 0, 6.283); c.fill(); }
+    drawFx(c);
+  } };
+
+/* ---- Logo Quiz: name that team ---- */
+const LOGOQ = { id: "logos", name: "Logo Quiz", icon: "🛡️", unit: "points", how: "Name the team from its logo. Ten logos; quicker answers score bonus points.",
+  init(s){ s.n = 0; s.right = 0; this.next(s); },
+  hud: s => `Logo ${Math.min(10, s.n + 1)}/10`,
+  next(s){
+    const lgs = Object.keys(LEAGUE_LABEL).filter(lg => LG_TEAMS(lg).some(t => t.logo_local || t.logo));
+    const lg = lgs[Math.floor(Math.random() * lgs.length)], T = LG_TEAMS(lg).filter(t => t.logo_local || t.logo), ans = T[Math.floor(Math.random() * T.length)];
+    const opts = [ans]; while (opts.length < 4 && opts.length < T.length){ const o = T[Math.floor(Math.random() * T.length)]; if (!opts.includes(o)) opts.push(o); }
+    opts.sort(() => Math.random() - .5);
+    s.q = { lg, ans, opts, t0: s.t, picked: null };
+    const img = new Image(); img.src = teamLogo(ans, lg); s.q.img = img;
+    $("#arcChoices").innerHTML = opts.map((o, i) => `<button type="button" class="arcopt" data-opt="${i}">${esc(o.name)}</button>`).join("");
+    $("#arcChoices").hidden = false;
+  },
+  pick(s, i){ const q = s.q; if (!q || q.picked != null) return; q.picked = i; const ok = q.opts[i] === q.ans, fast = Math.max(0, 5 - (s.t - q.t0));
+    const btns = $("#arcChoices").querySelectorAll(".arcopt"); btns.forEach((b, j) => b.classList.add(q.opts[j] === q.ans ? "right" : j === i ? "wrong" : "dim"));
+    if (ok){ s.right++; s.score += 10 + Math.round(fast * 2); arcWord(180, 90, fast > 3 ? "Lightning!" : "Correct", "#5FE3A3"); sfx("win"); } else { arcWord(180, 90, "Nope", "#FF7D8E"); sfx("lose"); }
+    setTimeout(() => { if (ARC.s !== s) return; s.n++; if (s.n >= 10){ s.over = true; s.note = `${s.right}/10 correct`; $("#arcChoices").hidden = true; } else this.next(s); }, 900); },
+  update(){},
+  draw(c, s){
+    drawArcBg(); const q = s.q; if (!q) return;
+    c.fillStyle = "rgba(255,255,255,.06)"; c.beginPath(); c.arc(180, 190, 110, 0, 6.283); c.fill();
+    glow(c, "#B98BFF", 30); c.fillStyle = "#fff"; c.beginPath(); c.arc(180, 190, 92, 0, 6.283); c.fill(); noGlow(c);
+    const reveal = q.picked != null ? 1 : clamp((s.t - q.t0) / 3, 0, 1);
+    if (q.img.complete && q.img.naturalWidth){   // starts as big pixels and sharpens (works in every browser, unlike canvas blur)
+      const px = reveal >= 1 ? 0 : Math.max(6, Math.round(6 + reveal * 60));
+      c.save(); c.beginPath(); c.arc(180, 190, 88, 0, 6.283); c.clip();
+      if (px){ const o = ARC.pix || (ARC.pix = document.createElement("canvas")); o.width = o.height = px; const oc = o.getContext("2d"); oc.clearRect(0, 0, px, px); oc.drawImage(q.img, 0, 0, px, px);
+        c.imageSmoothingEnabled = false; c.drawImage(o, 180 - 70, 190 - 70, 140, 140); c.imageSmoothingEnabled = true; }
+      else c.drawImage(q.img, 180 - 70, 190 - 70, 140, 140);
+      c.restore(); }
+    c.fillStyle = "#C9B8FF"; c.font = "800 14px Archivo, system-ui, sans-serif"; c.textAlign = "center"; c.fillText(`${LEAGUE_LABEL[q.lg]} · the logo sharpens as you wait`, 180, 330); c.textAlign = "left";
+    drawFx(c);
+  } };
+
+const GAMES = [DERBY, PENS, HOOPS, KICK, SHELF, LOGOQ];
+function arcadeHtml(){
+  return `<section class="usec arcade"><h3>Arcade <small>quick games, your best scores saved on this device</small></h3>
+    <div class="arcgrid">${GAMES.map(g => { const b = arcBest(g.id); return `<button type="button" class="arccard" data-arcopen="${g.id}"><span class="arcicon">${g.icon}</span><b>${esc(g.name)}</b><small>${b ? `Best ${b} ${g.unit}` : "Play"}</small></button>`; }).join("")}</div></section>`;
+}
+function bindArcade(root){ root.querySelectorAll("[data-arcopen]").forEach(b => b.onclick = () => arcOpen(b.dataset.arcopen)); }
+(() => {
+  const c = $("#arcCanvas"), pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / ARC.scale, (e.clientY - r.top) / ARC.scale]; };
+  c.addEventListener("pointerdown", e => { if (!ARC.running || !ARC.s) return; e.preventDefault(); const [x, y] = pt(e); if (ARC.g.tapAt) ARC.g.tapAt(ARC.s, x, y); else if (ARC.g.tap) ARC.g.tap(ARC.s); });
+  $("#arcChoices").addEventListener("click", e => { const b = e.target.closest("[data-opt]"); if (b && ARC.running && ARC.g.pick) ARC.g.pick(ARC.s, +b.dataset.opt); });
+  $("#arcOver").addEventListener("click", e => { const b = e.target.closest("[data-arc]"); if (!b) return;
+    if (b.dataset.arc === "start") arcStart();
+    else shareText(`I scored ${Math.round(ARC.s?.score || 0)} ${ARC.g.unit || "points"} in ${ARC.g.name} on Cosmo Sports. Beat that.`, APP_URL() + "#play"); });
+  $("#arcClose").onclick = () => $("#arcDlg").close();
+  $("#arcDlg").addEventListener("close", () => { ARC.running = false; cancelAnimationFrame(ARC.raf); $("#arcChoices").hidden = true; });
+  addEventListener("resize", () => { if ($("#arcDlg").open){ arcSize(); if (!ARC.running) drawArcBg(); } });
+  document.addEventListener("keydown", e => { if ($("#arcDlg").open && ARC.running && (e.code === "Space" || e.code === "Enter") && ARC.g.tap){ e.preventDefault(); ARC.g.tap(ARC.s); } });
+})();
+
 /* ================= Spoiler shield: hide scores until you're ready ================= */
 const SPOIL = Object.assign({ on: false, scope: "mine" }, lsGet("spoil", {}) || {});
 const saveSpoil = () => { lsSet("spoil", SPOIL); if (typeof ntfSync === "function") ntfSync(); };
@@ -4436,10 +4884,10 @@ function bindRumble(root){
 }
 function drawPlay(){
   const el = $("#playView"); if (!el) return;
-  const head = `<div class="lghead"><div><h1>Play</h1><p>Daily picks, a quick ratings game and your record against the Cosmo model.</p></div></div>`;
-  if (HOSTED && !UNI){ el.innerHTML = head + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; return; }
-  el.innerHTML = head + `<div class="playgrid">${HOSTED ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
-  bindDaily(el); bindRumble(el);
+  const head = `<div class="lghead"><div><h1>Play</h1><p>Arcade games, daily picks, a quick ratings game and your record against the Cosmo model.</p></div></div>`;
+  if (HOSTED && !UNI && !UNI_ERR){ el.innerHTML = head + arcadeHtml() + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; bindArcade(el); return; }
+  el.innerHTML = head + arcadeHtml() + `<div class="playgrid">${HOSTED && UNI ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
+  bindArcade(el); bindDaily(el); bindRumble(el);
   el.querySelectorAll(".prow[data-lg]").forEach(b => b.onclick = () => openGame(b.dataset.lg, b.dataset.id));
 }
 function redrawPlay(){ if (SPORT === "play") drawPlay(); else if (SPORT === "universe") drawUniverse(); }
@@ -4708,14 +5156,18 @@ function picksHtml(){
 }
 
 /* ---- Universe: every game in every league at once, as planets around the Cosmo core ---- */
-let UNI = null, UNI_LOADING = false;
+let UNI = null, UNI_LOADING = false, UNI_ERR = false, UNI_STALE = null;
 async function loadUniverse(){
   if (UNI_LOADING) return; UNI_LOADING = true;
+  let failed = 0, stale = null;
   try {
     const res = await Promise.all(Object.keys(LEAGUE_LABEL).map(async lg => {
-      try { const d = await espnOr(() => ESPN_DIRECT.scoreboard(lg, ""), `${ALERTS_URL}/sports/${lg}/scoreboard?t=${Math.floor(Date.now() / 20000)}`);
-        learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away])); gradePicks(lg, d.games); return (d.games || []).map(g => ({ ...g, lg })); }
-      catch { return []; } }));
+      let d; try { d = await fetchBoard(lg, ""); } catch { failed++; return []; }
+      if (d.stale) stale = d.stale;
+      try { learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away])); gradePicks(lg, d.games); } catch (e) { console.warn(e); }
+      return (d.games || []).map(g => ({ ...g, lg })); }));
+    UNI_ERR = failed === Object.keys(LEAGUE_LABEL).length && !(UNI && UNI.length); UNI_STALE = stale;
+    if (failed === Object.keys(LEAGUE_LABEL).length && UNI && UNI.length) return;   // keep what's on screen
     UNI = res.flat().map(g => { const pred = withSport(g.lg, () => { const H = findTeam(g.home.name), A = findTeam(g.away.name); return H && A ? teamPredict(H, A, g.neutral) : null; });
       return { ...g, pred, pulse: pulseOf(g, g.lg, pred) }; });
   } finally { UNI_LOADING = false; }
@@ -4747,6 +5199,7 @@ function drawUniverse(){
   const el = $("#uniView"); if (!el) return;
   const head = `<div class="lghead"><div><h1>Today</h1><p>Every game across the NFL, NBA, MLB, NHL and Premier League. The closest and latest games sit nearest the center.</p></div></div>`;
   if (!HOSTED){ el.innerHTML = head + `<div class="teamnote"><b>Live games appear in the installed app</b>Live games come from ESPN, which this version can't reach.</div>`; return; }
+  if (UNI_ERR){ el.innerHTML = head + netErrHtml("today's games"); $("#netRetry").onclick = () => { UNI_ERR = false; UNI = null; drawUniverse(); loadUniverse(); }; return; }
   if (!UNI){ el.innerHTML = head + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; return; }
   const live = UNI.filter(g => g.status.state === "in").sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
   const soon = UNI.filter(g => g.status.state === "pre").sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -4754,7 +5207,7 @@ function drawUniverse(){
   const sky = [...live, ...soon].slice(0, 12), inner = sky.slice(0, Math.min(4, sky.length)), outer = sky.slice(inner.length, inner.length + 8);
   const top = live[0];
   const core = document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="u$1"').replace(/url\(#([^)]+)\)/g, "url(#u$1)").replace(/href="#([^"]+)"/g, 'href="#u$1"') || "";
-  el.innerHTML = head + `
+  el.innerHTML = head + staleNote(UNI_STALE) + `
     <div class="skywrap"><div class="sky" id="uniSky">
       <div class="ring r1"></div><div class="ring r2"></div>
       <div class="core">${core}</div>
@@ -4872,7 +5325,7 @@ function openSearch(){
   out.onclick = e => { const b = e.target.closest("[data-lg]"); if (!b) return; if (e.target.closest("[data-favs]")){ toggleFav(b.dataset.lg, b.dataset.name); draw(); if (SPORT === "following") renderFollowing(); return; } dlg.close(); openTeamByName(b.dataset.lg, b.dataset.name); };
   if (!dlg.open) dlg.showModal(); setTimeout(() => inp.focus(), 50);
 }
-$("#gameDlg").addEventListener("close", () => { if (/^#game=/.test(location.hash)) history.replaceState(null, "", APP_URL()); clearInterval(gTimer); gTimer = null; document.querySelectorAll("#gameDlg video").forEach(v => v.pause()); SCENE_VIDEO = null; });
+$("#gameDlg").addEventListener("close", () => { if (LISTEN.key) listenStop(); if (/^#game=/.test(location.hash)) history.replaceState(null, "", APP_URL()); clearInterval(gTimer); gTimer = null; document.querySelectorAll("#gameDlg video").forEach(v => v.pause()); SCENE_VIDEO = null; });
 $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $("#gameDlg").close(); });
 
 /* ---------- app shell: navigation, sheets, help, settings, tour, sharing ---------- */
