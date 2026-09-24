@@ -601,6 +601,7 @@ dialog.modal.wide{max-width:640px}
 .gfield .gstage{position:relative;overflow:hidden;contain:layout paint}
 .gfield .gstage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(0,0,0,.28))}
 .gfield .fx{position:absolute;inset:0;pointer-events:none}
+.gfield .hud{position:absolute;inset:0;pointer-events:none}.gfield .hud .count,.gfield .hud .sb{pointer-events:auto}
 .spr{position:absolute;left:0;top:0;border-radius:50%;will-change:transform,opacity;backface-visibility:hidden}
 .spr.shadow{background:rgba(0,0,0,.55);filter:blur(1.5px);transform-origin:center}
 .spr.ball-mlb{background:radial-gradient(circle at 35% 30%,#fff 0,#f1f1f1 45%,#c9c9c9 100%);box-shadow:0 0 0 .5px rgba(0,0,0,.25),0 0 6px rgba(255,255,255,.6)}
@@ -2427,11 +2428,16 @@ function renderScene(g, lg, force){
   const tag = p && (TAGS[lg] || {})[p.kind], clip = p && p.video != null && (g.videos || [])[p.video];
   const d = draw(g, p); SCENE_LAST = d;
   el.hidden = false;
-  el.innerHTML = `<div class="gstage">${d.svg.replace("<!--LOGOS-->", fieldLogos(g, lg, p))}<div class="fx"></div>${d.hud}</div>
+  // the field and caption are redrawn per play; the highlights and top performers below only when they change
+  if (!el.querySelector(".gmain")) el.innerHTML = `<div class="gmain"></div><div class="gextra"></div>`;
+  el.querySelector(".gmain").innerHTML = `<div class="gstage">${d.svg.replace("<!--LOGOS-->", fieldLogos(g, lg, p))}<div class="fx"></div><div class="hud">${d.hud}</div></div>
     <div class="cap">${p ? playerChip(p, g, lg, "big") : ""}<div class="ct">${p && p.who ? `<b>${esc(p.who.name)}</b>` : tag ? `<b>${tag[0]}</b>` : ""}<span>${p ? esc(lg === "mlb" && p.live ? `${p.batter} batting against ${p.pitcher}` : p.text) : "Waiting for the first play"}</span></div>
-    <div class="cbtns">${clip ? `<button class="replay hot" id="gWatch" type="button">▶ Watch</button>` : ""}${p ? `<button class="replay" id="gReplay" type="button" aria-label="Replay the animation">↻</button>` : ""}</div></div>` + highlightsStrip(g) + performers(g, lg);
+    <div class="cbtns">${clip ? `<button class="replay hot" id="gWatch" type="button">▶ Watch</button>` : ""}${p ? `<button class="replay" id="gReplay" type="button" aria-label="Replay the animation">↻</button>` : ""}</div></div>`;
+  const extra = highlightsStrip(g) + performers(g, lg), ex = el.querySelector(".gextra");
+  if (ex.dataset.sig !== String(extra.length) + (g.id || "")){ ex.innerHTML = extra; ex.dataset.sig = String(extra.length) + (g.id || ""); }
   requestAnimationFrame(() => { const st = el.querySelector(".gstage"); if (st) playFX(st, d.vb, d.fx); });
-  const r = $("#gReplay"); if (r) r.onclick = () => renderScene(...SCENE_ARGS, true);
+  // replay: restart only the moving parts and banners, no redraw
+  const r = $("#gReplay"); if (r) r.onclick = () => { const st = el.querySelector(".gstage"); if (!st) return; st.querySelector(".hud").innerHTML = d.hud; playFX(st, d.vb, d.fx); };
   const w = $("#gWatch"); if (w) w.onclick = () => playClip(g, lg, p.video);
   bindHighlights(g, lg);
   document.querySelectorAll("#gList .pl.playing").forEach(x => x.classList.remove("playing"));
@@ -2445,7 +2451,10 @@ function performers(g, lg){
   const L = g.leaders || [];
   if (!L.length) return "";
   return `<div class="perf">${L.map(t => { const T = (g.teams || {})[t.team] || {};
-    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${t.items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)} · ${esc(x.value)}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
+    // one line per player, even when they lead several categories
+    const byName = []; for (const x of t.items){ const o = byName.find(y => y.name === x.name); if (o) o.lines.push(`${x.cat} ${x.value}`); else byName.push({ ...x, lines: [`${x.cat} · ${x.value}`] }); }
+    const items = byName.map(x => ({ ...x, cat: x.lines.length > 1 ? x.lines.map(l => l.replace(" · ", " ")).join(" · ") : x.cat, value: x.lines.length > 1 ? "" : x.value }));
+    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
 }
 function highlightsStrip(g){
   const v = g.videos || [];
@@ -2456,7 +2465,7 @@ function bindHighlights(g, lg){ document.querySelectorAll("#gScene .hl[data-vid]
 // ESPN's real replay, played right here
 function playClip(g, lg, i){
   const c = (g.videos || [])[i], el = $("#gScene"); if (!c || !el) return;
-  SCENE_VIDEO = c.id; el.hidden = false;
+  SCENE_VIDEO = c.id; el.hidden = false; FX.forEach(a => { try { a.cancel(); } catch {} }); FX.length = 0;
   el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(c.mp4)}"></video></div>
     <div class="cap"><div class="ct"><b>Replay</b> · ${esc(c.title)}</div><button class="replay" id="gBack" type="button">← Field view</button></div>` + highlightsStrip(g);
   const v = el.querySelector("video");
