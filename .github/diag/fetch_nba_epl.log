@@ -1,0 +1,37 @@
+  nba 2021: 1334 games
+  nba 2022: 1321 games
+  nba 2023: 1338 games
+  nba 2024: 1333 games
+  nba 2025: 1326 games
+  nba 2026: 0 games
+  epl 2017: 380 games
+  epl 2018: 380 games
+  epl 2019: 380 games
+  epl 2020: 380 games
+  epl 2021: 380 games
+  epl 2022: 380 games
+  epl 2023: 380 games
+  epl 2024: 380 games
+  epl 2025: 380 games
+  epl 2026: 50 games
+{
+ "nba": [
+  ".github/diag/hist/nba_2021.csv",
+  ".github/diag/hist/nba_2022.csv",
+  ".github/diag/hist/nba_2023.csv",
+  ".github/diag/hist/nba_2024.csv",
+  ".github/diag/hist/nba_2025.csv"
+ ],
+ "epl": [
+  ".github/diag/hist/epl_2017.csv",
+  ".github/diag/hist/epl_2018.csv",
+  ".github/diag/hist/epl_2019.csv",
+  ".github/diag/hist/epl_2020.csv",
+  ".github/diag/hist/epl_2021.csv",
+  ".github/diag/hist/epl_2022.csv",
+  ".github/diag/hist/epl_2023.csv",
+  ".github/diag/hist/epl_2024.csv",
+  ".github/diag/hist/epl_2025.csv",
+  ".github/diag/hist/epl_2026.csv"
+ ]
+}
