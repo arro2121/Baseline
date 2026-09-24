@@ -1,0 +1,36 @@
+# Temporary: samples of today's scoreboards with betting odds, for the model tracker. Safe to delete.
+name: Odds samples
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+permissions:
+  contents: write
+jobs:
+  odds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .github/diag/odds; cd .github/diag/odds
+          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
+          for p in football/nfl basketball/nba baseball/mlb hockey/nhl soccer/eng.1; do n=${p##*/}
+            for d in "" "?dates=20260926" "?dates=20260927"; do
+              curl -sS -m 30 -A "Mozilla/5.0" "https://site.api.espn.com/apis/site/v2/sports/$p/scoreboard$d" -o "espn_${n}${d:+_${d#*=}}.json" -w "$n $d %{http_code} %{size_download}\n" || true
+            done
+          done
+          for lg in nfl nba mlb nhl epl; do curl -sS -m 30 "$W/sports/$lg/scoreboard" -o "w_$lg.json" -w "w $lg %{http_code} %{size_download}\n" || true; done
+          python3 - <<'PY'
+          import json,glob
+          for f in sorted(glob.glob("espn_*.json")):
+              try: d=json.load(open(f))
+              except Exception as e: print(f, "bad", e); continue
+              ev=d.get("events",[]); n=sum(1 for e in ev if (e.get("competitions") or [{}])[0].get("odds"))
+              print(f, len(ev), "events,", n, "with odds")
+              for e in ev[:40]:
+                  o=((e.get("competitions") or [{}])[0].get("odds") or [None])[0]
+                  if o: json.dump(o, open(f.replace(".json","_odds1.json"),"w"), indent=1); break
+          PY
+      - run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag && git commit -q -m "Odds samples" && git push
