@@ -97,7 +97,7 @@ def alerts_url():
 def espn_norm():
     """The alerts service's ESPN code, reused by the page so it can read ESPN directly (ESPN turns away Cloudflare)."""
     src = open("alerts/worker.js", encoding="utf-8").read()
-    start, end = src.index("export const LEAGUES"), src.index("async function cached")
+    start, end = src.index("export const LEAGUES"), src.index("async function cached(")
     return src[start:end].replace("export ", "")
 
 

@@ -1,18 +1,18 @@
 import { chromium } from "playwright";
 const b = await chromium.launch();
-for (const ua of [null, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"]) {
-  const p = await b.newPage(ua ? { userAgent: ua } : {});
-  console.log("\n##### UA:", ua || "default headless");
-  p.on("console", m => console.log("console:", m.type(), m.text().slice(0, 300)));
-  p.on("requestfailed", r => console.log("FAILED:", r.url().slice(0, 150), r.failure()?.errorText));
-  p.on("response", async r => { const u = r.url(); if (/espn|workers\.dev/.test(u)) console.log("resp:", r.status(), u.slice(0, 150), JSON.stringify(await r.allHeaders()).slice(0, 400)); });
-  await p.goto("https://arro2121.github.io/Baseline/", { waitUntil: "load" });
-  console.log("has ESPN_DIRECT:", await p.evaluate(() => typeof ESPN_DIRECT));
-  const direct = await p.evaluate(async () => { try { const r = await fetch("https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard"); return r.status + " " + (await r.text()).slice(0, 150); } catch (e) { return "ERR " + e; } });
-  console.log("page fetch ESPN:", direct);
-  await p.click('[data-sport="mlb"]'); await p.waitForTimeout(500);
-  await p.click('[data-tt="games"]'); await p.waitForTimeout(4000);
-  console.log("games box:", (await p.textContent("#tt-games")).replace(/\s+/g, " ").slice(0, 300));
-  await p.close();
+const p = await b.newPage();
+const hits = [];
+p.on("response", r => { const u = r.url(); if (/espn\.com|workers\.dev\/sports/.test(u)) hits.push(`${r.status()} ${new URL(u).host}${new URL(u).pathname.slice(0, 50)}`); });
+p.on("pageerror", e => console.log("PAGE ERROR:", e.message));
+await p.goto("http://localhost:8000/", { waitUntil: "load" });
+for (const lg of ["mlb", "nfl", "nhl", "epl", "nba"]) {
+  hits.length = 0;
+  await p.click(`[data-sport="${lg}"]`); await p.waitForTimeout(400);
+  await p.click('[data-tt="games"]'); await p.waitForTimeout(5000);
+  const games = (await p.textContent("#tt-games")).replace(/\s+/g, " ").slice(0, 160);
+  let pbp = "";
+  const btn = await p.$("#tt-games [data-pbp]");
+  if (btn) { await btn.click(); await p.waitForTimeout(5000); pbp = (await p.textContent("#gbody")).replace(/\s+/g, " ").slice(0, 200); await p.keyboard.press("Escape"); await p.waitForTimeout(300); }
+  console.log(`\n### ${lg}\nrequests: ${[...new Set(hits)].join(" | ")}\ngames: ${games}\npbp: ${pbp || "(no finished/live game to open)"}`);
 }
 await b.close();

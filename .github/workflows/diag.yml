@@ -1,14 +1,17 @@
-# Temporary: loads the published site in a browser to see why live games fail. Safe to delete.
+# Temporary: builds the site from this branch and loads it against live ESPN. Safe to delete.
 name: Diagnose live scores
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml", ".github/diag/**"]
+    paths: [".github/workflows/diag.yml", ".github/diag/**", "template.html", "alerts/worker.js", "build_site.py"]
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - run: cd .github/diag && bash probe.sh
+      - run: python build_site.py && (cd docs && python -m http.server 8000 >/dev/null 2>&1 &) && sleep 1
+      - run: cd .github/diag && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null 2>&1 && node probe.mjs
