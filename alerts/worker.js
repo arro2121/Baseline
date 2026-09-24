@@ -232,6 +232,43 @@ export function normGame(d, lg) {
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: team(home), away: team(away),
     homeWinProb: typeof wp === "number" ? wp : null, plays: plays.slice(0, 200), count: plays.length };
 }
+/* ESPN's API at site.api.espn.com turns away browsers and Cloudflare, so read the copy espn.com itself uses
+   (site.web.api.espn.com), then the feed behind ESPN's pages (cdn.espn.com), then the old address. The page reuses this code. */
+const ESPN_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/", CDN = "https://cdn.espn.com/core/";
+const CDN_PAGE = { scoreboard: "scoreboard", game: "game", playbyplay: "playbyplay" }, CDN_SOCCER = { scoreboard: "scoreboard", game: "match", playbyplay: "commentary" };
+const cdnUrl = (lg, kind, q = "") => lg === "epl" ? `${CDN}soccer/${CDN_SOCCER[kind]}?xhr=1&league=eng.1${q}` : `${CDN}${lg}/${CDN_PAGE[kind]}?xhr=1${q}`;
+async function getJSON(url, fetchImpl) {
+  const r = await fetchImpl(url);
+  if (!r.ok) throw new Error(`ESPN ${r.status}`);
+  return r.json();
+}
+async function firstOf(tries) {                     // the first source that answers wins
+  let err;
+  for (const t of tries) { try { const v = await t(); if (v) return v; } catch (e) { err = e; } }
+  throw err || new Error("ESPN unavailable");
+}
+export async function espnScoreboard(lg, fetchImpl = fetch) {
+  return normScoreboard(await firstOf([
+    () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard`, fetchImpl),
+    async () => { const sb = (await getJSON(cdnUrl(lg, "scoreboard"), fetchImpl)).content?.sbData; return Array.isArray(sb?.events) ? sb : null; },
+    () => getJSON(`${ESPN}${LEAGUES[lg]}/scoreboard`, fetchImpl),
+  ]), lg);
+}
+export async function espnGame(lg, id, fetchImpl = fetch) {
+  const hasPlays = g => !!(g && (g.drives || g.plays?.length || g.commentary?.length || g.keyEvents?.length));
+  return normGame(await firstOf([
+    () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
+    async () => {
+      let g = (await getJSON(cdnUrl(lg, "game", `&gameId=${id}`), fetchImpl)).gamepackageJSON;
+      if (g?.header && !hasPlays(g)) {               // some sports keep the plays on the play-by-play page
+        try { const p = (await getJSON(cdnUrl(lg, "playbyplay", `&gameId=${id}`), fetchImpl)).gamepackageJSON;
+          if (hasPlays(p)) g = { ...g, ...p, header: g.header, winprobability: g.winprobability?.length ? g.winprobability : p.winprobability }; } catch {}
+      }
+      return g?.header ? g : null;
+    },
+    () => getJSON(`${ESPN}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
+  ]), lg);
+}
 async function cached(req, ctx, ttl, make) {
   const cache = typeof caches !== "undefined" ? caches.default : null, k = new Request(req.url, { method: "GET" });
   if (cache) { const hit = await cache.match(k); if (hit) return hit; }
@@ -239,11 +276,6 @@ async function cached(req, ctx, ttl, make) {
   const res = new Response(body, { headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}`, ...cors } });
   if (cache && ctx) ctx.waitUntil(cache.put(k, res.clone()));
   return res;
-}
-async function espn(path, fetchImpl = fetch) {
-  const r = await fetchImpl(ESPN + path, { headers: { "User-Agent": "Baseline/1.0 (personal, non-commercial)" }, cf: { cacheTtl: 10 } });
-  if (!r.ok) throw new Error(`ESPN ${r.status}`);
-  return r.json();
 }
 /* tennis point by point from API-Tennis */
 export function normTennis(e, resolve = n => n) {
@@ -274,9 +306,9 @@ export default {
     let m;
     try {
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/scoreboard$/)))
-        return await cached(req, ctx, 20, async () => normScoreboard(await espn(`${LEAGUES[m[1]]}/scoreboard`), m[1]));
+        return await cached(req, ctx, 20, async () => espnScoreboard(m[1]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/(\d+)$/)))
-        return await cached(req, ctx, 10, async () => normGame(await espn(`${LEAGUES[m[1]]}/summary?event=${m[2]}`), m[1]));
+        return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
       if ((m = url.pathname.match(/^\/tennis\/game\/(\d+)$/)))
         return await cached(req, ctx, 10, async () => {
           const q = new URLSearchParams({ method: "get_livescore", APIkey: env.API_TENNIS_KEY, match_key: m[1], timezone: "America/New_York" });

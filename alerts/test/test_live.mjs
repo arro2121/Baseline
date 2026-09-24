@@ -1,4 +1,4 @@
-import worker, { normScoreboard, normGame, normTennis } from "../worker.js";
+import worker, { normScoreboard, normGame, normTennis, espnScoreboard, espnGame } from "../worker.js";
 const ok = (c, m) => { if (!c) { console.log("FAIL:", m); process.exitCode = 1; } else console.log("ok  ", m); };
 // --- football summary shaped exactly like ESPN's (drives > plays), from the real feed checked earlier
 const nflSummary = { header: { id: "401777353", competitions: [{ status: { type: { state: "in", detail: "1st Quarter - 0:46", shortDetail: "0:46 - 1st" }, displayClock: "0:46", period: 1 },
@@ -58,4 +58,20 @@ const call = async p => (await worker.fetch(new Request("https://x" + p), {}, { 
 let r = await call("/sports/nfl/scoreboard"); ok(r.status === 200 && (await r.json()).games.length === 2 && r.headers.get("access-control-allow-origin") === "*", "route: /sports/nfl/scoreboard");
 r = await call("/sports/nfl/game/401777353"); ok((await r.json()).plays.length === 5, "route: /sports/nfl/game/:id");
 r = await call("/sports/nba/game/123"); ok(r.status === 502, "route: ESPN errors come back as a clear error, not a crash");
+// --- ESPN sources: site.web.api first, then cdn.espn.com's page JSON, then the old site.api address
+const seen = [], J = o => new Response(JSON.stringify(o)), deny = () => new Response("Access Denied", { status: 403 });
+const via = routes => async u => { u = String(u); seen.push(u); for (const [k, f] of routes) if (u.includes(k)) return f(u); return deny(); };
+let sg = await espnScoreboard("nfl", via([["site.web.api.espn.com", () => J(sb)]]));
+ok(sg.games.length === 2 && seen[0].startsWith("https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"), "espn: site.web.api is tried first");
+seen.length = 0; sg = await espnScoreboard("nfl", via([["cdn.espn.com/core/nfl/scoreboard?xhr=1", () => J({ content: { sbData: sb } })]]));
+ok(sg.games.length === 2 && seen.length === 2, "espn: falls back to cdn.espn.com's scoreboard when the API refuses");
+const { drives, ...nflHead } = nflSummary;
+seen.length = 0; g = await espnGame("nfl", "401777353", via([["core/nfl/game?", () => J({ gamepackageJSON: nflHead })], ["core/nfl/playbyplay?", () => J({ gamepackageJSON: { drives, header: {} } })]]));
+ok(g.plays.length === 5 && g.home.name === "Ohio State Buckeyes", "espn: cdn game without plays picks them up from the play-by-play page");
+seen.length = 0; g = await espnGame("epl", "2", via([["core/soccer/match?xhr=1&league=eng.1&gameId=2", () => J({ gamepackageJSON: eplSummary })]]));
+ok(g.plays.length === 2, "espn: Premier League play-by-play comes from cdn's match page");
+seen.length = 0; g = await espnGame("nba", "1", via([["site.api.espn.com", () => J(nbaSummary)]]));
+ok(g.plays.length === 2 && seen.length === 3, "espn: the old site.api address is the last resort");
+let threw = false; try { await espnScoreboard("mlb", via([])); } catch (e) { threw = /ESPN 403/.test(e.message); }
+ok(threw, "espn: a clear error when every source refuses");
 globalThis.fetch = realFetch;

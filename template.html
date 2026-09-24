@@ -1277,9 +1277,7 @@ const SPORTS = /*SPORTS*/;
 const ALERTS_URL = "/*ALERTS_URL*/".replace(/^\/\*.*\*\/$/, "").replace(/\/$/, "");
 // ESPN's scores and play-by-play, read straight from the phone (build_site.py copies this code from alerts/worker.js)
 const ESPN_DIRECT = (() => { /*ESPN_NORM*/
-  const get = async path => { const r = await fetch(ESPN + path); if (!r.ok) throw new Error(`ESPN ${r.status}`); return r.json(); };
-  return { scoreboard: async lg => normScoreboard(await get(`${LEAGUES[lg]}/scoreboard`), lg),
-           game: async (lg, id) => normGame(await get(`${LEAGUES[lg]}/summary?event=${id}`), lg) };
+  return { scoreboard: lg => espnScoreboard(lg), game: (lg, id) => espnGame(lg, id) };
 })();
 // ESPN first, then the alerts service as a backup
 async function espnOr(direct, viaAlerts){
