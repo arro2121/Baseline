@@ -4,7 +4,7 @@
  "short_name": "Cosmo Sports",
  "lang": "en",
  "dir": "ltr",
- "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks and games against our prediction model, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
+ "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
  "categories": [
   "sports",
   "news",
@@ -67,7 +67,14 @@
    "sizes": "780x1688",
    "type": "image/png",
    "form_factor": "narrow",
-   "label": "Daily 3 picks and Rating Rumble"
+   "label": "Arcade games, Daily 3 picks and Rating Rumble"
+  },
+  {
+   "src": "screenshots/phone-arcade.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Penalty Shootout in the arcade"
   },
   {
    "src": "screenshots/phone-games.png",

@@ -11,8 +11,16 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
   links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
-* **Arcade:** six quick tap-to-play games with best scores saved on the phone: Home Run Derby, Penalty Shootout,
-  Free Throw Frenzy, Field Goal Challenge, Top Shelf (hockey) and a Logo Quiz of every team.
+* **Arcade:** six tap-to-play games with animated stadiums, crowds that react, slow motion and fireworks. Each one
+  gets harder as you play:
+  * **Home Run Derby:** new pitch types unlock and you have to lay off balls.
+  * **Penalty Shootout:** a keeper who learns where you like to shoot.
+  * **Free Throw Frenzy:** a moving sweet spot, "on fire" streaks and a sliding hoop.
+  * **Field Goal Challenge:** wind and hash marks, and the camera follows the kick.
+  * **Top Shelf:** a patrolling goalie and a lane-blocking defender.
+  * **Logo Quiz:** a timer, streak multipliers and silhouette rounds.
+
+  Best scores are saved on the phone.
 * **Listen Live:** tap 🎧 Listen in any live game and the phone reads new key plays, scores, period changes and the
   final aloud, like a radio call. Speed is in Settings; the spoiler shield keeps it silent until you reveal.
 * **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center.
@@ -156,10 +164,12 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
   standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Play the
   Daily 3 and challenge your friends, keep your streak alive in Rating Rumble, and see how your picks stack up
-  against our prediction model. Get alerts for your teams, close finishes and a morning briefing, and turn on the
+  against our prediction model. Kill time in the arcade: Home Run Derby, Penalty Shootout, Free Throw Frenzy,
+  Field Goal Challenge, Top Shelf and a Logo Quiz, each tougher the better you get. Tap Listen in a live game to
+  hear the plays read aloud like a radio call. Get alerts for your teams, close finishes and a morning briefing, and turn on the
   spoiler shield when you're watching later. No account, no ads, no tracking.
 * **Keywords:** live scores, sports scores, NFL, NBA, MLB, NHL, Premier League, tennis, play by play, box score,
-  predictions, picks, sports alerts, AI sports
+  predictions, picks, sports alerts, AI sports, sports games, arcade
 * **Category:** Sports · **Content rating:** 17+ / Mature: answer "yes" to gambling-related content (the app shows
   odds but takes no bets and has no prizes) and "yes" to AI-generated content (Ask Cosmo) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
 * **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /
