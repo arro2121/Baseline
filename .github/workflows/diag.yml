@@ -1,17 +1,22 @@
-# Temporary: saves real ESPN game data to this branch. Safe to delete.
-name: ESPN samples
+# Temporary: checks that the nightly job finds a logo for every team. Safe to delete.
+name: Logo check
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml", ".github/diag/**"]
-permissions:
-  contents: write
+    paths: [".github/workflows/diag.yml", "sports_engine.py"]
 jobs:
-  samples:
+  logos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cd .github/diag && python3 samples.py
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -q -r requirements.txt && python sports_engine.py --download --espn
       - run: |
-          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
-          git add .github/diag/samples && git commit -q -m "ESPN samples" && git push
+          python - <<'PY'
+          import json
+          d = json.load(open("sports.json"))
+          for lg, L in d["leagues"].items():
+              miss = [t["name"] for t in L["teams"] if not t.get("logo")]
+              print(lg, f"{len(L['teams']) - len(miss)}/{len(L['teams'])} logos", "missing:", miss, "sample:", L["teams"][0].get("logo"))
+          PY
