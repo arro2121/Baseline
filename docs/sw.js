@@ -1,6 +1,6 @@
 // Baseline offline helper and notifications. The app opens instantly and still works without signal,
-// showing the last ratings and scores it saw. Build: 20260924-1986569
-const CACHE = "baseline-20260924-1986569";
+// showing the last ratings and scores it saw. Build: 20260924-1988687
+const CACHE = "baseline-20260924-1988687";
 const SHELL = ["./", "index.html", "live.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
