@@ -15,8 +15,8 @@ jobs:
         with: { python-version: "3.12" }
       - name: Fetch
         run: |
-          python .github/diag/peek.py 2>&1 | tee .github/diag/peek.log || true
-          python team_history.py mlb --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
+          true
+          echo "nothing to fetch"
           true
       - name: Save
         run: |

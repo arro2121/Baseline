@@ -98,17 +98,23 @@ NBA_HEAD = ["date", "id", "home", "away", "hs", "as", "type", "hfg", "afg", "h3"
 def alerts_url():
     try: return json.load(open(os.path.join(HERE, "site_config.json"))).get("alerts_url", "").rstrip("/")
     except Exception: return ""
-def nba(season):
+def nba(season, folder=None):
     """season = the year it starts (2024 means 2024-25). ESPN's scoreboard a week at a time; if ESPN turns this computer
     away, our alerts service (which reads the same scoreboard) a day at a time."""
     try:
         return nba_espn(season)
     except urllib.error.HTTPError as e:
         if e.code != 403 or not alerts_url(): raise
-    return nba_alerts(season)
-def nba_alerts(season):
+    return nba_alerts(season, folder)
+def nba_alerts(season, folder=None):
     base, rows, seen = alerts_url(), [], set()
     d, end = dt.date(season, 10, 18), min(dt.date(season + 1, 6, 25), dt.date.today() - dt.timedelta(days=1))
+    old = os.path.join(folder or FOLDER, f"nba_{season}.csv")
+    if os.path.exists(old):                          # pick up where the saved season left off
+        prev = list(csv.reader(open(old)))[1:]
+        if prev:
+            last = max(r[0] for r in prev); d = max(d, dt.date.fromisoformat(last) - dt.timedelta(days=2))
+            rows = [r for r in prev if r[0] < d.isoformat()]; seen = {r[1] for r in rows}
     while d <= end:
         try: js = jget(f"{base}/sports/nba/scoreboard?dates={d:%Y%m%d}")
         except Exception as ex: print("  nba day", d, ex); d += dt.timedelta(days=1); continue
@@ -120,10 +126,10 @@ def nba_alerts(season):
             rows.append([(g.get("date") or str(d))[:10], g["id"], h["name"], a["name"], h["score"], a["score"], "", "", "", "", "", "", "", "", "",
                          "", o.get("overUnder") or "", o.get("homeML") or "", o.get("awayML") or ""])
         d += dt.timedelta(days=1); time.sleep(.15)
-    # preseason and exhibition teams drop out: keep teams that play a full schedule
+    # preseason and exhibition teams drop out: keep teams that play a full schedule (early in a season, the 30 busiest)
     from collections import Counter
-    n = Counter([r[2] for r in rows] + [r[3] for r in rows])
-    rows = [r for r in rows if n[r[2]] >= 40 and n[r[3]] >= 40]
+    n = Counter([r[2] for r in rows] + [r[3] for r in rows]); teams = {k for k, _ in n.most_common(30)}
+    rows = [r for r in rows if r[2] in teams and r[3] in teams]
     rows.sort()
     return rows
 def nba_espn(season):
@@ -193,7 +199,7 @@ def update(leagues=("mlb", "nhl", "nba", "epl"), back=None, folder=FOLDER, today
             path = os.path.join(folder, f"{lg}_{season}.csv")
             if os.path.exists(path) and season < cur and os.path.getsize(path) > 2000: paths.append(path); continue
             try:
-                n = save(path, head, fn(season)); print(f"  {lg} {season}: {n} games")
+                n = save(path, head, fn(season, folder) if lg == "nba" else fn(season)); print(f"  {lg} {season}: {n} games")
                 if n: paths.append(path)
                 elif os.path.exists(path): os.remove(path)
             except Exception as e:

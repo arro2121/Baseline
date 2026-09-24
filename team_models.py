@@ -162,12 +162,12 @@ def fit_binary(lg, F, feats, test_seasons, market=None):
         m = LogisticRegression(fit_intercept=False, C=1.0, max_iter=3000).fit(X(D[tr], c), D.y[tr])
         return m, m.predict_proba(X(D[te], c))[:, 1]
     # choose the factors on a validation season (the last training season), never on the test seasons
-    vs = D.loc[train, "season"].max(); tr2, va = train & (D.season < vs), train & (D.season == vs)
+    vs = sorted(D.loc[train, "season"].unique())[-2:]; tr2, va = train & (D.season < vs[0]), train & D.season.isin(vs)   # the last two training seasons
     vll = lambda c: log_loss(D.y[va], fit(c, tr2, va)[1])
     feats = ["elo_d"]; cur = vll(feats); tried = {}
     for k in sorted(cand[1:], key=lambda k: vll(["elo_d", k])):
         v = vll(feats + [k]); tried[k] = round(float(cur - v), 5)
-        if v < cur - 2e-5: feats.append(k); cur = v
+        if v < cur - 5e-5: feats.append(k); cur = v
     cols = ["home"] + feats
     model, p = fit(feats)
     base_elo = LogisticRegression(fit_intercept=False, max_iter=2000).fit(np.column_stack([D.home[train], D.elo_d[train] / 100]), D.y[train])
@@ -220,13 +220,13 @@ def fit_poisson(F, feats, test_seasons, market=None):
     def ll3(lh_, la_, rho, act=None):
         act = (np.where(D.hs[te] > D.as_[te], 0, np.where(D.hs[te] == D.as_[te], 1, 2))) if act is None else act
         P = np.array([pois3(a_, b_, rho)[:3] for a_, b_ in zip(lh_, la_)]); return float(-np.log(np.clip(P[np.arange(len(act)), act], 1e-6, 1)).mean()), P
-    vs = D.loc[tr, "season"].max(); tr2, va = tr & (D.season < vs), tr & (D.season == vs)
+    vs = sorted(D.loc[tr, "season"].unique())[-2:]; tr2, va = tr & (D.season < vs[0]), tr & D.season.isin(vs)
     act_va = np.where(D.hs[va] > D.as_[va], 0, np.where(D.hs[va] == D.as_[va], 1, 2))
     vll = lambda c: ll3(*fit(c, tr2, va)[2:], 0.0, act_va)[0]
     feats = ["elo_d"]; cur = vll(feats); tried = {}
     for k in sorted(cand[1:], key=lambda k: vll(["elo_d", k])):
         v = vll(feats + [k]); tried[k] = round(float(cur - v), 5)
-        if v < cur - 2e-5: feats.append(k); cur = v
+        if v < cur - 5e-5: feats.append(k); cur = v
     mh, ma, lh, la = fit(feats)
     actual = np.where(D.hs[te] > D.as_[te], 0, np.where(D.hs[te] == D.as_[te], 1, 2))
     # the low-score adjustment, fitted on the training seasons
