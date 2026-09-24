@@ -3,7 +3,7 @@ name: Baseline
 on:
   push:
     branches: [main]
-    paths: ["baseline*.zip", ".github/workflows/baseline.yml"]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml"]
   schedule:
     - cron: "*/5 * * * *"    # live scores (skipped automatically once the alerts service is running)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model

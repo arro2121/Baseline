@@ -171,7 +171,7 @@ const ESPN = "https://site.api.espn.com/apis/site/v2/sports/";
 function team(c = {}) {
   const t = c.team || {};
   return { id: String(t.id || ""), name: t.displayName || t.name || "", short: t.shortDisplayName || t.name || "", abbr: t.abbreviation || "",
-    color: t.color ? "#" + t.color : null, logo: t.logo || t.logos?.[0]?.href || null, score: c.score != null ? String(c.score?.displayValue ?? c.score) : null,
+    color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null, logo: t.logo || t.logos?.[0]?.href || null, score: c.score != null ? String(c.score?.displayValue ?? c.score) : null,
     record: c.records?.[0]?.summary || c.record?.[0]?.displayValue || null, winner: c.winner === true };
 }
 function status(s = {}) {
@@ -203,34 +203,163 @@ export function normScoreboard(d, lg) {
   games.sort((a, b) => (order[a.status.state] ?? 3) - (order[b.status.state] ?? 3) || String(a.date).localeCompare(String(b.date)));
   return { league: lg, asof: new Date().toISOString(), games };
 }
+const ORD = n => n + ([, "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || "th");
+// the heading a play sits under: "Top 3rd", "2nd Quarter", "1st Period", "Second half"
+function periodHead(p, lg) {
+  const n = p.period?.number ?? null;
+  if (n == null) return null;
+  if (lg === "mlb") return `${/^bot/i.test(p.period?.type || "") ? "Bottom" : "Top"} ${ORD(n)}`;
+  if (lg === "epl") return ["First half", "Second half"][n - 1] || "Extra time";
+  if (lg === "nhl") return n <= 3 ? `${ORD(n)} Period` : n === 4 ? "Overtime" : "Shootout";
+  return n <= 4 ? `${ORD(n)} Quarter` : n === 5 ? "Overtime" : `${ORD(n - 4)} Overtime`;
+}
+// what kind of moment a play is, for icons, the key-plays filter and the animations
+function kindOf(p, lg) {
+  const t = (p.type?.text || "").toLowerCase(), x = (p.text || "").toLowerCase();
+  if (lg === "nfl") {
+    if (/touchdown/.test(t) || (p.scoringPlay && /touchdown/.test(x))) return "td";
+    if (/field goal good/.test(t)) return "fg";
+    if (/field goal missed|blocked field goal/.test(t)) return "fgmiss";
+    if (/interception/.test(t)) return "int";
+    if (/fumble recovery \(opponent\)/.test(t) || p.isTurnover) return "fumble";
+    if (/safety/.test(t)) return "safety";
+    if (/sack/.test(t)) return "sack";
+    if (/punt/.test(t)) return "punt";
+    if (/kickoff/.test(t)) return "kick";
+    if (/penalty/.test(t) || p.isPenalty) return "penalty";
+    if (/pass reception/.test(t)) return "pass";
+    if (/pass incompletion/.test(t)) return "incomplete";
+    if (/rush/.test(t)) return "rush";
+    if (/timeout|end period|end of half|end of game|two-minute|end quarter/.test(t)) return "break";
+    return "play";
+  }
+  if (lg === "nba") {
+    if (/free throw/.test(t)) return p.scoringPlay ? "ft" : "ftmiss";
+    if (p.shootingPlay) return p.scoringPlay ? (p.scoreValue === 3 ? "made3" : "made") : "miss";
+    if (/turnover/.test(t)) return "to";
+    if (/rebound/.test(t)) return "reb";
+    if (/foul/.test(t)) return "foul";
+    if (/substitution|timeout|end period|end game|jumpball|review|challenge/.test(t)) return "break";
+    return "play";
+  }
+  if (lg === "nhl") {
+    if (t === "goal") return "goal";
+    if (t === "shot") return "shot";
+    if (t === "missed" || t === "blocked") return "miss";
+    if (/face ?off|stoppage|period start|period end|end of game|shootout/.test(t)) return "break";
+    if (/hit|giveaway|takeaway/.test(t)) return "play";
+    return "penalty";                                // tripping, holding, fighting…
+  }
+  if (lg === "epl") {
+    const k = p.type?.type || "";
+    if (k === "goal" || /^goal!/i.test(p.text || "")) return "goal";
+    if (/red-card/.test(k)) return "red";
+    if (/yellow-card/.test(k)) return "yellow";
+    if (/shot/.test(k)) return k === "shot-on-target" ? "save" : "shot";
+    if (/corner/.test(k)) return "corner";
+    if (/substitution|halftime|delay|offside|foul|handball|take-on/.test(k) || !k) return "break";
+    return "play";
+  }
+  return "play";
+}
+const MINOR = new Set(["break", "reb", "foul", "incomplete"]);
 function play(p, lg) {
+  const kind = kindOf(p, lg), c = p.coordinate, okXY = c && Math.abs(c.x) < 1000 && Math.abs(c.y) < 1000;
   return { id: String(p.id || p.sequenceNumber || Math.random()), text: p.text || p.shortText || p.type?.text || "",
-    type: p.type?.text || null, period: p.period?.number ?? p.period ?? null, periodText: p.period?.displayValue || null,
+    type: p.type?.text || null, period: p.period?.number ?? p.period ?? null, periodText: p.period?.displayValue || null, head: periodHead(p, lg),
     clock: p.clock?.displayValue || null, away: p.awayScore ?? null, home: p.homeScore ?? null, scoring: !!p.scoringPlay,
     team: p.team?.id ? String(p.team.id) : (p.start?.team?.id ? String(p.start.team.id) : null),
-    down: p.start?.downDistanceText || null, turnover: !!p.isTurnover, seq: Number(p.sequenceNumber || 0) };
+    down: p.start?.downDistanceText || null, turnover: !!p.isTurnover || kind === "int" || kind === "fumble", seq: Number(p.sequenceNumber || 0),
+    kind, minor: MINOR.has(kind) || (lg === "nhl" && kind === "play"), points: p.scoreValue || null, x: okXY ? c.x : null, y: okXY ? c.y : null,
+    yards: p.start?.yardsToEndzone != null ? { from: 100 - p.start.yardsToEndzone, to: p.end?.yardsToEndzone != null ? 100 - p.end.yardsToEndzone : null, gain: p.statYardage ?? null,
+      down: p.end?.down ?? null, dist: p.end?.distance ?? null, team: p.start?.team?.id ? String(p.start.team.id) : null } : null };
+}
+// baseball: ESPN sends every pitch, numbered afresh for each batter; fold them into one line per at-bat
+function mlbPlays(list, homeId, awayId) {
+  const out = []; let ab = null;
+  const batting = p => /^bot/i.test(p.period?.type || "") ? homeId : awayId;
+  const base = (p, extra) => ({ id: String(p.id), type: p.type?.text || null, period: p.period?.number ?? null, periodText: p.period?.displayValue || null,
+    head: periodHead(p, "mlb"), clock: null, away: p.awayScore ?? null, home: p.homeScore ?? null, team: batting(p), seq: 0, minor: false, ...extra });
+  const evt = p => /stole|caught stealing|picked off/i.test(p.text || "") ? "steal" : "play";
+  list.forEach((p, i) => {
+    const st = p.summaryType, t = p.type?.text || "", prev = list[i - 1], next = list[i + 1];
+    // a stolen base or wild pitch during an at-bat comes as an event row plus a "Play Result" with the same text
+    const echo = (st === "N" || st === "S") && prev && !prev.summaryType && prev.text === p.text;
+    if (echo) {
+      out.push(base(p, { text: p.text, kind: evt(p), scoring: !!p.scoringPlay || st === "S" }));
+    } else if (st === "A") {                                                     // "Valdez pitches to Wood": a new at-bat
+      const m = /^(.*?) pitches to (.*)$/.exec(p.text || "");
+      ab = { start: p, pitcher: m?.[1] || null, batter: m?.[2] || null, pitches: [], hit: null, outs: p.outs ?? null };
+    } else if (st === "P" && ab) {
+      const k = /ball in play/i.test(p.text || "") ? "x" : /^ball/i.test(t) || /hit by pitch/i.test(t) ? "b" : /foul/i.test(t) ? "f" : "s";
+      ab.pitches.push({ k, speed: p.pitchVelocity || null, pitch: p.pitchType?.text || null });
+      if (p.hitCoordinate) ab.hit = p.hitCoordinate;
+    } else if ((st === "N" || st === "S") && !ab) {                    // "Callahan hit for Peck": a lineup change
+      out.push(base(p, { text: p.text || "", kind: "change", minor: true }));
+    } else if (st === "N" || st === "S") {                                // the at-bat's result
+      const x = (p.text || "").toLowerCase();
+      const kind = /homered|home run/.test(x) ? "hr" : /tripled/.test(x) ? "hit3" : /doubled/.test(x) ? "hit2" : /singled|reached on/.test(x) ? "hit1"
+        : /struck out/.test(x) ? "k" : /walked|hit by pitch/.test(x) ? "walk" : "out";
+      const hit = p.hitCoordinate || ab?.hit || null;
+      out.push(base(p, { text: p.text || "", kind, scoring: !!p.scoringPlay || st === "S", batter: ab?.batter || null, pitcher: ab?.pitcher || null,
+        pitches: (ab?.pitches || []).map(q => q.k), outs: p.outs ?? null, x: hit ? hit.x : null, y: hit ? hit.y : null, trajectory: p.trajectory || null }));
+      ab = null;
+    } else if (st === "C") {                                              // pitching change
+      out.push(base(p, { text: p.text || "", kind: "change", minor: true, team: batting(p) === homeId ? awayId : homeId }));
+    } else if (t && !/batter\/pitcher|inning/i.test(t) && p.text && !(next?.text === p.text && /^[NS]$/.test(next.summaryType || ""))) {
+      out.push(base(p, { text: p.text, kind: evt(p), scoring: !!p.scoringPlay }));   // stolen bases, wild pitches…
+    }
+  });
+  if (ab && ab.batter) out.push({ ...base(ab.start, { text: `${ab.batter} batting against ${ab.pitcher}`, kind: "atbat", batter: ab.batter, pitcher: ab.pitcher,
+    pitches: ab.pitches.map(q => q.k), live: true }), id: String(ab.start.id) + "-now" });
+  return out;
+}
+// team details by ESPN id, so each play can show its team's logo and color
+function teamsOf(cs) {
+  const m = {};
+  for (const c of cs) { const t = team(c); if (t.id) m[t.id] = { name: t.name, short: t.short, abbr: t.abbr, color: t.color, alt: t.alt, logo: t.logo, side: c.homeAway || null }; }
+  return m;
 }
 export function normGame(d, lg) {
   const c = d.header?.competitions?.[0] || {}, cs = c.competitors || [];
   const home = cs.find(x => x.homeAway === "home") || cs[0] || {}, away = cs.find(x => x.homeAway === "away") || cs[1] || {};
+  const H = team(home), A = team(away), byName = {};
+  for (const t of [H, A]) { byName[t.name] = t.id; byName[t.short] = t.id; }
   let plays = [];
   if (d.drives) {                                   // football: plays grouped into drives
     for (const dr of [...(d.drives.previous || []), ...(d.drives.current ? [d.drives.current] : [])])
-      for (const p of dr.plays || []) plays.push({ ...play(p, lg), drive: dr.description || null });
+      for (const p of dr.plays || []) plays.push({ ...play(p, lg), drive: dr.description || null, driveTeam: dr.team?.id ? String(dr.team.id) : null });
+  } else if (lg === "mlb" && Array.isArray(d.plays) && d.plays.length) {
+    plays = mlbPlays(d.plays, H.id, A.id);
   } else if (Array.isArray(d.plays) && d.plays.length) {
     plays = d.plays.map(p => play(p, lg));
   } else if (Array.isArray(d.commentary) && d.commentary.length) {   // soccer
-    plays = d.commentary.map((x, i) => ({ id: String(x.sequence ?? i), text: x.text || "", clock: x.time?.displayValue || null, period: null,
-      scoring: /goal!/i.test(x.text || "") || x.play?.scoringPlay === true, type: x.play?.type?.text || null, seq: Number(x.sequence ?? i) }));
+    let sc = [0, 0];                                // running score, read from "Goal! Bournemouth 0, Liverpool 1."
+    plays = d.commentary.map((x, i) => { const q = { ...(x.play || {}), text: x.text, period: x.play?.period || (x.period ? { number: x.period } : null) };
+      const kind = kindOf(q, "epl"), g = /^goal!\s*(.+?) (\d+), (.+?) (\d+)\./i.exec(x.text || "");
+      if (g) { const first = byName[g[1]] === H.id || H.name.includes(g[1]) || H.short === g[1]; sc = first ? [+g[4], +g[2]] : [+g[2], +g[4]]; }
+      return { id: String(x.sequence ?? i), text: x.text || "", clock: x.time?.displayValue || null, period: q.period?.number ?? null, head: periodHead(q, "epl"),
+        away: sc[0], home: sc[1],
+        scoring: kind === "goal" || x.play?.scoringPlay === true, type: x.play?.type?.text || null, seq: Number(x.sequence ?? i),
+        team: x.play?.team?.id ? String(x.play.team.id) : byName[x.play?.team?.displayName] || null, kind, minor: MINOR.has(kind) }; });
   } else if (Array.isArray(d.keyEvents)) {
-    plays = d.keyEvents.map((x, i) => ({ id: String(x.id ?? i), text: x.text || x.type?.text || "", clock: x.clock?.displayValue || null,
-      period: x.period?.number ?? null, scoring: !!x.scoringPlay, type: x.type?.text || null, seq: i }));
+    plays = d.keyEvents.map((x, i) => { const kind = kindOf(x, "epl");
+      return { id: String(x.id ?? i), text: x.text || x.type?.text || "", clock: x.clock?.displayValue || null, period: x.period?.number ?? null, head: periodHead(x, "epl"),
+        scoring: !!x.scoringPlay, type: x.type?.text || null, seq: i, team: x.team?.id ? String(x.team.id) : null, kind, minor: MINOR.has(kind) }; });
   }
   const seen = new Set(); plays = plays.filter(p => !seen.has(p.id) && seen.add(p.id));
-  plays.sort((a, b) => b.seq - a.seq);
+  // baseball's sequence numbers restart with every batter, so it keeps ESPN's list order; the others sort by sequence
+  if (lg !== "mlb" && plays.every(p => p.seq > 0)) plays.sort((a, b) => a.seq - b.seq);
+  plays.forEach((p, i) => { p.ord = i; });
+  plays.reverse();                                  // newest first
   const wp = Array.isArray(d.winprobability) && d.winprobability.length ? d.winprobability[d.winprobability.length - 1].homeWinPercentage : null;
-  return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: team(home), away: team(away),
-    homeWinProb: typeof wp === "number" ? wp : null, plays: plays.slice(0, 200), count: plays.length };
+  // where things stand right now, for the animated field
+  let situation = null;
+  const sit = d.situation;
+  if (lg === "mlb" && sit) situation = { balls: sit.balls ?? 0, strikes: sit.strikes ?? 0, outs: sit.outs ?? 0, bases: [!!sit.onFirst, !!sit.onSecond, !!sit.onThird] };
+  if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
+  return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
+    homeWinProb: typeof wp === "number" ? wp : null, situation, plays: plays.slice(0, 300), count: plays.length };
 }
 /* ESPN's API at site.api.espn.com turns away browsers and Cloudflare, so read the copy espn.com itself uses
    (site.web.api.espn.com), then the feed behind ESPN's pages (cdn.espn.com), then the old address. The page reuses this code. */
