@@ -1217,6 +1217,25 @@ table.cmp{display:table;gap:0;padding:0}
 @media (max-width:420px){body[data-sport="tennis"] .brand span{display:none}}
 .newlist{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:10px}.newlist li{display:flex;gap:10px;align-items:flex-start;font-size:.86rem;color:#DCD2FF}.newlist i{font-style:normal;font-size:1.3rem;line-height:1.2}.newlist b{color:#fff}
 .offbar{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom,0px));white-space:nowrap;left:50%;transform:translateX(-50%);z-index:60;background:#3A2A00;color:#FFE9B8;border:1px solid #FFD678;border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:700;max-width:calc(100% - 24px);text-align:center;box-shadow:0 8px 24px -10px rgba(0,0,0,.6)}
+.dchwrap{display:flex;flex-direction:column;gap:6px}.lbbtn{align-self:flex-start;border:1px solid rgba(255,214,120,.5);background:rgba(90,58,0,.35);color:#FFE9B8;border-radius:999px;padding:6px 12px;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}
+.lbname{display:flex;gap:8px;align-items:flex-end;margin:4px 0 10px}.lbname label{flex:1;display:flex;flex-direction:column;gap:4px;font-size:.74rem;color:#DCD2FF;font-weight:700}
+.lbname input{border:1px solid rgba(185,139,255,.5);background:rgba(0,0,0,.25);color:#fff;border-radius:10px;padding:8px 10px;font:inherit;font-size:.95rem}
+.lblist ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:48vh;overflow:auto}.lblist li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.05)}
+.lblist li span{font-weight:900;text-align:center;color:#DCD2FF}.lblist li b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lblist li em{font-style:normal;font-weight:900;color:#FFD678;font-variant-numeric:tabular-nums}
+.lblist li.me{background:rgba(255,122,200,.2);box-shadow:inset 0 0 0 1px #FF7AC8}.lbnote{color:#DCD2FF;font-size:.82rem;text-align:center;margin:10px 0 0}
+.arcgoal .btn{padding:3px 10px;font-size:.74rem;margin-left:6px}
+.ldrow[data-pid]{cursor:pointer}.ldrow[data-pid]:hover{background:var(--surface-2)}.ccard.mini[data-pid]{cursor:pointer}
+.plhead{display:flex;gap:14px;align-items:flex-start;margin-bottom:6px}.plcard{flex:none;width:118px;cursor:default}.plhead h2{margin:0;font-size:1.3rem}.plhead p{margin:2px 0;color:#DCD2FF;font-size:.8rem}
+.plline{color:#fff!important;font-weight:700}.plown{font-size:.74rem!important;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.07);display:inline-block}.plown.on{background:rgba(95,227,163,.18);color:#D8FFEA!important}
+.plh{margin:12px 0 6px;font-size:.9rem}.plh small{font-weight:600;color:#DCD2FF;font-size:.72rem;margin-left:6px}
+.plrates{display:grid;gap:6px}.plrates div{display:grid;grid-template-columns:92px 1fr 30px;gap:8px;align-items:center;font-size:.8rem}.plrates i{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.plrates b{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7A3DF5,#FF7AC8)}.plrates em{font-style:normal;font-weight:900;text-align:right}.plrates .ovr b{background:linear-gradient(90deg,#FFD678,#FF9C7A)}
+.plstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}.plstats span{display:flex;flex-direction:column;padding:8px;border-radius:10px;background:rgba(255,255,255,.06)}.plstats b{font-size:1.05rem}.plstats small{font-size:.66rem;color:#DCD2FF}
+.goals{margin:0 0 10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05)}.goals summary{cursor:pointer;font-weight:800;font-size:.86rem}.goals summary small{color:#DCD2FF;font-weight:600;margin-left:6px}
+.goal{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;margin-top:8px;font-size:.8rem}.goal i{display:block;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:3px}.goal em{display:block;height:100%;background:#FFD678}
+.goal.done{opacity:.75}.goal.done em{background:#5FE3A3}.goal small{color:#DCD2FF;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: reduce){.ccard.flip,.ccback i,.ccf::after,.pkbtn.earned,.domconf i,.ccard.burst::before{animation:none!important}.cci{transition:none!important}.domconf{display:none}}
+.sdpanel .dbtns{flex-wrap:wrap;justify-content:center}
 /* Cosmo Cards, packs and the collection */
 .cardsec h3{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.cardsec .coins{margin-left:auto;font-weight:900;color:#FFD678;font-size:.95rem}
 .cardsub{margin:2px 0 10px;color:var(--muted);font-size:.8rem}
@@ -1655,12 +1674,13 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
   <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>The biggest update yet.</p></div></div>
   <ul class="newlist">
+    <li><i>🏆</i><span><b>A daily leaderboard.</b> Pick a nickname and your Daily Challenge score goes up against everyone's.</span></li>
+    <li><i>🥊</i><span><b>Challenge a friend's team.</b> Send your drafted Showdown team as a link; they draft theirs and play it.</span></li>
+    <li><i>🧑‍🚀</i><span><b>Player profiles.</b> Tap a card or a league leader for ratings, stats and a shortcut to play as them.</span></li>
     <li><i>🎴</i><span><b>Cosmo Cards.</b> Every real player is a collectible card. Your first Daily pack is free, and you already have coins for every bit of XP you've earned.</span></li>
     <li><i>🏆</i><span><b>Showdown seasons.</b> Draft once, play six games against tougher teams, then the playoffs and a title.</span></li>
     <li><i>🎬</i><span><b>Instant replays and stadium sound.</b> Big moments replay in slow motion, and the crowd gets louder with the action.</span></li>
     <li><i>🎯</i><span><b>Daily Challenge.</b> One target a day, the same for everyone. Keep a streak for bigger packs.</span></li>
-    <li><i>🥊</i><span><b>Challenge a friend.</b> Send any arcade score as a link and make them beat it.</span></li>
-    <li><i>🧭</i><span><b>A simpler bottom bar:</b> Today, Scores, Play and Following, one tap each.</span></li>
   </ul>
   <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">Open my free pack</button></div>
 </div></dialog>
@@ -1757,9 +1777,9 @@ dialog.onb p{margin:0 0 12px}
     <h3 id="h-play">Play</h3>
     <p><b>Cosmo Showdown</b> is the main game. Pick a sport and draft real players under a salary cap; their ratings come from their real stats and update every night. Then play a full game against a computer team made of real players. <b>Season mode</b> keeps your roster for six games against tougher and tougher teams; win four to reach the playoffs, then win the semifinal and the final for the title.</p>
     <p>The <b>Arcade</b> has six quick games with real controls: Home Run Derby, Penalty Shootout, the Three-Point Contest, the Field Goal Challenge, Top Shelf and the Logo Quiz. Pick a real player under <b>Play as</b> and their ratings change how you play. Big moments get a slow-motion instant replay; tap to skip it, or turn replays off in Settings. The 🔊 button mutes the stadium sound.</p>
-    <p>Every day brings a <b>Daily Challenge</b> (the same target for everyone), <b>Daily Trivia</b> written from real stats and the <b>Daily 3</b>, the day's three closest calls to pick against the model. <b>Challenge a friend</b> from any arcade result and they get a link to beat your score. Everything you do earns XP toward your <b>Cosmo level</b> and unlocks achievements.</p>
+    <p>Every day brings a <b>Daily Challenge</b> (the same target for everyone), <b>Daily Trivia</b> written from real stats and the <b>Daily 3</b>, the day's three closest calls to pick against the model. Everyone who plays the Daily Challenge lands on <b>today's leaderboard</b> once you pick a nickname: your best score counts, and the board resets every day. <b>Challenge a friend</b> from any arcade result and they get a link to beat your score, or send your drafted Showdown team and they draft theirs to take it on. Everything you do earns XP toward your <b>Cosmo level</b> and unlocks achievements.</p>
     <h3 id="h-cards">Cosmo Cards</h3>
-    <p>Every real player in Showdown is a card: Bronze, Silver, Gold or Legend, from their overall rating. Every point of XP you earn is also a coin. Open a free Daily pack each day, spend coins on Standard or Premium packs, and earn packs for Daily Challenges, streaks and season titles. Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. The installed app adds a card to every Daily pack.</p>
+    <p>Every real player in Showdown is a card: Bronze, Silver, Gold or Legend, from their overall rating. Every point of XP you earn is also a coin. Open a free Daily pack each day, spend coins on Standard or Premium packs, and earn packs for Daily Challenges, streaks and season titles. Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. The installed app adds a card to every Daily pack. <b>Collection goals</b> (25 cards, half a league's set, 5 Legends and more) pay out packs. Tap any card in your collection, or any name in a league's Leaders tab, for that player's profile: ratings, this season's stats and a shortcut to play as them.</p>
     <h3 id="h-bet">Betting terms</h3>
     <p><b>Bookmaker's cut:</b> the margin built into the odds; Cosmo Sports removes it to find the market's true view. <b>Edge:</b> how much higher the model's chance is than the market's. <b>¼ Kelly:</b> a cautious stake size based on your edge and bankroll. <b>Closing line value:</b> whether the odds moved your way before the match started, the most reliable early sign of a real edge.</p>
     <h3>Privacy</h3>
@@ -2173,7 +2193,7 @@ function renderSettings(){
   renderNtf();
   document.querySelectorAll("[data-spoil]").forEach(b => b.setAttribute("aria-pressed", (SPOIL.on ? SPOIL.scope : "off") === b.dataset.spoil));
   document.querySelectorAll("[data-snd]").forEach(b => b.setAttribute("aria-pressed", String(SND ? 1 : 0) === b.dataset.snd));
-  document.querySelectorAll("[data-rpl]").forEach(b => b.setAttribute("aria-pressed", String(lsGet("replays", true) ? 1 : 0) === b.dataset.rpl));
+  document.querySelectorAll("[data-rpl]").forEach(b => b.setAttribute("aria-pressed", String(lsGet("replays", !RMO) ? 1 : 0) === b.dataset.rpl));
   document.querySelectorAll("[data-deftour]").forEach(b => b.setAttribute("aria-pressed", b.dataset.deftour === SET.tour));
   document.querySelectorAll("[data-vrate]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vrate === voiceRate()));
   document.querySelectorAll("[data-vkind]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.vkind === voiceKind()); b.hidden = b.dataset.vkind !== "device" && !ALERTS_URL; });
@@ -3578,6 +3598,8 @@ function downloadIcs(games){
 }
 function handleHash(){
   if (location.hash === "#play"){ setSport("play"); return; }
+  const tm = /^#sd=(mlb|nba|nfl|nhl|epl)\.([\w-]+)$/.exec(location.hash);
+  if (tm){ history.replaceState(null, "", APP_URL()); sdTakeFriend(tm[1], tm[2]); return; }
   const vm = /^#vs=([a-z]+)\.(\d+)$/.exec(location.hash);
   if (vm){ history.replaceState(null, "", APP_URL()); vsTake(vm[1], vm[2]); return; }
   const dm = /^#duel=([\w-]+)$/.exec(location.hash);
@@ -3945,6 +3967,7 @@ function sndIcon(){ const b = $("#arcSnd"); if (b){ b.textContent = GSND.on ? "�
 // ball physics, particles, slow motion and camera moves. Controls are taps, swipes and press-and-hold, and every game
 // gets harder the better you play.
 const ARC = { g: null, s: null, raf: 0, last: 0, W: 360, H: 560, ctx: null, scale: 1, dpr: 1, running: false, paused: false, bg: null, shake: 0, slow: 0, flash: 0, hype: 0, hudKey: "", ptr: null, vig: null };
+const RMO = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } })();   // people who asked their phone for less motion
 const TAU = Math.PI * 2, FXCOL = ["#FF7AC8", "#8FF3FF", "#FFD678", "#B98BFF", "#5FE3A3", "#FF9C7A"];
 const arcBest = id => +lsGet("arc-" + id, 0) || 0;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -4006,7 +4029,7 @@ function arcStart(){
   const asSel = $("#arcAs"); if (ARC.g && ARC.g.asPool && !ARC.g.sd){ const [sp, key] = ARC.g.asPool, id = asSel ? asSel.value : ""; ARC.as = id ? sdPool(sp, key).find(p => p.id === id) || null : null; } else if (!ARC.g || !ARC.g.sd) ARC.as = null;
   $("#arcOver").hidden = true; $("#arcChoices").hidden = true; $("#arcChoices").classList.remove("sdchoose"); ARC.hudKey = ""; ARC.ptr = null;
   ARC.s = { score: 0, t: 0, over: false, fx: [], endT: 0, cam: { x: 0, y: 0, z: 1 } }; ARC.shake = ARC.slow = ARC.flash = ARC.hype = 0;
-  ARC.crowd = {}; RP.buf = []; RP.pend = null; RP.cool = 0; RP.off = !lsGet("replays", true); ARC.rp = null; ARC.dir = { z: 1.22, x: 0, y: -30, t: 0 };     // a broadcast-style push-in to open
+  ARC.crowd = {}; RP.buf = []; RP.pend = null; RP.cool = 0; RP.off = !lsGet("replays", !RMO); ARC.rp = null; ARC.dir = { z: 1.22, x: 0, y: -30, t: 0 };     // a broadcast-style push-in to open
   ARC.g.init(ARC.s); arcSize(); fxWord(180, 250, "GO!", "#FFD678", 46); sfx("tap");
   ARC.running = true; ARC.paused = false; ARC.last = performance.now(); ARC.raf = requestAnimationFrame(arcLoop);
   if (!ARC.g.noReplay) crowdStart(); ARC.lvl = -1;
@@ -4019,6 +4042,7 @@ function arcLoop(now){
   if (ARC.slow > 0){ ARC.slow -= dt; dt *= .3; }
   const s = ARC.s; s.t += dt;
   ARC.g.update(s, dt); arcFx(dt); rpRecord(s);
+  if (RMO){ ARC.shake = 0; ARC.flash = Math.min(ARC.flash, .15); }
   ARC.shake = Math.max(0, ARC.shake - dt * 40); ARC.flash = Math.max(0, ARC.flash - dt * 2.5); ARC.hype = Math.max(0, ARC.hype - dt * .5);
   arcFrame(); arcHud();
   const lv = Math.round(ARC.hype * 10) / 10; if (lv !== ARC.lvl){ ARC.lvl = lv; crowdLevel(ARC.hype); }
@@ -4051,15 +4075,19 @@ function arcEnd(){
   $("#arcChoices").hidden = true;
   if (g.sd){ const s = ARC.s, r = sdRec()[SD.sport] || { w: 0, l: 0 };
     const S = s.season, btns = S ? (S.stage === "done" ? `<button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-sdseason="${SD.sport}">New season</button>` : `<button class="btn" type="button" data-sd="sports">Save and exit</button><button class="btn primary" type="button" data-sd="go">${S.stage === "reg" ? "Next game" : S.stage === "semi" ? "Play the semifinal" : "Play the final"}</button>`)
-      : `<button class="btn" type="button" data-sd="newdraft">New draft</button><button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-sd="rematch">Rematch</button>`;
-    $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><span class="arcicon">${S && S.champ && S.stage === "done" ? "🏆" : s.sdWon ? "🏆" : g.icon}</span><b>${esc(s.title)}</b><p class="sdfinal">${esc(s.note || "")}</p>${S ? seasonLine(S) : ""}${sdBox(s)}<small>Your ${esc(SD_SPORTS[SD.sport].name.toLowerCase())} record: ${r.w}–${r.l}</small>
+      : `<button class="btn" type="button" data-sd="newdraft">New draft</button><button class="btn" type="button" data-sd="shareteam">${SD.opp && SD.opp.friend ? "Send yours back" : "Challenge a friend"}</button><button class="btn primary" type="button" data-sd="rematch">Rematch</button>`;
+    const fr = SD.opp && SD.opp.friend ? `<p class="arcgoal ${s.sdWon ? "won" : ""}">🥊 ${s.sdWon ? "You beat your friend's team! Send yours back." : "Your friend's team wins this one. Rematch?"}</p>` : "";
+    if (fr && s.sdWon) unlock("beat-friend");
+    $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><span class="arcicon">${S && S.champ && S.stage === "done" ? "🏆" : s.sdWon ? "🏆" : g.icon}</span><b>${esc(s.title)}</b><p class="sdfinal">${esc(s.note || "")}</p>${fr}${S ? seasonLine(S) : ""}${sdBox(s)}<small>Your ${esc(SD_SPORTS[SD.sport].name.toLowerCase())} record: ${r.w}–${r.l}</small>
       <span class="dbtns">${btns}</span></div>`;
     $("#arcOver").hidden = false; if (SPORT === "play") drawPlay(); return; }
   if (rec) lsSet("arc-" + g.id, sc); sfx(rec ? "win" : "lose"); if (rec) buzz([30, 40, 30]);
   if (g.id !== "trivia"){ const s = ARC.s; awardXP(5 + (rec ? 15 : 0), g.name); unlock("arcade-first");
     if (g.id === "derby" && s.score >= 5) unlock("hr-5"); if (g.id === "kick" && s.longest >= 50) unlock("fg-50"); if (g.id === "hoops" && s.score >= 15) unlock("hoops-15");
     if (g.id === "shelf" && s.goals >= 8) unlock("shelf-8"); if (g.id === "pens" && /won/.test(s.title || "")) unlock("pens-win"); if (g.id === "logos" && s.right >= 10) unlock("logos-10"); }
-  const extra = g.id === "trivia" ? "" : dchCheck(g, ARC.s) + vsCheck(g, ARC.s);
+  const onBoard = HOSTED && g.id === dchToday().id, extra = g.id === "trivia" ? "" : dchCheck(g, ARC.s) + vsCheck(g, ARC.s) + (onBoard ? `<p class="arcgoal lbline" id="lbLine">🏆 Checking today's leaderboard…</p>` : "");
+  if (onBoard) lbSend(g, ARC.s).then(d => { const el = $("#lbLine"); if (!el) return;
+    el.innerHTML = !lsGet("nick", "") ? `🏆 Put your score on today's leaderboard. <button class="btn" type="button" data-lb="1">Join</button>` : d && d.rank ? `🏆 You're #${d.rank} of ${d.total} on today's leaderboard. <button class="btn" type="button" data-lb="1">See it</button>` : `🏆 Your best today counts on the leaderboard. <button class="btn" type="button" data-lb="1">See it</button>`; });
   $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(ARC.s.title || (rec ? "New best!" : "Game over"))}</b><p class="arcscore">${sc}<small>${esc(g.unit)}</small></p>${ARC.s.note ? `<p>${esc(ARC.s.note)}</p>` : ""}<small>${rec ? "Personal best" : `Best: ${best}`}</small>${extra}
     <span class="dbtns"><button class="btn" type="button" data-arc="share">${g.id === "trivia" ? "Share" : "Challenge a friend"}</button><button class="btn primary" type="button" data-arc="start">Play again</button></span></div>`;
   $("#arcOver").hidden = false; if (SPORT === "play") drawPlay();
@@ -5272,6 +5300,7 @@ function sdDraft(sp, slotIdx = 0){
       <span class="sdr">${sl.rate.map(([k, l]) => `<i title="${l}">${l} <b>${p.r[k]}</b></i>`).join("")}</span></span><span class="sdc"><b>${p.ovr}</b><small>${cost < p.cost ? "🎴 " : "●".repeat(Math.ceil(cost / 2)) + " "}${cost}</small></span></button>`; }).join("");
   $("#arcOver").innerHTML = `<div class="arcpanel sdpanel sddraft">
     <div class="sdtop"><button type="button" class="btn" data-sd="sports">‹ Sports</button><b>${def.icon} ${def.name}</b><span class="sdbudget ${left < 0 ? "bad" : ""}">${left} of ${def.budget} coins left</span></div>
+    ${SD.friend && SD.friend.sport === SD.sport && !SD.season ? `<p class="arcgoal">🥊 Your friend's ${sdOvr(SD.friend.team)} OVR team is waiting. Draft yours to face it.</p>` : ""}
     <div class="sdtabs">${def.slots.map((s, i) => `<button type="button" data-sdslot="${i}" aria-pressed="${i === slotIdx}">${s.label} ${(SD.pick[s.key] || []).length}/${s.n}</button>`).join("")}</div>
     <div class="sdteam">${def.slots.flatMap(s => Array.from({ length: s.n }, (_, i) => { const p = (SD.pick[s.key] || [])[i]; return p ? `<span class="sdchip" data-sdp="${esc(p.id)}"><img src="${esc(p.img)}" alt="" onerror="this.style.visibility='hidden'">${esc(lastName(p.name))}</span>` : `<span class="sdchip empty">${esc(s.label.replace(/s$/, ""))}</span>`; })).join("")}</div>
     <div class="sdlist" data-slot="${slotIdx}">${rows}</div>
@@ -5288,12 +5317,13 @@ function sdToggle(id){
 }
 function sdMatchup(){
   const taken = new Set(Object.values(SD.pick).flat().map(p => p.id)), def = SD_SPORTS[SD.sport];
-  const S = SD.season === SD.sport ? seasonGet(SD.sport) : null, opp = S && S.stage !== "done" ? seasonOpp(S) : null;
+  const S = SD.season === SD.sport ? seasonGet(SD.sport) : null; let opp = S && S.stage !== "done" ? seasonOpp(S) : null;
+  if (!opp && SD.friend && SD.friend.sport === SD.sport) opp = { name: "Your friend's team", label: "Friend challenge", friend: true };
   if (S && !S.pick){ S.pick = {}; def.slots.forEach(sl => S.pick[sl.key] = (SD.pick[sl.key] || []).map(p => p.id)); seasonSave(SD.sport, S); }
-  SD.cpu = sdAuto(opp ? Math.round(def.budget * opp.mult) : def.budget, taken, SD.sport); SD.opp = opp;
+  SD.cpu = opp && opp.friend ? SD.friend.team : sdAuto(opp ? Math.round(def.budget * opp.mult) : def.budget, taken, SD.sport); SD.opp = opp;
   const side = (team, who) => `<div class="sdside"><small>${who} · ${sdOvr(team)} OVR</small>${Object.values(team).flat().map(p => `<span class="sdchip"><img src="${esc(p.img)}" alt="" onerror="this.style.visibility='hidden'">${esc(lastName(p.name))} <em>${p.ovr}</em></span>`).join("")}</div>`;
   $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><b>${def.icon} ${opp ? esc(opp.label) : "Matchup"}</b>${S ? seasonLine(S) : ""}${side(SD.pick, "Your team")}<span class="sdvs">VS</span>${side(SD.cpu, opp ? opp.name : "Computer")}
-    <p>${esc(SD_GAMES[SD.sport].how)}</p><p class="arcctl">${esc(SD_GAMES[SD.sport].controls)}</p><div class="dbtns">${S && S.res.length ? `<button class="btn" type="button" data-sd="sports">Save and exit</button>` : `<button class="btn" type="button" data-sd="redraft">Redraft</button>`}<button class="btn primary" type="button" data-sd="start">Play ball</button></div></div>`;
+    <p>${esc(SD_GAMES[SD.sport].how)}</p><p class="arcctl">${esc(SD_GAMES[SD.sport].controls)}</p><div class="dbtns">${S && S.res.length ? `<button class="btn" type="button" data-sd="sports">Save and exit</button>` : `<button class="btn" type="button" data-sd="redraft">Redraft</button>`}${opp && opp.friend ? `<button class="btn" type="button" data-sd="nofriend">Play the computer</button>` : S ? "" : `<button class="btn" type="button" data-sd="shareteam">Challenge a friend</button>`}<button class="btn primary" type="button" data-sd="start">Play ball</button></div></div>`;
 }
 function sdStart(){
   const g = SD_GAMES[SD.sport]; ARC.g = g; $("#arcTitle").textContent = `Showdown · ${SD_SPORTS[SD.sport].name}`; $("#arcSub").textContent = `${sdOvr(SD.pick)} OVR vs ${sdOvr(SD.cpu)} OVR${SD.opp ? ` · ${SD.opp.name}` : ""}`;
@@ -5854,6 +5884,7 @@ const SD_GAMES = { mlb: SD_MLB, nba: SD_NBA, nfl: SD_NFL, nhl: SD_NHL, epl: SD_E
     if (a === "retry") sdOpen(); else if (a === "sports"){ SD.season = null; sdSports(); }
     else if (a === "auto"){ SD.pick = sdAuto(SD_SPORTS[SD.sport].budget, new Set(), SD.sport); sdDraft(null, 0); }
     else if (a === "go") sdMatchup(); else if (a === "redraft") sdDraft(null, 0);
+    else if (a === "shareteam") sdShareTeam(); else if (a === "nofriend"){ SD.friend = null; sdMatchup(); }
     else if (a === "start" || a === "rematch") sdStart(); else if (a === "newdraft") sdDraft(SD.sport, 0);
   });
   $("#arcChoices").addEventListener("click", e => { const g = ARC.g, s = ARC.s; if (!ARC.running || !g || !g.sd) return;
@@ -5915,7 +5946,7 @@ async function packOpen(kind){
   else if (P.cost){ if (CARDS.coins < P.cost) return toast(`You need ${P.cost - CARDS.coins} more coins. Play anything in Play to earn them.`); CARDS.coins -= P.cost; }
   else { if (!CARDS.bank[kind]) return; CARDS.bank[kind]--; }
   const extra = kind === "free" && isStandalone() ? 1 : 0, keepN = P.n; P.n += extra; const cards = rollPack(kind); P.n = keepN;
-  CARDS.opened++; saveCards(); awardXP(10, P.name);
+  CARDS.opened++; saveCards(); awardXP(10, P.name); setTimeout(checkGoals, 2500);
   if (cards.some(c => rarityOf(c.p)[0] === "legend")) unlock("legend-card"); if (ownedCount() >= 50) unlock("cards-50");
   PK = { kind, cards, shown: new Set() };
   const body = $("#packBody");
@@ -5933,7 +5964,7 @@ function albumShow(sp = "all"){
   const all = allCards().filter(c => sp === "all" || c.sp === sp).sort((a, b) => !!CARDS.own[b.p.id] - !!CARDS.own[a.p.id] || b.p.ovr - a.p.ovr), own = all.filter(c => CARDS.own[c.p.id]).length;
   $("#packBody").innerHTML = `<div class="pkhead"><span>🎴</span><div><h2 id="packTitle">Your collection</h2><p>${own} of ${all.length} ${sp === "all" ? "cards" : esc(LEAGUE_LABEL[sp]) + " cards"} · 🪙 ${CARDS.coins} coins</p></div></div>
     <div class="seg albtabs" role="group" aria-label="League">${["all", ...Object.keys(CARD_SPORTS)].map(k => `<button type="button" data-alb="${k}" aria-pressed="${k === sp}">${k === "all" ? "All" : CARD_SPORTS[k] + " " + esc(LEAGUE_LABEL[k] || k)}</button>`).join("")}</div>
-    <div class="albgrid">${all.map(c => CARDS.own[c.p.id] ? `<span class="ccard mini on r-${rarityOf(c.p)[0]}"><span class="cci">${cardFace(c, CARDS.own[c.p.id] > 1 ? `<em class="ccx">×${CARDS.own[c.p.id]}</em>` : "")}</span></span>`
+    ${goalsHtml()}<div class="albgrid">${all.map(c => CARDS.own[c.p.id] ? `<span class="ccard mini on r-${rarityOf(c.p)[0]}" data-pid="${esc(c.p.id)}" role="button" tabindex="0"><span class="cci">${cardFace(c, CARDS.own[c.p.id] > 1 ? `<em class="ccx">×${CARDS.own[c.p.id]}</em>` : "")}</span></span>`
       : `<span class="ccard mini locked r-${rarityOf(c.p)[0]}"><span class="cci"><span class="ccf"><span class="cctop"><b>${c.p.ovr}</b><small></small><i>${CARD_SPORTS[c.sp]}</i></span><span class="ccimg"><span>?</span></span><span class="ccname">???</span><span class="ccteam">${rarityOf(c.p)[1]}</span></span></span></span>`).join("")}</div>
     <div class="pkfoot"><small>Owned players cost 1 less in Showdown drafts.</small><button class="btn primary" type="button" data-pk="done">Close</button></div>`;
   const dlg = $("#packDlg"); if (!dlg.open) dlg.showModal();
@@ -5963,7 +5994,7 @@ const dchDone = () => lsGet("dch", {}) || {};
 function dchStreak(){ const d = dchDone(), x = new Date(); let n = 0; if (!d[ymd(x)]) x.setDate(x.getDate() - 1); for (let i = 0; i < 60; i++){ if (d[ymd(x)]) n++; else break; x.setDate(x.getDate() - 1); } return n; }
 function dchHtml(){
   const c = dchToday(), done = dchDone()[c.day], st = dchStreak(), g = GAMES.find(x => x.id === c.id);
-  return `<button type="button" class="trcard dchcard ${done ? "done" : ""}" data-dch="${c.id}"><span>🎯</span><span><b>Daily Challenge ${st ? `<i class="streak">🔥 ${st}</i>` : ""}</b><small>${done ? "Done for today. A new challenge tomorrow." : `${esc(c.text)}. Reward: a Challenge pack${st >= 2 ? `, and a ${st + 1 >= 7 ? "Premium" : "Standard"} pack at a ${st + 1 >= 7 ? 7 : 3}-day streak` : ""}.`}</small></span><em>${done ? "✓" : g ? g.icon + " Go" : "Go"}</em></button>`;
+  return `<div class="dchwrap"><button type="button" class="trcard dchcard ${done ? "done" : ""}" data-dch="${c.id}"><span>🎯</span><span><b>Daily Challenge ${st ? `<i class="streak">🔥 ${st}</i>` : ""}</b><small>${done ? "Done for today. A new challenge tomorrow." : `${esc(c.text)}. Reward: a Challenge pack${st >= 2 ? `, and a ${st + 1 >= 7 ? "Premium" : "Standard"} pack at a ${st + 1 >= 7 ? 7 : 3}-day streak` : ""}.`}</small></span><em>${done ? "✓" : g ? g.icon + " Go" : "Go"}</em></button>${HOSTED ? `<button type="button" class="lbbtn" data-lb="1">🏆 Today's leaderboard${lbBest()[c.day] != null ? ` · your best ${lbBest()[c.day]}` : ""}</button>` : ""}</div>`;
 }
 function dchCheck(g, s){
   const c = dchToday(); if (g.id !== c.id || dchDone()[c.day]) return "";
@@ -6040,9 +6071,13 @@ function bindPlayExtras(el){
   el.querySelectorAll("[data-dch]").forEach(b => b.onclick = () => arcOpen(b.dataset.dch));
   el.querySelectorAll("[data-getapp]").forEach(b => b.onclick = () => $("#installBtn").click());
 }
+document.addEventListener("click", e => { const b = e.target.closest("[data-lb]"); if (b){ if ($("#arcDlg").open) $("#arcDlg").close(); lbOpen(); return; }
+  const r = e.target.closest(".ldrow[data-pid]"); if (r) playerOpen(r.dataset.pid); });
 (() => {
   $("#packBody").addEventListener("click", e => {
     const f = e.target.closest("[data-flip]"); if (f) return packFlip(+f.dataset.flip);
+    const pl = e.target.closest("[data-plas]"); if (pl){ lsSet("arc-as-" + pl.dataset.game, pl.dataset.plas); $("#packDlg").close(); arcOpen(pl.dataset.game); return; }
+    const pc = e.target.closest("[data-pid]"); if (pc && !e.target.closest("form")) return playerOpen(pc.dataset.pid);
     const a = e.target.closest("[data-alb]"); if (a) return albumShow(a.dataset.alb);
     const k = e.target.closest("[data-pk]"); if (!k) return;
     if (k.dataset.pk === "all"){ PK && PK.cards.forEach((_, i) => setTimeout(() => packFlip(i), i * 180)); return; }
@@ -6053,6 +6088,88 @@ function bindPlayExtras(el){
 })();
 
 appPerks();
+
+/* ================= Player profiles: tap any real player for their ratings, stats and card ================= */
+const STAT_LABEL = { hr: "Home runs", avg: "Batting average", ops: "OPS", rbi: "RBI", sb: "Stolen bases", era: "ERA", k: "Strikeouts", w: "Wins", whip: "WHIP",
+  ppg: "Points a game", rpg: "Rebounds a game", apg: "Assists a game", tp: "3-point %", fg: "Field goal %", spg: "Steals a game", bpg: "Blocks a game",
+  cmp: "Completion %", int: "Interceptions", rtg: "Passer rating", td: "Touchdowns", yds: "Yards", rec: "Receptions", ypr: "Yards a catch", lng: "Longest kick", pct: "Field goal %",
+  g: "Goals", a: "Assists", pts: "Points", pm: "Plus/minus", gaa: "Goals against avg", so: "Shutouts", sv: "Save %", cs: "Clean sheets", price: "Fantasy price (£m)" };
+const AS_GAME = { "mlb/hitters": "derby", "epl/attackers": "pens", "nba/players": "hoops", "nfl/ks": "kick", "nhl/skaters": "shelf" };
+function findCard(id){ return allCards().find(c => c.p.id === id) || null; }
+function statFmt(sp, k, v){ if (v == null || v === "") return "–"; if (k === "avg" || k === "ops" || k === "whip") return String((+v).toFixed(3)).replace(/^0/, ""); if (k === "sv" && sp === "nhl") return (+v).toFixed(3).replace(/^0/, ""); if (k === "sv" && sp === "epl") return String(v); if (k === "price") return "£" + (+v).toFixed(1) + "m"; return String(v); }
+async function playerOpen(id){
+  try { await sdLoad(); } catch {} const c = findCard(id); if (!c) return toast("Couldn't find that player");
+  const p = c.p, R = rarityOf(p), sl = (SD_SPORTS[c.sp]?.slots || []).find(s => s.key === c.key), rates = sl ? sl.rate : Object.keys(p.r).map(k => [k, k]);
+  const own = CARDS.own[p.id] || 0, game = AS_GAME[c.sp + "/" + c.key], g = game && GAMES.find(x => x.id === game);
+  const stats = Object.entries(p.s || {}).filter(([k, v]) => v != null && v !== "" && !(c.sp === "epl" && ((c.key === "attackers" && (k === "cs" || k === "sv")) || (c.key === "keepers" && (k === "g" || k === "a")))));
+  $("#packBody").innerHTML = `<div class="plhead"><span class="ccard r-${R[0]} on plcard"><span class="cci">${cardFace(c)}</span></span>
+      <div><h2 id="packTitle">${esc(p.name)}</h2><p>${esc(p.team)} · ${esc(p.pos || "")} · ${esc(LEAGUE_LABEL[c.sp] || "")}</p><p class="plline">${esc(p.line || "")}</p>
+      <p class="plown ${own ? "on" : ""}">${own ? `🎴 In your collection${own > 1 ? ` ×${own}` : ""} · costs ${sdCost(p)} in Showdown drafts` : `Not collected yet · ${R[1]} card`}</p></div></div>
+    <h3 class="plh">Ratings <small>from real stats, 60 to 99</small></h3>
+    <div class="plrates">${rates.map(([k, l]) => `<div><span>${esc(l)}</span><i><b style="width:${Math.round((p.r[k] - 50) / 49 * 100)}%"></b></i><em>${p.r[k]}</em></div>`).join("")}<div class="ovr"><span>Overall</span><i><b style="width:${Math.round((p.ovr - 50) / 49 * 100)}%"></b></i><em>${p.ovr}</em></div></div>
+    ${stats.length ? `<h3 class="plh">This season <small>${esc(SD.data.sports[c.sp]?.season || "")}</small></h3><div class="plstats">${stats.map(([k, v]) => `<span><b>${esc(statFmt(c.sp, k, v))}</b><small>${esc(STAT_LABEL[k] || k)}</small></span>`).join("")}</div>` : ""}
+    <div class="pkfoot"><small>Ratings update every night.</small>${g ? `<button class="btn" type="button" data-plas="${esc(p.id)}" data-game="${game}">Play as ${esc(lastName(p.name))}</button>` : ""}<button class="btn primary" type="button" data-pk="done">Close</button></div>`;
+  const dlg = $("#packDlg"); if (!dlg.open) dlg.showModal();
+}
+
+/* ================= Collection goals: milestones that pay out packs ================= */
+function cardGoals(){
+  const all = allCards(), own = c => !!CARDS.own[c.p.id], out = [];
+  const add = (id, label, have, need, prize) => out.push({ id, label, have: Math.min(have, need), need, prize, done: have >= need });
+  const n = all.filter(own).length; [[25, "std"], [75, "std"], [150, "pro"], [300, "pro"]].forEach(([k, pz]) => add("tot" + k, `Collect ${k} cards`, n, k, pz));
+  for (const sp of Object.keys(CARD_SPORTS)){ const l = all.filter(c => c.sp === sp); if (l.length) add("half-" + sp, `Half of the ${LEAGUE_LABEL[sp]} set`, l.filter(own).length, Math.ceil(l.length / 2), "pro"); }
+  const leg = all.filter(c => rarityOf(c.p)[0] === "legend"); add("leg5", "Pull 5 Legends", leg.filter(own).length, 5, "pro");
+  add("legall", "Every Legend", leg.filter(own).length, leg.length, "champ");
+  return out;
+}
+function checkGoals(){
+  if (!SD.data) return; CARDS.goals = CARDS.goals || {};
+  for (const g of cardGoals()) if (g.done && !CARDS.goals[g.id]){ CARDS.goals[g.id] = Date.now(); saveCards(); grantPack(g.prize, `Goal reached: ${g.label}`); }
+}
+function goalsHtml(){
+  const gs = cardGoals(); if (!gs.length) return "";
+  return `<details class="goals"><summary>🏁 Collection goals <small>${gs.filter(g => g.done).length} of ${gs.length} reached</small></summary>${gs.map(g => `<div class="goal ${g.done ? "done" : ""}"><span>${g.done ? "✓" : PACKS[g.prize].icon}</span><div><b>${esc(g.label)}</b><i><em style="width:${Math.round(g.have / g.need * 100)}%"></em></i></div><small>${g.have}/${g.need}</small></div>`).join("")}</details>`;
+}
+
+/* ================= Daily Challenge leaderboard: everyone's best score today ================= */
+const devId = () => { let id = lsGet("devid", ""); if (!id){ id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^\w-]/g, ""); lsSet("devid", id); } return id; };
+const lbBest = () => lsGet("lb-best", {}) || {};
+async function lbSend(g, s){
+  const c = dchToday(); if (!ALERTS_URL || g.id !== c.id) return null; const v = dchMetric(g.id, s), best = lbBest(), name = lsGet("nick", "");
+  if (best[c.day] != null && best[c.day] >= v && best[c.day + "s"]) return null; best[c.day] = Math.max(v, best[c.day] || 0); lsSet("lb-best", best);
+  if (!name) return null;
+  try { const r = await fetch(ALERTS_URL + "/board", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ day: c.day, game: c.id, score: best[c.day], id: devId(), name }) });
+    if (!r.ok) return null; const d = await r.json(); best[c.day + "s"] = 1; lsSet("lb-best", best); return d; } catch { return null; }
+}
+async function lbOpen(){
+  const c = dchToday(), g = GAMES.find(x => x.id === c.id), name = lsGet("nick", ""), best = lbBest()[c.day];
+  const body = $("#packBody"); const dlg = $("#packDlg");
+  const head = `<div class="pkhead"><span>🏆</span><div><h2 id="packTitle">Today's leaderboard</h2><p>${g ? g.icon + " " : ""}${esc(c.text)}. Your best today: ${best != null ? `${best} ${esc(c.unit)}` : "not played yet"}.</p></div></div>
+    <form class="lbname" id="lbName"><label>Your name on the board <input id="lbNick" maxlength="16" minlength="2" required placeholder="Pick a nickname" value="${esc(name)}" autocomplete="nickname"></label><button class="btn" type="submit">${name ? "Save" : "Join"}</button></form>`;
+  body.innerHTML = head + `<div class="lblist">${cosmoLoad ? cosmoLoad("Loading the board…") : "Loading…"}</div><div class="pkfoot"><small>One best score per device, reset every day. Be nice with names.</small>${g ? `<button class="btn" type="button" data-dch="${c.id}">Play now</button>` : ""}<button class="btn primary" type="button" data-pk="done">Close</button></div>`;
+  if (!dlg.open) dlg.showModal();
+  const draw = d => { const L = body.querySelector(".lblist"); if (!L) return;
+    if (!d){ L.innerHTML = `<p class="lbnote">The leaderboard needs a connection. Your score is saved and will count when you're back online.</p>`; return; }
+    L.innerHTML = d.top.length ? `<ol>${d.top.map((r, i) => `<li class="${r.me ? "me" : ""}"><span>${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span><b>${esc(r.name)}</b><em>${r.score}</em></li>`).join("")}</ol>${d.rank && d.rank > d.top.length ? `<p class="lbnote">You're #${d.rank} of ${d.total}.</p>` : d.rank ? `<p class="lbnote">You're #${d.rank} of ${d.total} today.</p>` : ""}`
+      : `<p class="lbnote">No scores yet today. Be the first.</p>`; };
+  const load = async () => { if (!ALERTS_URL) return draw(null); try { const r = await fetch(`${ALERTS_URL}/board?day=${c.day}&game=${c.id}&id=${encodeURIComponent(devId())}`); draw(r.ok ? await r.json() : null); } catch { draw(null); } };
+  body.querySelector("#lbName").onsubmit = async e => { e.preventDefault(); const v = $("#lbNick").value.replace(/\s+/g, " ").trim().slice(0, 16); if (v.length < 2) return;
+    lsSet("nick", v); const b = lbBest(); delete b[c.day + "s"]; lsSet("lb-best", b); toast("Name saved"); if (best != null){ const d = await lbSend(g || { id: c.id }, c.id === "logos" ? { right: best } : { score: best }); if (d) draw(d); else load(); } else load(); };
+  body.querySelectorAll("[data-dch]").forEach(b => b.onclick = () => { dlg.close(); arcOpen(b.dataset.dch); });
+  load();
+}
+
+/* ================= Showdown friend challenges: send your drafted team, they draft theirs and play it ================= */
+function sdTeamLink(){ const ids = Object.values(SD.pick).flat().map(p => p.id).join("-"); return `${APP_URL()}#sd=${SD.sport}.${ids}`; }
+function sdShareTeam(){ shareText(`My ${SD_SPORTS[SD.sport].name.toLowerCase()} team in Cosmo Showdown: ${Object.values(SD.pick).flat().map(p => lastName(p.name)).join(", ")} (${sdOvr(SD.pick)} OVR). Draft yours and beat it.`, sdTeamLink()); }
+async function sdTakeFriend(sp, ids){
+  try { await sdLoad(); } catch { return toast("Couldn't load the players. Check your connection."); }
+  const def = SD_SPORTS[sp]; if (!def) return; const want = ids.split("-"), team = {};
+  const ok = def.slots.every(sl => { team[sl.key] = want.map(id => sdPool(sp, sl.key).find(p => p.id === id)).filter(Boolean).slice(0, sl.n); return team[sl.key].length === sl.n; });
+  if (!ok) return toast("That team link has players who aren't in tonight's pool. Ask for a new link.");
+  SD.friend = { sport: sp, team }; SD.season = null; setSport("play");
+  sdOpen(); setTimeout(() => { sdDraft(sp, 0); toast(`Your friend's ${sdOvr(team)} OVR team is waiting. Draft yours to take it on.`); }, 400);
+}
 
 /* ================= Cosmo Level: XP and achievements for everything you do in the app ================= */
 const XP = Object.assign({ xp: 0, got: {}, days: [], log: [] }, lsGet("xp", {}) || {});
@@ -6170,7 +6287,7 @@ async function renderLeaders(){
   const cards = LEADERS[lg].map(([pool, k, label, low]) => {
     const list = (d[pool] || []).filter(p => p.s && p.s[k] != null && p.s[k] !== "" && !isNaN(+p.s[k])).sort((a, b) => low ? a.s[k] - b.s[k] : b.s[k] - a.s[k]).slice(0, 5);
     if (!list.length) return "";
-    return `<section class="usec ldcard"><h3>${esc(label)}</h3>${list.map((p, i) => `<div class="ldrow ${i ? "" : "top"}"><span class="ldn">${i + 1}</span><img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="ldp"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${esc(p.pos)}</small></span><span class="ldv">${esc(String(fmt(k, p.s[k])))}</span></div>`).join("")}</section>`;
+    return `<section class="usec ldcard"><h3>${esc(label)}</h3>${list.map((p, i) => `<div class="ldrow ${i ? "" : "top"}" data-pid="${esc(p.id)}" role="button" tabindex="0"><span class="ldn">${i + 1}</span><img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="ldp"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${esc(p.pos)}</small></span><span class="ldv">${esc(String(fmt(k, p.s[k])))}</span></div>`).join("")}</section>`;
   }).join("");
   el.innerHTML = `<div class="ldgrid">${cards || `<div class="teamnote">No leaders yet.</div>`}</div><p class="condNote">${esc(d.season || "")} season stats among the league's top players, updated every night. ${lg === "nfl" ? "Football shows last season until this one has enough games." : ""}</p>`;
 }
@@ -6356,7 +6473,7 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-cards";
+const NEW_V = "2026-09-board";
 function maybeWhatsNew(){
   if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
