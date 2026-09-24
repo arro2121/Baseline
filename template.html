@@ -413,6 +413,22 @@ dialog.modal.wide{max-width:640px}
 .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
 .gcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .gcard.live{border-color:color-mix(in srgb,#E0362B 45%,var(--line))}
+.gcard{background:linear-gradient(135deg,color-mix(in srgb,var(--ac,transparent) 9%,var(--surface)) 0,var(--surface) 38%,var(--surface) 62%,color-mix(in srgb,var(--hc,transparent) 9%,var(--surface)) 100%);transition:transform .15s ease,box-shadow .15s ease}
+.gcard:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(16,32,43,.12)}
+.gcard.favg{box-shadow:0 0 0 2px #E0A106,var(--shadow)}
+.gcard.live::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--ac),#E0362B,var(--hc));background-size:200% 100%;animation:liveSweep 3s linear infinite}
+@keyframes liveSweep{to{background-position:-200% 0}}
+.gwin{display:flex;height:6px;border-radius:99px;overflow:hidden;margin:8px 0 2px;background:var(--line)}
+.gwin i{display:block;height:100%}
+.gteam .fav{border:0;background:none;color:var(--faint);font-size:1rem;line-height:1;padding:2px 4px;cursor:pointer;flex:none;margin-left:-2px}
+.gteam .fav[aria-pressed="true"]{color:#E0A106}
+.gteam .sc.bump{animation:scoreBump 1.2s ease}
+@keyframes scoreBump{0%{transform:scale(1);color:inherit}20%{transform:scale(1.45);color:#E0362B}100%{transform:scale(1)}}
+.gdate{display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.gdate b{min-width:130px;text-align:center;font-size:.95rem}
+.gdate button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;width:34px;height:34px;font-size:1.2rem;line-height:1;cursor:pointer}
+.gdate button.today{width:auto;padding:0 12px;font-size:.78rem;font-weight:700}
+@media (prefers-reduced-motion:reduce){.gcard.live::before,.gteam .sc.bump{animation:none}}
 .gtop{display:flex;justify-content:space-between;align-items:center;font-size:.74rem;color:var(--muted);margin-bottom:8px;gap:8px}
 .gteam{display:grid;grid-template-columns:6px minmax(0,1fr) auto 44px;gap:10px;align-items:center;padding:4px 0}
 .gteam i{width:6px;height:26px;border-radius:3px;background:var(--line)}
@@ -529,6 +545,9 @@ dialog.modal.wide{max-width:640px}
 .ghd .wp{margin-top:12px;font-size:.76rem;color:var(--board-dim)}
 .ghd .wpbar{display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:5px;background:rgba(255,255,255,.12)}
 .ghd .wpbar i{display:block;height:100%;transition:width .5s ease}
+.ghd .wp{display:flex;justify-content:space-between;align-items:baseline}.ghd .wp b{color:var(--board-ink);font-size:.82rem}
+.wpchart{display:block;width:100%;height:46px;margin-top:6px;border-radius:6px;background:rgba(255,255,255,.05)}
+.wpkey{display:flex;gap:14px;margin-top:5px;font-size:.68rem;font-weight:700;color:var(--board-dim)}.wpkey span{display:inline-flex;align-items:center;gap:5px}.wpkey i{width:9px;height:9px;border-radius:2px;display:inline-block}
 .plays{padding:10px 18px 30px}
 .pl{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line-2);font-size:.88rem;align-items:start}
 .pl .t{color:var(--muted);font-size:.74rem;font-weight:650;line-height:1.35}
@@ -579,7 +598,57 @@ dialog.modal.wide{max-width:640px}
 .gfield .cap{display:flex;align-items:center;gap:10px;padding:9px 16px 11px;background:rgba(0,0,0,.28);color:#EEF3EC;font-size:.82rem;line-height:1.35;min-height:40px}
 .gfield .cap b{color:#D4E23C;white-space:nowrap}
 .gfield .cap .ct{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gfield .gstage{position:relative}
+.gfield .gstage{position:relative;overflow:hidden;contain:layout paint}
+.gfield .gstage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(0,0,0,.28))}
+.gfield .fx{position:absolute;inset:0;pointer-events:none}
+.gfield .hud{position:absolute;inset:0;pointer-events:none}.gfield .hud .count,.gfield .hud .sb{pointer-events:auto}
+.spr{position:absolute;left:0;top:0;border-radius:50%;will-change:transform,opacity;backface-visibility:hidden}
+.spr.shadow{background:rgba(0,0,0,.55);filter:blur(1.5px);transform-origin:center}
+.spr.ball-mlb{background:radial-gradient(circle at 35% 30%,#fff 0,#f1f1f1 45%,#c9c9c9 100%);box-shadow:0 0 0 .5px rgba(0,0,0,.25),0 0 6px rgba(255,255,255,.6)}
+.spr.runner{border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.45)}
+.spr.football{border-radius:50%;background:radial-gradient(ellipse at 40% 35%,#A45A2A,#6B3212 75%);box-shadow:inset 0 0 0 .6px rgba(255,255,255,.35),0 1px 3px rgba(0,0,0,.4)}
+.spr.bball{background:radial-gradient(circle at 35% 30%,#FFB067,#E8691E 55%,#A9430C);box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.spr.puck{background:radial-gradient(ellipse at 45% 35%,#444,#0B0B0B 70%);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.spr.sball{background:radial-gradient(circle at 35% 30%,#fff,#ececec 55%,#b5b5b5);box-shadow:inset 0 0 0 .6px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.35)}
+.popwrap{position:absolute;left:0;top:0;pointer-events:none}
+.pop{position:absolute;left:0;top:0;transform:translate(-50%,-50%);animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.7,.3,1)}
+.pop.ring{width:26px;height:26px;border:2.5px solid #fff;border-radius:50%;animation:popRing 1.1s both}
+@keyframes popRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}
+.pop.word{font-weight:900;font-size:1rem;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap;animation:popWord 1.6s both}
+.pop.word.sm{font-size:.8rem}
+@keyframes popWord{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}28%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-90%)}}
+.pop.bigk{font-weight:900;font-size:3rem;color:#E53935;-webkit-text-stroke:1.5px #fff;text-shadow:0 4px 14px rgba(0,0,0,.5);animation:popK 1.8s both}
+@keyframes popK{0%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}20%{opacity:1;transform:translate(-50%,-50%) scale(.95)}30%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0}}
+.pop.burst{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 -22px 0 -2px var(--c),16px -16px 0 -2px var(--c),22px 0 0 -2px var(--c),16px 16px 0 -2px var(--c),0 22px 0 -2px var(--c),-16px 16px 0 -2px var(--c),-22px 0 0 -2px var(--c),-16px -16px 0 -2px var(--c);animation:popBurst 1.1s both}
+@keyframes popBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.1)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+.pop.confetti{width:6px;height:10px;border-radius:1px;background:var(--c);animation:popConf 1.6s both}
+@keyframes popConf{0%{opacity:0;transform:translate(-50%,-50%) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),80px) rotate(var(--r))}}
+.pop.spot{width:12px;height:12px;border-radius:50%;border:2px solid var(--c);background:rgba(255,255,255,.35);animation:popSpot .5s both}
+@keyframes popSpot{0%{opacity:0;transform:translate(-50%,-50%) scale(2)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.pop.swish{width:22px;height:14px;border-radius:0 0 50% 50%;border:2px solid #fff;border-top:0;animation:popSwish .7s both}
+@keyframes popSwish{0%{opacity:0;transform:translate(-50%,-30%) scaleY(.4)}40%{opacity:1;transform:translate(-50%,-20%) scaleY(1.3)}100%{opacity:0;transform:translate(-50%,-30%) scaleY(1)}}
+.pop.plus{font-weight:900;font-size:1.3rem;color:var(--c);-webkit-text-stroke:1px #fff;animation:popWord 1.5s both}
+.pop.lamp{width:70px;height:70px;border-radius:50%;background:radial-gradient(#FF3B2F,rgba(255,59,47,0) 70%);animation:popLamp 1.4s both}
+@keyframes popLamp{0%,100%{opacity:0}15%,45%,75%{opacity:1}30%,60%{opacity:.35}}
+.pop.net{width:26px;height:50px;border-radius:40%;background:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 1px,transparent 1px 5px);animation:popNet 1s both}
+@keyframes popNet{0%{opacity:0;transform:translate(-50%,-50%) scaleX(.6)}30%{opacity:1;transform:translate(-50%,-50%) scaleX(1.4)}100%{opacity:0;transform:translate(-50%,-50%) scaleX(1)}}
+.pop.card{width:34px;height:48px;border-radius:4px;background:var(--c);border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.45);animation:popCard 1.8s both}
+@keyframes popCard{0%{opacity:0;transform:translate(-50%,-10%) rotate(-30deg) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) rotate(8deg) scale(1.05)}30%{transform:translate(-50%,-50%) rotate(0) scale(1)}85%{opacity:1}100%{opacity:0}}
+.gfield .cap{gap:12px}
+.gfield .cap .ct b{display:block;font-size:.8rem}
+.gfield .cap .ct span{color:#DDE8E0}
+.gfield .cap .ct{-webkit-line-clamp:3}
+.gfield .cbtns{display:flex;gap:6px;flex:none}
+.gfield .replay.hot{background:#E0362B;border-color:#E0362B}
+.perf{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.08)}
+.perf .pteam{background:#0B2A1F;padding:12px 14px;display:grid;gap:9px;align-content:start}
+.perf .pth{display:flex;align-items:center;gap:7px;color:#9CC3AE;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.perf .pp{display:flex;align-items:center;gap:9px;color:#EEF3EC;min-width:0}
+.perf .pp b{display:block;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.perf .pp small{display:block;font-size:.7rem;color:#9CC3AE;line-height:1.3}
+.perf .pp > div{min-width:0}
+@media (max-width:520px){.perf{grid-template-columns:1fr}}
+.pl.v2{content-visibility:auto;contain-intrinsic-size:auto 64px}
 /* player photos, highlight clips */
 .pchip{position:relative;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--tc,#DCE2DE);flex:none}
 .pchip > .tl{width:72%;height:72%;object-fit:contain}
@@ -1358,7 +1427,7 @@ const SPORTS = /*SPORTS*/;
 const ALERTS_URL = "/*ALERTS_URL*/".replace(/^\/\*.*\*\/$/, "").replace(/\/$/, "");
 // ESPN's scores and play-by-play, read straight from the phone (build_site.py copies this code from alerts/worker.js)
 const ESPN_DIRECT = (() => { /*ESPN_NORM*/
-  return { scoreboard: lg => espnScoreboard(lg), game: (lg, id) => espnGame(lg, id) };
+  return { scoreboard: (lg, dates) => espnScoreboard(lg, undefined, dates), game: (lg, id) => espnGame(lg, id) };
 })();
 // ESPN first, then the alerts service as a backup
 async function espnOr(direct, viaAlerts){
@@ -1924,44 +1993,79 @@ function renderTeamPredict(){
 document.querySelectorAll("[data-venue]").forEach(b => b.addEventListener("click", () => { const t = TP[SPORT]; if (!t) return; t.neutral = b.dataset.venue === "neutral"; renderTeamPredict(); }));
 $("#tSwap").addEventListener("click", () => { const t = TP[SPORT]; if (!t) return; [t.a, t.b] = [t.b, t.a]; t.odds = {}; $("#tOddsIn").dataset.key = ""; renderTeamPredict(); });
 ["#tBank","#tThresh"].forEach(i => $(i).addEventListener("input", () => renderTeamPredict()));
+/* which day's games: "" is today, otherwise YYYYMMDD */
+const GDATE = {};
+const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+const fromYmd = s => new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
+function dayLabel(s){
+  if (!s) return "Today";
+  const d = fromYmd(s), t = new Date(); t.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - t) / 864e5);
+  return diff === -1 ? "Yesterday" : diff === 1 ? "Tomorrow" : d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+}
+function shiftDay(lg, n){
+  const d = GDATE[lg] ? fromYmd(GDATE[lg]) : new Date(); d.setDate(d.getDate() + n);
+  const s = ymd(d); GDATE[lg] = s === ymd(new Date()) ? "" : s;
+  SB[lg] = null; renderGames();
+}
+/* favorite teams, kept on this device; their games come first */
+let FAV = {}; try { FAV = JSON.parse(localStorage.getItem("fav-teams") || "{}") || {}; } catch {}
+const isFav = (lg, name) => (FAV[lg] || []).includes(tkey(name));
+function toggleFav(lg, name){ const k = tkey(name), a = FAV[lg] = FAV[lg] || []; const i = a.indexOf(k); i >= 0 ? a.splice(i, 1) : a.push(k); try { localStorage.setItem("fav-teams", JSON.stringify(FAV)); } catch {} drawGames(); }
+const PREV_SCORE = {};
 async function loadScoreboard(quiet){
+  const lg = SPORT, day = GDATE[lg] || "";
+  if (quiet && day && SB[lg] && SB[lg].day === day) return;         // another day's results don't change
   try {
-    const lg = SPORT;
-    SB[lg] = await espnOr(() => ESPN_DIRECT.scoreboard(lg), `${ALERTS_URL}/sports/${lg}/scoreboard?t=${Math.floor(Date.now()/20000)}`);
-    learnLogos(lg, (SB[lg].games || []).flatMap(x => [x.home, x.away]));
-  } catch { if (!quiet) SB[SPORT] = { error: true, games: [] }; }
-  if (!$("#tt-games").hidden && SPORT !== "tennis") drawGames();
+    const d = await espnOr(() => ESPN_DIRECT.scoreboard(lg, day), `${ALERTS_URL}/sports/${lg}/scoreboard?${day ? `dates=${day}&` : ""}t=${Math.floor(Date.now()/20000)}`);
+    if ((GDATE[lg] || "") !== day) return;                         // the viewer moved to another day meanwhile
+    d.day = day; SB[lg] = d;
+    learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away]));
+  } catch { if (!quiet) SB[lg] = { error: true, games: [], day }; }
+  if (!$("#tt-games").hidden && SPORT === lg) drawGames();
 }
 function renderGames(){
   if (!HOSTED){
     $("#tt-games").innerHTML = `<div class="teamnote"><b>Live games appear in the installed app</b>Scores, the betting line, our prediction for every game, and live play-by-play come from ESPN, which this version can't reach. Rankings and Predict work here.</div>`;
     return;
   }
-  if (!SB[SPORT]) $("#tt-games").innerHTML = `<div class="teamnote">Loading games…</div>`;
+  if (!SB[SPORT] || (SB[SPORT].day || "") !== (GDATE[SPORT] || "")) $("#tt-games").innerHTML = dateBar() + `<div class="teamnote">Loading games…</div>`;
   else drawGames();
   loadScoreboard();
 }
+function dateBar(){
+  const day = GDATE[SPORT] || "";
+  return `<div class="gdate"><button type="button" data-day="-1" aria-label="Previous day">‹</button><b>${esc(dayLabel(day))}</b><button type="button" data-day="1" aria-label="Next day">›</button>${day ? `<button type="button" class="today" data-day="0">Today</button>` : ""}</div>`;
+}
+function bindDateBar(){ $("#tt-games").querySelectorAll("[data-day]").forEach(b => b.onclick = () => { const n = +b.dataset.day; if (!n){ GDATE[SPORT] = ""; SB[SPORT] = null; renderGames(); } else shiftDay(SPORT, n); }); }
 function drawGames(){
-  const d = SB[SPORT];
-  if (!d || d.error){ $("#tt-games").innerHTML = `<div class="teamnote"><b>Couldn't load games</b>ESPN didn't respond. Trying again shortly.</div>`; return; }
-  if (!d.games.length){ $("#tt-games").innerHTML = `<div class="teamnote"><b>No ${LEAGUE_LABEL[SPORT]} games today</b>Check back on the next game day, or use Predict for any matchup.</div>`; return; }
+  const d = SB[SPORT], day = GDATE[SPORT] || "";
+  if (!d || d.error){ $("#tt-games").innerHTML = dateBar() + `<div class="teamnote"><b>Couldn't load games</b>ESPN didn't respond. Trying again shortly.</div>`; bindDateBar(); return; }
+  if (!d.games.length){ $("#tt-games").innerHTML = dateBar() + `<div class="teamnote"><b>No ${LEAGUE_LABEL[SPORT]} games ${day ? "on " + esc(dayLabel(day)) : "today"}</b>Use the arrows to check another day, or Predict for any matchup.</div>`; bindDateBar(); return; }
   const ml = v => v == null ? null : 1 / (1 + (v > 0 ? v/100 : 100/-v));
-  $("#tt-games").innerHTML = `<div class="ggrid">${d.games.map(g => {
+  const favFirst = [...d.games].sort((a, b) => (isFav(SPORT, b.home.name) || isFav(SPORT, b.away.name)) - (isFav(SPORT, a.home.name) || isFav(SPORT, a.away.name)));
+  $("#tt-games").innerHTML = dateBar() + `<div class="ggrid">${favFirst.map(g => {
     const H = findTeam(g.home.name), A = findTeam(g.away.name), p = H && A ? teamPredict(H, A, g.neutral) : null;
     const live = g.status.state === "in", post = g.status.state === "post";
     const hs = +g.home.score, as = +g.away.score;
-    const row = (t, pr, won) => `<div class="gteam"><i style="background:${t.color || "var(--line)"}"></i><div class="nm">${logoChip(t)}<span>${esc(t.short || t.name)}</span><small>${esc(t.record || "")}</small></div>
-      <div class="sc ${post && !won ? "lose" : ""}">${g.status.state === "pre" ? "" : esc(t.score ?? "")}</div><div class="pr">${pr == null ? "" : Math.round(pr*100) + "%"}</div></div>`;
+    const prev = PREV_SCORE[g.id], now = `${g.away.score}-${g.home.score}`, bumped = prev != null && prev !== now; PREV_SCORE[g.id] = now;
+    const row = (t, pr, won, changed) => `<div class="gteam"><i style="background:${t.color || "var(--line)"}"></i><div class="nm">${logoChip(t)}<span>${esc(t.short || t.name)}</span><small>${esc(t.record || "")}</small><button class="fav" type="button" data-fav="${esc(t.name)}" aria-pressed="${isFav(SPORT, t.name)}" aria-label="${isFav(SPORT, t.name) ? "Unfollow" : "Follow"} ${esc(t.name)}">${isFav(SPORT, t.name) ? "★" : "☆"}</button></div>
+      <div class="sc ${post && !won ? "lose" : ""} ${changed ? "bump" : ""}">${g.status.state === "pre" ? "" : esc(t.score ?? "")}</div><div class="pr">${pr == null ? "" : Math.round(pr*100) + "%"}</div></div>`;
     const sit = g.situation, sitHtml = live && sit ? (SPORT === "mlb" && sit.outs != null
       ? `<div class="gsit"><span>${sit.balls ?? 0}-${sit.strikes ?? 0}, ${sit.outs} out${sit.outs===1?"":"s"}<span class="bases"><b class="${sit.bases?.[1]?"on":""}"></b><b class="${sit.bases?.[0]?"on":""}"></b><b class="${sit.bases?.[2]?"on":""}"></b><b></b></span></span><span>${esc(sit.batter || "")}</span></div>`
       : sit.text || sit.last ? `<div class="gsit"><span>${esc(sit.text || sit.last)}</span></div>` : "") : "";
     const mk = g.odds && ml(g.odds.homeML) && ml(g.odds.awayML) ? ml(g.odds.homeML) / (ml(g.odds.homeML) + ml(g.odds.awayML)) : null;
-    return `<div class="gcard ${live ? "live" : ""}"><div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${esc(g.status.short || "")}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
-      ${row(g.away, p ? p.away : null, as > hs)}${row(g.home, p ? p.home : null, hs > as)}${sitHtml}
+    const ac = g.away.color || "#9CC3AE", hc = colorDist(g.away.color || "#9CC3AE", g.home.color || "#DCEB4B") < 90 ? (g.home.alt || "#DCEB4B") : (g.home.color || "#DCEB4B");
+    const fav = isFav(SPORT, g.home.name) || isFav(SPORT, g.away.name);
+    const bar = p && g.status.state !== "post" ? `<div class="gwin" title="Baseline's pre-game win chances"><i style="width:${p.away * 100}%;background:${ac}"></i>${p.draw != null ? `<i style="width:${p.draw * 100}%;background:var(--line)"></i>` : ""}<i style="width:${p.home * 100}%;background:${hc}"></i></div>` : "";
+    return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""}" style="--ac:${ac};--hc:${hc}"><div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${esc(g.status.short || "")}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
+      ${row(g.away, p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${bar}${sitHtml}
       <div class="gfoot"><span>${g.odds?.details ? `Line ${esc(g.odds.details)}${g.odds.overUnder ? `, O/U ${g.odds.overUnder}` : ""}` : ""}${mk != null && p ? ` · market ${Math.round(mk*100)}% home` : ""}${p?.draw != null ? ` · draw ${Math.round(p.draw*100)}%` : ""}</span>
         ${g.status.state !== "pre" ? `<button data-pbp="${g.id}">Play-by-play</button>` : ""}</div></div>`; }).join("")}</div>
-    <p class="condNote" style="margin-top:12px">Percentages are Baseline's pre-game prediction. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}; refreshes every 30 seconds.</p>`;
+    <p class="condNote" style="margin-top:12px">Percentages and the colored bar are Baseline's pre-game prediction. Tap ☆ to put a team's games first. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${day ? "" : "; refreshes every 30 seconds"}.</p>`;
   $("#tt-games").querySelectorAll("[data-pbp]").forEach(b => b.onclick = () => openGame(SPORT, b.dataset.pbp));
+  $("#tt-games").querySelectorAll("[data-fav]").forEach(b => b.onclick = e => { e.stopPropagation(); toggleFav(SPORT, b.dataset.fav); });
+  bindDateBar();
 }
 async function openGame(lg, id){
   GSEEN = new Set(); clearInterval(gTimer);
@@ -2003,13 +2107,13 @@ const LOGOS = {};   // league -> team key -> logo, learned from ESPN's scoreboar
 function learnLogos(lg, teams){ const m = LOGOS[lg] = LOGOS[lg] || {}; for (const t of teams) if (t && t.logo && t.name){ m[tkey(t.name)] = t.logo; if (t.short) m[tkey(t.short)] = t.logo; } }
 function teamLogo(T, lg = SPORT){
   if (!T) return null;
-  if (T.logo) return T.logo;
-  const k = tkey(T.name), rated = ((SPORTS.leagues || {})[lg]?.teams || []).find(t => tkey(t.name) === k);
-  return (rated && rated.logo) || (LOGOS[lg] || {})[k] || null;
+  // the copy served from this site first (some browsers block ESPN's image server), then ESPN's
+  const k = tkey(T.name), rated = T.logo_local ? T : ((SPORTS.leagues || {})[lg]?.teams || []).find(t => tkey(t.name) === k || (T.short && tkey(t.name).endsWith(" " + tkey(T.short))));
+  return (rated && rated.logo_local) || T.logo || (rated && rated.logo) || (LOGOS[lg] || {})[k] || null;
 }
 function logoChip(T, size = "", lg = SPORT){
   const src = teamLogo(T, lg);
-  if (src) return `<span class="tlogo ${size}"><img src="${esc(src)}" alt="" loading="lazy"></span>`;
+  if (src) return `<span class="tlogo ${size}"><img src="${esc(src)}" alt="${esc((T && T.abbr) || "")}" loading="lazy" onerror="const s=this.parentNode;s.classList.add('txt');s.style.background='#55656E';s.textContent=this.alt"></span>`;
   const st = T && T.name ? teamStyle(T, lg) : null;
   return `<span class="tlogo txt ${size}" style="background:${st ? st.main : "#55656E"}">${esc((T && (T.abbr || (st && st.abbr))) || "")}</span>`;
 }
@@ -2087,147 +2191,228 @@ function sceneFocus(g, lg){
 }
 function tcolor(T, fallback){ if (T && T.color && T.color !== "#000000" && T.color !== "#ffffff") return T.color; return fallback; }
 function colorDist(a, b){ const h = c => [1, 3, 5].map(i => parseInt(String(c || "#000000").slice(i, i + 2), 16) || 0); const x = h(a), y = h(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); }
-function mot(path, dur, begin = 0, extra = ""){ return RM() ? "" : `<animateMotion dur="${dur}s" begin="${begin}s" fill="freeze" path="${path}" ${extra}/>`; }
-function fade(from, to, dur, begin = 0, attr = "opacity"){ return RM() ? "" : `<animate attributeName="${attr}" from="${from}" to="${to}" dur="${dur}s" begin="${begin}s" fill="freeze"/>`; }
-const svgWrap = (vb, inner) => `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Animated view of the latest play">${inner}</svg>`;
+/* The animated field. Each sport paints a still picture of its field (SVG) and lists the moving parts.
+   Moving parts are small HTML layers animated with the Web Animations API, which the browser runs on the
+   graphics card, so they stay smooth while the rest of the page updates. Positions are in each drawing's own units. */
+const FX = [];
+const qpt = (a, c, b, t) => { const u = 1 - t; return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]; };
+// a path: [start, [x, y] for a straight run, { c: [x, y], to: [x, y] } for a curve, ...], resampled evenly by distance
+function samplePath(path, n = 48){
+  const pts = [path[0]]; let cur = path[0];
+  for (const seg of path.slice(1)){
+    if (Array.isArray(seg)){ for (let i = 1; i <= 16; i++) pts.push([cur[0] + (seg[0] - cur[0]) * i / 16, cur[1] + (seg[1] - cur[1]) * i / 16]); cur = seg; }
+    else { for (let i = 1; i <= 32; i++) pts.push(qpt(cur, seg.c, seg.to, i / 32)); cur = seg.to; }
+  }
+  const d = [0]; for (let i = 1; i < pts.length; i++) d.push(d[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = d[d.length - 1] || 1, out = []; let j = 0;
+  for (let k = 0; k <= n; k++){ const t = L * k / n; while (j < d.length - 2 && d[j + 1] < t) j++; const a = pts[j], b = pts[j + 1] || a, f = Math.min(1, (t - d[j]) / ((d[j + 1] - d[j]) || 1)); out.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]); }
+  return out;
+}
+// sprites: { cls, w, h (drawing units), path | at, dur, delay (s), easing, lift (height of the arc), grow (extra size at the top), spin (deg), shadow, fade }
+// pops:    { pop: "class", at, html, delay }   — one-shot effects (rings, text, flashes) positioned on the field
+function playFX(stage, vb, items){
+  FX.forEach(a => { try { a.cancel(); } catch {} }); FX.length = 0;
+  const svg = stage.querySelector("svg"), layer = stage.querySelector(".fx");
+  if (!svg || !layer) return;
+  layer.textContent = "";
+  const r = svg.getBoundingClientRect(), [vx, vy, vw, vh] = vb, k = Math.min(r.width / vw, r.height / vh);
+  const ox = (r.width - vw * k) / 2 - vx * k, oy = (r.height - vh * k) / 2 - vy * k, P = ([x, y]) => [ox + x * k, oy + y * k];
+  const still = RM(), frag = document.createDocumentFragment();
+  const add = (it, shadow) => {
+    const el = document.createElement("div"), w = (it.w || 2) * k, h = (it.h || it.w || 2) * k;
+    el.className = "spr " + (shadow ? "shadow" : it.cls || "");
+    if (it.bg && !shadow) el.style.background = it.bg;
+    el.style.width = w + "px"; el.style.height = h + "px"; el.style.margin = `${-h / 2}px 0 0 ${-w / 2}px`;
+    if (it.html && !shadow) el.innerHTML = it.html;
+    frag.appendChild(el);
+    const pts = samplePath(it.path, 48).map(P), n = pts.length - 1, lift = shadow ? 0 : (it.lift || 0) * k, grow = shadow ? 0 : (it.grow || 0);
+    const frames = pts.map((p, i) => { const t = i / n, arc = 4 * t * (1 - t);
+      return { offset: t, transform: `translate(${p[0].toFixed(1)}px,${(p[1] - lift * arc).toFixed(1)}px) scale(${(1 + grow * arc).toFixed(3)})${it.spin ? ` rotate(${(it.spin * t).toFixed(0)}deg)` : ""}`, opacity: shadow ? .25 + .15 * (1 - arc) : it.fade && t > .85 ? (1 - t) / .15 : 1 }; });
+    if (still){ Object.assign(el.style, { transform: frames[n].transform, opacity: frames[n].opacity }); return; }
+    el.style.transform = frames[0].transform;
+    FX.push(el.animate(frames, { duration: it.dur * 1000, delay: (it.delay || 0) * 1000, easing: it.easing || "cubic-bezier(.25,.65,.35,1)", fill: "both" }));
+  };
+  for (const it of items){
+    if (it.pop){
+      const el = document.createElement("div"), [x, y] = P(it.at);
+      el.className = "popwrap"; el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      el.innerHTML = `<div class="pop ${it.pop}" style="${it.style || ""};animation-delay:${it.delay || 0}s">${it.html || ""}</div>`;
+      frag.appendChild(el); continue;
+    }
+    if (it.at) it.path = [it.at, it.at];
+    if (it.shadow) add(it, true);
+    add(it, false);
+  }
+  layer.appendChild(frag);
+}
+const svgOpen = vb => `<svg viewBox="${vb.join(" ")}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Animated view of the play">`;
 
+/* ---- baseball: seen from above the plate ---- */
 function sceneMLB(g, p){
-  const P = [125, 200], B1 = [150.7, 174.3], B2 = [125, 148.6], B3 = [99.3, 174.3];
+  const vb = [10, 22, 230, 192], PL = [125, 200], B1 = [150.7, 174.3], B2 = [125, 148.6], B3 = [99.3, 174.3];
   const bases = (g.situation && g.situation.bases) || [false, false, false];
-  let art = `<rect x="-500" y="-200" width="1250" height="600" fill="#1F5C33"/>
-    <path d="M125 200 L30 105 Q125 -29 220 105 Z" fill="#2E7D46"/><path d="M30 105 Q125 -29 220 105" fill="none" stroke="#153F24" stroke-width="3"/>
-    <path d="M125 200 L30 105 M125 200 L220 105" stroke="#fff" stroke-width=".8" opacity=".7"/>
-    <path d="M125 212 L165 172 Q125 118 85 172 Z" fill="#B7874F"/><path d="M125 200 L${B1} L${B2} L${B3} Z" fill="#2E7D46"/>
-    <circle cx="125" cy="176" r="5" fill="#B7874F"/>` +
-    [B1, B2, B3].map((b, i) => `<rect x="${b[0]-3.2}" y="${b[1]-3.2}" width="6.4" height="6.4" transform="rotate(45 ${b[0]} ${b[1]})" fill="${bases[i] ? "#F2C200" : "#fff"}" stroke="${bases[i] ? "#fff" : "none"}"/>`).join("") +
-    `<path d="M121 199 h8 v3 l-4 3 l-4 -3 Z" fill="#fff"/>`;
-  art += "<!--LOGOS-->";
-  let banner = "";
+  let svg = svgOpen(vb) + `<defs>
+      <radialGradient id="mG" cx="50%" cy="90%" r="85%"><stop offset="0" stop-color="#4FA05C"/><stop offset=".7" stop-color="#2F7E42"/><stop offset="1" stop-color="#23663A"/></radialGradient>
+      <pattern id="mS" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 200)"><rect width="8" height="16" fill="#fff" opacity=".055"/></pattern>
+      <radialGradient id="mD" cx="50%" cy="70%" r="70%"><stop offset="0" stop-color="#D2A06A"/><stop offset="1" stop-color="#AE7B45"/></radialGradient></defs>
+    <rect x="-500" y="-200" width="1250" height="600" fill="#16402A"/>
+    <path d="M125 200 L27 102 Q125 -34 223 102 Z" fill="#8B6B45"/>
+    <path d="M125 200 L33 108 Q125 -20 217 108 Z" fill="url(#mG)"/><path d="M125 200 L33 108 Q125 -20 217 108 Z" fill="url(#mS)"/>
+    <path d="M27 102 Q125 -34 223 102" fill="none" stroke="#0E2F1D" stroke-width="3.5"/>
+    <path d="M125 200 L27 102 M125 200 L223 102" stroke="#fff" stroke-width=".9" opacity=".85"/>
+    <path d="M125 213 L167 172 Q125 115 83 172 Z" fill="url(#mD)"/><path d="M125 200 L${B1} L${B2} L${B3} Z" fill="url(#mG)"/>
+    <circle cx="125" cy="176" r="5.5" fill="url(#mD)"/><rect x="123.5" y="175.3" width="3" height=".9" fill="#fff"/>
+    <!--LOGOS-->` +
+    [B1, B2, B3].map((b, i) => `<rect x="${b[0] - 3.3}" y="${b[1] - 3.3}" width="6.6" height="6.6" transform="rotate(45 ${b[0]} ${b[1]})" fill="${bases[i] ? "#F2C200" : "#fff"}" stroke="${bases[i] ? "#fff" : "rgba(0,0,0,.25)"}" stroke-width=".6"/>`).join("") +
+    `<path d="M121 199 h8 v3 l-4 3 l-4 -3 Z" fill="#fff"/><rect x="113" y="193" width="6" height="11" fill="none" stroke="#fff" stroke-width=".5" opacity=".7"/><rect x="131" y="193" width="6" height="11" fill="none" stroke="#fff" stroke-width=".5" opacity=".7"/></svg>`;
+  const fx = []; let hud = "";
   if (p){
     const T = (g.teams || {})[p.team], col = tcolor(T, "#D4E23C");
-    const run = { hit1: [P, B1], hit2: [P, B1, B2], hit3: [P, B1, B2, B3], hr: [P, B1, B2, B3, P], walk: [P, B1] }[p.kind];
-    if (run) art += `<circle r="4" fill="${col}" stroke="#fff" stroke-width="1.2" cx="0" cy="0">${mot("M" + run.map(q => q.join(" ")).join(" L"), 0.5 * run.length, 0.9)}</circle>`;
     if (p.x != null && p.y != null){
-      const [x, y] = [p.x, p.y], far = p.kind === "hr" ? [125 + (x - 125) * 1.35, y - (200 - y) * .3] : [x, y];
-      // seen from above: the ball travels straight out and grows as it rises (fly balls) or stays low (grounders)
-      const ground = p.trajectory === "G", path = `M${P} L${far}`, T0 = p.kind === "hr" ? 1.4 : 1.0;
-      art += `<path d="${path}" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="3 3" opacity=".35"/>
-        <circle r="3.4" fill="#fff" stroke="#C62828" stroke-width=".8" ${RM() ? `cx="${far[0]}" cy="${far[1]}"` : ""}>${mot(path, T0)}${RM() || ground ? "" : `<animate attributeName="r" values="3;${p.kind === "hr" ? 9 : 7};3.4" dur="${T0}s" fill="freeze"/>`}</circle>
-        <circle cx="${far[0]}" cy="${far[1]}" r="7" fill="none" stroke="#fff" stroke-width="1.5" opacity="${RM() ? 1 : 0}">${fade(0, 1, .3, p.kind === "hr" ? 1.4 : 1.0)}</circle>`;
-      if (p.kind === "out") art += `<text x="${far[0]}" y="${far[1] - 11}" text-anchor="middle" font-size="11" font-weight="900" fill="#fff" opacity="${RM() ? 1 : 0}">OUT${fade(0, 1, .3, 1.0)}</text>`;
-      if (p.kind === "hr" && !RM()) art += [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const a = i / 8 * Math.PI * 2; return `<circle cx="${far[0]}" cy="${far[1]}" r="2" fill="${i % 2 ? col : "#F2C200"}" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="1.2s" begin="1.4s" fill="freeze"/><animateMotion dur="1.2s" begin="1.4s" fill="freeze" path="M0 0 L${Math.cos(a) * 26} ${Math.sin(a) * 26}"/></circle>`; }).join("");
+      // home runs land just past the fence; everything stays inside the picture
+      const far0 = p.kind === "hr" ? [125 + (p.x - 125) * 1.1, p.y - (200 - p.y) * .1] : [p.x, p.y], far = [Math.max(18, Math.min(232, far0[0])), Math.max(34, Math.min(208, far0[1]))];
+      const ground = p.trajectory === "G", T0 = p.kind === "hr" ? 1.6 : ground ? .8 : 1.25, reach = Math.hypot(far[0] - 125, far[1] - 200);
+      fx.push({ cls: "ball-mlb", w: 4.4, path: [PL, far], dur: T0, lift: ground ? 0 : Math.min(far[1] - 30, reach * .16), grow: ground ? 0 : 1.2, shadow: !ground, easing: ground ? "cubic-bezier(.2,.8,.4,1)" : "cubic-bezier(.3,.55,.45,1)" });
+      fx.push({ pop: "ring", at: far, delay: T0 });
+      if (p.kind === "out") fx.push({ pop: "word", at: [far[0], far[1] - 12], html: "OUT", delay: T0 + .05 });
+      if (p.kind === "hr") for (let i = 0; i < 3; i++) fx.push({ pop: "burst", at: [Math.max(30, Math.min(220, far[0] + (i - 1) * 16)), Math.max(44, far[1] + 4 + (i % 2) * 8)], delay: T0 + i * .22, style: `--c:${i % 2 ? col : "#F2C200"}` });
     }
-    if (p.kind === "k") art += `<text x="125" y="192" text-anchor="middle" font-size="34" font-weight="900" fill="#D64541" stroke="#fff" stroke-width="1.2">K${RM() ? "" : `<animateTransform attributeName="transform" type="scale" values="0;1.25;1" dur=".6s" additive="sum" fill="freeze"/>`}</text>`;
+    const run = { hit1: [PL, B1], hit2: [PL, B1, B2], hit3: [PL, B1, B2, B3], hr: [PL, B1, B2, B3, PL], walk: [PL, B1] }[p.kind];
+    if (run) fx.push({ cls: "runner", w: 7.5, bg: col, path: run, dur: .42 * (run.length - 1) + .3, delay: .7, easing: "linear" });
+    if (p.kind === "k") fx.push({ pop: "bigk", at: [125, 186], html: "K" });
     const label = { hr: "HOME RUN!", hit3: "TRIPLE!", hit2: "DOUBLE!", k: "STRIKEOUT" }[p.kind];
-    if (label) banner = `<div class="banner" style="color:${p.kind === "k" ? "#fff" : "#F2C200"}">${label}</div>`;
+    if (label) hud += `<div class="banner" style="color:${p.kind === "k" ? "#fff" : "#F2C200"};animation-delay:${p.kind === "hr" ? 1.4 : .6}s">${label}</div>`;
   }
-  const sit = g.situation, count = sit && g.status?.state === "in" ? `<div class="count"><div>B ${[0,1,2].map(i => `<i class="${i < sit.balls ? "b" : ""}"></i>`).join("")}</div><div>S ${[0,1].map(i => `<i class="${i < sit.strikes ? "s" : ""}"></i>`).join("")}</div><div>O ${[0,1].map(i => `<i class="${i < sit.outs ? "o" : ""}"></i>`).join("")}</div></div>` : "";
-  return svgWrap("10 22 230 192", art) + count + banner;
+  const sit = g.situation;
+  if (sit && g.status?.state === "in") hud += `<div class="count"><div>B ${[0,1,2].map(i => `<i class="${i < sit.balls ? "b" : ""}"></i>`).join("")}</div><div>S ${[0,1].map(i => `<i class="${i < sit.strikes ? "s" : ""}"></i>`).join("")}</div><div>O ${[0,1].map(i => `<i class="${i < sit.outs ? "o" : ""}"></i>`).join("")}</div></div>`;
+  return { vb, svg, fx, hud };
 }
+/* ---- football: the offense always drives left to right ---- */
 function sceneNFL(g, p){
-  const off = (g.teams || {})[(p && p.yards && p.yards.team) || (g.situation && g.situation.team)], def = Object.entries(g.teams || {}).find(([id]) => off && id !== (p?.yards?.team || g.situation?.team))?.[1];
-  const oc = tcolor(off, "#3B6FB6"), X = y => 10 + Math.max(0, Math.min(100, y));
-  let dc = tcolor(def, "#B63B3B");
+  const vb = [0, 0, 120, 53.3];
+  const offId = (p && p.yards && p.yards.team) || (g.situation && g.situation.team), off = (g.teams || {})[offId], def = Object.entries(g.teams || {}).find(([id]) => off && id !== offId)?.[1];
+  const oc = tcolor(off, "#3B6FB6"); let dc = tcolor(def, "#B63B3B");
   if (colorDist(oc, dc) < 90) dc = def && def.alt && colorDist(oc, def.alt) >= 90 ? def.alt : "#5E6B73";
-  let art = `<rect x="-200" y="-100" width="520" height="260" fill="#24612F"/><rect x="0" y="0" width="120" height="53.3" fill="#2F7A3C"/>` + Array.from({ length: 10 }, (_, i) => `<rect x="${10 + i * 10}" y="0" width="5" height="53.3" fill="#2A7036"/>`).join("") +
-    `<rect x="0" y="0" width="10" height="53.3" fill="${oc}"/><rect x="110" y="0" width="10" height="53.3" fill="${dc}"/>` +
-    Array.from({ length: 21 }, (_, i) => `<line x1="${10 + i * 5}" y1="0" x2="${10 + i * 5}" y2="53.3" stroke="#fff" stroke-width="${i % 2 ? .15 : .3}" opacity=".8"/>`).join("") +
-    [10, 20, 30, 40, 50, 40, 30, 20, 10].map((n, i) => `<text x="${20 + i * 10}" y="49" text-anchor="middle" font-size="3.2" font-weight="800" fill="#fff" opacity=".85">${n}</text>`).join("") +
-    `<text x="5" y="28" text-anchor="middle" font-size="3.6" font-weight="900" fill="#fff" transform="rotate(-90 5 27)">${esc(off?.abbr || "")}</text><text x="115" y="28" text-anchor="middle" font-size="3.6" font-weight="900" fill="#fff" transform="rotate(90 115 27)">${esc(def?.abbr || "")}</text>
-    <path d="M119 23.5 v6.3 M119 23.5 h-1 M119 29.8 h-1" stroke="#F2C200" stroke-width=".6"/>`;
-  art += "<!--LOGOS-->";
-  let banner = "", flash = "";
+  const X = y => 10 + Math.max(0, Math.min(100, y));
+  let svg = svgOpen(vb) + `<defs><linearGradient id="fG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3C8D46"/><stop offset=".5" stop-color="#34803E"/><stop offset="1" stop-color="#2B6E35"/></linearGradient>
+      <pattern id="fZ" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1.5" height="3" fill="#000" opacity=".08"/></pattern></defs>
+    <rect x="-200" y="-100" width="520" height="260" fill="#1F5429"/><rect x="0" y="0" width="120" height="53.3" fill="url(#fG)"/>` +
+    Array.from({ length: 10 }, (_, i) => `<rect x="${10 + i * 10}" y="0" width="5" height="53.3" fill="#000" opacity=".045"/>`).join("") +
+    `<rect x="0" y="0" width="10" height="53.3" fill="${oc}"/><rect x="0" y="0" width="10" height="53.3" fill="url(#fZ)"/><rect x="110" y="0" width="10" height="53.3" fill="${dc}"/><rect x="110" y="0" width="10" height="53.3" fill="url(#fZ)"/>` +
+    Array.from({ length: 21 }, (_, i) => `<line x1="${10 + i * 5}" y1="0" x2="${10 + i * 5}" y2="53.3" stroke="#fff" stroke-width="${i % 2 ? .18 : .32}" opacity=".85"/>`).join("") +
+    Array.from({ length: 99 }, (_, i) => (i + 1) % 5 ? `<line x1="${11 + i}" y1="22.9" x2="${11 + i}" y2="23.9" stroke="#fff" stroke-width=".15" opacity=".7"/><line x1="${11 + i}" y1="29.4" x2="${11 + i}" y2="30.4" stroke="#fff" stroke-width=".15" opacity=".7"/>` : "").join("") +
+    [10, 20, 30, 40, 50, 40, 30, 20, 10].map((n, i) => `<text x="${20 + i * 10}" y="48.5" text-anchor="middle" font-size="3.4" font-weight="800" fill="#fff" opacity=".9">${n}</text><text x="${20 + i * 10}" y="7.6" text-anchor="middle" font-size="3.4" font-weight="800" fill="#fff" opacity=".9" transform="rotate(180 ${20 + i * 10} 6.4)">${n}</text>`).join("") +
+    `<rect x="0" y="0" width="120" height="53.3" fill="none" stroke="#fff" stroke-width=".6"/>
+    <text x="5" y="27" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="900" fill="#fff" letter-spacing=".4" transform="rotate(-90 5 27)">${esc(off?.abbr || "")}</text>
+    <text x="115" y="27" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="900" fill="#fff" letter-spacing=".4" transform="rotate(90 115 27)">${esc(def?.abbr || "")}</text>
+    <line x1="120" y1="23.8" x2="120" y2="29.5" stroke="#F2C200" stroke-width=".9"/><!--LOGOS-->`;
+  const fx = []; let hud = "";
   const y = p && p.yards;
   if (y && y.from != null){
-    const from = X(y.from), to = X(p.kind === "td" ? 105 : y.to ?? y.from), mid = (from + to) / 2;
-    const fg = p.kind === "fg" || p.kind === "fgmiss", air = ["pass","punt","kick"].includes(p.kind) || fg;
-    const path = fg ? `M${from} 26.6 Q${(from + 119) / 2} 6 ${p.kind === "fg" ? 119 : 119} ${p.kind === "fg" ? 26.6 : 20}` : air ? `M${from} 26.6 Q${mid} ${p.kind === "pass" ? 12 : 4} ${to} 26.6` : `M${from} 26.6 L${to} 26.6`;
-    art += `<line x1="${from}" y1="0" x2="${from}" y2="53.3" stroke="#4FA3FF" stroke-width=".6"/>`;
-    if (y.dist && !fg && p.kind !== "td" && y.to != null && y.to + y.dist <= 100) art += `<line x1="${X(y.to + y.dist)}" y1="0" x2="${X(y.to + y.dist)}" y2="53.3" stroke="#F2C200" stroke-width=".6" opacity="${RM() ? 1 : 0}">${fade(0, 1, .3, 1.2)}</line>`;
-    art += `<path d="${path}" fill="none" stroke="#fff" stroke-width=".3" stroke-dasharray="1 1" opacity=".5"/>
-      <ellipse rx="1.6" ry="1" fill="#7A3E1D" stroke="#fff" stroke-width=".25" ${RM() ? `cx="${to}" cy="26.6"` : ""}>${mot(path, fg || air ? 1.3 : 1.0, .2, 'rotate="auto"')}</ellipse>`;
+    const from = X(y.from), to = X(p.kind === "td" ? 105 : y.to ?? y.from), fg = p.kind === "fg" || p.kind === "fgmiss";
+    svg += `<rect x="${from - .35}" y="0" width=".7" height="53.3" fill="#3D8BFF" opacity=".95"/>`;
+    if (y.dist && !fg && p.kind !== "td" && y.to != null && y.to + y.dist <= 100) svg += `<rect x="${X(y.to + y.dist) - .35}" y="0" width=".7" height="53.3" fill="#F2C200"/>`;
+    const air = ["pass", "punt", "kick"].includes(p.kind) || fg, dest = fg ? [121, p.kind === "fg" ? 26.6 : 20] : [to, 26.6];
+    fx.push({ cls: "football", w: 3.2, h: 2, path: [[from, 26.6], dest], dur: fg ? 1.5 : air ? 1.3 : .95, delay: .15, lift: fg ? 16 : p.kind === "pass" ? 7 : air ? 18 : 0, grow: air ? .8 : 0, shadow: air, spin: air ? 720 : 0, easing: air ? "cubic-bezier(.35,.5,.5,1)" : "cubic-bezier(.25,.7,.35,1)" });
     const label = { td: "TOUCHDOWN!", fg: "IT'S GOOD!", fgmiss: "NO GOOD", int: "INTERCEPTED!", fumble: "FUMBLE!", sack: "SACKED!", safety: "SAFETY!" }[p.kind];
-    if (label) banner = `<div class="banner" style="color:${["td","fg","safety"].includes(p.kind) ? "#F2C200" : "#fff"}">${label}</div>`;
-    if (p.kind === "td") flash = `<div class="flash" style="background:radial-gradient(circle at 92% 50%, ${oc}, transparent 60%)"></div>`;
+    if (label) hud += `<div class="banner" style="color:${["td","fg","safety"].includes(p.kind) ? "#F2C200" : "#fff"};animation-delay:.9s">${label}</div>`;
+    if (p.kind === "td"){ hud += `<div class="flash" style="background:radial-gradient(circle at 93% 50%, ${oc}, transparent 60%);animation-delay:1s"></div>`;
+      for (let i = 0; i < 18; i++) fx.push({ pop: "confetti", at: [102 + (i % 6) * 3, 6 + Math.floor(i / 6) * 3], delay: 1.05 + (i % 5) * .06, style: `--c:${[oc, "#F2C200", "#fff"][i % 3]};--dx:${(i % 7 - 3) * 6}px;--r:${i * 47}deg` }); }
+    if (["rush","pass","sack"].includes(p.kind) && y.gain != null) fx.push({ pop: "word sm", at: [to, 19], html: `${y.gain > 0 ? "+" : ""}${y.gain} yds`, delay: 1.2 });
   }
-  const sb = g.situation && g.situation.down ? `<div class="sb">${ordStr(g.situation.down)} &amp; ${g.situation.dist}</div>` : "";
-  return svgWrap("0 0 120 53.3", art) + flash + banner + sb;
+  if (g.situation && g.situation.down) hud += `<div class="sb">${ordStr(g.situation.down)} &amp; ${g.situation.dist}</div>`;
+  return { vb, svg: svg + "</svg>", fx, hud };
 }
+/* ---- basketball: half court, the rim at the top ---- */
 function sceneNBA(g, p){
-  const S = y => y + 5.25;   // ESPN measures from the rim; the drawing starts at the baseline
-  let art = `<rect x="-100" y="-50" width="250" height="150" fill="#8E5E36"/><rect x="0" y="0" width="50" height="47" fill="#C98D55"/><rect x="0" y="0" width="50" height="47" fill="url(#wood)" opacity=".25"/>
-    <defs><pattern id="wood" width="4" height="47" patternUnits="userSpaceOnUse"><rect width="2" height="47" fill="#000" opacity=".12"/></pattern></defs>
-    <rect x="17" y="0" width="16" height="19" fill="#A5673A" stroke="#fff" stroke-width=".3"/><circle cx="25" cy="19" r="6" fill="none" stroke="#fff" stroke-width=".3"/>
-    <path d="M3 0 V14 A23.75 23.75 0 0 0 47 14 V0" fill="none" stroke="#fff" stroke-width=".3"/><line x1="0" y1="47" x2="50" y2="47" stroke="#fff" stroke-width=".5"/>
-    <line x1="22" y1="4" x2="28" y2="4" stroke="#fff" stroke-width=".4"/><circle cx="25" cy="5.25" r=".9" fill="none" stroke="#E4572E" stroke-width=".35"/>`;
-  const sameQ = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && (q.kind === "made" || q.kind === "made3" || q.kind === "miss")).slice(0, 24);
-  art += sameQ.map(q => { const c = tcolor((g.teams || {})[q.team], "#fff"); return q.kind === "miss" ? `<circle cx="${q.x}" cy="${S(q.y)}" r=".7" fill="none" stroke="${c}" stroke-width=".3" opacity=".7"/>` : `<circle cx="${q.x}" cy="${S(q.y)}" r=".7" fill="${c}" stroke="#fff" stroke-width=".15"/>`; }).join("");
-  art += "<!--LOGOS-->";
-  let banner = "";
+  const vb = [0, -2, 50, 49], S = y => y + 5.25, H = g.home || {}, hc = tcolor((g.teams || {})[H.id], "#A5673A");
+  let svg = svgOpen(vb) + `<defs><linearGradient id="bW" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D9A36B"/><stop offset=".5" stop-color="#E4B37D"/><stop offset="1" stop-color="#D39A60"/></linearGradient>
+      <pattern id="bP" width="2.5" height="47" patternUnits="userSpaceOnUse"><rect width="1.25" height="47" fill="#8A5A2B" opacity=".09"/></pattern>
+      <radialGradient id="bV" cx="50%" cy="20%" r="80%"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient></defs>
+    <rect x="-100" y="-50" width="250" height="150" fill="#6E4524"/><rect x="0" y="0" width="50" height="47" fill="url(#bW)"/><rect x="0" y="0" width="50" height="47" fill="url(#bP)"/>
+    <rect x="17" y="0" width="16" height="19" fill="${hc}" opacity=".78"/>
+    <g fill="none" stroke="#fff" stroke-width=".32"><rect x="0" y="0" width="50" height="47"/><rect x="17" y="0" width="16" height="19"/><circle cx="25" cy="19" r="6"/><path d="M3 0 V14 A23.75 23.75 0 0 0 47 14 V0"/><path d="M19 47 A6 6 0 0 1 31 47"/></g>
+    <!--LOGOS--><rect x="0" y="0" width="50" height="47" fill="url(#bV)"/>
+    <line x1="22" y1="4" x2="28" y2="4" stroke="#fff" stroke-width=".55"/><circle cx="25" cy="5.25" r=".95" fill="none" stroke="#FF6A1A" stroke-width=".4"/>`;
+  const sameQ = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && ["made","made3","miss"].includes(q.kind) && q.id !== (p && p.id)).slice(0, 26);
+  svg += sameQ.map(q => { const c = tcolor((g.teams || {})[q.team], "#10202B"); return q.kind === "miss" ? `<g stroke="${c}" stroke-width=".35" opacity=".75"><line x1="${q.x - .6}" y1="${S(q.y) - .6}" x2="${q.x + .6}" y2="${S(q.y) + .6}"/><line x1="${q.x + .6}" y1="${S(q.y) - .6}" x2="${q.x - .6}" y2="${S(q.y) + .6}"/></g>` : `<circle cx="${q.x}" cy="${S(q.y)}" r=".75" fill="${c}" stroke="#fff" stroke-width=".2"/>`; }).join("");
+  const fx = []; let hud = "";
   if (p){
     const T = (g.teams || {})[p.team], col = tcolor(T, "#10202B"), ft = p.kind === "ft" || p.kind === "ftmiss";
-    const x = ft ? 25 : p.x ?? 25, y = ft ? 19 : S(p.y ?? 14), made = ["made","made3","ft"].includes(p.kind);
-    const path = made ? `M${x} ${y} Q${(x + 25) / 2} ${Math.min(y, 5.25) - 6} 25 5.25` : `M${x} ${y} Q${(x + 25) / 2} ${Math.min(y, 5.25) - 6} 25.6 5.6 T ${25 + (x < 25 ? 4 : -4)} 11`;
-    art += `<circle cx="${x}" cy="${y}" r="1.3" fill="none" stroke="${col}" stroke-width=".35"/>
-      <circle r="1.05" fill="#E4702A" stroke="#5a2a0a" stroke-width=".15" ${RM() ? `cx="25" cy="5.25"` : ""}>${mot(path, made ? 1.0 : 1.3)}${RM() ? "" : `<animate attributeName="r" values="1.05;1.7;1.05" dur="1s" fill="freeze"/>`}</circle>`;
-    if (made) art += `<text x="25" y="3" text-anchor="middle" font-size="3.4" font-weight="900" fill="${col}" stroke="#fff" stroke-width=".25" opacity="${RM() ? 1 : 0}">+${p.points || (p.kind === "made3" ? 3 : p.kind === "ft" ? 1 : 2)}${fade(0, 1, .25, 1.0)}${RM() ? "" : `<animate attributeName="y" from="5" to="1.2" dur=".8s" begin="1s" fill="freeze"/>`}</text>`;
-    if (p.kind === "made3") banner = `<div class="banner" style="color:#F2C200">THREE!</div>`;
+    const x = ft ? 25 : p.x ?? 25, y = ft ? 19 : S(p.y ?? 14), made = ["made","made3","ft"].includes(p.kind), rim = [25, 5.25];
+    const dist = Math.hypot(x - 25, y - 5.25), dur = .75 + dist * .018;
+    fx.push({ pop: "spot", at: [x, y], style: `--c:${col}` });
+    fx.push({ cls: "bball", w: 2.3, path: made ? [[x, y], rim] : [[x, y], [25.8, 5.6], { c: [25 + (x < 25 ? 3 : -3), 3], to: [25 + (x < 25 ? 5 : -5), 10] }], dur: made ? dur : dur + .5, lift: Math.min(6, 2 + dist * .15), grow: .7, shadow: true, easing: "cubic-bezier(.35,.45,.55,1)" });
+    if (made){ fx.push({ pop: "swish", at: rim, delay: dur - .05 }); fx.push({ pop: "plus", at: [25, 1.5], html: `+${p.points || (p.kind === "made3" ? 3 : ft ? 1 : 2)}`, delay: dur, style: `--c:${col}` }); }
+    if (p.kind === "made3") hud += `<div class="banner" style="color:#F2C200;animation-delay:${dur}s">THREE!</div>`;
   }
-  return svgWrap("0 -2 50 49", art) + banner;
+  return { vb, svg: svg + "</svg>", fx, hud };
 }
+/* ---- hockey: the whole rink ---- */
 function sceneNHL(g, p){
-  let art = `<rect x="-400" y="-150" width="800" height="300" fill="#26323A"/><rect x="-100" y="-42.5" width="200" height="85" rx="28" fill="#EEF4F8" stroke="#8FA3B0" stroke-width="1"/>
-    <line x1="0" y1="-42.5" x2="0" y2="42.5" stroke="#D64541" stroke-width="1.2"/><line x1="-25" y1="-42.5" x2="-25" y2="42.5" stroke="#2F6FD6" stroke-width="1.2"/><line x1="25" y1="-42.5" x2="25" y2="42.5" stroke="#2F6FD6" stroke-width="1.2"/>
-    <line x1="-89" y1="-38" x2="-89" y2="38" stroke="#D64541" stroke-width=".5"/><line x1="89" y1="-38" x2="89" y2="38" stroke="#D64541" stroke-width=".5"/>
-    <circle r="15" fill="none" stroke="#2F6FD6" stroke-width=".5"/>` + [[-69,-22],[-69,22],[69,-22],[69,22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="#D64541" stroke-width=".4"/>`).join("") +
-    `<path d="M-89 -4 A6 6 0 0 1 -89 4" fill="#9CC9F0" stroke="#D64541" stroke-width=".4"/><path d="M89 -4 A6 6 0 0 0 89 4" fill="#9CC9F0" stroke="#D64541" stroke-width=".4"/>
-    <rect x="-93" y="-3" width="4" height="6" fill="none" stroke="#333" stroke-width=".6"/><rect x="89" y="-3" width="4" height="6" fill="none" stroke="#333" stroke-width=".6"/>`;
-  const sameP = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && ["shot","goal"].includes(q.kind)).slice(0, 30);
-  art += sameP.map(q => `<circle cx="${q.x}" cy="${-q.y}" r="${q.kind === "goal" ? 2.2 : 1.3}" fill="${tcolor((g.teams || {})[q.team], "#333")}" opacity="${q.kind === "goal" ? 1 : .45}"/>`).join("");
-  art += "<!--LOGOS-->";
-  let banner = "", flash = "";
+  const vb = [-102, -44.5, 204, 89];
+  let svg = svgOpen(vb) + `<defs><radialGradient id="hI" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE8F1"/></radialGradient></defs>
+    <rect x="-400" y="-150" width="800" height="300" fill="#1B252C"/>
+    <rect x="-101.5" y="-44" width="203" height="88" rx="29" fill="#E7EEF3" stroke="#31414C" stroke-width="2.4"/>
+    <rect x="-100" y="-42.5" width="200" height="85" rx="28" fill="url(#hI)"/>
+    <line x1="0" y1="-42.5" x2="0" y2="42.5" stroke="#D64541" stroke-width="1.3"/><line x1="-25" y1="-42.5" x2="-25" y2="42.5" stroke="#2F6FD6" stroke-width="1.3"/><line x1="25" y1="-42.5" x2="25" y2="42.5" stroke="#2F6FD6" stroke-width="1.3"/>
+    <line x1="-89" y1="-37.5" x2="-89" y2="37.5" stroke="#D64541" stroke-width=".55"/><line x1="89" y1="-37.5" x2="89" y2="37.5" stroke="#D64541" stroke-width=".55"/>
+    <circle r="15" fill="none" stroke="#2F6FD6" stroke-width=".55"/><circle r="1" fill="#2F6FD6"/><!--LOGOS-->` +
+    [[-69,-22],[-69,22],[69,-22],[69,22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="#D64541" stroke-width=".45"/><circle cx="${x}" cy="${y}" r="1" fill="#D64541"/>`).join("") +
+    `<path d="M-89 -4 A6 6 0 0 1 -89 4 Z" fill="#8EC3F0" stroke="#D64541" stroke-width=".4"/><path d="M89 -4 A6 6 0 0 0 89 4 Z" fill="#8EC3F0" stroke="#D64541" stroke-width=".4"/>
+    <path d="M-89 -3 h-3.5 a1 1 0 0 1 -1 -1 v6 a1 1 0 0 1 1 -1 h3.5" fill="#fff" stroke="#C0392B" stroke-width=".7"/><path d="M89 -3 h3.5 a1 1 0 0 0 1 -1 v6 a1 1 0 0 0 -1 -1 h-3.5" fill="#fff" stroke="#C0392B" stroke-width=".7"/>`;
+  const sameP = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && ["shot","goal"].includes(q.kind) && q.id !== (p && p.id)).slice(0, 30);
+  svg += sameP.map(q => `<circle cx="${q.x}" cy="${-q.y}" r="${q.kind === "goal" ? 2.3 : 1.3}" fill="${tcolor((g.teams || {})[q.team], "#333")}" opacity="${q.kind === "goal" ? 1 : .42}"/>`).join("");
+  const fx = []; let hud = "";
   if (p && p.x != null){
-    const gx = p.x >= 0 ? 89 : -89, x = p.x, y = -p.y, to = p.kind === "goal" ? `${gx + Math.sign(gx) * 2} 0` : p.kind === "miss" ? `${gx + Math.sign(gx) * 6} ${y > 0 ? 12 : -12}` : `${gx - Math.sign(gx) * 3} ${y > 0 ? 3 : -3}`;
-    const path = `M${x} ${y} L${to}` + (p.kind === "shot" ? ` L${gx - Math.sign(gx) * 14} ${y > 0 ? 14 : -14}` : "");
-    art += `<ellipse rx="1.6" ry="1.1" fill="#111" ${RM() ? `cx="${gx}" cy="0"` : ""}>${mot(path, p.kind === "shot" ? 1.1 : .7)}</ellipse>`;
-    if (p.kind === "goal"){ banner = `<div class="banner" style="color:#fff">GOAL!</div>`; flash = `<div class="flash" style="background:radial-gradient(circle at ${gx > 0 ? "94%" : "6%"} 50%, #FF2A1F, transparent 55%)"></div>`; }
+    const gx = p.x >= 0 ? 89 : -89, sgn = Math.sign(gx), x = p.x, y = -p.y;
+    const path = p.kind === "goal" ? [[x, y], [gx + sgn * 2, y * .08]] : p.kind === "miss" ? [[x, y], [gx + sgn * 5, y > 0 ? 11 : -11]] : [[x, y], [gx - sgn * 3, y > 0 ? 2.5 : -2.5], [gx - sgn * 16, y > 0 ? 15 : -15]];
+    fx.push({ pop: "spot", at: [x, y], style: `--c:${tcolor((g.teams || {})[p.team], "#333")}` });
+    fx.push({ cls: "puck", w: 3.2, h: 2.2, path, dur: p.kind === "shot" ? 1.05 : .55, delay: .15, easing: "cubic-bezier(.2,.8,.35,1)" });
+    if (p.kind === "goal"){ fx.push({ pop: "lamp", at: [gx + sgn * 4, 0], delay: .65 }); hud += `<div class="banner" style="animation-delay:.7s">GOAL!</div><div class="flash" style="background:radial-gradient(circle at ${gx > 0 ? "95%" : "5%"} 50%, #FF2A1F, transparent 55%);animation-delay:.65s"></div>`; }
+    if (p.kind === "shot") fx.push({ pop: "word sm", at: [gx - sgn * 9, -8], html: "SAVE", delay: .5 });
   }
-  if (p && p.kind === "penalty") banner = `<div class="banner" style="color:#F2C200;font-size:1.6rem">PENALTY</div>`;
-  return svgWrap("-102 -44.5 204 89", art) + flash + banner;
+  if (p && p.kind === "penalty") hud += `<div class="banner" style="color:#F2C200;font-size:1.6rem">PENALTY</div>`;
+  return { vb, svg: svg + "</svg>", fx, hud };
 }
+/* ---- soccer: home attacks to the right ---- */
 function sceneEPL(g, p){
-  let art = `<rect x="-200" y="-100" width="505" height="270" fill="#236B30"/><rect x="0" y="0" width="105" height="68" fill="#2F8A3E"/>` + Array.from({ length: 7 }, (_, i) => `<rect x="${i * 15}" y="0" width="7.5" height="68" fill="#2A7F38"/>`).join("") +
-    `<g fill="none" stroke="#fff" stroke-width=".4" opacity=".9"><rect x="1" y="1" width="103" height="66"/><line x1="52.5" y1="1" x2="52.5" y2="67"/><circle cx="52.5" cy="34" r="9.15"/>
-    <rect x="1" y="13.85" width="16.5" height="40.3"/><rect x="87.5" y="13.85" width="16.5" height="40.3"/><rect x="1" y="24.85" width="5.5" height="18.3"/><rect x="98.5" y="24.85" width="5.5" height="18.3"/></g>
-    <rect x="104" y="30.3" width="1.8" height="7.4" fill="#fff" opacity=".9"/><rect x="-.8" y="30.3" width="1.8" height="7.4" fill="#fff" opacity=".9"/>`;
-  art += "<!--LOGOS-->";
-  let banner = "", flash = "";
+  const vb = [-1, -1, 107, 70];
+  let svg = svgOpen(vb) + `<defs><radialGradient id="sV" cx="50%" cy="50%" r="75%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs>
+    <rect x="-200" y="-100" width="505" height="270" fill="#1C5A28"/><rect x="0" y="0" width="105" height="68" fill="#33923F"/>` +
+    Array.from({ length: 7 }, (_, i) => `<rect x="${i * 15}" y="0" width="7.5" height="68" fill="#000" opacity=".06"/>`).join("") +
+    `<g fill="none" stroke="#fff" stroke-width=".42" opacity=".95"><rect x="1" y="1" width="103" height="66"/><line x1="52.5" y1="1" x2="52.5" y2="67"/><circle cx="52.5" cy="34" r="9.15"/>
+    <rect x="1" y="13.85" width="16.5" height="40.3"/><rect x="87.5" y="13.85" width="16.5" height="40.3"/><rect x="1" y="24.85" width="5.5" height="18.3"/><rect x="98.5" y="24.85" width="5.5" height="18.3"/>
+    <path d="M17.5 26.7 A9.15 9.15 0 0 1 17.5 41.3"/><path d="M87.5 26.7 A9.15 9.15 0 0 0 87.5 41.3"/></g><circle cx="52.5" cy="34" r=".5" fill="#fff"/><circle cx="12" cy="34" r=".4" fill="#fff"/><circle cx="93" cy="34" r=".4" fill="#fff"/>
+    <rect x="104" y="30.3" width="2" height="7.4" fill="#fff" opacity=".95"/><rect x="-1" y="30.3" width="2" height="7.4" fill="#fff" opacity=".95"/><!--LOGOS--><rect x="0" y="0" width="105" height="68" fill="url(#sV)"/>`;
+  const fx = []; let hud = "";
   if (p){
     const T = (g.teams || {})[p.team], home = T && T.side === "home", col = tcolor(T, "#fff");
-    const gx = home ? 105 : 0, dir = home ? -1 : 1, sx = gx + dir * 14, sy = 34 + ((p.id || "").length % 3 - 1) * 8;
-    let path = null;
-    if (p.kind === "goal") path = `M${sx} ${sy} Q${gx + dir * 6} ${sy - 6} ${gx - dir * .6} 34.5`;
-    if (p.kind === "save") path = `M${sx} ${sy} L${gx + dir * 2} 33 L${gx + dir * 9} ${sy > 34 ? 50 : 18}`;
-    if (p.kind === "shot") path = `M${sx} ${sy} Q${gx + dir * 6} ${sy - 4} ${gx - dir * 1} ${sy > 34 ? 42 : 25}`;
-    if (p.kind === "corner") path = `M${gx - dir * .5} 67 Q${gx + dir * 14} 52 ${gx + dir * 9} 36`;
-    if (path) art += `<path d="${path}" fill="none" stroke="#fff" stroke-width=".3" stroke-dasharray="1 1" opacity=".5"/><circle r="1.2" fill="#fff" stroke="#111" stroke-width=".25" ${RM() ? `cx="${gx}" cy="34"` : ""}>${mot(path, 1.1)}</circle>`;
-    if (p.kind === "yellow" || p.kind === "red") art += `<rect x="48" y="24" width="9" height="13" rx="1" fill="${p.kind === "red" ? "#D64541" : "#F2C200"}" stroke="#fff" stroke-width=".4">${RM() ? "" : `<animateTransform attributeName="transform" type="rotate" values="-25 52.5 30;8 52.5 30;0 52.5 30" dur=".7s" fill="freeze"/>`}</rect>`;
-    if (p.kind === "goal"){ banner = `<div class="banner" style="color:${col === "#fff" ? "#F2C200" : "#fff"}">GOAL!</div>`; flash = `<div class="flash" style="background:radial-gradient(circle at ${home ? "96%" : "4%"} 50%, ${col}, transparent 55%)"></div>`; }
+    const gx = home ? 105 : 0, dir = home ? -1 : 1, sx = gx + dir * 15, sy = 34 + ((String(p.id).length * 7) % 3 - 1) * 9;
+    let path = null, lift = 2;
+    if (p.kind === "goal") path = [[sx, sy], { c: [gx + dir * 7, sy - 5], to: [gx - dir * .8, 33 + (sy > 34 ? 2 : -2)] }];
+    if (p.kind === "save") path = [[sx, sy], [gx + dir * 2.2, 33.5], [gx + dir * 10, sy > 34 ? 50 : 18]];
+    if (p.kind === "shot") path = [[sx, sy], { c: [gx + dir * 6, sy - 4], to: [gx - dir * 1.5, sy > 34 ? 43 : 24] }];
+    if (p.kind === "corner"){ path = [[gx - dir * .6, 67], { c: [gx + dir * 16, 50], to: [gx + dir * 10, 36] }]; lift = 6; }
+    if (path){ fx.push({ cls: "sball", w: 2.2, path, dur: p.kind === "corner" ? 1.3 : 1.0, delay: .15, lift, grow: .5, shadow: true, spin: 540 }); }
+    if (p.kind === "goal"){ fx.push({ pop: "net", at: [gx + (home ? .9 : -.9), 34], delay: 1.1 }); hud += `<div class="banner" style="color:${col === "#fff" ? "#F2C200" : "#fff"};animation-delay:1.1s">GOAL!</div><div class="flash" style="background:radial-gradient(circle at ${home ? "96%" : "4%"} 50%, ${col}, transparent 55%);animation-delay:1.1s"></div>`; }
+    if (p.kind === "save") fx.push({ pop: "word sm", at: [gx + dir * 9, 27], html: "SAVE", delay: .6 });
+    if (p.kind === "yellow" || p.kind === "red") fx.push({ pop: "card", at: [52.5, 32], style: `--c:${p.kind === "red" ? "#D64541" : "#F2C200"}` });
   }
-  return svgWrap("-1 -1 107 70", art) + flash + banner;
+  return { vb, svg: svg + "</svg>", fx, hud };
 }
-let SCENE_PICK = null, SCENE_VIDEO = null;   // a play the viewer tapped, a clip that's playing
+let SCENE_PICK = null, SCENE_VIDEO = null, SCENE_LAST = null;   // a play the viewer tapped, a clip that's playing, the last drawing
 // team logos painted onto the field: [x, y, size, opacity] in each drawing's units
-const FIELD_LOGOS = { mlb: [[125, 78, 34, .3]], nfl: [[60, 26.65, 13, .45]], nba: [[25, 38, 10, .35]], nhl: [[0, 0, 20, .5]], epl: [[52.5, 34, 12, .45]] };
+const FIELD_LOGOS = { mlb: [[125, 78, 34, .32]], nfl: [[60, 26.65, 13, .5]], nba: [[25, 36, 10, .3]], nhl: [[0, 0, 20, .55]], epl: [[52.5, 34, 12, .45]] };
 function fieldLogos(g, lg, p){
-  const H = g.home || {}, A = g.away || {}, spots = FIELD_LOGOS[lg] || [];
+  const H = g.home || {}, spots = FIELD_LOGOS[lg] || [];
   let T = H;
   if (lg === "mlb" && p) T = (g.teams || {})[p.team] || H;           // the batting team's logo in center field
   const logo = teamLogo(T, lg), out = [];
   if (logo) for (const [x, y, s, o] of spots) out.push(`<image href="${esc(logo)}" x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" opacity="${o}" preserveAspectRatio="xMidYMid meet"/>`);
   if (lg === "nfl"){                                                    // each end zone carries its team's logo
     const offId = (p && p.yards && p.yards.team) || (g.situation && g.situation.team), off = (g.teams || {})[offId], def = Object.entries(g.teams || {}).find(([id]) => id !== offId)?.[1];
-    for (const [t, x] of [[off, 5], [def, 115]]){ const l = teamLogo(t, lg); if (l) out.push(`<image href="${esc(l)}" x="${x - 4}" y="${8}" width="8" height="8" opacity=".9"/><image href="${esc(l)}" x="${x - 4}" y="${37.3}" width="8" height="8" opacity=".9"/>`); }
+    for (const [t, x] of [[off, 5], [def, 115]]){ const l = teamLogo(t, lg); if (l) out.push(`<image href="${esc(l)}" x="${x - 3.6}" y="7" width="7.2" height="7.2" opacity=".95"/><image href="${esc(l)}" x="${x - 3.6}" y="39" width="7.2" height="7.2" opacity=".95"/>`); }
   }
   return out.join("");
 }
@@ -2241,14 +2426,35 @@ function renderScene(g, lg, force){
   const draw = { mlb: sceneMLB, nfl: sceneNFL, nba: sceneNBA, nhl: sceneNHL, epl: sceneEPL }[lg];
   if (!draw){ el.hidden = true; return; }
   const tag = p && (TAGS[lg] || {})[p.kind], clip = p && p.video != null && (g.videos || [])[p.video];
+  const d = draw(g, p); SCENE_LAST = d;
   el.hidden = false;
-  const art = draw(g, p).replace("<!--LOGOS-->", fieldLogos(g, lg, p));
-  el.innerHTML = `<div class="gstage">${art}</div><div class="cap">${p ? playerChip(p, g, lg, "big") : ""}<div class="ct">${p && p.who ? `<b>${esc(p.who.name)}</b> · ` : tag ? `<b>${tag[0]}</b> · ` : ""}${p ? esc(lg === "mlb" && p.live ? `${p.batter} batting against ${p.pitcher}` : p.text) : "Waiting for the first play"}</div>${clip ? `<button class="replay" id="gWatch" type="button">▶ Watch</button>` : ""}${p ? `<button class="replay" id="gReplay" type="button">↻ Replay</button>` : ""}</div>` + highlightsStrip(g);
-  const r = $("#gReplay"); if (r) r.onclick = () => renderScene(...SCENE_ARGS, true);
+  // the field and caption are redrawn per play; the highlights and top performers below only when they change
+  if (!el.querySelector(".gmain")) el.innerHTML = `<div class="gmain"></div><div class="gextra"></div>`;
+  el.querySelector(".gmain").innerHTML = `<div class="gstage">${d.svg.replace("<!--LOGOS-->", fieldLogos(g, lg, p))}<div class="fx"></div><div class="hud">${d.hud}</div></div>
+    <div class="cap">${p ? playerChip(p, g, lg, "big") : ""}<div class="ct">${p && p.who ? `<b>${esc(p.who.name)}</b>` : tag ? `<b>${tag[0]}</b>` : ""}<span>${p ? esc(lg === "mlb" && p.live ? `${p.batter} batting against ${p.pitcher}` : p.text) : "Waiting for the first play"}</span></div>
+    <div class="cbtns">${clip ? `<button class="replay hot" id="gWatch" type="button">▶ Watch</button>` : ""}${p ? `<button class="replay" id="gReplay" type="button" aria-label="Replay the animation">↻</button>` : ""}</div></div>`;
+  const extra = highlightsStrip(g) + performers(g, lg), ex = el.querySelector(".gextra");
+  if (ex.dataset.sig !== String(extra.length) + (g.id || "")){ ex.innerHTML = extra; ex.dataset.sig = String(extra.length) + (g.id || ""); }
+  requestAnimationFrame(() => { const st = el.querySelector(".gstage"); if (st) playFX(st, d.vb, d.fx); });
+  // replay: restart only the moving parts and banners, no redraw
+  const r = $("#gReplay"); if (r) r.onclick = () => { const st = el.querySelector(".gstage"); if (!st) return; st.querySelector(".hud").innerHTML = d.hud; playFX(st, d.vb, d.fx); };
   const w = $("#gWatch"); if (w) w.onclick = () => playClip(g, lg, p.video);
   bindHighlights(g, lg);
   document.querySelectorAll("#gList .pl.playing").forEach(x => x.classList.remove("playing"));
   if (picked) document.querySelector(`#gList [data-pid="${CSS.escape(picked.id)}"]`)?.classList.add("playing");
+}
+// keep the moving parts lined up with the field when the window changes size
+let SCENE_RESIZE = null;
+addEventListener("resize", () => { clearTimeout(SCENE_RESIZE); SCENE_RESIZE = setTimeout(() => { const st = document.querySelector("#gScene .gstage"); if (st && SCENE_LAST && !SCENE_VIDEO) playFX(st, SCENE_LAST.vb, SCENE_LAST.fx); }, 150); });
+// each team's standout players
+function performers(g, lg){
+  const L = g.leaders || [];
+  if (!L.length) return "";
+  return `<div class="perf">${L.map(t => { const T = (g.teams || {})[t.team] || {};
+    // one line per player, even when they lead several categories
+    const byName = []; for (const x of t.items){ const o = byName.find(y => y.name === x.name); if (o) o.lines.push(`${x.cat} ${x.value}`); else byName.push({ ...x, lines: [`${x.cat} · ${x.value}`] }); }
+    const items = byName.map(x => ({ ...x, cat: x.lines.length > 1 ? x.lines.map(l => l.replace(" · ", " ")).join(" · ") : x.cat, value: x.lines.length > 1 ? "" : x.value }));
+    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
 }
 function highlightsStrip(g){
   const v = g.videos || [];
@@ -2259,7 +2465,7 @@ function bindHighlights(g, lg){ document.querySelectorAll("#gScene .hl[data-vid]
 // ESPN's real replay, played right here
 function playClip(g, lg, i){
   const c = (g.videos || [])[i], el = $("#gScene"); if (!c || !el) return;
-  SCENE_VIDEO = c.id; el.hidden = false;
+  SCENE_VIDEO = c.id; el.hidden = false; FX.forEach(a => { try { a.cancel(); } catch {} }); FX.length = 0;
   el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(c.mp4)}"></video></div>
     <div class="cap"><div class="ct"><b>Replay</b> · ${esc(c.title)}</div><button class="replay" id="gBack" type="button">← Field view</button></div>` + highlightsStrip(g);
   const v = el.querySelector("video");
@@ -2267,6 +2473,20 @@ function playClip(g, lg, i){
   $("#gBack").onclick = () => { SCENE_VIDEO = null; renderScene(g, lg, true); };
   bindHighlights(g, lg);
   $("#gbody").scrollTo({ top: 0, behavior: "smooth" });
+}
+// how ESPN's win probability moved through the game: home above the line, away below
+function wpChart(g){
+  const w = g.wpSeries, H = g.home || {}, A = g.away || {};
+  if (!w || w.length < 2) return "";
+  const hc = tcolor(H, "#DCEB4B"), ac = colorDist(tcolor(A, "#9CC3AE"), hc) < 90 ? (A.alt || "#9CC3AE") : tcolor(A, "#9CC3AE");
+  const pts = w.map((v, i) => `${(i / (w.length - 1) * 100).toFixed(2)},${(30 - v * 30).toFixed(2)}`).join(" L");
+  const id = "wp" + (g.id || "x");
+  return `<svg class="wpchart" viewBox="0 0 100 30" preserveAspectRatio="none" role="img" aria-label="Win probability through the game">
+    <defs><clipPath id="${id}t"><rect width="100" height="15"/></clipPath><clipPath id="${id}b"><rect y="15" width="100" height="15"/></clipPath></defs>
+    <path d="M0,15 L${pts} L100,15 Z" fill="${hc}" opacity=".85" clip-path="url(#${id}t)"/><path d="M0,15 L${pts} L100,15 Z" fill="${ac}" opacity=".85" clip-path="url(#${id}b)"/>
+    <line x1="0" y1="15" x2="100" y2="15" stroke="#fff" stroke-width=".4" stroke-dasharray="1.5 1.5" opacity=".6" vector-effect="non-scaling-stroke"/>
+    <path d="M${pts}" fill="none" stroke="#fff" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>
+    <div class="wpkey"><span><i style="background:${hc}"></i>${esc(H.abbr || H.short || "")}</span><span><i style="background:${ac}"></i>${esc(A.abbr || A.short || "")}</span></div>`;
 }
 function drawGame(g, lg){
   if (lg === "tennis" || !g.teams) return drawTennisGame(g, lg);
@@ -2280,15 +2500,17 @@ function drawGame(g, lg){
   $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}</div>
     <div class="row">${tn(A)}<div class="big">${esc(A.score ?? "")}</div></div>
     <div class="row">${tn(H)}<div class="big">${esc(H.score ?? "")}</div></div>
-    ${wp != null ? `<div class="wp">ESPN win probability: ${esc(H.short || H.name)} ${Math.round(wp*100)}%<div class="wpbar"><i style="width:${(1-wp)*100}%;background:${A.color || "#9CC3AE"}"></i><i style="width:${wp*100}%;background:${H.color || "#DCEB4B"}"></i></div></div>` : ""}
+    ${wp != null ? `<div class="wp"><span>Win probability</span><b>${esc(wp >= .5 ? H.abbr || H.short : A.abbr || A.short)} ${Math.round(Math.max(wp, 1 - wp) * 100)}%</b></div>${wpChart(g)}` : ""}
     <button class="xbtn" id="gClose" aria-label="Close">✕</button>`;
   $("#gClose").onclick = () => $("#gameDlg").close();
   renderScene(g, lg);
   const mode = pbpMode(lg);
   $("#gBar").innerHTML = `<span>${live ? `<span class="livedot"><i></i>Live</span>` : g.status?.state === "post" ? "Final" : ""}</span>
     <span class="pfilter" role="group" aria-label="Which plays to show"><button type="button" data-pm="key" aria-pressed="${mode === "key"}">Key plays</button><button type="button" data-pm="all" aria-pressed="${mode === "all"}">All plays</button></span>`;
-  $("#gBar").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { PBP_MODE[lg] = b.dataset.pm; try { localStorage.setItem("pbp-" + lg, b.dataset.pm); } catch {} $("#gList").innerHTML = drawPlays(g, lg, true); $("#gBar").querySelectorAll("[data-pm]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pm === b.dataset.pm)); });
-  $("#gList").innerHTML = drawPlays(g, lg, first);
+  $("#gBar").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { PBP_MODE[lg] = b.dataset.pm; try { localStorage.setItem("pbp-" + lg, b.dataset.pm); } catch {} $("#gList").innerHTML = drawPlays(g, lg, true); $("#gList").dataset.sig = ""; $("#gBar").querySelectorAll("[data-pm]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pm === b.dataset.pm)); });
+  // redraw the list only when a play arrives: rebuilding hundreds of rows every refresh made the field stutter
+  const sig = `${(g.plays || []).length}|${g.plays?.[0]?.id}|${g.plays?.[0]?.away}-${g.plays?.[0]?.home}|${mode}`;
+  if ($("#gList").dataset.sig !== sig){ $("#gList").innerHTML = drawPlays(g, lg, first); $("#gList").dataset.sig = sig; }
   $("#gList").onclick = e => {
     const vb = e.target.closest("[data-vid]"); if (vb){ e.stopPropagation(); playClip(g, lg, +vb.dataset.vid); return; }
     const row = e.target.closest(".pl.tap[data-pid]"); if (!row) return;

@@ -367,7 +367,38 @@ export function normGame(d, lg) {
   if (lg === "mlb" && sit) situation = { balls: sit.balls ?? 0, strikes: sit.strikes ?? 0, outs: sit.outs ?? 0, bases: [!!sit.onFirst, !!sit.onSecond, !!sit.onThird] };
   if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
-    homeWinProb: typeof wp === "number" ? wp : null, situation, videos, plays: plays.slice(0, 300), count: plays.length };
+    homeWinProb: typeof wp === "number" ? wp : null, wpSeries: wpSeries(d), leaders: leadersOf(d, lg, H, A), situation, videos, plays: plays.slice(0, 300), count: plays.length };
+}
+// ESPN's win probability through the game, thinned to at most 90 points for a small chart
+function wpSeries(d) {
+  const w = (d.winprobability || []).map(x => x.homeWinPercentage).filter(x => typeof x === "number");
+  if (w.length < 2) return null;
+  const n = Math.min(90, w.length);
+  return Array.from({ length: n }, (_, i) => Math.round(w[Math.round(i * (w.length - 1) / (n - 1))] * 1000) / 1000);
+}
+// each team's standout players with a photo: ESPN's leaders, or the best hitters from the box score for baseball
+function leadersOf(d, lg, H, A) {
+  const photo = (a, id) => a?.headshot?.href || (id ? `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${id}.png` : null);
+  const out = [];
+  if (Array.isArray(d.leaders) && d.leaders.length) {
+    for (const t of d.leaders) {
+      const items = [];
+      for (const c of t.leaders || []) { const x = (c.leaders || [])[0]; if (!x || !x.athlete) continue;
+        items.push({ cat: c.displayName || c.name || "", value: x.displayValue || "", name: x.athlete.displayName || "", photo: photo(x.athlete, x.athlete.id) }); }
+      if (items.length) out.push({ team: String(t.team?.id || ""), items: items.slice(0, 4) });
+    }
+  } else if (lg === "mlb" && d.boxscore?.players) {
+    for (const tm of d.boxscore.players) {
+      const st = (tm.statistics || [])[0]; if (!st) continue;
+      const ix = n => (st.names || st.labels || []).indexOf(n);
+      const hitters = (st.athletes || []).map(x => { const v = n => +(x.stats || [])[ix(n)] || 0;
+        const line = [`${(x.stats || [])[ix("H-AB")] || ""}`, v("HR") ? `${v("HR") > 1 ? v("HR") + " " : ""}HR` : "", v("RBI") ? `${v("RBI")} RBI` : "", v("R") ? `${v("R")} R` : ""].filter(Boolean).join(", ");
+        return { cat: "Batting", value: line, name: x.athlete?.displayName || "", photo: photo(x.athlete, x.athlete?.id), score: v("H") + 3 * v("HR") + 1.5 * v("RBI") + v("R") + .5 * v("BB") }; })
+        .filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
+      if (hitters.length) out.push({ team: String(tm.team?.id || ""), items: hitters.map(({ score, ...x }) => x) });
+    }
+  }
+  return out;
 }
 // every player ESPN lists for the game, with a photo, so plays can show who made them
 const HEADSHOT = { mlb: "mlb", nfl: "nfl", nba: "nba", nhl: "nhl", epl: "soccer" };
@@ -447,11 +478,12 @@ async function firstOf(tries) {                     // the first source that ans
   for (const t of tries) { try { const v = await t(); if (v) return v; } catch (e) { err = e; } }
   throw err || new Error("ESPN unavailable");
 }
-export async function espnScoreboard(lg, fetchImpl = fetch) {
+export async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
+  const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : "";   // YYYYMMDD, or today
   return normScoreboard(await firstOf([
-    () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard`, fetchImpl),
-    async () => { const sb = (await getJSON(cdnUrl(lg, "scoreboard"), fetchImpl)).content?.sbData; return Array.isArray(sb?.events) ? sb : null; },
-    () => getJSON(`${ESPN}${LEAGUES[lg]}/scoreboard`, fetchImpl),
+    () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
+    async () => { const sb = (await getJSON(cdnUrl(lg, "scoreboard", q.replace("?", "&")), fetchImpl)).content?.sbData; return Array.isArray(sb?.events) ? sb : null; },
+    () => getJSON(`${ESPN}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
   ]), lg);
 }
 export async function espnGame(lg, id, fetchImpl = fetch) {
@@ -506,7 +538,7 @@ export default {
     let m;
     try {
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/scoreboard$/)))
-        return await cached(req, ctx, 20, async () => espnScoreboard(m[1]));
+        return await cached(req, ctx, 20, async () => espnScoreboard(m[1], fetch, url.searchParams.get("dates")));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/(\d+)$/)))
         return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
       if ((m = url.pathname.match(/^\/tennis\/game\/(\d+)$/)))
