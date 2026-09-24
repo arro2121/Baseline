@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cosmo Sports privacy policy</title><link rel="icon" href="favicon.svg" type="image/svg+xml">
-<style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:680px;margin:40px auto;padding:0 20px;line-height:1.6;color:#10202B}h1{font-size:1.6rem}h2{font-size:1.1rem;margin-top:28px}a{color:#5B2FD6}header{display:flex;align-items:center;gap:12px}header img{width:48px;height:48px;border-radius:12px}</style></head>
+<title>Cosmo Sports privacy policy</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><meta name="theme-color" content="#140F3A">
+<style>:root{color-scheme:light dark}body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;max-width:680px;margin:40px auto;padding:0 20px;line-height:1.6;color:#10202B;background:#fff}h1{font-size:1.6rem}h2{font-size:1.1rem;margin-top:28px}a{color:#5B2FD6}header{display:flex;align-items:center;gap:12px}header img{width:48px;height:48px;border-radius:12px}li{margin:4px 0}
+@media (prefers-color-scheme:dark){body{background:#0B0826;color:#EEEBFF}a{color:#B98BFF}}</style></head>
 <body>
 <header><img src="icon-192.png" alt=""><h1>Cosmo Sports privacy policy</h1></header>
 <p>Last updated: September 24, 2026</p>
-<p>Cosmo Sports is a free sports app. It has no accounts, no ads, and no tracking or analytics. We don't collect, sell or share personal information.</p>
+
+<p>Cosmo Sports is a free sports app. It has <b>no accounts, no ads, and no tracking or analytics</b>. We don't sell or share personal information, and we collect only what a feature needs to work, described below.</p>
 <h2>Data stored on your device</h2>
-<p>Your settings, the teams you follow and your tennis watchlist are stored only in your browser or app on your device. They are never sent to us. You can erase them at any time in Settings &gt; Your data &gt; Reset, or by removing the app.</p>
+<p>The teams you follow, your picks and Daily 3 results, your Rating Rumble best score, your settings (such as the spoiler shield and sounds), your tennis watchlist and your current Ask Cosmo conversation are stored only in the app on your device. They are not sent to us, except as described under Notifications and Ask Cosmo. You can erase all of it at any time in Settings &gt; Your data &gt; Reset, or by removing the app.</p>
 <h2>Notifications</h2>
-<p>If you turn on tennis alerts, your browser gives the app a push address that is stored by our live service (on Cloudflare) together with the players you chose, so it can alert you. Turning alerts off deletes it.</p>
+<p>If you turn on notifications, your device gives the app a push address. Our live service (a Cloudflare Worker we run) stores that address together with the teams you follow, the games you tapped the bell on, the tennis players you watch and your alert choices, so it can send you the alerts you asked for, including the optional morning briefing. It stores nothing else about you. Turning notifications off, or resetting the app, deletes this record. Push messages are delivered by your browser or phone maker's push service (for example Apple, Google or Mozilla).</p>
+<h2>Ask Cosmo (the AI companion)</h2>
+<p>When you ask Cosmo a question, the text of your question, your recent messages in that conversation, and a summary of what's on your screen (for example the game you have open, the teams you follow and the model's predictions) are sent to our live service, which adds public scoreboard data and passes it to an AI model to write the answer: Cloudflare Workers AI, or Anthropic's Claude if the app's operator has enabled it. We don't store your questions or the answers. The AI provider processes them under its own terms and privacy policy. Please don't include personal information in your questions.</p>
+<h2>Sharing and challenge links</h2>
+<p>When you share a game, a score image, your Daily 3 result or a challenge link, the link or image contains only the game and your picks, not who you are. Sharing is always started by you.</p>
 <h2>Services the app talks to</h2>
-<p>The app is hosted on GitHub Pages. Scores, play-by-play, box scores, standings, schedules, rosters, news, highlight clips, player photos and team logos are loaded from ESPN; tennis live scores come from API-Tennis through our live service on Cloudflare Workers; fonts load from Google Fonts. These providers receive standard technical information when your device contacts them (such as your IP address) and handle it under their own privacy policies. Articles and videos you open on espn.com are covered by ESPN's policies.</p>
+<p>The app is hosted on GitHub Pages. Live data comes from these sources, which receive standard technical information when your device contacts them (such as your IP address) and handle it under their own privacy policies:</p>
+<ul><li>ESPN: scores, play-by-play, box scores, standings, schedules, rosters, news, highlight clips, player photos and team logos.</li>
+<li>Major League Baseball (statsapi.mlb.com and MLB's image and video servers): baseball scores, plays, box scores, photos and highlight clips.</li>
+<li>The National Hockey League (api-web.nhle.com), as a backup for hockey scores.</li>
+<li>API-Tennis, through our live service: live tennis scores.</li>
+<li>Cloudflare: our live service for alerts, Ask Cosmo and cached scores.</li>
+<li>Google Fonts: the app's typeface.</li></ul>
+<p>Articles and videos you open on other sites are covered by those sites' policies.</p>
 <h2>Children</h2>
-<p>Cosmo Sports shows betting odds and betting tools and is intended for adults. It isn't directed to children under 13.</p>
+<p>Cosmo Sports shows betting odds and prediction tools and is intended for people aged 17 and over. It isn't directed to children under 13, and we don't knowingly collect information from them.</p>
+<h2>Your choices</h2>
+<ul><li>Turn notifications on or off, and choose which alerts you get, in Settings.</li><li>Clear everything the app keeps with Settings &gt; Your data &gt; Reset.</li><li>Don't use Ask Cosmo if you prefer your questions not to be processed by an AI provider.</li></ul>
 <h2>Changes</h2>
 <p>If this policy changes, the new version will be posted here with a new date.</p>
 <h2>Contact</h2>
 <p>Questions about this policy: open an issue on the app's GitHub repository.</p>
-<p><a href="./">Back to Cosmo Sports</a> · <a href="terms.html">Terms of use</a></p>
+<p style="margin-top:36px"><a href="./">Back to Cosmo Sports</a> · <a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms of use</a></p>
 </body></html>

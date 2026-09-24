@@ -196,23 +196,27 @@ export function sportEvents(lg, prev, games) {
     const p = prev[g.id], st = g.status?.state, a = +g.away.score || 0, h = +g.home.score || 0;
     if (!p) continue;                                // first sighting: nothing to report yet
     const base = { lg, id: g.id, teams: [tkey(g.home.name), tkey(g.away.name)], url: `./#game=${lg}/${g.id}` };
+    const vs = `${g.away.short} at ${g.home.short}`;
     if (p.s === "pre" && st === "in") out.push({ ...base, type: "start", tag: `start-${g.id}`, title: `${START_WORD[lg]}: ${g.away.short} at ${g.home.short}`, body: g.tv?.length ? `On ${g.tv[0]}` : "The game has started" });
     if (st === "in" && p.a != null && (a !== p.a || h !== p.h) && lg !== "nba") {
       const side = h - p.h > a - p.a ? g.home : g.away, pts = Math.max(h - p.h, a - p.a);
-      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: `${scoredWhat(lg, pts)}, ${side.short}`, body: `${scoreLine(g)} · ${g.status.short || ""}` });
+      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: `${scoredWhat(lg, pts)}, ${side.short}`, body: `${scoreLine(g)} · ${g.status.short || ""}`, safe: null });
     }
     if (st === "in" && lg === "nba" && p.p && +g.status.period > p.p && p.p <= 4)
-      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: p.p === 2 ? "Halftime" : `End of the ${["", "1st", "2nd", "3rd", "4th"][p.p]} quarter`, body: scoreLine(g) });
-    if (crunch(lg, g) && !p.c) out.push({ ...base, type: "close", tag: `close-${g.id}`, title: `Close finish: ${scoreLine(g)}`, body: `${g.status.short || ""} · tap to follow it live` });
+      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: p.p === 2 ? "Halftime" : `End of the ${["", "1st", "2nd", "3rd", "4th"][p.p]} quarter`, body: scoreLine(g), safe: null });
+    if (crunch(lg, g) && !p.c) out.push({ ...base, type: "close", tag: `close-${g.id}`, title: `Close finish: ${scoreLine(g)}`, body: `${g.status.short || ""} · tap to follow it live`,
+      safe: { title: `Close finish: ${vs}`, body: `It's tight late. Tap to watch it live` } });
     if (p.s === "in" && st === "post") { const w = h > a ? g.home : a > h ? g.away : null;
-      out.push({ ...base, type: "final", tag: `final-${g.id}`, title: `Final: ${scoreLine(g)}`, body: w ? `${w.short} win${/s$/.test(w.short || "") ? "" : "s"}` : "It ends level" }); }
+      out.push({ ...base, type: "final", tag: `final-${g.id}`, title: `Final: ${scoreLine(g)}`, body: w ? `${w.short} win${/s$/.test(w.short || "") ? "" : "s"}` : "It ends level",
+        safe: { title: `Final: ${vs}`, body: "It's over. Tap when you're ready to see how it ended" } }); }
   }
   return out;
 }
-const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false };
+const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, noSpoilers: false };
 function wants(sub, e) {
   const pr = { ...DEFAULT_PREFS, ...(sub.prefs || {}) };
   const mine = (sub.games || []).includes(`${e.lg}/${e.id}`) || (sub.teams?.[e.lg] || []).some(t => e.teams.includes(t));
+  if (pr.noSpoilers && e.safe === null) return false;              // scoring alerts would give the score away
   if (mine) return !!pr[e.type];
   return e.type === "close" && pr.anyClose;
 }
@@ -243,7 +247,8 @@ export async function sportsTick(env, fetchImpl = fetch) {
   for (const e of events) for (const s of subs) {
     if (budget <= 0 || s.dead || !wants(s, e)) continue;
     budget--;
-    const r = await sendPush(s.sub, { title: e.title, body: e.body, tag: e.tag, url: e.url }, env, fetchImpl).catch(() => null);
+    const safe = s.prefs?.noSpoilers && e.safe ? e.safe : e;
+    const r = await sendPush(s.sub, { title: safe.title, body: safe.body, tag: e.tag, url: e.url }, env, fetchImpl).catch(() => null);
     if (r && (r.status === 404 || r.status === 410)) { s.dead = true; gone = true; } else if (r && r.ok) sent++;
   }
   // a game someone asked about has finished: forget it
@@ -254,7 +259,42 @@ export async function sportsTick(env, fetchImpl = fetch) {
     const all = JSON.parse(await env.KV.get("subs") || "[]"), byEnd = new Map(subs.map(s => [s.sub.endpoint, s]));
     await env.KV.put("subs", JSON.stringify(all.map(s => byEnd.get(s.sub.endpoint) || s).filter(s => !s.dead)));
   }
-  return { leagues: leagues.length, events: events.length, sent };
+  const brief = await morningBrief(env, subs, fetchImpl).catch(e => String(e));
+  return { leagues: leagues.length, events: events.length, sent, brief };
+}
+// once a day around 9 AM US Eastern: how your teams did yesterday and who plays today
+const etParts = d => Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "numeric", hour12: false }).formatToParts(d).map(p => [p.type, p.value]));
+export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date()) {
+  const et = etParts(now), today = `${et.year}${et.month}${et.day}`;
+  if (+et.hour !== 9) return "not time";
+  if (await env.KV.get("brief") === today) return "sent";
+  const who = subs.filter(s => s.prefs?.daily !== false && Object.values(s.teams || {}).some(l => l.length));
+  if (!who.length) return "nobody";
+  await env.KV.put("brief", today);                  // at most once a day, even if a send below fails
+  const y = etParts(new Date(now - 864e5)), yday = `${y.year}${y.month}${y.day}`;
+  const leagues = [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
+  const boards = {};
+  for (const lg of leagues) {
+    boards[lg] = { y: [], t: [] };
+    try { boards[lg].y = (await espnScoreboard(lg, fetchImpl, yday)).games || []; } catch {}
+    try { boards[lg].t = (await espnScoreboard(lg, fetchImpl)).games || []; } catch {}
+  }
+  const time = iso => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+  let sent = 0;
+  for (const s of who.slice(0, 25)) {
+    const lines = [];
+    for (const [lg, list] of Object.entries(s.teams || {})) for (const t of list) {
+      const mine = g => [tkey(g.home.name), tkey(g.away.name)].includes(t);
+      const done = boards[lg]?.y.find(g => mine(g) && g.status?.state === "post"), next = boards[lg]?.t.find(g => mine(g) && g.status?.state === "pre");
+      if (done) { const home = tkey(done.home.name) === t, me = home ? done.home : done.away, op = home ? done.away : done.home, a = +me.score, b = +op.score;
+        lines.push(s.prefs?.noSpoilers ? `${me.short} played ${op.short}` : `${me.short} ${a > b ? "beat" : a < b ? "lost to" : "drew with"} ${op.short} ${a}-${b}`); }
+      if (next) { const home = tkey(next.home.name) === t; lines.push(`${(home ? next.home : next.away).short} ${home ? "host" : "at"} ${(home ? next.away : next.home).short}, ${time(next.date)}`); }
+    }
+    if (!lines.length) continue;
+    const r = await sendPush(s.sub, { title: "Your Cosmo morning", body: lines.slice(0, 4).join(" · "), tag: "brief-" + today, url: "./" }, env, fetchImpl).catch(() => null);
+    if (r && r.ok) sent++;
+  }
+  return { sent };
 }
 
 /* ---------------- live team sports from ESPN ---------------- */
@@ -1040,10 +1080,10 @@ function askAllowed(ip) {
   list.push(now); ASK_RATE.set(ip, list); if (ASK_RATE.size > 5000) ASK_RATE.clear(); return true;
 }
 const LEAGUE_NAME = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League" };
-async function askBoard(fetchImpl) {
+async function askBoard(fetchImpl, dates) {
   const parts = await Promise.all(Object.keys(LEAGUE_NAME).map(async lg => {
     try {
-      const d = await espnScoreboard(lg, fetchImpl);
+      const d = await espnScoreboard(lg, fetchImpl, dates);
       const rows = (d.games || []).slice(0, 30).map(g => {
         const st = g.status?.state, sc = st === "pre" ? "" : ` ${g.away.score ?? ""}-${g.home.score ?? ""}`;
         return `${g.away.name} at ${g.home.name}${sc} (${st === "pre" ? g.status?.detail || "scheduled" : g.status?.short || st})${g.tv?.length ? ", TV " + g.tv[0] : ""}${g.odds?.details ? ", line " + g.odds.details : ""}`;
@@ -1056,7 +1096,7 @@ async function askBoard(fetchImpl) {
 const ASK_SYSTEM = `You are Cosmo, the sports companion inside the Cosmo Sports app. You help fans follow the NFL, NBA, MLB, NHL, Premier League and tennis.
 How to answer:
 - Be direct and conversational, like a knowledgeable friend. Keep most answers under 150 words; use a short list only when it helps.
-- Ground every claim about scores, schedules, standings or predictions in the LIVE DATA and APP CONTEXT sections. If what's asked isn't there, say you don't have it right now instead of guessing, and suggest where in the app to look.
+- Ground every claim about scores, schedules, standings or predictions in the LIVE DATA and APP CONTEXT sections. Today's scoreboards show games scheduled or played today; yesterday's results are listed separately. Keep leagues straight: never call a hockey game a baseball game. If what's asked isn't there, say you don't have it right now instead of guessing, and suggest where in the app to look.
 - The app has its own prediction model; when you quote its win chances, call them "the Cosmo model" and remember they're probabilities, not certainties.
 - Betting: you may explain lines and compare them with the model, but don't tell people to bet or promise outcomes.
 - Plain text only. You may use **bold** for a name or number and "- " bullets. No headings, tables or links.`;
@@ -1067,7 +1107,8 @@ export async function askCosmo(env, body, fetchImpl = fetch) {
   while (history.length && history[0].role !== "user") history.shift();
   if (!history.length || history[history.length - 1].role !== "user") throw new Error("no question");
   const today = new Date().toLocaleString("en-US", { timeZone: "America/New_York", weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
-  const context = `Current time (US Eastern): ${today}\n\nLIVE DATA (current scoreboards):\n${await askBoard(fetchImpl)}\n\nAPP CONTEXT (from the person's app):\n${String(body?.context || "none").slice(0, 8000)}`;
+  const y = etParts(new Date(Date.now() - 864e5)), [board, yboard] = await Promise.all([askBoard(fetchImpl), askBoard(fetchImpl, `${y.year}${y.month}${y.day}`)]);
+  const context = `Current time (US Eastern): ${today}\n\nLIVE DATA - TODAY'S SCOREBOARDS:\n${board}\n\nLIVE DATA - YESTERDAY'S RESULTS:\n${yboard}\n\nAPP CONTEXT (from the person's app):\n${String(body?.context || "none").slice(0, 8000)}`;
   const enc = new TextEncoder();
   if (env.ANTHROPIC_API_KEY) {
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });

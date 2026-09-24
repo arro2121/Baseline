@@ -7,24 +7,23 @@ standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, N
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
 **What makes it different**
-* **Ask Cosmo:** an AI sports companion that answers questions about any game, team or pick using live scores,
-  the open game's plays and box score, your teams and the Cosmo model: what to watch tonight, why a game swung,
-  how your teams did, who the model likes.
-* **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center,
-  the best game on right now, and live, upcoming and final lists.
-* **Excitement score:** a 0-100 rating of how close and how late each game is, so you know what's worth
-  switching to. Finals are tagged "Thriller" or "Close game".
-* **Notifications:** game starts, scoring plays, close finishes and final scores for the teams you follow and any
-  game you tap the bell on, even with the app closed. You can also get alerts for close finishes in any game.
-* **Turning points:** the plays that swung win probability the most, marked on the win-probability chart.
-  Tap one to replay it.
-* **Animated replays:** every play drawn on the field with the players moving: formations and routes in football,
-  fielders chasing the ball in baseball, closeouts and rebounds in basketball, a diving keeper in soccer, and
-  skaters and the goalie in hockey. The camera eases in on the key moment.
-* **Model picks:** the prediction model's strongest picks for today, games where it disagrees with the betting
-  market, and toss-ups.
-* **Picks:** pick winners before games start; picks are graded automatically and compared with the model.
-* **Player of the game, season results chart, power-rankings map** and **shareable score images**.
+* **Ask Cosmo:** an AI sports companion that answers questions about any game, team or pick from live scores,
+  last night's results, the open game's plays and box score, your teams and the Cosmo model.
+* **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
+  links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
+* **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center.
+* **Notifications:** game starts, scoring plays, close finishes, final scores and a 9 AM morning briefing for your
+  teams and any game you tap the bell on, even with the app closed.
+* **Spoiler shield:** hide scores for your teams (or every game) until you tap to reveal them, in the app and in
+  alerts. Great if you watch on replay.
+* **Excitement score:** 0-100 for how close and how late each game is; finals are tagged "Thriller" or "Close game".
+* **Turning points:** the plays that swung win probability the most, marked on the chart. Tap one to replay it.
+* **Animated replays:** every play drawn on the field with the players moving, and the camera easing in on the key
+  moment.
+* **Model picks:** the prediction model's strongest picks for today, where it disagrees with the betting market,
+  and toss-ups.
+* **First-run setup, optional sound effects, player of the game, season results chart, power-rankings map and
+  shareable score images.**
 
 **What's in it**
 * **Games:** today's scores (or any other day) with team logos, win chances, betting lines and live situations;
@@ -148,13 +147,29 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
-  standings, team pages with schedules and rosters, news and data-driven win predictions. See every game on one
-  screen with an excitement score for each, get notifications for your teams and close finishes, find the plays
-  that swung each game, and pick winners against the prediction model. No account, no ads, no tracking.
-* **Category:** Sports · **Content rating:** answer "yes" to gambling-related content (the app shows odds but
-  takes no bets) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
+  standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Play the
+  Daily 3 and challenge your friends, keep your streak alive in Rating Rumble, and see how your picks stack up
+  against our prediction model. Get alerts for your teams, close finishes and a morning briefing, and turn on the
+  spoiler shield when you're watching later. No account, no ads, no tracking.
+* **Keywords:** live scores, sports scores, NFL, NBA, MLB, NHL, Premier League, tennis, play by play, box score,
+  predictions, picks, sports alerts, AI sports
+* **Category:** Sports · **Content rating:** 17+ / Mature: answer "yes" to gambling-related content (the app shows
+  odds but takes no bets and has no prizes) and "yes" to AI-generated content (Ask Cosmo) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
 * **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /
   social image:** `docs/og-image.png`. The source artwork for the logo is in `brand/`.
+
+**Final checklist before you submit**
+1. Open the app on your phone, go through the welcome screens, follow a couple of teams and turn on notifications;
+   use Settings > Notifications > Send a test to confirm alerts arrive.
+2. Ask Cosmo a question or two (it runs free on Cloudflare; add the optional `ANTHROPIC_API_KEY` secret for Claude).
+3. Make your Daily 3 picks and send yourself a challenge link to see how it looks.
+4. Run the site address through [PWABuilder](https://www.pwabuilder.com); it should show the manifest, service worker
+   and icons as ready, then package for each store as described above.
+5. Paste the store text above, upload `docs/screenshots/`, and use `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
+   as the privacy policy link.
+6. Optional: rename the GitHub repository (Settings > General) to something like `cosmo-sports` **before** you
+   publish, so the web address reads better. Do it before anyone installs the app, because installed copies
+   are tied to the old address.
 
 **Before you publish, know this:** the scores, clips, photos and logos come from ESPN's public data and belong to
 ESPN, the leagues and the teams. That's fine for a free personal app, but stores may ask whether you have the
