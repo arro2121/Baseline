@@ -1,0 +1,119 @@
+# Baseline: one workflow that unpacks the app, sets up alerts, keeps ratings fresh and publishes the site.
+name: Baseline
+on:
+  push:
+    paths: ["baseline.zip", ".github/workflows/baseline.yml"]
+  schedule:
+    - cron: "*/5 * * * *"    # live scores (skipped automatically once the alerts service is running)
+    - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
+  workflow_dispatch:
+    inputs:
+      task:
+        description: What to run
+        type: choice
+        options: [everything, nightly, live, alerts]
+        default: everything
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: baseline
+  cancel-in-progress: false
+
+jobs:
+  unpack:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack baseline.zip (if it was just uploaded)
+        run: |
+          if [ ! -f baseline.zip ]; then echo "Nothing to unpack"; exit 0; fi
+          unzip -o -q baseline.zip -x ".github/*" -d .
+          git rm -q baseline.zip
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add -A && git commit -q -m "Unpack Baseline" && git push
+
+  alerts:
+    needs: unpack
+    if: always() && needs.unpack.result != 'failure' && (github.event_name == 'push' || inputs.task == 'everything' || inputs.task == 'alerts')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Set up the alerts service on Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          API_TENNIS_KEY: ${{ secrets.API_TENNIS_KEY }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::notice::No CLOUDFLARE_API_TOKEN secret, so notifications with the app closed are off. Add it and run this workflow again to turn them on."; exit 0; fi
+          bash alerts/setup.sh
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add -A alerts site_config.json && (git commit -q -m "Alerts service settings" && git push) || echo "No changes"
+
+  nightly:
+    needs: [unpack, alerts]
+    if: always() && needs.unpack.result != 'failure' && (github.event_name == 'push' || github.event.schedule == '15 7 * * *' || inputs.task == 'everything' || inputs.task == 'nightly')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: { name: github-pages, url: "${{ steps.deploy.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -q -r requirements.txt
+      - name: Download new results and rankings
+        env: { API_TENNIS_KEY: "${{ secrets.API_TENNIS_KEY }}" }
+        run: |
+          python -c "import engine; [engine.fetch(f'data/{t}_players.csv', f'{engine.MIRROR}/{t}/{t}_players.csv') for t in ('atp','wta')]"
+          if [ -z "$API_TENNIS_KEY" ]; then echo "::warning::No API_TENNIS_KEY secret: publishing without live data or new results."; exit 0; fi
+          python updater.py rankings
+          python updater.py results
+          python updater.py live
+      - name: Recalculate ratings and retrain the model
+        run: python engine.py
+      - name: Update NFL, NBA, MLB, NHL and Premier League ratings
+        run: python sports_engine.py --download --espn
+      - name: Build the app
+        run: python build_site.py
+      - name: Save
+        run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git pull -q --rebase || true
+          git add -A snapshot.json sports.json data docs && (git commit -q -m "Nightly update $(date -u +%F)" && git push) || echo "No changes"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: docs }
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  live:
+    if: github.event.schedule == '*/5 * * * *' || inputs.task == 'live'
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.deploy.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if grep -q '"alerts_url": *"http' site_config.json 2>/dev/null; then echo "skip=1" >> "$GITHUB_OUTPUT"; echo "The alerts service provides live scores; nothing to do."; fi
+          if [ ! -f docs/index.html ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; echo "Not built yet."; fi
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.skip != '1'
+        with: { python-version: "3.12" }
+      - name: Fetch live scores
+        if: steps.check.outputs.skip != '1'
+        env: { API_TENNIS_KEY: "${{ secrets.API_TENNIS_KEY }}" }
+        run: python updater.py live
+      - uses: actions/configure-pages@v5
+        if: steps.check.outputs.skip != '1'
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.check.outputs.skip != '1'
+        with: { path: docs }
+      - id: deploy
+        if: steps.check.outputs.skip != '1'
+        uses: actions/deploy-pages@v4
