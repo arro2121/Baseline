@@ -72,10 +72,11 @@ self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Pr
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
-  if (url.origin === location.origin && (e.request.mode === "navigate" || url.pathname.endsWith("live.json") || url.pathname.endsWith("index.html"))) {
+  const data = url.origin === location.origin && (url.pathname.match(/(live|scores)\.json$/) || [])[0];
+  if (url.origin === location.origin && (e.request.mode === "navigate" || data || url.pathname.endsWith("index.html"))) {
     // fresh first: new scores and nightly ratings win, the cached copy is the offline fallback
-    e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); caches.open(CACHE).then(k => k.put(url.pathname.endsWith("live.json") ? "live.json" : e.request, c)); return r; })
-      .catch(() => caches.match(url.pathname.endsWith("live.json") ? "live.json" : e.request).then(r => r || caches.match("index.html"))));
+    e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); if (r.ok) caches.open(CACHE).then(k => k.put(data || e.request, c)); return r; })
+      .catch(() => caches.match(data || e.request).then(r => r || (data ? Response.error() : caches.match("index.html")))));
     return;
   }
   // icons, fonts: cached copy first (see below)

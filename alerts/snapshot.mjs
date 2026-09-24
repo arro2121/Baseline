@@ -6,7 +6,7 @@ import { LEAGUES, espnScoreboard } from "./worker.js";
 
 const boards = {};
 for (const lg of Object.keys(LEAGUES)) {
-  try { const d = await espnScoreboard(lg); boards[lg] = { games: d.games || [] }; console.log(`${lg}: ${boards[lg].games.length} games`); }
+  try { const d = await espnScoreboard(lg); boards[lg] = { ...d, games: d.games || [] }; console.log(`${lg}: ${boards[lg].games.length} games`); }
   catch (e) { console.log(`${lg}: skipped (${e.message})`); }
 }
 if (!Object.keys(boards).length) { console.log("No league answered; keeping the previous copy."); process.exit(0); }
