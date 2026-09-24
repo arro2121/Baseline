@@ -1,0 +1,18 @@
+name = "baseline-alerts"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Check scores and send alerts every 2 minutes (fits Cloudflare's free plan limits).
+[triggers]
+crons = ["*/2 * * * *"]
+
+# Replace the id with the one printed by: npx wrangler kv namespace create KV
+[[kv_namespaces]]
+binding = "KV"
+id = "e5a582bb18404b56b0f10b95045d4390"
+
+[vars]
+SITE_URL = "https://arro2121.github.io/Baseline"
+VAPID_SUBJECT = "mailto:arro2121@users.noreply.github.com"
+# The public key printed by: node make-keys.mjs
+VAPID_PUBLIC_KEY = "BAWuN8NN71xkl9gvznI6iIXS8E_uEbfP0t0zBlT8wxM2nZzN2BXqvImS7ZVqyXPkpToGJlBBcPJDFejTexmsrA0"

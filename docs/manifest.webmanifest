@@ -1,0 +1,107 @@
+{
+ "id": "./",
+ "name": "Baseline Tennis",
+ "short_name": "Baseline",
+ "lang": "en",
+ "dir": "ltr",
+ "description": "Tennis match predictions for every ATP and WTA pro: win chances, live scores with live win probability, player ratings and profiles, a betting-edge checker and bet tracker, watchlist alerts, and daily games.",
+ "categories": [
+  "sports",
+  "entertainment",
+  "utilities"
+ ],
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "display_override": [
+  "standalone"
+ ],
+ "orientation": "any",
+ "background_color": "#EDF0ED",
+ "theme_color": "#2556A3",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icon-1024.png",
+   "sizes": "1024x1024",
+   "type": "image/png"
+  }
+ ],
+ "screenshots": [
+  {
+   "src": "screenshots/phone-predict.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Match prediction on the court"
+  },
+  {
+   "src": "screenshots/phone-live.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Live scores"
+  },
+  {
+   "src": "screenshots/phone-play.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Daily Player and games"
+  },
+  {
+   "src": "screenshots/desktop.png",
+   "sizes": "1280x800",
+   "type": "image/png",
+   "form_factor": "wide",
+   "label": "Baseline on a computer"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "Live scores",
+   "url": "./?tab=live",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Watchlist",
+   "url": "./?tab=watch",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Daily Player",
+   "url": "./?tab=play",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
+ ]
+}

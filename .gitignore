@@ -1,0 +1,4 @@
+data/*.csv
+!data/extra/
+__pycache__/
+data/sports/
