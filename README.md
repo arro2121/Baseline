@@ -6,6 +6,19 @@
 standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
+**Only in Cosmo**
+* **Universe:** every game in every league at once, drawn as planets orbiting the Cosmo core. The hottest games
+  sit closest and glow brightest, with a "watch this now" pick and live, upcoming and final lists across leagues.
+* **Cosmo Pulse:** a 0-100 excitement score for every game from how close it is, how late it is, upsets in the
+  making and overtime. Live games show how gripping they are right now; finals are tagged "Thriller" or "Close one"
+  so you know which replays are worth your time.
+* **Turning points:** the plays that swung win probability the most (or, in hockey and soccer, the goals that
+  changed who led), marked on the win-probability chart. Tap one to replay it on the animated field.
+* **Cosmo Picks:** call the winner before any game, then see Cosmo's pick. Picks grade themselves when games end,
+  and you get a running record against the model, a win streak and a badge when you're beating it.
+* **Score cards:** turn any game into a shareable image with both logos, the score, the win-probability line,
+  its Pulse and the turning point. Share it straight to messages or social, or save it.
+
 **What's in it**
 * **Games:** today's scores (or any other day) with team logos, win chances, betting lines and live situations;
   follow teams with ☆ to pin their games first; add upcoming games to your calendar.
@@ -120,7 +133,9 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Name:** Cosmo Sports
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
-  League and tennis together: live scores, animated play-by-play with real highlight replays, full box scores,
+  League and tennis together. See every live game at once in the Universe, where the most exciting games glow
+  brightest; Cosmo Pulse scores how gripping each game is, turning points show the plays that swung it, and Cosmo
+  Picks lets you call winners against our prediction model. Share any game as a score card image. Plus live scores, animated play-by-play with real highlight replays, full box scores,
   standings, team pages with schedules and rosters, news, and data-driven win predictions. Follow your teams
   across every league, get game previews with injuries and betting lines, add games to your calendar, and share
   any game with a link. No account, no ads, no tracking.

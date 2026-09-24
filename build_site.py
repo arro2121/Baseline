@@ -46,11 +46,12 @@ MANIFEST = {
         {"src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png"},
         {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
     "screenshots": [
+        {"src": "screenshots/phone-universe.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Universe: every live game at once, ranked by excitement"},
         {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
         {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
         {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
         {"src": "screenshots/phone-team.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Team pages with schedule and roster"},
-        {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Cosmo Sports on a computer"}],
+        {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "The Universe on a computer"}],
     "shortcuts": [
         {"name": "Following", "short_name": "Following", "url": "./?sport=following", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Find a team", "short_name": "Search", "url": "./?search=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
