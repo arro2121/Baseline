@@ -1179,6 +1179,7 @@ body:has(dialog[open]) .askfab{display:none}
 .askhd{display:flex;align-items:center;gap:12px;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 14px 18px;border-bottom:1px solid var(--line)}
 .askhd h2{margin:0;font-size:1.1rem;font-stretch:110%}.askhd small{color:var(--muted);font-size:.76rem}.askhd > div{flex:1}
 .askhd .xbtn{position:static;flex:none}
+.xbtn.arcsnd{right:62px;font-size:16px}
 .askhd .btn{padding:5px 12px;font-size:.78rem}
 .asknote{margin:10px 16px 0;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:.82rem;color:var(--muted)}
 .askmsgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
@@ -1211,6 +1212,56 @@ body:has(dialog[open]) .askfab{display:none}
 .ldrow{display:grid;grid-template-columns:18px 36px 1fr auto;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}.ldrow:first-of-type{border-top:0}
 .ldrow img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--surface-2)}.ldn{font-weight:900;color:var(--muted);font-size:.8rem}.ldp b{display:block;font-size:.86rem}.ldp small{color:var(--muted);font-size:.72rem}
 .ldv{font-weight:900;font-variant-numeric:tabular-nums}.ldrow.top .ldv{color:var(--accent,#FFD678)}.ldrow.top img{width:40px;height:40px;box-shadow:0 0 0 2px #FFD678}
+/* Cosmo Cards, packs and the collection */
+.cardsec h3{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.cardsec .coins{margin-left:auto;font-weight:900;color:#FFD678;font-size:.95rem}
+.cardsub{margin:2px 0 10px;color:var(--muted);font-size:.8rem}
+.pkbtns,.pkbank{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.pkbank{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.pkbtn{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:10px;border-radius:14px;border:1px solid rgba(185,139,255,.35);color:#fff;font:inherit;cursor:pointer;background:linear-gradient(150deg,#2A1466,#1A0E45);position:relative;overflow:hidden}
+.pkbtn b{font-size:.84rem}.pkbtn small{font-size:.7rem;color:#DCD2FF}.pkbtn[disabled]{opacity:.45;cursor:default}
+.pkbtn.free{background:linear-gradient(150deg,#0F5A55,#123049);border-color:rgba(95,227,163,.5)}.pkbtn.pro{background:linear-gradient(150deg,#5A3A00,#2A1466);border-color:rgba(255,214,120,.6)}
+.pkbtn.earned{background:linear-gradient(150deg,#6A1A5A,#2A1466);border-color:#FF7AC8;animation:pkpulse 1.6s ease-in-out infinite}
+.pkbtn::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.18) 45%,transparent 60%);transform:translateX(-100%);transition:transform .6s}.pkbtn:not([disabled]):hover::after{transform:translateX(100%)}
+@keyframes pkpulse{50%{box-shadow:0 0 0 3px rgba(255,122,200,.35)}}
+.albbtn{width:100%}
+dialog.packd{max-width:560px;background:radial-gradient(120% 80% at 50% 0%,#2A1466,#0B0722 70%);color:#fff}
+.pkhead{display:flex;gap:12px;align-items:center;margin-bottom:12px}.pkhead > span{font-size:2rem}.pkhead h2{margin:0;font-size:1.25rem}.pkhead p{margin:2px 0 0;color:#DCD2FF;font-size:.82rem}
+.pkrow{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;perspective:900px}
+.pkfoot{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}.pkfoot small{flex:1 1 160px;color:#DCD2FF;font-size:.75rem}
+.ccard{--rc:#C98B5A;--rc2:#7A4A28;position:relative;width:clamp(96px,27vw,128px);aspect-ratio:128/184;height:auto;padding:0;border:0;background:none;font:inherit;color:#fff;cursor:pointer;perspective:900px}
+.ccard.r-silver{--rc:#DDE5EE;--rc2:#7E8CA0}.ccard.r-gold{--rc:#FFD678;--rc2:#B8860B}.ccard.r-legend{--rc:#FF7AC8;--rc2:#7A3DF5}
+.cci{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.8,.2,1.15)}
+.ccard.flip{animation:ccdeal .5s var(--d,0ms) both cubic-bezier(.2,.8,.3,1.2)}@keyframes ccdeal{from{opacity:0;transform:translateY(40px) scale(.7) rotate(-6deg)}}
+.ccard.flip .cci{transform:rotateY(180deg)}.ccard.flip.on .cci{transform:rotateY(0)}
+.ccback,.ccf{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.ccback{transform:rotateY(180deg);display:grid;place-items:center;align-content:center;gap:6px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 6px,transparent 6px 12px),radial-gradient(circle at 50% 40%,#5B2BD9,#1A0E45);border:2px solid rgba(185,139,255,.6)}
+.ccback i{font-style:normal;font-size:2.4rem;animation:ccspin 3s linear infinite}.ccback small{font-size:.58rem;letter-spacing:.2em;font-weight:900;color:#DCD2FF}@keyframes ccspin{to{transform:rotate(360deg)}}
+.ccf{display:flex;flex-direction:column;align-items:center;padding:8px 8px 7px;border:2px solid var(--rc);background:linear-gradient(165deg,color-mix(in srgb,var(--rc) 38%,#1A0E45),#140A36 62%);box-shadow:inset 0 0 18px color-mix(in srgb,var(--rc) 30%,transparent)}
+.ccard.r-legend .ccf{background:linear-gradient(165deg,rgba(255,122,200,.55),rgba(122,61,245,.5) 40%,#140A36 70%);border-image:conic-gradient(#FF7AC8,#FFD678,#8FF3FF,#B98BFF,#FF7AC8) 1}
+.ccard.r-legend .ccf::after,.ccard.r-gold .ccf::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);background-size:250% 100%;animation:ccshine 2.8s ease-in-out infinite;pointer-events:none}
+@keyframes ccshine{from{background-position:130% 0}to{background-position:-30% 0}}
+.cctop{display:flex;align-items:center;width:100%;gap:4px}.cctop b{font-size:1.35rem;font-weight:900;color:var(--rc);line-height:1}.cctop small{font-size:.62rem;font-weight:800;color:#DCD2FF}.cctop i{margin-left:auto;font-style:normal}
+.ccimg{position:relative;width:72px;height:72px;margin:4px 0;border-radius:50%;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--rc) 45%,#2A1466),#140A36);display:grid;place-items:center;overflow:hidden;box-shadow:0 0 0 2px var(--rc)}
+.ccimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.ccimg span{font-weight:900;font-size:1.3rem;color:#fff}
+.ccname{font-weight:900;font-size:.76rem;text-align:center;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ccteam{font-size:.6rem;color:#DCD2FF;margin-top:1px}
+.ccr{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:auto}.ccr i{font-style:normal;font-size:.56rem;color:#DCD2FF;background:rgba(0,0,0,.3);border-radius:5px;padding:1px 4px}.ccr b{color:#fff}
+.ccnew,.ccdup,.ccx{position:absolute;top:-2px;right:-2px;font-style:normal;font-size:.58rem;font-weight:900;padding:2px 6px;border-radius:0 12px 0 8px;background:#5FE3A3;color:#0B2A1E;z-index:2}.ccdup{background:#FFD678;color:#3A2A00}.ccx{background:rgba(0,0,0,.55);color:#fff}
+.ccard.burst::before{content:"";position:absolute;inset:-18px;border-radius:24px;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 70%,transparent),transparent 65%);animation:ccburst 1s ease-out both;z-index:-1}@keyframes ccburst{from{opacity:1;transform:scale(.6)}to{opacity:0;transform:scale(1.4)}}
+.albtabs{flex-wrap:wrap;margin-bottom:10px}.albgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:58vh;overflow:auto;padding:4px}
+.ccard.mini{width:auto;aspect-ratio:104/156;cursor:default}.ccard.mini .ccimg{width:56px;height:56px}.ccard.mini .ccr{display:none}.ccard.locked .ccf{filter:grayscale(1) brightness(.55);border-style:dashed}
+.domconf{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}.domconf i{position:absolute;top:-12px;width:8px;height:5px;border-radius:1px;animation:domconf linear both}
+@keyframes domconf{to{transform:translate3d(0,105vh,0) rotate(720deg)}}
+/* Daily Challenge, friend challenges, season, get the app */
+.dchcard{border-color:rgba(255,122,200,.45);background:linear-gradient(135deg,rgba(110,24,90,.8),rgba(40,24,110,.7))}.dchcard.done{opacity:.7}.dchcard em{background:#FF7AC8}
+.dchcard .streak{font-style:normal;font-size:.72rem;color:#FFD678;margin-left:6px}
+.arcgoal{margin:6px 0 0;padding:6px 10px;border-radius:10px;background:rgba(255,122,200,.16);border:1px solid rgba(255,122,200,.4);font-size:.8rem;font-weight:700;color:#FFE0F2}.arcgoal.won{background:rgba(95,227,163,.16);border-color:rgba(95,227,163,.5);color:#D8FFEA}
+.sdseason{width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,214,120,.5);background:linear-gradient(135deg,rgba(90,58,0,.55),rgba(42,20,102,.6));text-align:left;margin-bottom:8px}
+.sdseason b{display:block}.sdseason small{display:block;color:#FFE9B8;font-size:.72rem;margin:2px 0 8px}
+.ssrow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.sspill{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;border:1px solid rgba(255,214,120,.45);background:rgba(20,10,54,.6);color:#fff;font:inherit;cursor:pointer}
+.sspill span{font-size:1.2rem}.sspill small{margin:0!important;font-size:.64rem!important;font-weight:800;color:#FFD678!important}
+.ssline{display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0}.ssdots{display:flex;gap:3px}.ssdots i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.6rem;font-weight:900}
+.ssdots i.w{background:#5FE3A3;color:#0B2A1E}.ssdots i.l{background:#FF7D8E;color:#3A0010}.ssline small{font-size:.74rem;color:#FFE9B8}.ssline b.gold{color:#FFD678;font-size:1rem}
+.appcard{border:1px solid rgba(143,243,255,.45);background:radial-gradient(120% 120% at 100% 0%,rgba(143,243,255,.18),transparent 60%),var(--surface)}
+.appcard ul{margin:6px 0 12px;padding:0;list-style:none;display:grid;gap:6px}.appcard li{font-size:.84rem;color:var(--muted)}.appcard li b{color:var(--ink)}.appcard .btn{width:100%}
 /* Cosmo Showdown */
 .sdhero{display:flex;align-items:center;gap:14px;width:100%;margin-bottom:14px;padding:16px;border-radius:18px;border:1px solid rgba(255,214,120,.5);cursor:pointer;text-align:left;font:inherit;color:#fff;
   background:radial-gradient(120% 140% at 0% 0%,rgba(255,122,200,.35),transparent 55%),radial-gradient(120% 140% at 100% 100%,rgba(143,243,255,.25),transparent 55%),linear-gradient(135deg,#2A1466,#150A3A);box-shadow:0 14px 40px -18px rgba(255,122,200,.7);transition:transform .15s}
@@ -1566,7 +1617,7 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="profile" class="drawer" aria-labelledby="pName"><div class="pbody" id="pbody"></div></dialog>
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
 <dialog id="arcDlg" class="arcd" aria-labelledby="arcTitle"><div class="arcwrap">
-  <header class="archead"><div><h2 id="arcTitle">Arcade</h2><p id="arcSub"></p></div><button type="button" class="xbtn" id="arcClose" aria-label="Close">✕</button></header>
+  <header class="archead"><div><h2 id="arcTitle">Arcade</h2><p id="arcSub"></p></div><button type="button" class="xbtn arcsnd" id="arcSnd" aria-label="Game sound"></button><button type="button" class="xbtn" id="arcClose" aria-label="Close">✕</button></header>
   <div class="archud" id="arcHud"></div>
   <div class="arcstage"><canvas id="arcCanvas" aria-label="Game screen"></canvas><div class="arcover" id="arcOver" hidden></div></div>
   <div class="arcchoices" id="arcChoices" hidden></div>
@@ -1596,6 +1647,7 @@ dialog.onb p{margin:0 0 12px}
     <div class="dlgfoot"><small>Claude finds new results, recalculates every rating and republishes this page.</small><button class="btn" id="closeDlg">Done</button></div>
   </div>
 </dialog>
+<dialog id="packDlg" class="modal packd" aria-labelledby="packTitle"><div class="dlg" id="packBody"></div></dialog>
 <dialog id="iosDlg" class="modal" aria-labelledby="iosTitle">
   <div class="dlg" id="installHow"></div>
 </dialog>
@@ -1629,6 +1681,8 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Spoiler shield"><button type="button" data-spoil="off">Off</button><button type="button" data-spoil="mine">My teams</button><button type="button" data-spoil="all">All games</button></div></div>
     <div class="setrow"><div><b>Sound effects</b><small>Short sounds for scores, picks and games</small></div>
       <div class="seg" role="group" aria-label="Sound effects"><button type="button" data-snd="0">Off</button><button type="button" data-snd="1">On</button></div></div>
+    <div class="setrow"><div><b>Instant replays</b><small>Slow-motion replays of big moments in the games</small></div>
+      <div class="seg" role="group" aria-label="Instant replays"><button type="button" data-rpl="0">Off</button><button type="button" data-rpl="1">On</button></div></div>
     <div class="setrow wrapr" id="voiceRow"><div><b>Listen Live voice</b><small>Who reads the plays when you tap 🎧 Listen in a live game. Tap one to hear it.</small></div>
       <div class="seg" role="group" aria-label="Voice"><button type="button" data-vkind="male">Announcer</button><button type="button" data-vkind="female">Anchor</button><button type="button" data-vkind="device">Phone voice</button></div></div>
     <div class="setrow" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
@@ -2087,6 +2141,7 @@ function renderSettings(){
   renderNtf();
   document.querySelectorAll("[data-spoil]").forEach(b => b.setAttribute("aria-pressed", (SPOIL.on ? SPOIL.scope : "off") === b.dataset.spoil));
   document.querySelectorAll("[data-snd]").forEach(b => b.setAttribute("aria-pressed", String(SND ? 1 : 0) === b.dataset.snd));
+  document.querySelectorAll("[data-rpl]").forEach(b => b.setAttribute("aria-pressed", String(lsGet("replays", true) ? 1 : 0) === b.dataset.rpl));
   document.querySelectorAll("[data-deftour]").forEach(b => b.setAttribute("aria-pressed", b.dataset.deftour === SET.tour));
   document.querySelectorAll("[data-vrate]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vrate === voiceRate()));
   document.querySelectorAll("[data-vkind]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.vkind === voiceKind()); b.hidden = b.dataset.vkind !== "device" && !ALERTS_URL; });
@@ -2098,6 +2153,7 @@ function renderSettings(){
 }
 document.querySelectorAll("[data-spoil]").forEach(b => b.addEventListener("click", () => { const v = b.dataset.spoil; SPOIL.on = v !== "off"; if (SPOIL.on) SPOIL.scope = v; saveSpoil(); renderSettings(); toast(SPOIL.on ? "Spoiler shield is on" : "Spoiler shield is off");
   if (SPORT === "universe") drawUniverse(); else if (SPORT === "following") renderFollowing(); else if (SPORT !== "tennis" && SPORT !== "play" && !$("#tt-games").hidden && SB[SPORT]) drawGames(); }));
+document.querySelectorAll("[data-rpl]").forEach(b => b.addEventListener("click", () => { lsSet("replays", b.dataset.rpl === "1"); renderSettings(); }));
 document.querySelectorAll("[data-snd]").forEach(b => b.addEventListener("click", () => { SND = b.dataset.snd === "1"; lsSet("sounds", SND); renderSettings(); sfx("tap"); }));
 const VOICE_SAMPLE = "Touchdown, Chiefs! Mahomes finds Kelce in the back of the end zone, and Kansas City leads 21 to 17.";
 document.querySelectorAll("[data-vrate]").forEach(b => b.addEventListener("click", () => { lsSet("voiceRate", +b.dataset.vrate); renderSettings(); if (canListen()){ voiceUnlock(); say(VOICE_SAMPLE, true); } }));
@@ -3492,6 +3548,8 @@ function downloadIcs(games){
 }
 function handleHash(){
   if (location.hash === "#play"){ setSport("play"); return; }
+  const vm = /^#vs=([a-z]+)\.(\d+)$/.exec(location.hash);
+  if (vm){ history.replaceState(null, "", APP_URL()); vsTake(vm[1], vm[2]); return; }
   const dm = /^#duel=([\w-]+)$/.exec(location.hash);
   if (dm){ takeDuel(dm[1]); history.replaceState(null, "", APP_URL()); setSport("play"); return; }
   const m = /^#(game|team)=(nfl|nba|mlb|nhl|epl|tennis)\/([mh]?\d+)$/.exec(location.hash);
@@ -3807,6 +3865,50 @@ function sfx(kind){
   } catch {}
 }
 
+/* ---- stadium sound for the arcade: a live crowd that swells with the action, and real-sounding hits ----
+   All synthesised with Web Audio (no files to download): shaped noise for the crowd, the crack of a bat, a swish,
+   a thud off the boot, the clang of the rim, a whistle and a goal horn. On by default in games; the speaker button mutes it. */
+const GSND = { on: lsGet("arc-sound", true) !== false, crowd: null, gain: null, noise: null };
+function gctx(){ try { ACX = ACX || new (window.AudioContext || window.webkitAudioContext)(); if (ACX.state === "suspended") ACX.resume(); return ACX; } catch { return null; } }
+function noiseBuf(A){ if (GSND.noise) return GSND.noise; const n = A.sampleRate * 2, b = A.createBuffer(1, n, A.sampleRate), d = b.getChannelData(0); let p = 0;
+  for (let i = 0; i < n; i++){ const w = Math.random() * 2 - 1; p = .97 * p + .03 * w; d[i] = w * .5 + p * 3; } return GSND.noise = b; }
+function crowdStart(){
+  if (!GSND.on || GSND.crowd) return; const A = gctx(); if (!A) return;
+  try {
+    const src = A.createBufferSource(); src.buffer = noiseBuf(A); src.loop = true;
+    const bp = A.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 700; bp.Q.value = .6;
+    const lp = A.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200;
+    const g = A.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(.05, A.currentTime, .6);
+    const lfo = A.createOscillator(), lg = A.createGain(); lfo.frequency.value = .23; lg.gain.value = .012; lfo.connect(lg).connect(g.gain); lfo.start();   // the crowd breathes
+    src.connect(bp).connect(lp).connect(g).connect(A.destination); src.start();
+    GSND.crowd = { src, lfo, g, lp }; GSND.gain = g;
+  } catch {}
+}
+function crowdStop(){ const C = GSND.crowd; if (!C) return; GSND.crowd = null; try { C.g.gain.setTargetAtTime(0, ACX.currentTime, .15); setTimeout(() => { try { C.src.stop(); C.lfo.stop(); } catch {} }, 700); } catch {} }
+function crowdLevel(h){ const C = GSND.crowd; if (!C) return; try { C.g.gain.setTargetAtTime(.045 + h * .16, ACX.currentTime, h > .5 ? .08 : .5); C.lp.frequency.setTargetAtTime(1800 + h * 2600, ACX.currentTime, .2); } catch {} }
+function hit(kind){
+  if (!GSND.on) return; const A = gctx(); if (!A) return;
+  try {
+    const t = A.currentTime, out = A.createGain(); out.connect(A.destination);
+    const burst = (dur, type, f, q, vol, at = 0, sweep) => { const s = A.createBufferSource(); s.buffer = noiseBuf(A); const fl = A.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t + at); if (sweep) fl.frequency.exponentialRampToValueAtTime(sweep, t + at + dur); fl.Q.value = q;
+      const g = A.createGain(); g.gain.setValueAtTime(vol, t + at); g.gain.exponentialRampToValueAtTime(.0005, t + at + dur); s.connect(fl).connect(g).connect(out); s.start(t + at, Math.random()); s.stop(t + at + dur + .05); };
+    const tone = (f, dur, type, vol, at = 0, f2) => { const o = A.createOscillator(), g = A.createGain(); o.type = type; o.frequency.setValueAtTime(f, t + at); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + at + dur);
+      g.gain.setValueAtTime(0, t + at); g.gain.linearRampToValueAtTime(vol, t + at + .005); g.gain.exponentialRampToValueAtTime(.0005, t + at + dur); o.connect(g).connect(out); o.start(t + at); o.stop(t + at + dur + .05); };
+    if (kind === "crack"){ burst(.09, "highpass", 1800, .7, .9); tone(1350, .07, "square", .12); tone(420, .12, "triangle", .25, 0, 180); }
+    else if (kind === "thud"){ tone(140, .16, "sine", .7, 0, 50); burst(.06, "lowpass", 900, .8, .5); }
+    else if (kind === "swish"){ burst(.32, "bandpass", 2400, 1.4, .35, 0, 6000); }
+    else if (kind === "clang"){ tone(620, .45, "triangle", .22); tone(935, .35, "triangle", .14); burst(.05, "highpass", 3000, .7, .25); }
+    else if (kind === "whistle"){ const o = A.createOscillator(), g = A.createGain(), v = A.createOscillator(), vg = A.createGain(); o.frequency.value = 2900; v.frequency.value = 28; vg.gain.value = 120; v.connect(vg).connect(o.frequency);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.12, t + .02); g.gain.setValueAtTime(.12, t + .35); g.gain.exponentialRampToValueAtTime(.0005, t + .45); o.connect(g).connect(out); o.start(t); v.start(t); o.stop(t + .5); v.stop(t + .5); }
+    else if (kind === "horn"){ [174, 220, 261].forEach(f => { const o = A.createOscillator(), g = A.createGain(), lp = A.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = 900;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .08); g.gain.setValueAtTime(.09, t + 1.3); g.gain.exponentialRampToValueAtTime(.0005, t + 1.8); o.connect(lp).connect(g).connect(out); o.start(t); o.stop(t + 1.85); }); }
+    else if (kind === "stick"){ burst(.05, "bandpass", 1600, 2, .6); tone(300, .06, "triangle", .2); }
+    else if (kind === "glove"){ burst(.08, "lowpass", 700, .7, .6); tone(90, .08, "sine", .4); }
+    else if (kind === "roar"){ crowdLevel(1); }
+  } catch {}
+}
+function sndIcon(){ const b = $("#arcSnd"); if (b){ b.textContent = GSND.on ? "🔊" : "🔇"; b.setAttribute("aria-pressed", String(GSND.on)); } }
+
 /* ================= Arcade: sports mini-games (canvas, touch or mouse) ================= */
 // Six games on one canvas. Each paints its stadium once into an offscreen layer (cheap on phones) and animates the rest:
 // shaded athletes built on a skeleton, a crowd of individual fans, textured turf, wood and ice, stadium light bloom,
@@ -3855,7 +3957,7 @@ function arcIntro(){
   ARC.running = false; ARC.paused = false; cancelAnimationFrame(ARC.raf);
   const g = ARC.g, best = arcBest(g.id);
   $("#arcChoices").hidden = true; $("#arcHud").innerHTML = ""; ARC.hudKey = "";
-  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(g.name)}</b><p>${esc(g.how)}</p>${g.controls ? `<p class="arcctl">${esc(g.controls)}</p>` : ""}${g.asPool ? `<label class="arcas">Play as <select id="arcAs"><option value="">Yourself (standard)</option></select></label>` : ""}${best ? `<small>Your best: ${best} ${esc(g.unit)}</small>` : ""}<button class="btn primary" type="button" data-arc="start">Play</button></div>`;
+  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(g.name)}</b><p>${esc(g.how)}</p>${g.controls ? `<p class="arcctl">${esc(g.controls)}</p>` : ""}${arcGoals(g)}${g.asPool ? `<label class="arcas">Play as <select id="arcAs"><option value="">Yourself (standard)</option></select></label>` : ""}${best ? `<small>Your best: ${best} ${esc(g.unit)}</small>` : ""}<button class="btn primary" type="button" data-arc="start">Play</button></div>`;
   $("#arcOver").hidden = false; ARC.s = null; ARC.as = null; arcSize(); arcFrame();
   if (g.asPool) sdLoad().then(() => {                                                      // real players whose ratings change how you play
     const sel = $("#arcAs"); if (!sel || ARC.g !== g) return; const [sp, key, a, b] = g.asPool, list = sdPool(sp, key).slice().sort((x, y) => y.r[a] - x.r[a]).slice(0, 30);
@@ -3864,55 +3966,72 @@ function arcIntro(){
     sel.onchange = () => lsSet("arc-as-" + g.id, sel.value);
   }).catch(() => {});
 }
+function arcGoals(g){                                          // today's challenge and a friend's score to beat, shown before you play
+  let h = ""; const c = typeof dchToday === "function" ? dchToday() : null;
+  if (c && c.id === g.id && !dchDone()[c.day]) h += `<p class="arcgoal">🎯 Today's challenge: ${esc(c.text)}</p>`;
+  if (VS && VS.id === g.id) h += `<p class="arcgoal">🥊 Your friend scored ${VS.score} ${esc(g.unit)}. Beat it!</p>`;
+  return h;
+}
 function arcStart(){
   const asSel = $("#arcAs"); if (ARC.g && ARC.g.asPool && !ARC.g.sd){ const [sp, key] = ARC.g.asPool, id = asSel ? asSel.value : ""; ARC.as = id ? sdPool(sp, key).find(p => p.id === id) || null : null; } else if (!ARC.g || !ARC.g.sd) ARC.as = null;
   $("#arcOver").hidden = true; $("#arcChoices").hidden = true; $("#arcChoices").classList.remove("sdchoose"); ARC.hudKey = ""; ARC.ptr = null;
   ARC.s = { score: 0, t: 0, over: false, fx: [], endT: 0, cam: { x: 0, y: 0, z: 1 } }; ARC.shake = ARC.slow = ARC.flash = ARC.hype = 0;
+  ARC.crowd = {}; RP.buf = []; RP.pend = null; RP.cool = 0; RP.off = !lsGet("replays", true); ARC.rp = null; ARC.dir = { z: 1.22, x: 0, y: -30, t: 0 };     // a broadcast-style push-in to open
   ARC.g.init(ARC.s); arcSize(); fxWord(180, 250, "GO!", "#FFD678", 46); sfx("tap");
   ARC.running = true; ARC.paused = false; ARC.last = performance.now(); ARC.raf = requestAnimationFrame(arcLoop);
+  if (!ARC.g.noReplay) crowdStart(); ARC.lvl = -1;
 }
 function arcLoop(now){
   if (!ARC.running) return;
   let dt = Math.min(.05, (now - ARC.last) / 1000); ARC.last = now;
+  if (ARC.rp){ if (rpStep(dt)){ ARC.raf = requestAnimationFrame(arcLoop); return; } }   // an instant replay holds the game
+  if (ARC.dir && ARC.dir.t < 1){ ARC.dir.t = Math.min(1, ARC.dir.t + dt / 1.1); const k = EASE.inOut(ARC.dir.t); ARC.dir.z = lerp(1.22, 1, k); ARC.dir.y = lerp(-30, 0, k); }
   if (ARC.slow > 0){ ARC.slow -= dt; dt *= .3; }
   const s = ARC.s; s.t += dt;
-  ARC.g.update(s, dt); arcFx(dt);
+  ARC.g.update(s, dt); arcFx(dt); rpRecord(s);
   ARC.shake = Math.max(0, ARC.shake - dt * 40); ARC.flash = Math.max(0, ARC.flash - dt * 2.5); ARC.hype = Math.max(0, ARC.hype - dt * .5);
   arcFrame(); arcHud();
+  const lv = Math.round(ARC.hype * 10) / 10; if (lv !== ARC.lvl){ ARC.lvl = lv; crowdLevel(ARC.hype); }
   if (s.over && (s.endT += dt) > 1.2){ arcEnd(); return; }
   ARC.raf = requestAnimationFrame(arcLoop);
 }
-function arcFrame(){
-  const c = ARC.ctx; if (!c) return;
+function arcFrame(c = ARC.ctx, replay){
+  if (!c) return;
   c.fillStyle = "#07051A"; c.fillRect(0, 0, ARC.W, ARC.H);
-  c.save(); if (ARC.shake > .3) c.translate(rnd(-1, 1) * ARC.shake, rnd(-1, 1) * ARC.shake);
+  c.save(); if (ARC.shake > .3 && !replay) c.translate(rnd(-1, 1) * ARC.shake, rnd(-1, 1) * ARC.shake);
+  const D = replay || (ARC.running && ARC.dir); if (D && (D.z !== 1 || D.x || D.y)){ c.translate(D.fx || 180, D.fy || 280); c.scale(D.z, D.z); c.translate(-(D.fx || 180) + D.x, -(D.fy || 280) + D.y); }
   const cam = ARC.s && ARC.s.cam; if (cam && (cam.z !== 1 || cam.x || cam.y)){ c.translate(180, 280); c.scale(cam.z, cam.z); c.translate(-180 + cam.x, -280 + cam.y); }
   c.drawImage(ARC.bg, 0, 0, ARC.W, ARC.H);
-  if (ARC.s){ ARC.g.draw(c, ARC.s); drawFx(c); }
+  if (ARC.s){ ARC.refl = ARC.g.refl || 0; try { ARC.g.draw(c, ARC.s); } finally { ARC.refl = 0; } drawFx(c); }
   c.restore();
+  if (replay) return;
+  arcLights(c);
   if (ARC.s && ARC.g.hud2) ARC.g.hud2(c, ARC.s);                   // controls and meters stay put when the camera moves
   if (ARC.s && ARC.as && !ARC.g.sd){ c.fillStyle = "rgba(7,5,26,.7)"; c.fillRect(8, 8, 150, 34); sdHead(c, ARC.as, 25, 25, 13, "#FFD678"); smallText(c, ARC.as.name, 44, 22, "#fff", "left", 10); smallText(c, ARC.as.team + " · OVR " + ARC.as.ovr, 44, 35, "#FFD678", "left", 8); }
   if (ARC.vig){ c.fillStyle = ARC.vig; c.fillRect(0, 0, ARC.W, ARC.H); }
   if (ARC.flash > 0){ c.fillStyle = `rgba(255,255,255,${ARC.flash * .45})`; c.fillRect(0, 0, ARC.W, ARC.H); }
 }
 function arcPause(){
-  if (!ARC.running) return; ARC.running = false; ARC.paused = true; cancelAnimationFrame(ARC.raf);
+  if (!ARC.running) return; crowdStop(); ARC.running = false; ARC.paused = true; cancelAnimationFrame(ARC.raf);
   $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">⏸</span><b>Paused</b><button class="btn primary" type="button" data-arc="resume">Resume</button></div>`; $("#arcOver").hidden = false;
 }
-function arcResume(){ if (!ARC.paused) return; ARC.paused = false; $("#arcOver").hidden = true; ARC.running = true; ARC.last = performance.now(); ARC.raf = requestAnimationFrame(arcLoop); }
+function arcResume(){ if (!ARC.paused) return; if (!ARC.g.noReplay) crowdStart(); ARC.paused = false; $("#arcOver").hidden = true; ARC.running = true; ARC.last = performance.now(); ARC.raf = requestAnimationFrame(arcLoop); }
 function arcEnd(){
-  ARC.running = false; const g = ARC.g, sc = Math.round(ARC.s.score), best = arcBest(g.id), rec = sc > best && !g.sd;
+  ARC.running = false; crowdStop(); if (!ARC.g.noReplay) hit("whistle"); const g = ARC.g, sc = Math.round(ARC.s.score), best = arcBest(g.id), rec = sc > best && !g.sd;
   $("#arcChoices").hidden = true;
   if (g.sd){ const s = ARC.s, r = sdRec()[SD.sport] || { w: 0, l: 0 };
-    $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><span class="arcicon">${s.sdWon ? "🏆" : g.icon}</span><b>${esc(s.title)}</b><p class="sdfinal">${esc(s.note || "")}</p>${sdBox(s)}<small>Your ${esc(SD_SPORTS[SD.sport].name.toLowerCase())} record: ${r.w}–${r.l}</small>
-      <span class="dbtns"><button class="btn" type="button" data-sd="newdraft">New draft</button><button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-sd="rematch">Rematch</button></span></div>`;
+    const S = s.season, btns = S ? (S.stage === "done" ? `<button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-sdseason="${SD.sport}">New season</button>` : `<button class="btn" type="button" data-sd="sports">Save and exit</button><button class="btn primary" type="button" data-sd="go">${S.stage === "reg" ? "Next game" : S.stage === "semi" ? "Play the semifinal" : "Play the final"}</button>`)
+      : `<button class="btn" type="button" data-sd="newdraft">New draft</button><button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-sd="rematch">Rematch</button>`;
+    $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><span class="arcicon">${S && S.champ && S.stage === "done" ? "🏆" : s.sdWon ? "🏆" : g.icon}</span><b>${esc(s.title)}</b><p class="sdfinal">${esc(s.note || "")}</p>${S ? seasonLine(S) : ""}${sdBox(s)}<small>Your ${esc(SD_SPORTS[SD.sport].name.toLowerCase())} record: ${r.w}–${r.l}</small>
+      <span class="dbtns">${btns}</span></div>`;
     $("#arcOver").hidden = false; if (SPORT === "play") drawPlay(); return; }
   if (rec) lsSet("arc-" + g.id, sc); sfx(rec ? "win" : "lose"); if (rec) buzz([30, 40, 30]);
   if (g.id !== "trivia"){ const s = ARC.s; awardXP(5 + (rec ? 15 : 0), g.name); unlock("arcade-first");
     if (g.id === "derby" && s.score >= 5) unlock("hr-5"); if (g.id === "kick" && s.longest >= 50) unlock("fg-50"); if (g.id === "hoops" && s.score >= 15) unlock("hoops-15");
     if (g.id === "shelf" && s.goals >= 8) unlock("shelf-8"); if (g.id === "pens" && /won/.test(s.title || "")) unlock("pens-win"); if (g.id === "logos" && s.right >= 10) unlock("logos-10"); }
-  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(ARC.s.title || (rec ? "New best!" : "Game over"))}</b><p class="arcscore">${sc}<small>${esc(g.unit)}</small></p>${ARC.s.note ? `<p>${esc(ARC.s.note)}</p>` : ""}<small>${rec ? "Personal best" : `Best: ${best}`}</small>
-    <span class="dbtns"><button class="btn" type="button" data-arc="share">Share</button><button class="btn primary" type="button" data-arc="start">Play again</button></span></div>`;
+  const extra = g.id === "trivia" ? "" : dchCheck(g, ARC.s) + vsCheck(g, ARC.s);
+  $("#arcOver").innerHTML = `<div class="arcpanel"><span class="arcicon">${g.icon}</span><b>${esc(ARC.s.title || (rec ? "New best!" : "Game over"))}</b><p class="arcscore">${sc}<small>${esc(g.unit)}</small></p>${ARC.s.note ? `<p>${esc(ARC.s.note)}</p>` : ""}<small>${rec ? "Personal best" : `Best: ${best}`}</small>${extra}
+    <span class="dbtns"><button class="btn" type="button" data-arc="share">${g.id === "trivia" ? "Share" : "Challenge a friend"}</button><button class="btn primary" type="button" data-arc="start">Play again</button></span></div>`;
   $("#arcOver").hidden = false; if (SPORT === "play") drawPlay();
 }
 function arcHud(){
@@ -3928,6 +4047,58 @@ function gesture(p){
   for (let i = 0; i < p.path.length; i++) for (let j = i + 1; j < p.path.length; j++){ const dt = p.path[j][2] - p.path[i][2]; if (dt >= 40){ flick = Math.max(flick, Math.hypot(p.path[j][0] - p.path[i][0], p.path[j][1] - p.path[i][1]) / dt); break; } }
   if (!flick) flick = dist / dur;
   return { x0, y0, x1, y1, dx, dy, dist, dur, speed: dist / dur, flick, curve, tap: dist < 12 && dur < 350 };
+}
+
+/* ---- instant replays: the last few seconds, again, in slow motion ----
+   Every frame's game state is cheap to copy (a few hundred bytes), so the engine keeps the last 4.5 seconds.
+   A game calls arcReplay() at a big moment; once the moment has played out, the engine replays it at half speed,
+   blending neighbouring frames so the slow motion stays smooth, with a push-in towards the action. Tap to skip. */
+const RP = { buf: [], pend: null, cool: 0, off: false };
+function rpRecord(s){
+  if (RP.off || ARC.g.noReplay) return;
+  try { RP.buf.push({ t: s.t, s: structuredClone(s) }); } catch { RP.off = true; RP.buf = []; return; }
+  while (RP.buf.length && s.t - RP.buf[0].t > 4.5) RP.buf.shift();
+  if (RP.pend && s.t >= RP.pend.to){
+    const P = RP.pend, fr = RP.buf.filter(f => f.t >= P.from && f.t <= P.to); RP.pend = null;
+    if (fr.length > 24 && !s.over) ARC.rp = { fr, k: 0, from: fr[0].t, to: fr[fr.length - 1].t, label: P.label, fx: P.x, fy: P.y, i: 0, slowN: 0 };
+  }
+}
+function arcReplay(label = "REPLAY", pre = 1.3, post = 1.2, x = 180, y = 280){
+  const s = ARC.s; if (!s || RP.off || ARC.rp || RP.pend || s.t < RP.cool) return;
+  RP.pend = { from: s.t - pre, to: s.t + post, label, x, y }; RP.cool = s.t + post + 9;      // at most one every few seconds
+}
+function rpStep(dt){
+  const R = ARC.rp; R.k += dt * .5;
+  const t = R.from + R.k, n = R.fr.length; if (R.skip || t >= R.to){ ARC.rp = null; ARC.hudKey = ""; return false; }
+  while (R.i < n - 2 && R.fr[R.i + 1].t <= t) R.i++;
+  const A = R.fr[R.i], B = R.fr[R.i + 1] || A, f = B.t > A.t ? clamp((t - A.t) / (B.t - A.t), 0, 1) : 0, prog = R.k / (R.to - R.from);
+  const zin = EASE.inOut(clamp(prog * 3, 0, 1)), D = { z: 1 + .16 * zin, x: 0, y: 0, fx: lerp(180, clamp(R.fx, 90, 270), zin), fy: lerp(280, clamp(R.fy, 120, 440), zin) }, keep = ARC.s, c = ARC.ctx;
+  ARC.s = A.s; arcFrame(c, D);
+  if (f > .04 && B !== A && !R.solo){ const t0 = performance.now(), o = ARC.rpc || (ARC.rpc = document.createElement("canvas")), cv = c.canvas; if (o.width !== cv.width || o.height !== cv.height){ o.width = cv.width; o.height = cv.height; }
+    const x = o.getContext("2d"); x.setTransform(c.getTransform()); ARC.s = B.s; arcFrame(x, D); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = f; c.drawImage(o, 0, 0); c.restore();
+    if (performance.now() - t0 > 9 && ++R.slowN > 3) R.solo = true; }                    // a slow phone: skip the frame blending
+  ARC.s = keep;
+  // broadcast dressing: letterbox, a replay bug, the moment's label and a slow-motion progress bar
+  const bar = 34 * EASE.out(clamp(prog * 6, 0, 1)) * (prog > .92 ? (1 - prog) / .08 : 1);
+  c.fillStyle = "rgba(0,0,0,.85)"; c.fillRect(0, 0, ARC.W, bar); c.fillRect(0, ARC.H - bar, ARC.W, bar);
+  if (ARC.vig){ c.fillStyle = ARC.vig; c.fillRect(0, 0, ARC.W, ARC.H); }
+  c.fillStyle = "rgba(255,255,255,.035)"; for (let y = (performance.now() / 40) % 4; y < ARC.H; y += 4) c.fillRect(0, y, ARC.W, 1);     // faint scanlines
+  const blink = Math.sin(performance.now() / 180) > 0;
+  c.fillStyle = "#E4002B"; c.beginPath(); c.roundRect ? c.roundRect(12, 44, 86, 22, 4) : c.rect(12, 44, 86, 22); c.fill();
+  c.fillStyle = blink ? "#fff" : "rgba(255,255,255,.35)"; arcDisc(c, 24, 55, 4); smallText(c, "REPLAY", 33, 60, "#fff", "left", 12);
+  if (R.label && R.label !== "REPLAY") smallText(c, R.label, 348, 60, "#FFD678", "right", 13);
+  c.fillStyle = "rgba(255,255,255,.18)"; c.fillRect(40, ARC.H - 18, 280, 3); c.fillStyle = "#FFD678"; c.fillRect(40, ARC.H - 18, 280 * prog, 3);
+  smallText(c, "Tap to skip", 180, ARC.H - 24, "rgba(255,255,255,.55)", "center", 9);
+  return true;
+}
+// stadium lighting on top of every scene: soft beams from the lights and a warm-to-cool grade
+function arcLights(c){
+  const L = ARC.lit || (ARC.lit = (() => { const o = document.createElement("canvas"); o.width = 180; o.height = 280; const x = o.getContext("2d"); x.scale(.5, .5);
+    [[40, -10, .5], [320, -10, -.5]].forEach(([bx, by, a]) => { x.save(); x.translate(bx, by); x.rotate(a); const g = x.createLinearGradient(0, 0, 0, 520); g.addColorStop(0, "rgba(255,244,214,.20)"); g.addColorStop(1, "rgba(255,244,214,0)");
+      x.fillStyle = g; x.beginPath(); x.moveTo(-10, 0); x.lineTo(10, 0); x.lineTo(120, 520); x.lineTo(-120, 520); x.closePath(); x.fill(); x.restore(); });
+    const gr = x.createLinearGradient(0, 0, 0, 560); gr.addColorStop(0, "rgba(255,190,120,.07)"); gr.addColorStop(.55, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(60,80,200,.10)"); x.fillStyle = gr; x.fillRect(0, 0, 360, 560);
+    return o; })());
+  c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = .55 + .25 * Math.sin((ARC.s ? ARC.s.t : 0) * .7) * .5 + ARC.hype * .2; c.drawImage(L, 0, 0, ARC.W, ARC.H); c.restore();
 }
 
 /* ---- effects ---- */
@@ -3949,7 +4120,8 @@ function drawFx(c){
   c.lineCap = "round";
   for (const p of ARC.s.fx){
     const a = clamp(p.life / p.max, 0, 1);
-    if (p.k === "s"){ c.globalAlpha = a; c.strokeStyle = p.col; c.lineWidth = p.r; arcLine(c, p.x - p.vx * .035, p.y - p.vy * .035, p.x, p.y); }
+    if (p.k === "s"){ c.globalCompositeOperation = "lighter"; c.globalAlpha = a * .35; c.strokeStyle = p.col; c.lineWidth = p.r * 3.2; arcLine(c, p.x - p.vx * .05, p.y - p.vy * .05, p.x, p.y);
+      c.globalAlpha = a; c.lineWidth = p.r; arcLine(c, p.x - p.vx * .035, p.y - p.vy * .035, p.x, p.y); c.globalCompositeOperation = "source-over"; }
     else if (p.k === "d"){ c.globalAlpha = a * .7; c.fillStyle = p.col; arcDisc(c, p.x, p.y, p.r * (1.6 - a)); }
     else if (p.k === "c"){ c.globalAlpha = Math.min(1, a * 2); c.fillStyle = p.col; c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.scale(1, Math.cos(p.rot * 1.7)); c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); c.restore(); }
     else if (p.k === "r"){ c.globalAlpha = a; c.strokeStyle = p.col; c.lineWidth = .5 + 3 * a; c.beginPath(); c.arc(p.x, p.y, 4 + p.r1 * EASE.out(1 - a), 0, TAU); c.stroke(); }
@@ -3973,6 +4145,10 @@ function limb(c, x1, y1, x2, y2, w1, w2, col){
   arcLine(c, x1 + nx * w1 * .45 * side, y1 + ny * w1 * .45 * side, x2 + nx * w2 * .45 * side, y2 + ny * w2 * .45 * side);
 }
 function athlete(c, x, y, s, P0, K, view = "side", f = 1){
+  if (ARC.refl && !ARC.inRefl){                                      // polished floors and ice mirror the players
+    ARC.inRefl = true; const a = c.globalAlpha; c.save(); c.translate(0, y * 2 + 2); c.scale(1, -1); c.globalAlpha = a * ARC.refl;
+    try { athlete(c, x, y, s, P0, K, view, f); } finally { c.restore(); c.globalAlpha = a; ARC.inRefl = false; }
+  }
   const P = { ...POSE0, ...P0 }, S = s, side = view === "side";
   const T = 27 * S, TH = 20 * S, SH = 19 * S, UA = 14 * S, FA = 13 * S;
   const hipX = x, hipY = y - (TH + SH) * (1 - P.crouch * .38);
@@ -4089,7 +4265,19 @@ function drawBeams(c, xs, y, toY){
 }
 // the crowd: rows of fans (heads, shoulders, the odd raised arm or sign), drawn every frame so they can react
 const CROWD_SKIN = ["#F2C9A0", "#E0AC7E", "#C68A5E", "#8D5A3B", "#5E3B26"], CROWD_SHIRT = ["#7A3DF5", "#FF7AC8", "#8FF3FF", "#FFD678", "#E7E2FF", "#5FE3A3", "#FF9C7A", "#3B6FE0", "#D64541"];
+// The crowd is painted into a small layer at half resolution with a touch of blur, like a broadcast camera focused on
+// the field. The layer is reused while the crowd is calm and repainted only while it's on its feet, which is also far cheaper.
 function drawCrowd(c, y0, y1, seed = 3, size = 1){
+  const key = `${seed}|${y0}|${y1}|${size}`, C = (ARC.crowd = ARC.crowd || {}), e = C[key] || (C[key] = { cv: document.createElement("canvas"), ok: false }), live = ARC.hype > .02;
+  const top = y0 - 12, h = Math.ceil(y1 - y0 + 24);
+  if (!e.ok || live || e.was){
+    const k = 1, cv = e.cv; if (cv.width !== ARC.W * k || cv.height !== h * k){ cv.width = ARC.W * k; cv.height = h * k; }
+    const x = cv.getContext("2d"); x.setTransform(k, 0, 0, k, 0, -top * k); x.clearRect(0, top, ARC.W, h); x.filter = "blur(.45px)";
+    crowdPaint(x, y0, y1, seed, size); x.filter = "none"; e.ok = true;
+  }
+  e.was = live; c.drawImage(e.cv, 0, top, ARC.W, h);
+}
+function crowdPaint(c, y0, y1, seed = 3, size = 1){
   let sd = seed; const r = () => (sd = sd * 16807 % 2147483647) / 2147483647, t = ARC.s ? ARC.s.t : 0, h = ARC.hype;
   const step = 9 * size, rows = [];
   for (let y = y0 + step; y < y1 + 2; y += step * .8) rows.push(y);
@@ -4191,10 +4379,10 @@ const DERBY = { asPool: ["mlb", "hitters", "pow", "con"], id: "derby", name: "Ho
     s.p = null;
     s.fly = { t: 0, x0: b.x, y0: b.y, th, d, LA, hr, foul, gold: p.gold, dur: LA < 6 ? .8 : clamp(.9 + d / 380 + Math.max(0, LA - 30) / 60, 1, 2.3), apex: LA < 6 ? 3 : Math.max(10, d * Math.tan(clamp(LA, 5, 70) * Math.PI / 180) * .28), tr: [],
       label: hr ? `${d} FT${p.gold ? " · GOLD +2" : ""}` : foul ? "Foul ball" : LA < 6 ? "Grounder, out" : LA > 50 ? "Popped up" : d > fence - 30 ? "Caught at the wall" : "Fly out" };
-    fxSpark(b.x, b.y, "#FFF6D8", 16, 260, 300); fxRing(b.x, b.y, "#FFD678", 40, .35);
+    fxSpark(b.x, b.y, "#FFF6D8", 16, 260, 300); fxRing(b.x, b.y, "#FFD678", 40, .35); hit("crack");
     if (hr){
       const was = s.lvl; s.score += p.gold ? 2 : 1; s.streak++; s.long = Math.max(s.long, d); s.lvl = 1 + Math.floor(s.score / 3);
-      ARC.shake = q > .8 ? 7 : 4; buzz(q > .8 ? 60 : 30); sfx("score");
+      ARC.shake = q > .8 ? 7 : 4; buzz(q > .8 ? 60 : 30); sfx("score"); if (d >= 420 || p.gold) arcReplay(`${d} FT`, 1, s.fly.dur + .4, 180, 220);
       if (d >= 465){ ARC.slow = .7; fxWord(180, 250, "MOONSHOT", "#FF7AC8", 34); }
       if (s.lvl > was && PITCHES[s.lvl]) fxWord(180, 380, `Level ${s.lvl}: ${PITCHES[s.lvl].n}s now`, "#8FF3FF", 20);
     } else { s.outs++; s.streak = 0; sfx(foul ? "tap" : "lose"); }
@@ -4341,7 +4529,7 @@ const PENS = { asPool: ["epl", "attackers", "fin", "power"], scatter(){ return A
     if (s.ph !== "ready") return;
     s.trail = [];
     if (gs.dy > -25 || gs.dist < 30){ fxWord(180, 400, "Swipe up toward the goal", "#8FF3FF", 18); return; }
-    const pw = clamp(gs.flick / 2.1, 0, 1.5), aimX = 180 + gs.dx / -gs.dy * 290, bend = clamp(-gs.curve, -.5, .5);
+    hit("thud"); const pw = clamp(gs.flick / 2.1, 0, 1.5), aimX = 180 + gs.dx / -gs.dy * 290, bend = clamp(-gs.curve, -.5, .5);
     const sc = this.scatter ? this.scatter(s) : 6, tx = aimX + bend * 70 + rnd(-sc, sc), ty = GOAL.gl - 6 - pw * 118 + rnd(-sc * .8, sc * .8), weak = pw < .32;
     const third = tx < 133 ? 0 : tx > 227 ? 2 : 1, fav = s.hist.indexOf(Math.max(...s.hist));
     const read = Math.min(.7, .2 + s.round * .07) + (third === s.last ? .15 : 0);
@@ -4383,11 +4571,11 @@ const PENS = { asPool: ["epl", "attackers", "fin", "power"], scatter(){ return A
     const saved = inFrame && Math.hypot(x - kc.x, (y - kc.y) * 1.25) < reach;
     const scored = inFrame && !saved, list = sh.mine ? s.you : s.cpu; list.push(scored ? 1 : 0);
     if (scored){ const bins = y < 130 && (x < 96 || x > 264), pts = sh.mine ? (bins ? 150 : 100) : 0; s.score += pts; s.net = { x, y, t0: s.t, amp: 16 }; sh.vx = 0; sh.vy = 30; sh.g = 300; sh.inNet = true;
-      if (sh.mine){ fxWord(180, 290, bins ? "TOP CORNER! +150" : "GOAL! +100", bins ? "#FFD678" : "#5FE3A3", 34); fxConfetti(180, 120, bins ? 60 : 34); ARC.hype = 1; ARC.flash = bins ? .8 : .4; ARC.shake = 5; buzz(bins ? [40, 30, 60] : 40); sfx("score"); if (bins) ARC.slow = .5; }
+      if (sh.mine){ fxWord(180, 290, bins ? "TOP CORNER! +150" : "GOAL! +100", bins ? "#FFD678" : "#5FE3A3", 34); fxConfetti(180, 120, bins ? 60 : 34); ARC.hype = 1; ARC.flash = bins ? .8 : .4; ARC.shake = 5; buzz(bins ? [40, 30, 60] : 40); sfx("score"); if (bins) ARC.slow = .5; arcReplay(bins ? "TOP CORNER" : "GOAL", 1.2, .9, x, y + 60); }
       else { fxWord(180, 290, s.cpuPlan.readYou && s.dive && s.dive.early ? "He read you. Goal." : "CPU scores", "#FF7D8E", 26); sfx("lose"); } }
-    else if (saved){ sh.vx = (x - kc.x) * 4 + rnd(-60, 60); sh.vy = 220; sh.g = 600; ARC.shake = 4; buzz(30);
+    else if (saved){ sh.vx = (x - kc.x) * 4 + rnd(-60, 60); sh.vy = 220; sh.g = 600; ARC.shake = 4; buzz(30); hit("glove");
       if (sh.mine){ fxWord(180, 290, "SAVED!", "#FF7D8E", 32); sfx("lose"); }
-      else { s.score += 150; s.saves = (s.saves || 0) + 1; fxWord(180, 290, "GREAT SAVE! +150", "#5FE3A3", 30); fxSpark(x, y, "#5FE3A3", 22); ARC.hype = 1; sfx("score"); } }
+      else { s.score += 150; s.saves = (s.saves || 0) + 1; fxWord(180, 290, "GREAT SAVE! +150", "#5FE3A3", 30); fxSpark(x, y, "#5FE3A3", 22); ARC.hype = 1; sfx("score"); arcReplay("GREAT SAVE", 1.2, .8, x, y + 60); } }
     else { sh.vx = (x - 180) * .6; sh.vy = post ? 160 : -60; sh.g = post ? 500 : 200;
       fxWord(180, 290, post ? "OFF THE POST!" : y < GOAL.top ? "OVER THE BAR" : "WIDE", sh.mine ? "#FF7D8E" : "#5FE3A3", 28); if (post){ ARC.shake = 6; buzz(40); } sfx(sh.mine ? "lose" : "win"); }
   },
@@ -4455,7 +4643,7 @@ const PENS = { asPool: ["epl", "attackers", "fin", "power"], scatter(){ return A
 /* ---- Three-Point Contest: five racks around the arc, hold and release to shoot ---- */
 const RACKS = [-1.18, -.6, 0, .6, 1.18];                                          // spots around the arc (radians, 0 = top of the key)
 const COURT = { F: 540, hz: 118, camH: 11, back: 9, side: 2.4 };
-const HOOPS = { asPool: ["nba", "players", "three", "mid"], id: "hoops", name: "Three-Point Contest", icon: "🏀", unit: "pts", tag: "5 racks · 70 seconds · money balls",
+const HOOPS = { refl: .17, asPool: ["nba", "players", "three", "mid"], id: "hoops", name: "Three-Point Contest", icon: "🏀", unit: "pts", tag: "5 racks · 70 seconds · money balls",
   how: "Shoot all five racks from around the arc before the clock runs out. Press and hold to rise into your jumper, then let go when the power meter is in the green and the aim wobble is centered. Perfect releases swish; a little off rattles in or out. The last ball on every rack is a money ball worth 2, and the whole last rack is money balls. Four makes in a row heats you up: +1 on every make until you miss.",
   controls: "Hold = rise and aim · Release = shoot",
   init(s){ s.left = 70; s.rack = 0; s.ball = 0; s.ang = RACKS[0]; s.ph = "ready"; s.hold = null; s.shot = null; s.streak = 0; s.made = 0; s.taken = 0; s.netS = 0; s.pan = null; s.racks = [[], [], [], [], []]; },
@@ -4520,13 +4708,14 @@ const HOOPS = { asPool: ["nba", "players", "three", "mid"], id: "hoops", name: "
     const at = this.pt(s, 0, 0, 10);
     if (made){
       const heat = s.streak >= 4 ? 1 : 0, pts = (b.money ? 2 : 1) + heat; s.score += pts; s.made++; s.streak++; s.bestStreak = Math.max(s.bestStreak || 0, s.streak);
-      s.racks[s.rack].push(b.money ? 2 : 1);
+      s.racks[s.rack].push(b.money ? 2 : 1); hit(b.kind === "swish" ? "swish" : "clang"); if (b.kind !== "swish") setTimeout(() => hit("swish"), 160);
       fxWord(180, 250, `${b.kind === "swish" ? "SWISH" : "GOOD"} +${pts}`, b.money ? "#FFD678" : heat ? "#FF9C7A" : "#fff", b.kind === "swish" ? 32 : 26);
       fxSpark(at.x, at.y, b.money ? "#FFD678" : "#FF9C7A", b.kind === "swish" ? 22 : 10); fxRing(at.x, at.y + 6, "#FFD678", 36, .5);
       if (s.streak === 4){ fxWord(180, 300, "HEATING UP! +1 a make", "#FF9C7A", 26); ARC.flash = .5; ARC.slow = .35; }
+      if (b.money && b.kind === "swish") arcReplay("MONEY BALL", 1.3, .6, at.x, at.y + 40);
       ARC.hype = Math.min(1, ARC.hype + .5); sfx(b.kind === "swish" ? "score" : "win"); buzz(25);
     } else {
-      s.streak = 0; s.racks[s.rack].push(0);
+      s.streak = 0; s.racks[s.rack].push(0); if (b.kind !== "air") hit("clang");
       fxWord(180, 250, { out: "RIM OUT", short: "FRONT IRON", long: "OFF THE BACK", air: "AIRBALL" }[b.kind] || "MISS", "#FF7D8E", 26); sfx("lose"); if (b.kind !== "air"){ ARC.shake = 3; buzz(20); }
     }
     // next ball, or on to the next rack
@@ -4663,7 +4852,7 @@ const KICK = { asPool: ["nfl", "ks", "acc", "leg"], id: "kick", name: "Field Goa
     const aim = gs.dx / -gs.dy, hook = clamp(-gs.curve, -.5, .5) * 80, shank = pw > 1.18 ? rnd(-30, 30) * (pw - 1.1) * 3 : 0;
     const acc = s.kicker ? s.kicker.r.acc : ARC.as ? ARC.as.r.acc : null, xEnd = bx + aim * 250 + hook + s.wind * 26 * (1.3 - Math.min(1, pw) * .6) * (s.yd / 40) + shank + (acc != null ? rnd(-1, 1) * (100 - acc) * .35 : 0);
     const loft = clamp(pw, .3, 1.2), blocked = Math.random() < this.rush(s) * clamp((.62 - loft) / .3, 0, 1);
-    s.ph = "fly"; buzz(15);
+    s.ph = "fly"; buzz(15); hit("thud");
     if (blocked){ s.ball = { t: 0, blocked: true, bx: bx, by: 0, bh: 20, vx: rnd(-60, 60), vh: 30, x0: bx };
       s.lives--; fxWord(180, 300, "BLOCKED!", "#FF7D8E", 34); ARC.shake = 6; sfx("lose"); buzz(50); return; }
     s.ball = { t: 0, dur: .95 + s.yd / 110, x0: bx, xEnd, hook, reach: pw / need, loft, done: false };
@@ -4673,7 +4862,7 @@ const KICK = { asPool: ["nfl", "ks", "acc", "leg"], id: "kick", name: "Field Goa
     let good = b.reach >= 1 && d < 27; const doink = b.reach >= 1 && d >= 27 && d < 34;
     if (doink){ good = Math.random() < .5; b.doink = !good; fxWord(180, 120, "DOINK!", "#FFD678", 34); ARC.shake = 7; buzz(50); sfx("tap"); }
     b.good = good;
-    if (good){ s.makes++; s.longest = Math.max(s.longest, s.yd); s.score = s.longest; fxWord(180, 250, `GOOD from ${s.yd}!`, "#5FE3A3", 30); fxConfetti(180, 90, 44); ARC.hype = 1; ARC.flash = .4; sfx("score"); buzz(40);
+    if (good){ s.makes++; s.longest = Math.max(s.longest, s.yd); s.score = s.longest; fxWord(180, 250, `GOOD from ${s.yd}!`, "#5FE3A3", 30); fxConfetti(180, 90, 44); ARC.hype = 1; ARC.flash = .4; sfx("score"); buzz(40); if (s.yd >= 45) arcReplay(`${s.yd} YARDS`, 1.8, .5, 180, 200);
       if (s.yd >= 50){ ARC.slow = .5; fxWord(180, 300, s.yd >= 60 ? "RECORD RANGE!" : "FROM DOWNTOWN", "#FF7AC8", 24); } s.yd += 5; }
     else { s.lives--; if (!doink) fxWord(180, 250, b.reach < 1 ? "SHORT" : b.xEnd < 180 ? "WIDE LEFT" : "WIDE RIGHT", "#FF7D8E", 30); sfx("lose"); buzz(30); }
   },
@@ -4752,7 +4941,7 @@ const SKATERS = [[62, 468], [180, 506], [298, 468]];
 const KIT_P = { jersey: "#7A3DF5", pants: "#1C1440", skin: "#E0AC7E", hat: "hockey", hatCol: "#7A3DF5", gloves: "#1C1440", socks: "#7A3DF5", shoes: "#E7E2FF", stripe: "#FFD678" };
 const KIT_R = { jersey: "#D64541", pants: "#1C1440", skin: "#F2C9A0", hat: "hockey", hatCol: "#D64541", gloves: "#1C1440", socks: "#D64541", shoes: "#E7E2FF", stripe: "#fff" };
 const KIT_G = { jersey: "#F4F4F8", pants: "#F4F4F8", skin: "#E0AC7E", hat: "mask", hatCol: "#E7E2FF", gloves: "#D64541", socks: "#F4F4F8", shoes: "#F4F4F8", padW: 7.5, stripe: "#D64541", num: "31", numCol: "#D64541" };
-const SHELF = { asPool: ["nhl", "skaters", "shot", "pass"], id: "shelf", name: "Top Shelf", icon: "🏒", unit: "pts", tag: "60-second power play · pass and pick corners",
+const SHELF = { refl: .2, asPool: ["nhl", "skaters", "shot", "pass"], id: "shelf", name: "Top Shelf", icon: "🏒", unit: "pts", tag: "60-second power play · pass and pick corners",
   how: "You have the puck on a power play. Tap a teammate to pass: the goalie has to slide across, so a quick shot after a pass (a one-timer) finds open net. Tap a spot in the net to shoot. Goals score 1, plus 1 for a one-timer and 1 for a top corner. Defenders shadow the puck, block shooting lanes and pick off lazy passes, and a second one joins after five goals. A turnover costs three seconds.",
   controls: "Tap a teammate = pass · Tap the net = shoot",
   init(s){ s.left = 60; s.car = 1; s.puck = { x: SKATERS[1][0], y: SKATERS[1][1] - 6, mv: null }; s.gx = 180; s.gy = 244; s.bfly = 0; s.recv = -9; s.goals = 0; s.light = 0; s.net = null; s.defs = [{ x: 180, y: 380, v: 0 }]; s.shot = null; s.cool = 0; },
@@ -4810,9 +4999,9 @@ const SHELF = { asPool: ["nhl", "skaters", "shot", "pass"], id: "shelf", name: "
     if (this.covers(s, x, y, m.one)){ fxWord(x, y - 22, "SAVE", "#FF7D8E", 26); fxSpark(x, y, "#fff", 10, 120); sfx("lose"); buzz(25); m.saved = true; return; }
     const top = y < NET.top + 36 && (x < NET.x0 + 34 || x > NET.x1 - 34), pts = 1 + (m.one ? 1 : 0) + (top ? 1 : 0);
     s.score += pts; s.goals++; if (m.one) s.onet = (s.onet || 0) + 1; if (top) s.shelf = (s.shelf || 0) + 1;
-    s.light = 1.6; s.net = { x, y, t0: s.t, amp: 13 }; ARC.hype = 1; ARC.shake = 4; buzz(30); sfx(pts > 1 ? "score" : "win");
+    hit("horn"); s.light = 1.6; s.net = { x, y, t0: s.t, amp: 13 }; ARC.hype = 1; ARC.shake = 4; buzz(30); sfx(pts > 1 ? "score" : "win");
     fxWord(180, 300, pts === 3 ? "HIGHLIGHT REEL! +3" : m.one ? "ONE-TIMER! +2" : top ? "TOP SHELF! +2" : "GOAL! +1", pts === 3 ? "#FF7AC8" : pts === 2 ? "#FFD678" : "#fff", pts === 3 ? 30 : 28);
-    fxSpark(x, y, "#FF5A5A", 22); fxRing(x, y, "#fff", 36, .45); if (pts === 3){ ARC.slow = .5; fxConfetti(180, 140, 50); }
+    fxSpark(x, y, "#FF5A5A", 22); fxRing(x, y, "#fff", 36, .45); if (pts === 3){ ARC.slow = .5; fxConfetti(180, 140, 50); arcReplay("TOP SHELF", 1.2, .6, x, y + 40); }
     if (s.goals === 5 && s.defs.length < 2){ s.defs.push({ x: 60, y: 322, v: 0 }); fxWord(180, 350, "Second defender!", "#FF9C7A", 22); }
   },
   scenery(c){
@@ -4869,7 +5058,7 @@ const SHELF = { asPool: ["nhl", "skaters", "shot", "pass"], id: "shelf", name: "
 
 /* ---- Logo Quiz: endless, three lives, and the logos get harder to read ---- */
 const LOGO_MODES = ["pixel", "silhouette", "zoom", "spin"];
-const LOGOQ = { id: "logos", name: "Logo Quiz", icon: "🛡️", unit: "pts", tag: "3 lives · pixels, silhouettes, zooms and spins",
+const LOGOQ = { noReplay: true, id: "logos", name: "Logo Quiz", icon: "🛡️", unit: "pts", tag: "3 lives · pixels, silhouettes, zooms and spins",
   how: "Name the team before the ring runs out. Logos come in four disguises: big pixels that sharpen, silhouettes, an extreme close-up that slowly zooms out, and a spinning blur. Faster answers score more, three right in a row doubles your points and five triples them, and the clock gets shorter as your streak grows. Three misses and it's over.",
   controls: "Tap the right team",
   init(s){ s.n = 0; s.right = 0; s.streak = 0; s.lives = 3; s.used = new Set(); this.next(s); },
@@ -4947,7 +5136,9 @@ function bindArcade(root){ root.querySelectorAll("[data-arcopen]").forEach(b => 
 (() => {
   const c = $("#arcCanvas"), pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / ARC.scale, (e.clientY - r.top) / ARC.scale]; };
   c.addEventListener("pointerdown", e => {
-    if (!ARC.running || !ARC.s) return; e.preventDefault(); try { c.setPointerCapture(e.pointerId); } catch {}
+    if (!ARC.running || !ARC.s) return; e.preventDefault();
+    if (ARC.rp){ ARC.rp.skip = true; return; }                                   // tap skips a replay
+    try { c.setPointerCapture(e.pointerId); } catch {}
     const [x, y] = pt(e), g = ARC.g, s = ARC.s;
     ARC.ptr = { id: e.pointerId, path: [[x, y, performance.now()]] };
     if (g.down) g.down(s, x, y);
@@ -4963,9 +5154,11 @@ function bindArcade(root){ root.querySelectorAll("[data-arcopen]").forEach(b => 
   $("#arcChoices").addEventListener("click", e => { const b = e.target.closest("[data-opt]"); if (b && ARC.running && ARC.g.pick) ARC.g.pick(ARC.s, +b.dataset.opt); });
   $("#arcOver").addEventListener("click", e => { const b = e.target.closest("[data-arc]"); if (!b) return;
     if (b.dataset.arc === "start") arcStart(); else if (b.dataset.arc === "resume") arcResume();
-    else if (b.dataset.arc === "share") shareText(ARC.g && ARC.g.sd ? `${ARC.s.title} ${ARC.s.note} My Cosmo Showdown team: ${Object.values(SD.pick).flat().map(p => p.name).join(", ")}.` : `I scored ${Math.round(ARC.s?.score || 0)} ${ARC.g.unit} in ${ARC.g.name} on Cosmo Sports. Beat that.`, APP_URL() + "#play"); });
+    else if (b.dataset.arc === "share") shareText(ARC.g && ARC.g.sd ? `${ARC.s.title} ${ARC.s.note} My Cosmo Showdown team: ${Object.values(SD.pick).flat().map(p => p.name).join(", ")}.` : `I scored ${Math.round(ARC.s?.score || 0)} ${ARC.g.unit} in ${ARC.g.name} on Cosmo Sports. Think you can beat it?`, APP_URL() + (ARC.g.id === "trivia" ? "#play" : `#vs=${ARC.g.id}.${Math.round(ARC.s?.score || 0)}`)); });
   $("#arcClose").onclick = () => $("#arcDlg").close();
-  $("#arcDlg").addEventListener("close", () => { ARC.running = false; ARC.paused = false; ARC.ptr = null; cancelAnimationFrame(ARC.raf); $("#arcChoices").hidden = true; });
+  $("#arcSnd").onclick = () => { GSND.on = !GSND.on; lsSet("arc-sound", GSND.on); sndIcon(); if (GSND.on && ARC.running && !ARC.g.noReplay) crowdStart(); else if (!GSND.on) crowdStop(); };
+  sndIcon();
+  $("#arcDlg").addEventListener("close", () => { crowdStop(); ARC.running = false; ARC.paused = false; ARC.ptr = null; cancelAnimationFrame(ARC.raf); $("#arcChoices").hidden = true; });
   addEventListener("resize", () => { if ($("#arcDlg").open){ arcSize(); if (!ARC.running) arcFrame(); } });
   document.addEventListener("visibilitychange", () => { if (document.hidden && ARC.running) arcPause(); });
   // keyboard: space or enter plays the main action of the timing games
@@ -5008,7 +5201,7 @@ async function sdLoad(){
   return (SD.data = await r.json());
 }
 function sdPool(sp, key){ return ((SD.data && SD.data.sports[sp]) || {})[key] || []; }
-function sdSpent(){ return Object.values(SD.pick).flat().reduce((a, p) => a + p.cost, 0); }
+function sdSpent(){ return Object.values(SD.pick).flat().reduce((a, p) => a + sdCost(p), 0); }
 function sdFull(){ return SD_SPORTS[SD.sport].slots.every(sl => (SD.pick[sl.key] || []).length === sl.n); }
 function sdAuto(budget, taken, sp, rng = Math.random){         // a sensible random team inside the budget
   const team = {}, def = SD_SPORTS[sp]; let left = budget;
@@ -5036,17 +5229,17 @@ function sdOpen(){
 function sdSports(){
   const rec = sdRec();
   $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><b>Cosmo Showdown</b><p>Pick a sport, draft real players under the salary cap, then take on a computer team made of real players.</p>
-    <div class="sdsports">${Object.entries(SD_SPORTS).map(([k, d]) => { const r = rec[k]; const season = SD.data.sports[k]?.season; return `<button type="button" class="sdsport" data-sdsport="${k}"><span>${d.icon}</span><b>${d.name}</b><small>${esc(d.blurb)}</small><em>${r ? `${r.w}–${r.l}` : "No games yet"}${season ? ` · ${esc(season)} stats` : ""}</em></button>`; }).join("")}</div></div>`;
+    ${seasonPanelHtml()}<div class="sdsports">${Object.entries(SD_SPORTS).map(([k, d]) => { const r = rec[k]; const season = SD.data.sports[k]?.season; return `<button type="button" class="sdsport" data-sdsport="${k}"><span>${d.icon}</span><b>${d.name}</b><small>${esc(d.blurb)}</small><em>${r ? `${r.w}–${r.l}` : "No games yet"}${season ? ` · ${esc(season)} stats` : ""}</em></button>`; }).join("")}</div></div>`;
 }
 function sdDraft(sp, slotIdx = 0){
   if (sp){ SD.sport = sp; SD.pick = {}; }
   const def = SD_SPORTS[SD.sport], sl = def.slots[slotIdx], mine = SD.pick[sl.key] || [], left = def.budget - sdSpent();
   const need = def.slots.reduce((a, s) => a + s.n - (SD.pick[s.key] || []).length, 0);
   const chosen = new Set(Object.values(SD.pick).flat().map(p => p.id));
-  const rows = sdPool(SD.sport, sl.key).map(p => { const on = chosen.has(p.id), afford = p.cost <= left - (need - 1) || on, full = mine.length >= sl.n && !on;
+  const rows = sdPool(SD.sport, sl.key).map(p => { const on = chosen.has(p.id), cost = sdCost(p), afford = cost <= left - (need - 1) || on, full = mine.length >= sl.n && !on;
     return `<button type="button" class="sdrow ${on ? "on" : ""}" data-sdp="${esc(p.id)}" ${!on && (!afford || full) ? "disabled" : ""}>
       <img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="sdn"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${esc(p.pos)} · ${esc(p.line)}</small>
-      <span class="sdr">${sl.rate.map(([k, l]) => `<i title="${l}">${l} <b>${p.r[k]}</b></i>`).join("")}</span></span><span class="sdc"><b>${p.ovr}</b><small>${"●".repeat(Math.ceil(p.cost / 2))} ${p.cost}</small></span></button>`; }).join("");
+      <span class="sdr">${sl.rate.map(([k, l]) => `<i title="${l}">${l} <b>${p.r[k]}</b></i>`).join("")}</span></span><span class="sdc"><b>${p.ovr}</b><small>${cost < p.cost ? "🎴 " : "●".repeat(Math.ceil(cost / 2)) + " "}${cost}</small></span></button>`; }).join("");
   $("#arcOver").innerHTML = `<div class="arcpanel sdpanel sddraft">
     <div class="sdtop"><button type="button" class="btn" data-sd="sports">‹ Sports</button><b>${def.icon} ${def.name}</b><span class="sdbudget ${left < 0 ? "bad" : ""}">${left} of ${def.budget} coins left</span></div>
     <div class="sdtabs">${def.slots.map((s, i) => `<button type="button" data-sdslot="${i}" aria-pressed="${i === slotIdx}">${s.label} ${(SD.pick[s.key] || []).length}/${s.n}</button>`).join("")}</div>
@@ -5065,20 +5258,23 @@ function sdToggle(id){
 }
 function sdMatchup(){
   const taken = new Set(Object.values(SD.pick).flat().map(p => p.id)), def = SD_SPORTS[SD.sport];
-  SD.cpu = sdAuto(def.budget, taken, SD.sport);
+  const S = SD.season === SD.sport ? seasonGet(SD.sport) : null, opp = S && S.stage !== "done" ? seasonOpp(S) : null;
+  if (S && !S.pick){ S.pick = {}; def.slots.forEach(sl => S.pick[sl.key] = (SD.pick[sl.key] || []).map(p => p.id)); seasonSave(SD.sport, S); }
+  SD.cpu = sdAuto(opp ? Math.round(def.budget * opp.mult) : def.budget, taken, SD.sport); SD.opp = opp;
   const side = (team, who) => `<div class="sdside"><small>${who} · ${sdOvr(team)} OVR</small>${Object.values(team).flat().map(p => `<span class="sdchip"><img src="${esc(p.img)}" alt="" onerror="this.style.visibility='hidden'">${esc(lastName(p.name))} <em>${p.ovr}</em></span>`).join("")}</div>`;
-  $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><b>${def.icon} Matchup</b>${side(SD.pick, "Your team")}<span class="sdvs">VS</span>${side(SD.cpu, "Computer")}
-    <p>${esc(SD_GAMES[SD.sport].how)}</p><p class="arcctl">${esc(SD_GAMES[SD.sport].controls)}</p><div class="dbtns"><button class="btn" type="button" data-sd="redraft">Redraft</button><button class="btn primary" type="button" data-sd="start">Play ball</button></div></div>`;
+  $("#arcOver").innerHTML = `<div class="arcpanel sdpanel"><b>${def.icon} ${opp ? esc(opp.label) : "Matchup"}</b>${S ? seasonLine(S) : ""}${side(SD.pick, "Your team")}<span class="sdvs">VS</span>${side(SD.cpu, opp ? opp.name : "Computer")}
+    <p>${esc(SD_GAMES[SD.sport].how)}</p><p class="arcctl">${esc(SD_GAMES[SD.sport].controls)}</p><div class="dbtns">${S && S.res.length ? `<button class="btn" type="button" data-sd="sports">Save and exit</button>` : `<button class="btn" type="button" data-sd="redraft">Redraft</button>`}<button class="btn primary" type="button" data-sd="start">Play ball</button></div></div>`;
 }
 function sdStart(){
-  const g = SD_GAMES[SD.sport]; ARC.g = g; $("#arcTitle").textContent = `Showdown · ${SD_SPORTS[SD.sport].name}`; $("#arcSub").textContent = `${sdOvr(SD.pick)} OVR vs ${sdOvr(SD.cpu)} OVR`;
+  const g = SD_GAMES[SD.sport]; ARC.g = g; $("#arcTitle").textContent = `Showdown · ${SD_SPORTS[SD.sport].name}`; $("#arcSub").textContent = `${sdOvr(SD.pick)} OVR vs ${sdOvr(SD.cpu)} OVR${SD.opp ? ` · ${SD.opp.name}` : ""}`;
   Object.values(SD.pick).flat().concat(Object.values(SD.cpu).flat()).forEach(p => sdImg(p.img));
   arcStart();
 }
 function sdFinish(s, won, line){                                 // record the result and build the final screen
   const rec = sdRec(), r = rec[SD.sport] || { w: 0, l: 0 }; won ? r.w++ : r.l++; rec[SD.sport] = r; lsSet("sd-rec", rec);
   if (typeof awardXP === "function"){ awardXP(won ? 60 : 20, won ? "Showdown win" : "Showdown played"); if (won) unlock("sd-win-" + SD.sport); unlock("sd-first"); }
-  s.title = won ? "You win!" : "Computer wins"; s.note = line; s.sdWon = won; s.over = true;
+  s.title = won ? "You win!" : `${SD.opp ? SD.opp.name : "Computer"} wins`; s.note = line; s.sdWon = won; s.over = true;
+  if (SD.season && SD.season === SD.sport) seasonResult(won, s);
   if (won){ fxConfetti(180, 120, 90); ARC.hype = 1; ARC.flash = .6; sfx("win"); } else sfx("lose");
 }
 function sdBox(s){                                              // the box score shown at the end
@@ -5205,7 +5401,7 @@ const SD_MLB = { id: "sd-mlb", sd: true, name: "Showdown baseball", icon: "⚾",
     const foul = Math.abs(th) > Math.PI / 4, fence = FIELD.fence(th), hr = !foul && d > fence + 6, b = this.ball(p, clamp(p.t / p.dur, 0, 1.2));
     s.p = null;
     s.fly = { t: 0, x0: b.x, y0: b.y, th, d, LA, hr, foul, EV, q, dur: LA < 6 ? .8 : clamp(.9 + d / 380 + Math.max(0, LA - 30) / 60, 1, 2.3), apex: LA < 6 ? 3 : Math.max(10, d * Math.tan(clamp(LA, 5, 70) * Math.PI / 180) * .28), tr: [] };
-    fxSpark(b.x, b.y, "#FFF6D8", 16, 260, 300); fxRing(b.x, b.y, "#FFD678", 40, .35); if (hr){ ARC.shake = 6; sfx("score"); buzz(50); if (d > 450) ARC.slow = .6; }
+    fxSpark(b.x, b.y, "#FFF6D8", 16, 260, 300); fxRing(b.x, b.y, "#FFD678", 40, .35); hit("crack"); if (hr){ ARC.shake = 6; sfx("score"); buzz(50); if (d > 450) ARC.slow = .6; arcReplay(`${lastName(H.name).toUpperCase()} · ${d} FT`, 1, s.fly.dur + .4, 180, 220); }
   },
   // what the ball did: out, single, double, triple or home run, and who scored
   settle(s, f){
@@ -5318,10 +5514,10 @@ const SD_NBA = Object.assign(Object.create(HOOPS), { id: "sd-nba", sd: true, nam
     const setV = (vx, vy, vh) => { b.vx = vx; b.vy = vy; b.vh = vh; };
     const made = b.kind === "swish" || b.kind === "in";
     if (b.blocked){ setV(-away[0] * 12, -away[1] * 12, 6); fxWord(180, 250, `BLOCKED by ${lastName(s.blocker.name)}`, "#FF7D8E", 22); ARC.shake = 5; sfx("lose"); }
-    else if (made){ b.x = 0; b.y = 0; setV(-away[0] * 1.5, -away[1] * 1.5, -6); b.through = true; s.netS = 1;
+    else if (made){ b.x = 0; b.y = 0; setV(-away[0] * 1.5, -away[1] * 1.5, -6); b.through = true; s.netS = 1; hit(b.kind === "swish" ? "swish" : "clang");
       s.pts.you += v.pts; s.score = s.pts.you; box.pts += v.pts; box.fgm++; if (v.pts === 3) box.tpm++;
-      fxWord(180, 250, `${lastName(P.name)} ${v.pts === 3 ? "from deep!" : b.kind === "swish" ? "nothing but net" : "scores"} +${v.pts}`, v.pts === 3 ? "#FFD678" : "#5FE3A3", 22); ARC.hype = 1; sfx("score"); buzz(25); }
-    else { setV(-away[0] * 7, -away[1] * 7, 9); fxWord(180, 250, { out: "Rims out", short: "Front iron", long: "Off the back", air: "Airball" }[b.kind] || "Miss", "#FF7D8E", 24); sfx("lose"); }
+      fxWord(180, 250, `${lastName(P.name)} ${v.pts === 3 ? "from deep!" : b.kind === "swish" ? "nothing but net" : "scores"} +${v.pts}`, v.pts === 3 ? "#FFD678" : "#5FE3A3", 22); ARC.hype = 1; sfx("score"); buzz(25); if (v.pts === 3) arcReplay(`${lastName(P.name).toUpperCase()} FROM DEEP`, 1.4, .6, 180, 200); }
+    else { setV(-away[0] * 7, -away[1] * 7, 9); if (b.kind !== "air") hit("clang"); fxWord(180, 250, { out: "Rims out", short: "Front iron", long: "Off the back", air: "Airball" }[b.kind] || "Miss", "#FF7D8E", 24); sfx("lose"); }
     s.nextAt = s.t + 1.3;
     if (s.pts.you >= 21) s.nextAt = s.t + 1;
   },
@@ -5406,7 +5602,7 @@ const SD_NHL = Object.assign(Object.create(SHELF), { id: "sd-nhl", sd: true, nam
   },
   covers(s, x, y, one){ const k = 1.1 + (s.cgk.r.save - 60) / 39 * .3 + (s.perGoals || 0) * .12; /* he tightens up after each goal */ return SHELF.covers.call(this, s, s.gx + (x - s.gx) / k, NET.gl - (NET.gl - y) / k, one); },
   land(s, m){ const before = s.goals; SHELF.land.call(this, s, m);
-    if (s.goals > before){ s.gf++; s.perGoals = (s.perGoals || 0) + 1; s.score = s.gf; const P = s.me[m.shooter ?? s.car]; s.box[P.id].g++; if (s.lastPass != null && s.lastPass !== m.shooter){ s.box[s.me[s.lastPass].id].a++; } if (s.per > 3) this.end(s); } },
+    if (s.goals > before){ s.gf++; s.perGoals = (s.perGoals || 0) + 1; s.score = s.gf; const P = s.me[m.shooter ?? s.car]; s.box[P.id].g++; arcReplay(`GOAL ${lastName(P.name).toUpperCase()}`, 1.2, .6, 180, 200); if (s.lastPass != null && s.lastPass !== m.shooter){ s.box[s.me[s.lastPass].id].a++; } if (s.per > 3) this.end(s); } },
   cpuChances(s){
     const n = 4 + Math.round(clamp((sdOvr(SD.cpu) - sdOvr(SD.pick)) / 8, -1, 2)), lines = [];
     for (let i = 0; i < n; i++){ const P = s.them[Math.floor(Math.random() * s.them.length)], goal = Math.random() < clamp(.2 + (P.r.shot - s.gk.r.save) / 200, .08, .34);
@@ -5531,7 +5727,7 @@ const SD_NFL = { id: "sd-nfl", sd: true, name: "Showdown football", icon: "🏈"
     if (r.inc){ fxWord(180, 300, r.sep < 1 ? "Broken up!" : "Incomplete", "#FF7D8E", 26); sfx("lose"); this.nextDown(s); return; }
     const W = s.box[r.who.id]; Q.c++; Q.y += r.gain; if (W){ W.c = (W.c || 0) + 1; W.y += r.gain; }
     s.catchAnim = { i: s.last.who, t0: s.t };
-    if (s.yl + r.gain >= 100){ s.pts.you += 7; s.score = s.pts.you; Q.td++; if (W) W.td++; fxWord(180, 280, `TOUCHDOWN ${lastName(r.who.name).toUpperCase()}!`, "#FFD678", 26); fxConfetti(180, 140, 70); ARC.hype = 1; ARC.flash = .6; sfx("score"); buzz([40, 30, 60]); s.td = true; return; }
+    if (s.yl + r.gain >= 100){ s.pts.you += 7; s.score = s.pts.you; Q.td++; if (W) W.td++; fxWord(180, 280, `TOUCHDOWN ${lastName(r.who.name).toUpperCase()}!`, "#FFD678", 26); fxConfetti(180, 140, 70); ARC.hype = 1; ARC.flash = .6; sfx("score"); hit("horn"); buzz([40, 30, 60]); s.td = true; arcReplay(`TD ${lastName(r.who.name).toUpperCase()}`, 2.4, .5, 180, 240); return; }
     s.yl += r.gain; fxWord(180, 300, `${lastName(r.who.name)} for ${r.gain}${r.gain >= s.togo ? ", first down!" : ""}`, "#5FE3A3", 24); sfx("win"); ARC.hype = Math.min(1, ARC.hype + .4);
     if (r.gain >= s.togo){ s.down = 1; s.togo = Math.min(10, 100 - s.yl); } else { s.togo -= r.gain; this.nextDown(s); }
   },
@@ -5619,12 +5815,13 @@ SD_NFL.up = function(s, x, y, gs){ if (s.ph === "fg"){ SD_FG.up(s.fs, x, y, gs);
 const SD_GAMES = { mlb: SD_MLB, nba: SD_NBA, nfl: SD_NFL, nhl: SD_NHL, epl: SD_EPL };
 (() => {
   $("#arcOver").addEventListener("click", e => {
-    const t = e.target.closest("[data-sd],[data-sdsport],[data-sdslot],[data-sdp]"); if (!t) return;
-    if (t.dataset.sdsport) return sdDraft(t.dataset.sdsport, 0);
+    const t = e.target.closest("[data-sd],[data-sdsport],[data-sdslot],[data-sdp],[data-sdseason]"); if (!t) return;
+    if (t.dataset.sdseason){ const sp = t.dataset.sdseason, S = seasonGet(sp); if (S && S.stage === "done") seasonSave(sp, null); return sdLoad().then(() => seasonStart(sp)); }
+    if (t.dataset.sdsport){ SD.season = null; return sdDraft(t.dataset.sdsport, 0); }
     if (t.dataset.sdslot) return sdDraft(null, +t.dataset.sdslot);
     if (t.dataset.sdp) return sdToggle(t.dataset.sdp);
     const a = t.dataset.sd;
-    if (a === "retry") sdOpen(); else if (a === "sports") sdSports();
+    if (a === "retry") sdOpen(); else if (a === "sports"){ SD.season = null; sdSports(); }
     else if (a === "auto"){ SD.pick = sdAuto(SD_SPORTS[SD.sport].budget, new Set(), SD.sport); sdDraft(null, 0); }
     else if (a === "go") sdMatchup(); else if (a === "redraft") sdDraft(null, 0);
     else if (a === "start" || a === "rematch") sdStart(); else if (a === "newdraft") sdDraft(SD.sport, 0);
@@ -5633,6 +5830,199 @@ const SD_GAMES = { mlb: SD_MLB, nba: SD_NBA, nfl: SD_NFL, nhl: SD_NHL, epl: SD_E
     const b = e.target.closest("[data-sdsel],[data-sdshot],[data-sd4]"); if (!b) return;
     if (b.dataset.sdsel != null) g.pickSel(s, +b.dataset.sdsel); else if (b.dataset.sdshot) g.takeShot(s, b.dataset.sdshot); else if (b.dataset.sd4) g.choose4(s, b.dataset.sd4); });
 })();
+
+/* ================= Cosmo Cards: collect the real players, pack by pack ================= */
+// Every player in the Showdown pool is a card. Coins come with every bit of XP (games, trivia, picks, achievements),
+// packs cost coins (or are free once a day), duplicates turn back into coins, and players you own cost 1 less in Showdown drafts.
+const CARDS = Object.assign({ coins: 0, own: {}, free: "", opened: 0, bank: {}, app: false, seen: {} }, lsGet("cards", null) || { coins: 100 + ((lsGet("xp", {}) || {}).xp || 0) });   // a starter purse, plus your XP so far
+const saveCards = () => lsSet("cards", CARDS);
+const RARITY = [["legend", "Legend", 93, 60], ["gold", "Gold", 86, 25], ["silver", "Silver", 78, 10], ["bronze", "Bronze", 0, 5]];
+const RORDER = ["bronze", "silver", "gold", "legend"];
+const rarityOf = p => RARITY.find(r => p.ovr >= r[2]);
+const CARD_SPORTS = { mlb: "⚾", nba: "🏀", nfl: "🏈", nhl: "🏒", epl: "⚽" };
+const PACKS = {
+  free: { name: "Daily pack", n: 3, cost: 0, icon: "🎁" }, std: { name: "Standard pack", n: 5, cost: 100, min: "silver", icon: "🎴" },
+  pro: { name: "Premium pack", n: 5, cost: 300, min: "gold", icon: "💎", boost: 2 }, welcome: { name: "Welcome pack", n: 5, cost: 0, min: "gold", icon: "📲", boost: 2 },
+  chal: { name: "Challenge pack", n: 3, cost: 0, min: "silver", icon: "🎯" }, champ: { name: "Champion pack", n: 5, cost: 0, min: "legend", icon: "🏆", boost: 3 },
+};
+const isStandalone = () => { try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch { return false; } };
+let CARD_LIST = null;
+function allCards(){
+  if (CARD_LIST && CARD_LIST.src === SD.data) return CARD_LIST.list;
+  const out = [], seen = new Set(), sp = (SD.data || {}).sports || {};
+  for (const k of Object.keys(CARD_SPORTS)) for (const [key, list] of Object.entries(sp[k] || {})) if (Array.isArray(list)) for (const p of list) if (!seen.has(p.id)){ seen.add(p.id); out.push({ p, sp: k, key }); }
+  out.sort((a, b) => b.p.ovr - a.p.ovr);
+  if (SD.data) CARD_LIST = { src: SD.data, list: out }; return out;
+}
+const ownedCount = () => allCards().filter(c => CARDS.own[c.p.id]).length;
+function sdCost(p){ return CARDS.own[p.id] ? Math.max(1, p.cost - 1) : p.cost; }       // your own cards come cheaper in the draft
+function grantPack(kind, why){ CARDS.bank[kind] = (CARDS.bank[kind] || 0) + 1; saveCards(); toast(`${PACKS[kind].icon} ${why ? why + ": " : ""}you earned a ${PACKS[kind].name}. Open it in Play.`); }
+function rollPack(kind){
+  const P = PACKS[kind], all = allCards(), got = [];
+  for (let i = 0; i < P.n; i++){
+    const x = Math.random() * (P.boost ? 1 / P.boost : 1);
+    let r = x < .03 ? "legend" : x < .15 ? "gold" : x < .48 ? "silver" : "bronze";
+    if (i === P.n - 1 && P.min && RORDER.indexOf(r) < RORDER.indexOf(P.min)) r = P.min;          // the last card is the guaranteed one
+    let pool = all.filter(c => rarityOf(c.p)[0] === r && !got.includes(c));
+    const fresh = pool.filter(c => !CARDS.own[c.p.id]); if (fresh.length && Math.random() < .35) pool = fresh;   // a nudge towards new cards
+    if (pool.length) got.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  got.sort((a, b) => a.p.ovr - b.p.ovr);                                                         // the best one is revealed last
+  return got.map(c => { const dup = !!CARDS.own[c.p.id], refund = dup ? rarityOf(c.p)[3] : 0; CARDS.own[c.p.id] = (CARDS.own[c.p.id] || 0) + 1; CARDS.coins += refund; return { ...c, dup, refund }; });
+}
+function cardRates(c){ const sl = (SD_SPORTS[c.sp]?.slots || []).find(s => s.key === c.key); return (sl ? sl.rate : Object.keys(c.p.r).map(k => [k, k.toUpperCase().slice(0, 3)])).slice(0, 3).map(([k, l]) => `<i>${esc(l)} <b>${c.p.r[k]}</b></i>`).join(""); }
+function cardFace(c, extra = ""){
+  const p = c.p, R = rarityOf(p);
+  return `<span class="ccf"><span class="cctop"><b>${p.ovr}</b><small>${esc(p.pos || "")}</small><i>${CARD_SPORTS[c.sp]}</i></span>
+    <span class="ccimg"><img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.remove()"><span>${esc(p.name.split(" ").map(w => w[0]).join("").slice(0, 2))}</span></span>
+    <span class="ccname">${esc(p.name)}</span><span class="ccteam">${esc(p.team)} · ${R[1]}</span><span class="ccr">${cardRates(c)}</span>${extra}</span>`;
+}
+let PK = null;
+async function packOpen(kind){
+  const P = PACKS[kind]; try { await sdLoad(); } catch {}
+  if (!allCards().length) return toast("Cards need the player data. Check your connection.");
+  if (kind === "free"){ if (CARDS.free === todayKey()) return toast("Your daily pack is back tomorrow"); CARDS.free = todayKey(); }
+  else if (P.cost){ if (CARDS.coins < P.cost) return toast(`You need ${P.cost - CARDS.coins} more coins. Play anything in Play to earn them.`); CARDS.coins -= P.cost; }
+  else { if (!CARDS.bank[kind]) return; CARDS.bank[kind]--; }
+  const extra = kind === "free" && isStandalone() ? 1 : 0, keepN = P.n; P.n += extra; const cards = rollPack(kind); P.n = keepN;
+  CARDS.opened++; saveCards(); awardXP(10, P.name);
+  if (cards.some(c => rarityOf(c.p)[0] === "legend")) unlock("legend-card"); if (ownedCount() >= 50) unlock("cards-50");
+  PK = { kind, cards, shown: new Set() };
+  const body = $("#packBody");
+  body.innerHTML = `<div class="pkhead"><span>${P.icon}</span><div><h2 id="packTitle">${esc(P.name)}</h2><p>${extra ? "App bonus: +1 card. " : ""}Tap each card to flip it.</p></div></div>
+    <div class="pkrow">${cards.map((c, i) => `<button type="button" class="ccard r-${rarityOf(c.p)[0]} flip" data-flip="${i}" style="--d:${i * 70}ms"><span class="cci"><span class="ccback"><i>🌌</i><small>COSMO CARDS</small></span>${cardFace(c, c.dup ? `<em class="ccdup">Duplicate +${c.refund} 🪙</em>` : `<em class="ccnew">NEW</em>`)}</span></button>`).join("")}</div>
+    <div class="pkfoot"><small id="pkSum">🪙 ${CARDS.coins} coins · ${ownedCount()} of ${allCards().length} collected</small><button class="btn" type="button" data-pk="all">Reveal all</button><button class="btn primary" type="button" data-pk="done">Done</button></div>`;
+  const dlg = $("#packDlg"); if (!dlg.open) dlg.showModal(); sfx("reveal");
+}
+function packFlip(i){
+  if (!PK || PK.shown.has(i)) return; PK.shown.add(i); const b = $(`#packBody [data-flip="${i}"]`); if (!b) return; b.classList.add("on");
+  const r = rarityOf(PK.cards[i].p)[0]; buzz(r === "legend" ? [30, 40, 60] : 12);
+  if (r === "legend" || r === "gold"){ sfx("win"); hit(r === "legend" ? "horn" : "swish"); b.classList.add("burst"); if (r === "legend") fxConfettiDom(); } else sfx("tap");
+}
+function albumShow(sp = "all"){
+  const all = allCards().filter(c => sp === "all" || c.sp === sp).sort((a, b) => !!CARDS.own[b.p.id] - !!CARDS.own[a.p.id] || b.p.ovr - a.p.ovr), own = all.filter(c => CARDS.own[c.p.id]).length;
+  $("#packBody").innerHTML = `<div class="pkhead"><span>🎴</span><div><h2 id="packTitle">Your collection</h2><p>${own} of ${all.length} ${sp === "all" ? "cards" : esc(LEAGUE_LABEL[sp]) + " cards"} · 🪙 ${CARDS.coins} coins</p></div></div>
+    <div class="seg albtabs" role="group" aria-label="League">${["all", ...Object.keys(CARD_SPORTS)].map(k => `<button type="button" data-alb="${k}" aria-pressed="${k === sp}">${k === "all" ? "All" : CARD_SPORTS[k] + " " + esc(LEAGUE_LABEL[k] || k)}</button>`).join("")}</div>
+    <div class="albgrid">${all.map(c => CARDS.own[c.p.id] ? `<span class="ccard mini on r-${rarityOf(c.p)[0]}"><span class="cci">${cardFace(c, CARDS.own[c.p.id] > 1 ? `<em class="ccx">×${CARDS.own[c.p.id]}</em>` : "")}</span></span>`
+      : `<span class="ccard mini locked r-${rarityOf(c.p)[0]}"><span class="cci"><span class="ccf"><span class="cctop"><b>${c.p.ovr}</b><small></small><i>${CARD_SPORTS[c.sp]}</i></span><span class="ccimg"><span>?</span></span><span class="ccname">???</span><span class="ccteam">${rarityOf(c.p)[1]}</span></span></span></span>`).join("")}</div>
+    <div class="pkfoot"><small>Owned players cost 1 less in Showdown drafts.</small><button class="btn primary" type="button" data-pk="done">Close</button></div>`;
+  const dlg = $("#packDlg"); if (!dlg.open) dlg.showModal();
+}
+function cardsHtml(){
+  const n = SD.data ? ownedCount() : Object.keys(CARDS.own).length, tot = SD.data ? allCards().length : 0, freeOk = CARDS.free !== todayKey(), bank = Object.entries(CARDS.bank || {}).filter(([, v]) => v > 0);
+  return `<section class="usec cardsec"><h3>🎴 Cosmo Cards <small>${n}${tot ? ` of ${tot}` : ""} collected</small><span class="coins">🪙 ${CARDS.coins}</span></h3>
+    <p class="cardsub">Collect the real players. Every game, trivia round and pick earns coins, and players you own cost 1 less in Showdown drafts.</p>
+    ${bank.length ? `<div class="pkbank">${bank.map(([k, v]) => `<button type="button" class="pkbtn earned" data-pack="${k}"><b>${PACKS[k].icon} ${esc(PACKS[k].name)}${v > 1 ? ` ×${v}` : ""}</b><small>Earned · tap to open</small></button>`).join("")}</div>` : ""}
+    <div class="pkbtns"><button type="button" class="pkbtn free" data-pack="free" ${freeOk ? "" : "disabled"}><b>🎁 Daily pack</b><small>${freeOk ? `Free · ${3 + (isStandalone() ? 1 : 0)} cards` : "Back tomorrow"}</small></button>
+      <button type="button" class="pkbtn std" data-pack="std"><b>🎴 Standard</b><small>5 cards · 🪙 100</small></button>
+      <button type="button" class="pkbtn pro" data-pack="pro"><b>💎 Premium</b><small>Gold or better · 🪙 300</small></button></div>
+    <button class="btn albbtn" type="button" data-album="1">View your collection</button></section>`;
+}
+function fxConfettiDom(){
+  const box = document.createElement("div"); box.className = "domconf"; const cols = ["#FF7AC8", "#8FF3FF", "#FFD678", "#B98BFF", "#5FE3A3"];
+  box.innerHTML = Array.from({ length: 60 }, (_, i) => `<i style="left:${Math.random() * 100}%;background:${cols[i % 5]};animation-delay:${Math.random() * .4}s;animation-duration:${1.6 + Math.random()}s;transform:rotate(${Math.random() * 360}deg)"></i>`).join("");
+  document.body.appendChild(box); setTimeout(() => box.remove(), 3200);
+}
+
+/* ================= Daily Challenge: one arcade target a day, the same for everyone ================= */
+const DCH = [["derby", 4, "Hit 4 home runs in Home Run Derby", "HR"], ["pens", 700, "Score 700 points in Penalty Shootout", "pts"], ["hoops", 14, "Score 14 in the Three-Point Contest", "pts"],
+  ["kick", 45, "Make a 45-yard field goal", "yds"], ["shelf", 8, "Score 8 points in Top Shelf", "pts"], ["logos", 8, "Name 8 logos in Logo Quiz", "right"]];
+function dchToday(day = todayKey()){ let h = 7; for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) % 100003; const [id, target, text, unit] = DCH[h % DCH.length]; return { id, target, text, unit, day }; }
+const dchMetric = (id, s) => id === "logos" ? (s.right || 0) : Math.round(s.score || 0);
+const dchDone = () => lsGet("dch", {}) || {};
+function dchStreak(){ const d = dchDone(), x = new Date(); let n = 0; if (!d[ymd(x)]) x.setDate(x.getDate() - 1); for (let i = 0; i < 60; i++){ if (d[ymd(x)]) n++; else break; x.setDate(x.getDate() - 1); } return n; }
+function dchHtml(){
+  const c = dchToday(), done = dchDone()[c.day], st = dchStreak(), g = GAMES.find(x => x.id === c.id);
+  return `<button type="button" class="trcard dchcard ${done ? "done" : ""}" data-dch="${c.id}"><span>🎯</span><span><b>Daily Challenge ${st ? `<i class="streak">🔥 ${st}</i>` : ""}</b><small>${done ? "Done for today. A new challenge tomorrow." : `${esc(c.text)}. Reward: a Challenge pack${st >= 2 ? `, and a ${st + 1 >= 7 ? "Premium" : "Standard"} pack at a ${st + 1 >= 7 ? 7 : 3}-day streak` : ""}.`}</small></span><em>${done ? "✓" : g ? g.icon + " Go" : "Go"}</em></button>`;
+}
+function dchCheck(g, s){
+  const c = dchToday(); if (g.id !== c.id || dchDone()[c.day]) return "";
+  const v = dchMetric(g.id, s);
+  if (v < c.target) return `<p class="arcgoal">🎯 Daily Challenge: ${v} of ${c.target} ${esc(c.unit)}. So close. Try again.</p>`;
+  const d = dchDone(); d[c.day] = v; lsSet("dch", d); const st = dchStreak();
+  grantPack("chal", "Daily Challenge done"); awardXP(30, "Daily Challenge");
+  if (st === 3) grantPack("std", "3-day challenge streak"); if (st === 7){ grantPack("pro", "7-day challenge streak"); unlock("chal-7"); }
+  return `<p class="arcgoal won">🎯 Daily Challenge complete! ${st > 1 ? `🔥 ${st}-day streak. ` : ""}Challenge pack earned.</p>`;
+}
+
+/* ================= Challenge a friend: share a link with your score, they play to beat it ================= */
+let VS = null;
+function vsTake(id, score){ if (!GAMES.some(g => g.id === id)) return; VS = { id, score: +score || 0 }; setSport("play"); setTimeout(() => arcOpen(id), 400); }
+function vsCheck(g, s){
+  if (!VS || VS.id !== g.id) return ""; const v = Math.round(s.score || 0), win = v > VS.score;
+  if (win){ unlock("beat-friend"); awardXP(25, "Beat a friend"); }
+  const out = `<p class="arcgoal ${win ? "won" : ""}">🥊 ${win ? `You beat your friend's ${VS.score}! Send it back.` : v === VS.score ? `Tied your friend's ${VS.score}. One more?` : `Your friend's ${VS.score} still stands. Short by ${VS.score - v}.`}</p>`;
+  if (win) VS = null; return out;
+}
+
+/* ================= Showdown Season: draft once, play a schedule of tougher teams, then the playoffs ================= */
+const SEASON_TEAMS = [["Orbit City Comets", .84], ["Nebula Knights", .88], ["Solar Flares", .92], ["Pulsar Pilots", .96], ["Galaxy Giants", 1.0], ["Quasar Kings", 1.04], ["Andromeda Aces", 1.1], ["Supernova", 1.16]];
+const SEASON_GAMES = 6, seasonAll = () => lsGet("sd-season", {}) || {}, seasonGet = sp => seasonAll()[sp] || null;
+function seasonSave(sp, S){ const a = seasonAll(); if (S) a[sp] = S; else delete a[sp]; lsSet("sd-season", a); }
+function seasonOpp(S){
+  if (S.stage === "reg") return { name: SEASON_TEAMS[S.gm][0], mult: SEASON_TEAMS[S.gm][1], label: `Game ${S.gm + 1} of ${SEASON_GAMES}` };
+  if (S.stage === "semi") return { name: SEASON_TEAMS[6][0], mult: SEASON_TEAMS[6][1], label: "Playoff semifinal" };
+  return { name: SEASON_TEAMS[7][0], mult: SEASON_TEAMS[7][1], label: "Championship final" };
+}
+function seasonStart(sp){
+  SD.season = sp; const S = seasonGet(sp);
+  if (S && S.stage !== "done" && S.pick){                         // pick the season back up with the same roster
+    const def = SD_SPORTS[sp]; SD.sport = sp; SD.pick = {};
+    const ok = def.slots.every(sl => { SD.pick[sl.key] = (S.pick[sl.key] || []).map(id => sdPool(sp, sl.key).find(p => p.id === id)).filter(Boolean); return SD.pick[sl.key].length === sl.n; });
+    if (ok) return sdMatchup();
+  }
+  seasonSave(sp, { stage: "reg", gm: 0, w: 0, l: 0, res: [], pick: null }); sdDraft(sp, 0);
+}
+function seasonResult(won, s){
+  const sp = SD.sport, S = seasonGet(sp); if (!S || S.stage === "done") return;
+  const opp = seasonOpp(S); S.res.push({ opp: opp.name, won, score: s.note || "" }); won ? S.w++ : S.l++;
+  if (S.stage === "reg"){ S.gm++; if (S.gm >= SEASON_GAMES) S.stage = S.w >= 4 ? "semi" : "done", S.out = S.w >= 4 ? "" : `Missed the playoffs at ${S.w}–${S.l}`; }
+  else if (S.stage === "semi"){ S.stage = won ? "final" : "done"; if (!won) S.out = "Knocked out in the semifinal"; }
+  else { S.stage = "done"; S.out = won ? "Champions!" : "Lost in the final"; if (won){ S.champ = true; grantPack("champ", "Champions"); unlock("champion"); awardXP(200, "Showdown champions"); const t = lsGet("sd-titles", {}) || {}; t[sp] = (t[sp] || 0) + 1; lsSet("sd-titles", t); } }
+  seasonSave(sp, S); s.season = S;
+}
+function seasonLine(S){
+  if (!S) return "";
+  const dots = S.res.map(r => `<i class="${r.won ? "w" : "l"}" title="${esc(r.opp)}">${r.won ? "W" : "L"}</i>`).join("");
+  const next = S.stage === "done" ? `<b class="${S.champ ? "gold" : ""}">${esc(S.out)}</b>` : S.stage === "reg" ? `Record ${S.w}–${S.l} · ${S.w >= 4 ? "playoffs clinched" : `${Math.max(0, 4 - S.w)} more win${4 - S.w === 1 ? "" : "s"} for the playoffs`}` : S.stage === "semi" ? "Playoffs: semifinal next" : "The final is next";
+  return `<div class="ssline"><span class="ssdots">${dots}</span><small>${next}</small></div>`;
+}
+function seasonPanelHtml(){
+  const all = seasonAll(), titles = lsGet("sd-titles", {}) || {};
+  return `<div class="sdseason"><b>🏆 Season mode</b><small>Draft once, play ${SEASON_GAMES} games against tougher and tougher teams, win 4 to make the playoffs, then win the title for a Champion pack.</small>
+    <div class="ssrow">${Object.entries(SD_SPORTS).map(([k, d]) => { const S = all[k]; return `<button type="button" class="sspill" data-sdseason="${k}"><span>${d.icon}</span><small>${S && S.stage !== "done" ? `${S.w}–${S.l}` : titles[k] ? `🏆×${titles[k]}` : "Start"}</small></button>`; }).join("")}</div></div>`;
+}
+
+/* ================= Get the app: what installing adds ================= */
+function appHtml(){
+  if (!HOSTED || isStandalone()) return "";
+  return `<section class="usec appcard"><h3>📲 Get the Cosmo Sports app <small>free · no app store needed</small></h3>
+    <ul><li><b>🎁 A free Welcome pack</b> of 5 cards (Gold or better) the first time you open it from your home screen</li><li><b>🎴 +1 card</b> in every Daily pack</li><li><b>🔔 Alerts</b> for your teams' starts, scores and close finishes, even when it's closed</li><li><b>🎮 Full-screen games</b> with stadium sound, and it opens instantly, even offline</li></ul>
+    <button class="btn primary" type="button" data-getapp="1">Install Cosmo Sports</button></section>`;
+}
+function appPerks(){                                          // runs once, on the first launch from the home screen
+  if (!isStandalone() || CARDS.app) return; CARDS.app = true; saveCards();
+  setTimeout(() => { grantPack("welcome", "Thanks for installing"); unlock("app-home"); }, 1200);
+}
+function bindPlayExtras(el){
+  el.querySelectorAll("[data-pack]").forEach(b => b.onclick = () => packOpen(b.dataset.pack));
+  el.querySelectorAll("[data-album]").forEach(b => b.onclick = async () => { try { await sdLoad(); } catch {} albumShow("all"); });
+  el.querySelectorAll("[data-dch]").forEach(b => b.onclick = () => arcOpen(b.dataset.dch));
+  el.querySelectorAll("[data-getapp]").forEach(b => b.onclick = () => $("#installBtn").click());
+}
+(() => {
+  $("#packBody").addEventListener("click", e => {
+    const f = e.target.closest("[data-flip]"); if (f) return packFlip(+f.dataset.flip);
+    const a = e.target.closest("[data-alb]"); if (a) return albumShow(a.dataset.alb);
+    const k = e.target.closest("[data-pk]"); if (!k) return;
+    if (k.dataset.pk === "all"){ PK && PK.cards.forEach((_, i) => setTimeout(() => packFlip(i), i * 180)); return; }
+    $("#packDlg").close();
+  });
+  $("#packDlg").addEventListener("click", e => { if (e.target.id === "packDlg") $("#packDlg").close(); });
+  $("#packDlg").addEventListener("close", () => { PK = null; if (SPORT === "play") drawPlay(); });
+})();
+
+appPerks();
 
 /* ================= Cosmo Level: XP and achievements for everything you do in the app ================= */
 const XP = Object.assign({ xp: 0, got: {}, days: [], log: [] }, lsGet("xp", {}) || {});
@@ -5648,10 +6038,12 @@ const BADGES = [
   ["sd-win-nfl", "🏈", "Gunslinger", "Win a football Showdown"], ["sd-win-nhl", "🥅", "Lamp lighter", "Win a hockey Showdown"], ["sd-win-epl", "🥇", "Spot kick", "Win a soccer Showdown"],
   ["sd-sweep", "🌌", "Five-sport legend", "Win a Showdown in every sport"], ["trivia-first", "❓", "Trivia night", "Finish a Daily Trivia"], ["trivia-perfect", "🎯", "Know-it-all", "5 for 5 in Daily Trivia"],
   ["follow-3", "⭐", "Superfan", "Follow 3 teams"], ["notify-on", "🔔", "In the loop", "Turn on notifications"], ["listen", "🎧", "On the radio", "Listen Live to a game"], ["ask", "💬", "Curious", "Ask Cosmo a question"], ["regular", "📅", "Regular", "Open Cosmo Sports 7 days in a row"],
+  ["legend-card", "🌟", "Legendary pull", "Pull a Legend card from a pack"], ["cards-50", "🎴", "Collector", "Collect 50 Cosmo Cards"], ["champion", "🏆", "Champions", "Win a Showdown Season title"],
+  ["chal-7", "🎯", "Dialed in", "A 7-day Daily Challenge streak"], ["beat-friend", "🥊", "Called out", "Beat a friend's challenge score"], ["app-home", "📲", "Home team", "Open Cosmo Sports from your home screen"],
 ];
 const saveXP = () => lsSet("xp", XP);
 function awardXP(n, why){
-  const before = xpLevel(XP.xp); XP.xp += n; XP.log = [{ n, why, t: Date.now() }, ...(XP.log || [])].slice(0, 20); saveXP();
+  const before = xpLevel(XP.xp); XP.xp += n; CARDS.coins += n; saveCards(); XP.log = [{ n, why, t: Date.now() }, ...(XP.log || [])].slice(0, 20); saveXP();
   const after = xpLevel(XP.xp); if (after > before){ toast(`Level up! You're level ${after}, ${levelName(after)}`); if (typeof fxConfettiDom === "function") fxConfettiDom(); }
 }
 function unlock(id){
@@ -5700,7 +6092,7 @@ function triviaQuestions(day){
   const out = [], used = new Set(); for (let i = 0; i < 40 && out.length < 5; i++){ const k = Math.floor(rng() * bank.length); if (used.has(k)) continue; used.add(k); const q = bank[k](); if (q) out.push(q); }
   return out;
 }
-const TRIVIA = { id: "trivia", name: "Daily Trivia", icon: "❓", unit: "right", tag: "5 questions · new every day",
+const TRIVIA = { noReplay: true, id: "trivia", name: "Daily Trivia", icon: "❓", unit: "right", tag: "5 questions · new every day",
   how: "Five questions written from real stats: who hit more homers, who has the better save percentage, which team a star plays for. Ten seconds each. Come back tomorrow for a new set.", controls: "Tap an answer",
   init(s){ s.day = todayKey(); s.qs = triviaQuestions(s.day); s.n = 0; s.right = 0; s.log = []; if (!s.qs.length){ s.over = true; s.note = "Trivia needs the player data. Check your connection."; return; } this.show(s); },
   hud: s => `Question ${Math.min(5, s.n + 1)} of ${s.qs.length}`,
@@ -5889,9 +6281,9 @@ function drawPlay(){
   const head = `<div class="lghead"><div><h1>Play</h1><p>Arcade games, daily picks, a quick ratings game and your record against the Cosmo model.</p></div></div>`;
   if (HOSTED && !UNI && !UNI_ERR){ el.innerHTML = head + arcadeHtml() + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; bindArcade(el); return; }
   checkBadges();
-  el.innerHTML = head + arcadeHtml() + `<div class="playgrid">${levelHtml()}${triviaCardHtml()}${HOSTED && UNI ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
+  el.innerHTML = head + arcadeHtml() + `<div class="playgrid">${dchHtml()}${cardsHtml()}${appHtml()}${levelHtml()}${triviaCardHtml()}${HOSTED && UNI ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
   el.querySelectorAll("[data-trivia]").forEach(b => b.onclick = triviaOpen);
-  bindArcade(el); bindDaily(el); bindRumble(el);
+  bindArcade(el); bindDaily(el); bindRumble(el); bindPlayExtras(el);
   el.querySelectorAll(".prow[data-lg]").forEach(b => b.onclick = () => openGame(b.dataset.lg, b.dataset.id));
 }
 function redrawPlay(){ if (SPORT === "play") drawPlay(); else if (SPORT === "universe") drawUniverse(); }

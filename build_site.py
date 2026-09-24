@@ -35,7 +35,7 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 
 MANIFEST = {
     "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
-    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Cosmo Showdown (draft real players and play full games), League Leaders, Daily Trivia, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
+    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Cosmo Showdown (draft real players and play full games or a whole season), Cosmo Cards (collect real players), a Daily Challenge, League Leaders, Daily Trivia, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
     "categories": ["sports", "news", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
     "background_color": "#140F3A", "theme_color": "#140F3A",

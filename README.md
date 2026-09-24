@@ -20,11 +20,23 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   * **Football:** drives where you throw to the open receiver, with downs and field goals.
   * **Hockey:** power plays between their chances against your goalie.
   * **Soccer:** a full penalty shootout.
+  * **Season mode:** draft once, play six games against tougher and tougher teams, win four to make the playoffs,
+    then win the semifinal and final for the title.
+* **Cosmo Cards:** every real player in Showdown is a collectible card (Bronze, Silver, Gold and Legend, from their
+  ratings). Coins come with all XP. Open a free Daily pack each day, or buy Standard and Premium packs with coins.
+  Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. You can browse your
+  collection by league.
+* **Daily Challenge:** one arcade target a day, the same for everyone, with a streak. Completing it earns a pack.
+* **Challenge a friend:** share a link with your arcade score, and your friend plays the same game to beat it.
+* **Get the app:** installing adds a free Welcome pack the first time you open it from the home screen, and +1 card in
+  every Daily pack.
 * **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
 * **Daily Trivia:** five new questions a day written from real stats.
-* **Cosmo Level:** XP for picks, games, Showdown wins and trivia, with levels and 26 achievements.
+* **Cosmo Level:** XP for picks, games, Showdown wins and trivia, with levels and 32 achievements.
 * **Arcade:** six sports games with shaded, animated athletes, full stadiums and crowds that react. Each uses
-  real controls and gets harder as you play:
+  real controls and gets harder as you play. Big moments get a slow-motion **instant replay** (tap to skip, or turn
+  replays off in Settings). You'll also hear **stadium sound**: a crowd that swells with the action, bat cracks,
+  swishes, rim clangs and goal horns, all generated in the browser. Courts and ice reflect the players:
   * **Home Run Derby:** tap where and when to swing, with real launch angles, a 330-to-400-foot fence and five
     pitch types.
   * **Penalty Shootout:** a full shootout against the computer. Swipe to shoot, and tap to dive when you're in goal.
