@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
-          for p in / /sports/mlb/scoreboard /sports/nfl/scoreboard; do
-            echo "=== $W$p"; curl -sS -m 30 -D - -o body.txt "$W$p" | head -20; head -c 600 body.txt; echo
-          done
-          echo "=== nslookup"; nslookup baseline-alerts.baseline-arro2121-3091.workers.dev || true
-          echo "=== ESPN direct"; curl -sS -m 30 -o body.txt -w "%{http_code}\n" https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard; head -c 300 body.txt; echo
+          E=https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard
+          echo "=== Baseline UA"; curl -sS -o /dev/null -w "%{http_code}\n" -A "Baseline/1.0 (personal, non-commercial)" $E
+          echo "=== browser UA"; curl -sS -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" $E
+          echo "=== no UA"; curl -sS -o /dev/null -w "%{http_code}\n" -H "User-Agent:" $E
+          echo "=== CORS headers"; curl -sS -D - -o /dev/null -H "Origin: https://arro2121.github.io" $E | grep -i -E "^HTTP|access-control|server|x-cache|via"
+          echo "=== summary"; curl -sS -o /dev/null -w "%{http_code}\n" "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event=401815000"
