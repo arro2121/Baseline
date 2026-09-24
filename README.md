@@ -28,6 +28,10 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   collection by league.
 * **Daily Challenge:** one arcade target a day, the same for everyone, with a streak. Completing it earns a pack.
 * **Challenge a friend:** share a link with your arcade score, and your friend plays the same game to beat it.
+* **Getting around:** a five-stop bottom bar (Today, Scores, Play, Following, More), an in-app **Guide** covering
+  every feature (More › Guide), a one-time What's new screen after big updates, and an offline notice. Showdown and
+  Cards keep working offline too.
+* **Morning briefing:** the daily alert also names the day's Daily Challenge and says your free pack is ready.
 * **Get the app:** installing adds a free Welcome pack the first time you open it from the home screen, and +1 card in
   every Daily pack.
 * **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
