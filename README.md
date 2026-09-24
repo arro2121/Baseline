@@ -11,16 +11,15 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
   links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
-* **Arcade:** six tap-to-play games with animated stadiums, crowds that react, slow motion and fireworks. Each one
-  gets harder as you play:
-  * **Home Run Derby:** new pitch types unlock and you have to lay off balls.
-  * **Penalty Shootout:** a keeper who learns where you like to shoot.
-  * **Free Throw Frenzy:** a moving sweet spot, "on fire" streaks and a sliding hoop.
-  * **Field Goal Challenge:** wind and hash marks, and the camera follows the kick.
-  * **Top Shelf:** a patrolling goalie and a lane-blocking defender.
-  * **Logo Quiz:** a timer, streak multipliers and silhouette rounds.
-
-  Best scores are saved on the phone.
+* **Arcade:** six sports games with shaded, animated athletes, full stadiums and crowds that react. Each uses
+  real controls and gets harder as you play:
+  * **Home Run Derby:** tap where and when to swing, with real launch angles, a 330-to-400-foot fence and five
+    pitch types.
+  * **Penalty Shootout:** a full shootout against the computer. Swipe to shoot, and tap to dive when you're in goal.
+  * **Three-Point Contest:** five racks around the arc and money balls. Hold, then release in the green.
+  * **Field Goal Challenge:** swipe to kick through wind and a pass rush, with a play clock.
+  * **Top Shelf:** a power play where you pass to move the goalie and rip one-timers.
+  * **Logo Quiz:** three lives through pixel, silhouette, close-up and spin rounds.
 * **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
   changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
   text to speech, inside the free daily allowance), with the phone's own voice as the backup. Pick the voice and
@@ -166,9 +165,9 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
   standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Play the
   Daily 3 and challenge your friends, keep your streak alive in Rating Rumble, and see how your picks stack up
-  against our prediction model. Kill time in the arcade: Home Run Derby, Penalty Shootout, Free Throw Frenzy,
-  Field Goal Challenge, Top Shelf and a Logo Quiz, each tougher the better you get. Tap Listen in a live game to
-  hear the plays read aloud like a radio call. Get alerts for your teams, close finishes and a morning briefing, and turn on the
+  against our prediction model. Play six arcade games with real controls: Home Run Derby, a Penalty Shootout
+  against the computer, a Three-Point Contest, Field Goal Challenge, a Top Shelf power play and a Logo Quiz. Tap Listen in a live game to
+  hear the plays called by a natural human voice. Get alerts for your teams, close finishes and a morning briefing, and turn on the
   spoiler shield when you're watching later. No account, no ads, no tracking.
 * **Keywords:** live scores, sports scores, NFL, NBA, MLB, NHL, Premier League, tennis, play by play, box score,
   predictions, picks, sports alerts, AI sports, sports games, arcade
