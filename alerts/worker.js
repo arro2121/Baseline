@@ -368,7 +368,36 @@ export function normGame(d, lg) {
   if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
     homeWinProb: typeof wp === "number" ? wp : null, wpSeries: wpSeries(d), leaders: leadersOf(d, lg, H, A), box: boxOf(d, lg), info: infoOf(d, lg), lines: linesOf(c, H, A), date: c.date || null, neutral: !!c.neutralSite,
-    tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null, situation, videos, plays: plays.slice(0, 300), count: plays.length };
+    tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null, situation, videos, plays: plays.slice(0, 300), count: plays.length,
+    swings: swingsOf(d, plays, lg) };
+}
+// the game's turning points: the plays that moved win probability most, or (without it) the goals and runs that changed who led
+const NOISE = /timeout|foul|substitution|enters the game|end of|jump ?ball|review|challenge|delay of game|injury/i;
+function swingsOf(d, plays, lg) {
+  const w = (Array.isArray(d.winprobability) ? d.winprobability : []).filter(x => typeof x.homeWinPercentage === "number");
+  const out = [];
+  if (w.length > 2) {
+    const raw = new Map();
+    for (const p of d.plays || []) raw.set(String(p.id), p);
+    for (const dr of [...(d.drives?.previous || []), ...(d.drives?.current ? [d.drives.current] : [])]) for (const p of dr.plays || []) raw.set(String(p.id), p);
+    const ids = new Set(plays.map(p => p.id)), cand = [];
+    for (let i = 1; i < w.length; i++) {
+      const dl = w[i].homeWinPercentage - w[i - 1].homeWinPercentage, p = raw.get(String(w[i].playId));
+      if (p && Math.abs(dl) >= .07 && String(p.text || "").trim() && !NOISE.test(p.text) && !NOISE.test(p.type?.text || "")) cand.push({ i, dl, p });
+    }
+    cand.sort((a, b) => Math.abs(b.dl) - Math.abs(a.dl));
+    for (const c of cand.slice(0, 3).sort((a, b) => a.i - b.i))
+      out.push({ text: String(c.p.text).trim(), side: c.dl > 0 ? "home" : "away", delta: Math.round(Math.abs(c.dl) * 100), wp: Math.round(w[c.i].homeWinPercentage * 1000) / 1000,
+        at: Math.round(c.i / (w.length - 1) * 1000) / 1000, when: [periodHead(c.p, lg), c.p.clock?.displayValue].filter(Boolean).join(" · "), pid: ids.has(String(c.p.id)) ? String(c.p.id) : null });
+    return out;
+  }
+  const chron = [...plays].reverse().filter(p => p.scoring && p.home != null && p.away != null), n = plays.length || 1;
+  let lead = 0; const ev = [];
+  for (const p of chron) { const now = Math.sign(p.home - p.away); if (now !== lead) ev.push({ p, now, was: lead }); lead = now; }
+  for (const e of ev.slice(-3))
+    out.push({ text: e.p.text, side: e.now > 0 ? "home" : e.now < 0 ? "away" : e.was > 0 ? "away" : "home", label: e.now === 0 ? "Tied it" : e.was === 0 ? "Went ahead" : "Flipped the lead",
+      score: `${e.p.away}-${e.p.home}`, at: Math.round((n - 1 - plays.indexOf(e.p)) / Math.max(1, n - 1) * 1000) / 1000, when: [typeof e.p.head === "string" ? e.p.head : null, e.p.clock].filter(Boolean).join(" · "), pid: e.p.id });
+  return out;
 }
 // ESPN's win probability through the game, thinned to at most 90 points for a small chart
 function wpSeries(d) {

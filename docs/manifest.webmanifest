@@ -49,6 +49,13 @@
  ],
  "screenshots": [
   {
+   "src": "screenshots/phone-universe.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "The Universe: every live game at once, ranked by excitement"
+  },
+  {
    "src": "screenshots/phone-games.png",
    "sizes": "780x1688",
    "type": "image/png",
@@ -81,7 +88,7 @@
    "sizes": "1280x800",
    "type": "image/png",
    "form_factor": "wide",
-   "label": "Cosmo Sports on a computer"
+   "label": "The Universe on a computer"
   }
  ],
  "shortcuts": [
