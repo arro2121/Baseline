@@ -566,7 +566,7 @@ dialog.modal.wide{max-width:640px}
 .outs{display:inline-flex;gap:3px;margin-top:3px}.outs i{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--faint)}.outs i.on{background:var(--muted);border-color:var(--muted)}
 .plegend{display:flex;flex-wrap:wrap;gap:10px;font-size:.7rem;color:var(--faint);padding:8px 4px 0}
 .plegend span{display:inline-flex;align-items:center;gap:4px}
-@media (max-width:640px){.pl.v2{grid-template-columns:44px 22px minmax(0,1fr)}.pl.v2 .s{grid-column:3}}
+@media (max-width:640px){.pl.v2{grid-template-columns:40px 40px minmax(0,1fr)}.pl.v2 .s{grid-column:3}}
 /* the animated field under the scoreboard */
 .gfield{position:relative;background:#0B2A1F;border-top:1px solid rgba(255,255,255,.08)}
 .gfield svg{display:block;width:100%;height:clamp(150px,34vw,230px)}
@@ -574,6 +574,32 @@ dialog.modal.wide{max-width:640px}
 .gfield .cap b{color:#D4E23C;white-space:nowrap}
 .gfield .cap .ct{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .gfield .gstage{position:relative}
+/* player photos, highlight clips */
+.pchip{position:relative;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--tc,#DCE2DE);flex:none}
+.pchip > .tl{width:72%;height:72%;object-fit:contain}
+.pchip > .ph{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 12%;background:#E8ECE9}
+.pchip .tb{position:absolute;right:-5px;bottom:-4px;width:18px;height:18px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1.5px var(--tc,#DCE2DE);opacity:0}
+.pchip .tb img{width:78%;height:78%;object-fit:contain}
+.pchip:has(> .ph) .tb{opacity:1}
+.pchip.big{width:46px;height:46px}
+.pl.v2{grid-template-columns:54px 40px minmax(0,1fr) auto}
+.pl.v2.tap{cursor:pointer}.pl.v2.tap:hover{background:color-mix(in srgb,var(--ink) 4%,transparent);border-radius:10px}
+.pl.v2.playing{box-shadow:inset 3px 0 0 #D4E23C;border-radius:10px}
+.pl .who{display:block;font-weight:750;font-size:.8rem;color:var(--ink)}
+.vbtn{display:inline-flex;align-items:center;gap:5px;border:0;background:#E0362B;color:#fff;font:inherit;font-size:.72rem;font-weight:800;border-radius:999px;padding:4px 10px;margin-top:6px;cursor:pointer}
+.vbtn:hover{background:#C62828}
+.hls{display:flex;gap:10px;overflow-x:auto;padding:12px 16px;background:#081F16;scrollbar-width:thin}
+.hls .hl{flex:none;width:168px;border:0;padding:0;background:none;color:#EEF3EC;text-align:left;font:inherit;cursor:pointer}
+.hls .hl .th{position:relative;display:block;aspect-ratio:16/9;border-radius:9px;overflow:hidden;background:#123}
+.hls .hl .th img{width:100%;height:100%;object-fit:cover;display:block}
+.hls .hl .th i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:1.3rem;color:#fff;background:linear-gradient(transparent 40%,rgba(0,0,0,.55))}
+.hls .hl .th small{position:absolute;right:6px;bottom:5px;font-size:.66rem;font-weight:800;color:#fff}
+.hls .hl span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.74rem;line-height:1.3;margin-top:6px}
+.hls-title{padding:10px 16px 0;background:#081F16;color:#9CC3AE;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.gvideo{background:#000}
+.gvideo video{display:block;width:100%;max-height:min(56vw,340px);background:#000}
+.gvideo .err{padding:26px 18px;color:#EEF3EC;font-size:.86rem;text-align:center}
+.gvideo .err a{color:#D4E23C;font-weight:800}
 .gfield .replay{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;font:inherit;font-size:.72rem;font-weight:700;padding:4px 10px;cursor:pointer;white-space:nowrap}
 .gfield .count{position:absolute;top:10px;left:12px;display:grid;gap:4px;background:rgba(0,0,0,.45);border-radius:10px;padding:7px 9px;font-size:.66rem;font-weight:800;color:#fff}
 .gfield .count div{display:flex;align-items:center;gap:4px}.gfield .count i{width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5)}
@@ -2000,6 +2026,12 @@ const TAGS = {
   epl: { goal: ["Goal","hot"], yellow: ["Yellow card","warn"], red: ["Red card","bad"], save: ["Save",""], shot: ["Shot",""], corner: ["Corner",""] },
 };
 const ordStr = n => n + ([, "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || "th");
+// the player who made the play, with their team's logo as a badge; the team logo alone when there's no photo
+function playerChip(p, g, lg, size = ""){
+  const T = (g.teams || {})[p.team], logo = teamLogo(T, lg), tc = tcolor(T, "#DCE2DE");
+  if (!p.who && !T) return "";
+  return `<span class="pchip ${size}" style="--tc:${tc}">${logo ? `<img class="tl" src="${esc(logo)}" alt="" loading="lazy">` : ""}${p.who && p.who.photo ? `<img class="ph" src="${esc(p.who.photo)}" alt="${esc(p.who.name)}" loading="lazy" onerror="this.remove()">` : ""}${logo ? `<span class="tb"><img src="${esc(logo)}" alt=""></span>` : ""}</span>`;
+}
 function playTime(p, lg){
   if (lg === "mlb") return p.outs != null && !p.live && p.kind !== "change" ? `<div class="outs" aria-label="${p.outs} out${p.outs === 1 ? "" : "s"}">${[0,1,2].map(i => `<i class="${i < p.outs ? "on" : ""}"></i>`).join("")}</div>` : "";
   if (lg === "epl") return esc(p.clock || "");
@@ -2015,9 +2047,11 @@ function playRow(p, g, lg, isNew){
   if (p.scoring && p.away != null && p.home != null) right = `<span class="sc2">${esc(A.abbr || "")} ${p.away}–${p.home} ${esc(H.abbr || "")}</span>`;
   else if (lg === "nfl" && p.yards && p.yards.gain != null && ["rush","pass","sack"].includes(p.kind)) right = `<span class="gain ${p.yards.gain > 0 ? "up" : p.yards.gain < 0 ? "dn" : ""}">${p.yards.gain > 0 ? "+" : ""}${p.yards.gain} yds</span>`;
   const text = lg === "mlb" && p.live ? `${esc(p.batter)} is up` : esc(p.text);
-  return `<div class="pl v2 k-${p.kind || ""} ${p.scoring ? "score" : ""} ${p.turnover ? "to" : ""} ${p.minor ? "minor" : ""} ${p.live ? "live" : ""} ${isNew ? "new" : ""}">
-    <div class="t">${playTime(p, lg)}</div><div class="plg">${T ? logoChip(T, "sm", lg) : ""}</div>
-    <div class="x">${tag ? `<b class="tag ${tag[1]}">${tag[0]}</b>` : ""}${text}${sub ? `<small>${sub}</small>` : ""}</div><div class="s">${right}</div></div>`;
+  const tap = (SCENE_KINDS[lg] || []).includes(p.kind), clip = p.video != null && (g.videos || [])[p.video];
+  const who = p.who && !p.minor && lg !== "mlb" && !new RegExp(esc(p.who.name.split(" ").pop()), "i").test(p.text.slice(0, 40)) ? `<span class="who">${esc(p.who.name)}</span>` : "";
+  return `<div class="pl v2 k-${p.kind || ""} ${p.scoring ? "score" : ""} ${p.turnover ? "to" : ""} ${p.minor ? "minor" : ""} ${p.live ? "live" : ""} ${isNew ? "new" : ""} ${tap ? "tap" : ""}" data-pid="${esc(p.id)}">
+    <div class="t">${playTime(p, lg)}</div><div class="plg">${p.minor && !p.who ? (T ? logoChip(T, "sm", lg) : "") : playerChip(p, g, lg)}</div>
+    <div class="x">${who}${tag ? `<b class="tag ${tag[1]}">${tag[0]}</b>` : ""}${text}${sub ? `<small>${sub}</small>` : ""}${clip ? `<br><button class="vbtn" type="button" data-vid="${p.video}">▶ Watch the replay${clip.dur ? ` · ${Math.floor(clip.dur / 60)}:${String(clip.dur % 60).padStart(2, "0")}` : ""}</button>` : ""}</div><div class="s">${right}</div></div>`;
 }
 function headLabel(head, plays, g, lg){
   if (lg !== "mlb") return esc(head || "");
@@ -2061,6 +2095,7 @@ function sceneMLB(g, p){
     <circle cx="125" cy="176" r="5" fill="#B7874F"/>` +
     [B1, B2, B3].map((b, i) => `<rect x="${b[0]-3.2}" y="${b[1]-3.2}" width="6.4" height="6.4" transform="rotate(45 ${b[0]} ${b[1]})" fill="${bases[i] ? "#F2C200" : "#fff"}" stroke="${bases[i] ? "#fff" : "none"}"/>`).join("") +
     `<path d="M121 199 h8 v3 l-4 3 l-4 -3 Z" fill="#fff"/>`;
+  art += "<!--LOGOS-->";
   let banner = "";
   if (p){
     const T = (g.teams || {})[p.team], col = tcolor(T, "#D4E23C");
@@ -2094,6 +2129,7 @@ function sceneNFL(g, p){
     [10, 20, 30, 40, 50, 40, 30, 20, 10].map((n, i) => `<text x="${20 + i * 10}" y="49" text-anchor="middle" font-size="3.2" font-weight="800" fill="#fff" opacity=".85">${n}</text>`).join("") +
     `<text x="5" y="28" text-anchor="middle" font-size="3.6" font-weight="900" fill="#fff" transform="rotate(-90 5 27)">${esc(off?.abbr || "")}</text><text x="115" y="28" text-anchor="middle" font-size="3.6" font-weight="900" fill="#fff" transform="rotate(90 115 27)">${esc(def?.abbr || "")}</text>
     <path d="M119 23.5 v6.3 M119 23.5 h-1 M119 29.8 h-1" stroke="#F2C200" stroke-width=".6"/>`;
+  art += "<!--LOGOS-->";
   let banner = "", flash = "";
   const y = p && p.yards;
   if (y && y.from != null){
@@ -2120,6 +2156,7 @@ function sceneNBA(g, p){
     <line x1="22" y1="4" x2="28" y2="4" stroke="#fff" stroke-width=".4"/><circle cx="25" cy="5.25" r=".9" fill="none" stroke="#E4572E" stroke-width=".35"/>`;
   const sameQ = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && (q.kind === "made" || q.kind === "made3" || q.kind === "miss")).slice(0, 24);
   art += sameQ.map(q => { const c = tcolor((g.teams || {})[q.team], "#fff"); return q.kind === "miss" ? `<circle cx="${q.x}" cy="${S(q.y)}" r=".7" fill="none" stroke="${c}" stroke-width=".3" opacity=".7"/>` : `<circle cx="${q.x}" cy="${S(q.y)}" r=".7" fill="${c}" stroke="#fff" stroke-width=".15"/>`; }).join("");
+  art += "<!--LOGOS-->";
   let banner = "";
   if (p){
     const T = (g.teams || {})[p.team], col = tcolor(T, "#10202B"), ft = p.kind === "ft" || p.kind === "ftmiss";
@@ -2141,6 +2178,7 @@ function sceneNHL(g, p){
     <rect x="-93" y="-3" width="4" height="6" fill="none" stroke="#333" stroke-width=".6"/><rect x="89" y="-3" width="4" height="6" fill="none" stroke="#333" stroke-width=".6"/>`;
   const sameP = (g.plays || []).filter(q => q.x != null && q.period === (p && p.period) && ["shot","goal"].includes(q.kind)).slice(0, 30);
   art += sameP.map(q => `<circle cx="${q.x}" cy="${-q.y}" r="${q.kind === "goal" ? 2.2 : 1.3}" fill="${tcolor((g.teams || {})[q.team], "#333")}" opacity="${q.kind === "goal" ? 1 : .45}"/>`).join("");
+  art += "<!--LOGOS-->";
   let banner = "", flash = "";
   if (p && p.x != null){
     const gx = p.x >= 0 ? 89 : -89, x = p.x, y = -p.y, to = p.kind === "goal" ? `${gx + Math.sign(gx) * 2} 0` : p.kind === "miss" ? `${gx + Math.sign(gx) * 6} ${y > 0 ? 12 : -12}` : `${gx - Math.sign(gx) * 3} ${y > 0 ? 3 : -3}`;
@@ -2156,6 +2194,7 @@ function sceneEPL(g, p){
     `<g fill="none" stroke="#fff" stroke-width=".4" opacity=".9"><rect x="1" y="1" width="103" height="66"/><line x1="52.5" y1="1" x2="52.5" y2="67"/><circle cx="52.5" cy="34" r="9.15"/>
     <rect x="1" y="13.85" width="16.5" height="40.3"/><rect x="87.5" y="13.85" width="16.5" height="40.3"/><rect x="1" y="24.85" width="5.5" height="18.3"/><rect x="98.5" y="24.85" width="5.5" height="18.3"/></g>
     <rect x="104" y="30.3" width="1.8" height="7.4" fill="#fff" opacity=".9"/><rect x="-.8" y="30.3" width="1.8" height="7.4" fill="#fff" opacity=".9"/>`;
+  art += "<!--LOGOS-->";
   let banner = "", flash = "";
   if (p){
     const T = (g.teams || {})[p.team], home = T && T.side === "home", col = tcolor(T, "#fff");
@@ -2171,24 +2210,64 @@ function sceneEPL(g, p){
   }
   return svgWrap("-1 -1 107 70", art) + flash + banner;
 }
+let SCENE_PICK = null, SCENE_VIDEO = null;   // a play the viewer tapped, a clip that's playing
+// team logos painted onto the field: [x, y, size, opacity] in each drawing's units
+const FIELD_LOGOS = { mlb: [[125, 78, 34, .3]], nfl: [[60, 26.65, 13, .45]], nba: [[25, 38, 10, .35]], nhl: [[0, 0, 20, .5]], epl: [[52.5, 34, 12, .45]] };
+function fieldLogos(g, lg, p){
+  const H = g.home || {}, A = g.away || {}, spots = FIELD_LOGOS[lg] || [];
+  let T = H;
+  if (lg === "mlb" && p) T = (g.teams || {})[p.team] || H;           // the batting team's logo in center field
+  const logo = teamLogo(T, lg), out = [];
+  if (logo) for (const [x, y, s, o] of spots) out.push(`<image href="${esc(logo)}" x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" opacity="${o}" preserveAspectRatio="xMidYMid meet"/>`);
+  if (lg === "nfl"){                                                    // each end zone carries its team's logo
+    const offId = (p && p.yards && p.yards.team) || (g.situation && g.situation.team), off = (g.teams || {})[offId], def = Object.entries(g.teams || {}).find(([id]) => id !== offId)?.[1];
+    for (const [t, x] of [[off, 5], [def, 115]]){ const l = teamLogo(t, lg); if (l) out.push(`<image href="${esc(l)}" x="${x - 4}" y="${8}" width="8" height="8" opacity=".9"/><image href="${esc(l)}" x="${x - 4}" y="${37.3}" width="8" height="8" opacity=".9"/>`); }
+  }
+  return out.join("");
+}
 function renderScene(g, lg, force){
   const el = $("#gScene"); if (!el) return;
-  const p = sceneFocus(g, lg), key = (p ? p.id : "none") + "|" + (g.situation ? JSON.stringify(g.situation) : "");
+  if (SCENE_VIDEO && !force) return;                                  // don't interrupt a clip on refresh
+  const picked = SCENE_PICK && (g.plays || []).find(q => q.id === SCENE_PICK);
+  const p = picked || sceneFocus(g, lg), key = (p ? p.id : "none") + "|" + (g.situation ? JSON.stringify(g.situation) : "");
   if (!force && key === SCENE_KEY) return;
-  SCENE_KEY = key; SCENE_ARGS = [g, lg];
+  SCENE_KEY = key; SCENE_ARGS = [g, lg]; SCENE_VIDEO = null;
   const draw = { mlb: sceneMLB, nfl: sceneNFL, nba: sceneNBA, nhl: sceneNHL, epl: sceneEPL }[lg];
   if (!draw){ el.hidden = true; return; }
-  const T = p && (g.teams || {})[p.team], tag = p && (TAGS[lg] || {})[p.kind];
+  const tag = p && (TAGS[lg] || {})[p.kind], clip = p && p.video != null && (g.videos || [])[p.video];
   el.hidden = false;
-  el.innerHTML = `<div class="gstage">${draw(g, p)}</div><div class="cap">${T ? logoChip(T, "sm", lg) : ""}<div class="ct">${tag ? `<b>${tag[0]}</b> · ` : ""}${p ? esc(lg === "mlb" && p.live ? `${p.batter} batting against ${p.pitcher}` : p.text) : "Waiting for the first play"}</div>${p ? `<button class="replay" id="gReplay" type="button">↻ Replay</button>` : ""}</div>`;
+  const art = draw(g, p).replace("<!--LOGOS-->", fieldLogos(g, lg, p));
+  el.innerHTML = `<div class="gstage">${art}</div><div class="cap">${p ? playerChip(p, g, lg, "big") : ""}<div class="ct">${p && p.who ? `<b>${esc(p.who.name)}</b> · ` : tag ? `<b>${tag[0]}</b> · ` : ""}${p ? esc(lg === "mlb" && p.live ? `${p.batter} batting against ${p.pitcher}` : p.text) : "Waiting for the first play"}</div>${clip ? `<button class="replay" id="gWatch" type="button">▶ Watch</button>` : ""}${p ? `<button class="replay" id="gReplay" type="button">↻ Replay</button>` : ""}</div>` + highlightsStrip(g);
   const r = $("#gReplay"); if (r) r.onclick = () => renderScene(...SCENE_ARGS, true);
+  const w = $("#gWatch"); if (w) w.onclick = () => playClip(g, lg, p.video);
+  bindHighlights(g, lg);
+  document.querySelectorAll("#gList .pl.playing").forEach(x => x.classList.remove("playing"));
+  if (picked) document.querySelector(`#gList [data-pid="${CSS.escape(picked.id)}"]`)?.classList.add("playing");
+}
+function highlightsStrip(g){
+  const v = g.videos || [];
+  if (!v.length) return "";
+  return `<div class="hls-title">Highlights · ${v.length} clip${v.length === 1 ? "" : "s"}</div><div class="hls">${v.map((c, i) => `<button class="hl" type="button" data-vid="${i}"><span class="th">${c.thumb ? `<img src="${esc(c.thumb)}" alt="" loading="lazy">` : ""}<i>▶</i>${c.dur ? `<small>${Math.floor(c.dur / 60)}:${String(c.dur % 60).padStart(2, "0")}</small>` : ""}</span><span>${esc(c.title)}</span></button>`).join("")}</div>`;
+}
+function bindHighlights(g, lg){ document.querySelectorAll("#gScene .hl[data-vid]").forEach(b => b.onclick = () => playClip(g, lg, +b.dataset.vid)); }
+// ESPN's real replay, played right here
+function playClip(g, lg, i){
+  const c = (g.videos || [])[i], el = $("#gScene"); if (!c || !el) return;
+  SCENE_VIDEO = c.id; el.hidden = false;
+  el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(c.mp4)}"></video></div>
+    <div class="cap"><div class="ct"><b>Replay</b> · ${esc(c.title)}</div><button class="replay" id="gBack" type="button">← Field view</button></div>` + highlightsStrip(g);
+  const v = el.querySelector("video");
+  v.onerror = () => { el.querySelector(".gvideo").innerHTML = `<div class="err">ESPN won't play this clip here${c.geo && !c.geo.includes("US") ? " (ESPN only shows it in some countries)" : ""}.${c.web ? ` <a href="${esc(c.web)}" target="_blank" rel="noopener">Watch it on ESPN</a>` : ""}</div>`; };
+  $("#gBack").onclick = () => { SCENE_VIDEO = null; renderScene(g, lg, true); };
+  bindHighlights(g, lg);
+  $("#gbody").scrollTo({ top: 0, behavior: "smooth" });
 }
 function drawGame(g, lg){
   if (lg === "tennis" || !g.teams) return drawTennisGame(g, lg);
   const first = !GSEEN.size, live = g.status?.state === "in", H = g.home || {}, A = g.away || {}, wp = g.homeWinProb;
   learnLogos(lg, [H, A]);
   if (first || !$("#gScene")){
-    SCENE_KEY = null;
+    SCENE_KEY = null; SCENE_PICK = null; SCENE_VIDEO = null;
     $("#gbody").innerHTML = `<header class="ghd" id="gHead"></header><div class="gfield" id="gScene" hidden></div><div class="pbar" id="gBar"></div><div class="plays" id="gList"></div>`;
   }
   const tn = t => `<div class="tn">${logoChip(t, "big", lg)}<span>${esc(t.name || "")}</span></div>`;
@@ -2204,9 +2283,16 @@ function drawGame(g, lg){
     <span class="pfilter" role="group" aria-label="Which plays to show"><button type="button" data-pm="key" aria-pressed="${mode === "key"}">Key plays</button><button type="button" data-pm="all" aria-pressed="${mode === "all"}">All plays</button></span>`;
   $("#gBar").querySelectorAll("[data-pm]").forEach(b => b.onclick = () => { PBP_MODE[lg] = b.dataset.pm; try { localStorage.setItem("pbp-" + lg, b.dataset.pm); } catch {} $("#gList").innerHTML = drawPlays(g, lg, true); $("#gBar").querySelectorAll("[data-pm]").forEach(x => x.setAttribute("aria-pressed", x.dataset.pm === b.dataset.pm)); });
   $("#gList").innerHTML = drawPlays(g, lg, first);
+  $("#gList").onclick = e => {
+    const vb = e.target.closest("[data-vid]"); if (vb){ e.stopPropagation(); playClip(g, lg, +vb.dataset.vid); return; }
+    const row = e.target.closest(".pl.tap[data-pid]"); if (!row) return;
+    SCENE_PICK = row.dataset.pid; SCENE_VIDEO = null; renderScene(g, lg, true);
+    $("#gbody").scrollTo({ top: 0, behavior: "smooth" });
+  };
+  if (SCENE_PICK) document.querySelector(`#gList [data-pid="${CSS.escape(SCENE_PICK)}"]`)?.classList.add("playing");
   if (!live) { clearInterval(gTimer); gTimer = null; }
 }
-$("#gameDlg").addEventListener("close", () => { clearInterval(gTimer); gTimer = null; });
+$("#gameDlg").addEventListener("close", () => { clearInterval(gTimer); gTimer = null; document.querySelectorAll("#gameDlg video").forEach(v => v.pause()); SCENE_VIDEO = null; });
 $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $("#gameDlg").close(); });
 
 /* ---------- app shell: navigation, sheets, help, settings, tour, sharing ---------- */
