@@ -83,8 +83,7 @@ def nhl(season):
         if not data or start >= page.get("total", 0): break
     rows = []
     for g in games:
-        if g.get("gameStateId") not in (7, None) and g.get("homeScore") is None: continue
-        if g.get("homeScore") is None or g.get("visitingScore") is None: continue
+        if g.get("gameStateId") != 7 or g.get("homeScore") is None or g.get("visitingScore") is None: continue   # finished games only (7 = final)
         h, a = stats.get((g["id"], g["homeTeamId"]), {}), stats.get((g["id"], g["visitingTeamId"]), {})
         sog = lambda r: r.get("shotsForPerGame") if r.get("shotsForPerGame") is not None else ""
         pp = lambda r: r.get("powerPlayGoalsFor", "")

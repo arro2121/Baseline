@@ -127,11 +127,22 @@ the workflow; the companion then uses Claude (billed to your Anthropic account p
 
 ## How good are the predictions?
 
-Measured on games each model had never seen:
-* **Tennis:** picks about two-thirds of winners (Model accuracy tab).
-* **NFL:** picked 63.4% of winners in 2021–2026; the betting market picked 66.7% of the same games.
-* **Premier League:** called the result (win, draw or loss) 51.8% of the time in 2025–27.
-* **MLB, NBA, NHL:** based on records, so they're a reasonable guide but simpler than the others.
+Every league has a multi-factor model built like the tennis one (`team_models.py`, rebuilt nightly from
+`team_history.py`): each game's factors are what was known *before* it, the factors are chosen on validation seasons,
+and the numbers below are on later seasons the model never saw. Each league's **Model** tab shows the full report
+card (backtest table, calibration chart, what each factor is worth).
+
+| League | Factors | Test games | Picked winner | Log-loss vs Elo alone | Betting market |
+|---|---|---|---|---|---|
+| Tennis | 20 (ratings, serve and return, head-to-head, form, rest…) | 2024–26 | about 2 in 3 | better | see Model accuracy |
+| NFL | Elo, QB continuity, margin, rest, home | 601 (2024–26) | 65.9% | 0.622 vs 0.628 | 68.6%, 0.600 |
+| NBA | Elo, rest, margin, home | 2,650 (2024–26) | 66.9% | 0.605 vs 0.608 | — |
+| MLB | Elo, starting pitchers (FIP), margin, rest, home | 4,807 (2025–26) | 55.5% | 0.682 vs 0.681 | — |
+| NHL | Elo, margin, back-to-backs, rest, shot share, home | 2,614 (2024–26) | 56.3% | 0.677 vs 0.684 | — |
+| Premier League | Elo, shot share, form, rest, margin, home (goals model) | 791 (2024–27) | 50.6% (W/D/L) | 1.003 vs 1.023 | 52.0%, 0.992 |
+
+Baseball and hockey are close to coin flips game to game, so even good models sit in the mid-50s. The betting
+market knows injuries and lineups the models don't, which is why it stays ahead where we can measure it.
 
 No model is certain. Bet only what you can afford to lose.
 
@@ -141,7 +152,7 @@ No model is certain. Bet only what you can afford to lose.
 | --- | --- |
 | While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
 | Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
-| Every night | New results and rankings download, every rating recalculates, player stats for League Leaders update from real stats, and the site republishes |
+| Every night | New results and rankings download, every league's game history updates and its model is refitted and retested, every rating recalculates, player stats for League Leaders update from real stats, and the site republishes |
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.
 

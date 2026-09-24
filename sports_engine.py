@@ -227,7 +227,7 @@ def attach_models(s, models):
         m = M["model"]; L["hfa"] = m["hfa_elo"]
         full = m["backtest"].get("Full model (all factors)", {})
         L["model_summary"] = dict(games=m["games"], seasons=m["seasons"], test_games=m["test_games"], acc=full.get("acc"), factors=len(m["feats"]))
-        names = [m["labels"][k].split(" (")[0].lower() for k in m["feats"]] + ["home advantage"]
+        names = [(lambda s: s if s.startswith("Elo") else s[0].lower() + s[1:])(m["labels"][k].split(" (")[0]) for k in m["feats"]] + ["home advantage"]
         L["method"] = f"A {len(names)}-factor model ({', '.join(names[:-1])} and {names[-1]}) built from {m['games']:,} games ({m['seasons']}) and tested on seasons it never saw."
 
 SOURCES = {"nfl.csv": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"}

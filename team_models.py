@@ -32,10 +32,10 @@ def elo_p(d): return 1 / (1 + 10 ** (-d / 400))
 # the cap on rest days that still matter, and the per-sport margin multiplier for Elo
 CFG = {
     "nfl": dict(K=16, HFA=48, revert=1 / 3, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
-    "nba": dict(K=18, HFA=70, revert=.25, half=12, rest_cap=4, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
+    "nba": dict(K=18, HFA=60, revert=.2, half=12, rest_cap=4, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
     "mlb": dict(K=2.5, HFA=16, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
-    "nhl": dict(K=4, HFA=45, revert=1 / 3, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
-    "epl": dict(K=22, HFA=55, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
+    "nhl": dict(K=4, HFA=30, revert=.2, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
+    "epl": dict(K=28, HFA=70, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
 }
 LABELS = {
     "home": "Home advantage", "elo_d": "Elo rating", "mov_d": "Scoring margin (opponent-adjusted)", "form_d": "Form (last 10)",
@@ -212,7 +212,7 @@ def fit_poisson(F, feats, test_seasons, market=None):
     D = F[F.n_min >= 5].copy(); tr, te = ~D.season.isin(test_seasons), D.season.isin(test_seasons)
     cand = list(feats)
     mu, sd = D.loc[tr, cand].mean(), D.loc[tr, cand].std().replace(0, 1)
-    def X(df, c, sign): return np.column_stack([((df[k] - mu[k]) / sd[k]).to_numpy() * sign for k in c] + [np.log(df.pf_h if sign > 0 else df.pf_a).clip(-2, 3), np.log(df.pa_a if sign > 0 else df.pa_h).clip(-2, 3)])
+    def X(df, c, sign): return np.column_stack([((df[k] - mu[k]) / sd[k]).to_numpy() * sign for k in c] + [np.log(np.maximum(.14, df.pf_h if sign > 0 else df.pf_a)), np.log(np.maximum(.14, df.pa_a if sign > 0 else df.pa_h))])
     def fit(c, a=None, b=None):
         a = tr if a is None else a; b = te if b is None else b
         mh = PoissonRegressor(alpha=1e-4, max_iter=2000).fit(X(D[a], c, 1), D.hs[a]); ma = PoissonRegressor(alpha=1e-4, max_iter=2000).fit(X(D[a], c, -1), D.as_[a])
@@ -350,8 +350,9 @@ def build_league(lg, G, today=None):
     stale = season_of(lg, pd.Timestamp(today)) > F.season.max()
     C = CFG[lg]
     state = {}
+    playing = {n for n, t in T.items() if t.last is not None and season_of(lg, t.last) == F.season.max()}     # this season's teams (relegated clubs drop out)
     for name, t in T.items():
-        if not t.n or (t.last is not None and (pd.Timestamp(today) - t.last).days > 400): continue
+        if not t.n or name not in playing: continue
         elo = t.elo * (1 - C["revert"]) + 1505 * C["revert"] if stale else t.elo
         hist = t.hist[-60:]; step = max(1, len(hist) // 24)
         state[name] = dict(elo=round(elo, 1), mov=round(t.mov * (.5 if stale else 1), 3), pf=round(t.pf, 3) if t.pf is not None else None, pa=round(t.pa, 3) if t.pa is not None else None,
