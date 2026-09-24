@@ -7,6 +7,9 @@ standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, N
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
 **What makes it different**
+* **Ask Cosmo:** an AI sports companion that answers questions about any game, team or pick using live scores,
+  the open game's plays and box score, your teams and the Cosmo model: what to watch tonight, why a game swung,
+  how your teams did, who the model likes.
 * **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center,
   the best game on right now, and live, upcoming and final lists.
 * **Excitement score:** a 0-100 rating of how close and how late each game is, so you know what's worth
@@ -87,12 +90,19 @@ Same steps, or upload all the unzipped files (including the hidden `.github` fol
 | Tennis | Every tour, Challenger and ITF match since 2012 (Jeff Sackmann / Tennis Abstract) plus new results from API-Tennis | API-Tennis, point by point |
 | NFL | Every game since 1999 (nflverse) | ESPN |
 | Premier League | Five seasons of results (openfootball) | ESPN |
-| MLB, NBA, NHL | Current records from ESPN, starting each season from last season's ratings | ESPN |
+| MLB | Current records from ESPN, starting each season from last season's ratings | **MLB's official Stats API** (statsapi.mlb.com): every pitch, hit locations, win probability, box scores and MLB's own video clips. ESPN is the automatic backup |
+| NBA | Current records from ESPN, starting each season from last season's ratings | ESPN |
+| NHL | Current records from ESPN, starting each season from last season's ratings | ESPN, with the **NHL's official API** (api-web.nhle.com) as the automatic backup |
 
-**About ESPN's data:** it's free and needs no key, but it's unofficial. ESPN doesn't publish or support it and
-could change it without notice; if that happens, live team scores stop until the code is updated (tennis and all
-predictions keep working). ESPN's terms allow personal, non-commercial use, so keep the app free and don't
-advertise on it.
+**About the data sources:** MLB's and the NHL's APIs are run by the leagues themselves, are free and need no key.
+ESPN's feed is free and needs no key too, but it's unofficial and could change without notice; the app tries
+several ESPN addresses before giving up, and your alerts service caches results so it asks ESPN at most once
+every couple of minutes however many people use the app. All of these allow personal, non-commercial use, so keep
+the app free and ad-free. There is no free official feed with the same detail for the NFL, NBA or Premier League.
+
+**Ask Cosmo (the AI companion)** runs on your Cloudflare account's free Workers AI allowance, with no extra key
+or cost. For sharper answers, add a GitHub secret named `ANTHROPIC_API_KEY` (from console.anthropic.com) and run
+the workflow; the companion then uses Claude (billed to your Anthropic account per question).
 
 ## How good are the predictions?
 

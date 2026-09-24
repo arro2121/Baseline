@@ -3,7 +3,7 @@ name: Baseline
 on:
   push:
     branches: [main]
-    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml"]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
   schedule:
     - cron: "*/5 * * * *"    # live scores (skipped automatically once the alerts service is running)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
@@ -60,6 +60,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           API_TENNIS_KEY: ${{ secrets.API_TENNIS_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::notice::No CLOUDFLARE_API_TOKEN secret, so notifications with the app closed are off. Add it and run this workflow again to turn them on."; exit 0; fi
           bash alerts/setup.sh

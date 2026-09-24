@@ -37,7 +37,8 @@ set_var SITE_URL "$SITE"
 set_var VAPID_SUBJECT "mailto:${OWNER}@users.noreply.github.com"
 [ -s vapid_public.txt ] && set_var VAPID_PUBLIC_KEY "$(cat vapid_public.txt)"
 
-# 5. Deploy, then make sure the notification keys exist (created once, kept forever)
+# 5. Install the worker's libraries, deploy, then make sure the notification keys exist (created once, kept forever)
+npm install --no-audit --no-fund --silent
 $WR deploy
 if ! $WR secret list 2>/dev/null | grep -q VAPID_PRIVATE_JWK || [ ! -s vapid_public.txt ]; then
   node make-keys.mjs --json > /tmp/keys.json
@@ -48,6 +49,8 @@ if ! $WR secret list 2>/dev/null | grep -q VAPID_PRIVATE_JWK || [ ! -s vapid_pub
   $WR deploy
 fi
 if [ -n "${API_TENNIS_KEY:-}" ]; then printf '%s' "$API_TENNIS_KEY" | $WR secret put API_TENNIS_KEY; fi
+# Optional: Ask Cosmo uses Claude instead of the free Workers AI model when this secret is set
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then printf '%s' "$ANTHROPIC_API_KEY" | $WR secret put ANTHROPIC_API_KEY; fi
 
 URL="https://baseline-alerts.$SUB.workers.dev"
 printf '{"alerts_url": "%s"}\n' "$URL" > ../site_config.json

@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores, animated play-by-play, real replays, box scores, standings, team pages, news and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -1181,6 +1181,37 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
 .badge.new{animation:badgeNew 1.4s cubic-bezier(.2,.8,.3,1.4) both}
 @keyframes badgeNew{0%{transform:scale(.3) rotate(-20deg)}60%{transform:scale(1.2) rotate(4deg);box-shadow:0 0 30px #FF7AC8}100%{transform:none}}
 @media (prefers-reduced-motion: reduce){.shooting,.gspin,.gs,.garms{animation:none}.shooting{display:none}.sotg::after{display:none}.cstar{opacity:1;animation:none}.cline{stroke-dashoffset:0;animation:none}}
+/* ---------- Ask Cosmo ---------- */
+.aav{display:inline-block;width:26px;height:26px;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8FF3FF,#7A3DF5 55%,#3A0F4F);box-shadow:0 0 10px rgba(122,61,245,.7);position:relative}
+.aav::after{content:"";position:absolute;left:-18%;right:-18%;top:42%;height:16%;border-radius:50%;border:1.5px solid rgba(255,214,170,.9);transform:rotate(-18deg)}
+.aav.big{width:52px;height:52px;margin-bottom:10px}
+.askfab{position:fixed;right:18px;bottom:22px;z-index:45;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(185,139,255,.45);border-radius:999px;padding:9px 16px 9px 10px;
+  background:linear-gradient(135deg,rgba(40,24,110,.92),rgba(90,30,110,.92));color:#fff;font-weight:800;font-size:.9rem;box-shadow:0 10px 30px -8px rgba(122,61,245,.8);backdrop-filter:blur(8px);transition:transform .15s}
+.askfab:hover{transform:translateY(-2px)}
+@media (max-width:760px){ .askfab{bottom:calc(78px + env(safe-area-inset-bottom,0px));right:12px;padding:9px;gap:0} .askfab > span:last-child{display:none} .askfab .aav{width:30px;height:30px} }
+body:has(dialog[open]) .askfab{display:none}
+.askd .askwrap{display:flex;flex-direction:column;height:100%}
+.askhd{display:flex;align-items:center;gap:12px;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 14px 18px;border-bottom:1px solid var(--line)}
+.askhd h2{margin:0;font-size:1.1rem;font-stretch:110%}.askhd small{color:var(--muted);font-size:.76rem}.askhd > div{flex:1}
+.askhd .xbtn{position:static;flex:none}
+.askhd .btn{padding:5px 12px;font-size:.78rem}
+.asknote{margin:10px 16px 0;padding:10px 12px;border-radius:10px;background:var(--surface-2);font-size:.82rem;color:var(--muted)}
+.askmsgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.aintro{margin:auto;text-align:center;max-width:36ch;color:var(--muted);display:flex;flex-direction:column;align-items:center}.aintro b{color:var(--ink);font-size:1.05rem}.aintro p{margin:6px 0 0;font-size:.86rem}
+.amsg{display:flex;gap:10px;align-items:flex-start;max-width:100%}
+.amsg.user{justify-content:flex-end}
+.amsg.user .abody{background:linear-gradient(135deg,#6C3BE8,#A0348C);color:#fff;border-radius:16px 16px 4px 16px;padding:9px 13px;max-width:82%;font-size:.9rem}
+.amsg.assistant .abody{background:var(--surface);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:10px 14px;max-width:88%;font-size:.9rem;line-height:1.5}
+.abody p{margin:0 0 8px}.abody p:last-child{margin:0}.abody ul{margin:4px 0 8px;padding-left:18px}.abody li{margin:2px 0}
+.atyping{display:inline-flex;gap:4px;padding:4px 0}.atyping i{width:7px;height:7px;border-radius:50%;background:#B98BFF;animation:atype 1s infinite ease-in-out}.atyping i:nth-child(2){animation-delay:.15s}.atyping i:nth-child(3){animation-delay:.3s}
+@keyframes atype{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.asksug{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+.asug{border:1px solid rgba(185,139,255,.35);background:rgba(122,61,245,.12);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:650}
+.asug:hover{background:rgba(122,61,245,.25)}
+.askform{display:flex;gap:8px;padding:10px 16px 6px;border-top:1px solid var(--line)}
+.askform input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 16px;font-size:.92rem}
+.askform input:focus{outline:2px solid #9D7BFF;outline-offset:1px}
+.askfine{margin:0;padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));font-size:.7rem;color:var(--faint);text-align:center}
 </style>
 </head>
 <body data-surface="Hard">
@@ -1421,6 +1452,16 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
 
 <dialog id="profile" class="drawer" aria-labelledby="pName"><div class="pbody" id="pbody"></div></dialog>
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
+<button class="askfab" id="askFab" type="button" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span><span>Ask Cosmo</span></button>
+<dialog id="askDlg" class="drawer askd" aria-labelledby="askTitle"><div class="askwrap">
+  <header class="askhd"><span class="aav" aria-hidden="true"></span><div><h2 id="askTitle">Ask Cosmo</h2><small>Your AI sports companion</small></div>
+    <button class="btn" id="askClear" type="button">New chat</button><button class="xbtn" id="askClose" type="button" aria-label="Close">✕</button></header>
+  <p class="asknote" id="askNote" hidden>Ask Cosmo works in the installed app, where it can read live scores.</p>
+  <div class="askmsgs" id="askMsgs" aria-live="polite"></div>
+  <div class="asksug" id="askSug"></div>
+  <form class="askform" id="askForm"><input id="askIn" type="text" autocomplete="off" maxlength="1000" placeholder="Ask about any game, team or pick…" aria-label="Your question"><button class="btn primary" type="submit" aria-label="Send">Ask</button></form>
+  <p class="askfine">Answers are generated by AI from live data and can be wrong.</p>
+</div></dialog>
 <dialog id="cardDlg" class="modal" aria-labelledby="cardTitle"><div class="dlg"><h2 id="cardTitle">Score card</h2><p id="cardNote"></p><img id="cardImg" class="cardimg" alt="Score card for this game">
   <div class="dlgfoot"><button class="btn" type="button" onclick="document.getElementById('cardDlg').close()">Close</button><span><button class="btn" id="cardSave" type="button">Save image</button> <button class="btn primary" id="cardShare" type="button" hidden>Share</button></span></div></div></dialog>
 <dialog id="teamDlg" class="drawer" aria-label="Team"><div class="pbody" id="tbody"></div></dialog>
@@ -1448,6 +1489,7 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
   <div class="sheetin">
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
+    <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
     <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
     <button class="sheetrow" data-go="search"><b>Find a team</b><span>Any NFL, NBA, MLB, NHL or Premier League team</span></button>
@@ -2160,6 +2202,11 @@ async function firstOf(tries) {                     // the first source that ans
   throw err || new Error("ESPN unavailable");
 }
 async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
+  if (lg === "mlb") try { return await mlbScoreboard(dates, fetchImpl); } catch {}          // MLB's own API first
+  try { return await espnBoard(lg, fetchImpl, dates); }
+  catch (e) { if (lg === "nhl") return nhlScoreboard(dates, fetchImpl); throw e; }          // the NHL's API if ESPN is down
+}
+async function espnBoard(lg, fetchImpl, dates) {
   const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : "";   // YYYYMMDD, or today
   return normScoreboard(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
@@ -2168,6 +2215,8 @@ async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
   ]), lg);
 }
 async function espnGame(lg, id, fetchImpl = fetch) {
+  if (/^m\d+$/.test(id)) return mlbGame(id, fetchImpl);
+  if (/^h\d+$/.test(id)) return nhlGame(id, fetchImpl);
   const hasPlays = g => !!(g && (g.drives || g.plays?.length || g.commentary?.length || g.keyEvents?.length));
   return normGame(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
@@ -2182,6 +2231,231 @@ async function espnGame(lg, id, fetchImpl = fetch) {
     () => getJSON(`${ESPN}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
   ]), lg);
 }
+/* ---- official league APIs: MLB's Stats API (statsapi.mlb.com) and the NHL's (api-web.nhle.com). Free, no key, run by the leagues.
+   MLB's has everything ESPN has (every pitch, hit locations, win probability, box score, video), so it is the main source for
+   baseball; the NHL's is the backup for hockey. Their game ids carry a letter ("m…", "h…") so every game loads from its own source. */
+const MLB_API = "https://statsapi.mlb.com/api/", NHL_API = "https://api-web.nhle.com/v1/";
+const tcolors = (lg, name) => { try { return ((typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[lg]) || {})[name] || null; } catch { return null; } };
+const onPage = typeof window !== "undefined";
+const kickoff = iso => { const d = new Date(iso); return onPage ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }) + " ET"; };
+const hms = s => { const p = String(s || "").split(":").map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : null; };
+/* ---------- MLB ---------- */
+function mlbTeamObj(t, score, rec, winner) {
+  const c = tcolors("mlb", t.name) || [];
+  return { id: String(t.id), name: t.name || "", short: t.teamName || t.clubName || t.name || "", abbr: t.abbreviation || c[2] || "", color: c[0] || null, alt: c[1] || null,
+    logo: `https://www.mlbstatic.com/team-logos/${t.id}.svg`, score: score == null ? null : String(score), record: rec ? `${rec.wins}-${rec.losses}` : null, winner: !!winner };
+}
+function mlbStatus(st, ls, date) {
+  const a = st?.abstractGameState, det = st?.detailedState || "";
+  const state = a === "Live" ? "in" : a === "Final" || /postponed|cancel|suspended/i.test(det) ? "post" : "pre";
+  const half = ls?.inningState ? ({ Middle: "Mid", Bottom: "Bot" }[ls.inningState] || ls.inningState) : "";
+  const short = state === "in" ? `${half} ${ls?.currentInningOrdinal || ""}`.trim() : state === "post" ? (/postponed|cancel|suspended/i.test(det) ? det : (ls?.currentInning || 9) > 9 ? `Final/${ls.currentInning}` : "Final") : kickoff(date);
+  return { state, detail: state === "in" ? `${ls?.inningState || ""} of the ${ls?.currentInningOrdinal || ""}`.trim() : det, short, completed: state === "post", clock: null, period: ls?.currentInning ?? null };
+}
+const mlbSit = ls => ls ? { balls: ls.balls ?? 0, strikes: ls.strikes ?? 0, outs: ls.outs ?? 0, bases: [!!ls.offense?.first, !!ls.offense?.second, !!ls.offense?.third],
+  batter: ls.offense?.batter?.fullName || null, pitcher: ls.defense?.pitcher?.fullName || null, last: null } : null;
+function normMlbSchedule(d) {
+  const games = (d.dates || []).flatMap(x => x.games || []).map(g => {
+    const ls = g.linescore, st = mlbStatus(g.status, ls, g.gameDate), H = g.teams.home, A = g.teams.away, pre = st.state === "pre";
+    const tv = (g.broadcasts || []).filter(b => b.type === "TV"), nat = tv.filter(b => b.isNational);
+    return { id: "m" + g.gamePk, date: g.gameDate, name: `${A.team.abbreviation} @ ${H.team.abbreviation}`, status: st,
+      home: mlbTeamObj(H.team, pre ? null : H.score ?? 0, H.leagueRecord, H.isWinner), away: mlbTeamObj(A.team, pre ? null : A.score ?? 0, A.leagueRecord, A.isWinner),
+      neutral: false, venue: g.venue?.name || null, tv: [...new Set((nat.length ? nat : tv).map(b => b.name))].slice(0, 2), odds: null,
+      situation: st.state === "in" ? mlbSit(ls) : null };
+  });
+  return { league: "mlb", asof: new Date().toISOString(), games };
+}
+const MLB_KIND = { home_run: "hr", single: "hit1", double: "hit2", triple: "hit3", strikeout: "k", strikeout_double_play: "k", strikeout_triple_play: "k",
+  walk: "walk", intent_walk: "walk", hit_by_pitch: "walk", field_error: "hit1", fielders_choice: "out" };
+const MLB_TRAJ = { ground_ball: "G", fly_ball: "F", line_drive: "L", popup: "P", bunt_grounder: "G", bunt_popup: "P", bunt_line_drive: "L" };
+const mlbPhoto = id => id ? `https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${id}/headshot/67/current` : null;
+const pitchKind = e => { const c = e.details?.call?.code || e.details?.code || ""; return /^(B|\*B|V|P|I|H)$/.test(c) ? "b" : /^(F|T|L|R)$/.test(c) ? "f" : /^(X|D|E)$/.test(c) ? "x" : "s"; };
+function normMlbGame(feed, wp, content) {
+  const gd = feed.gameData || {}, ld = feed.liveData || {}, ls = ld.linescore || {}, bx = ld.boxscore || {};
+  const st = mlbStatus(gd.status, ls, gd.datetime?.dateTime), pre = st.state === "pre";
+  const H = mlbTeamObj(gd.teams.home, pre ? null : ls.teams?.home?.runs ?? 0, gd.teams.home.record, st.state === "post" && (ls.teams?.home?.runs ?? 0) > (ls.teams?.away?.runs ?? 0));
+  const A = mlbTeamObj(gd.teams.away, pre ? null : ls.teams?.away?.runs ?? 0, gd.teams.away.record, st.state === "post" && (ls.teams?.away?.runs ?? 0) > (ls.teams?.home?.runs ?? 0));
+  const teams = { [H.id]: { name: H.name, short: H.short, abbr: H.abbr, color: H.color, alt: H.alt, logo: H.logo, side: "home" }, [A.id]: { name: A.name, short: A.short, abbr: A.abbr, color: A.color, alt: A.alt, logo: A.logo, side: "away" } };
+  const plays = [];
+  for (const ab of ld.plays?.allPlays || []) {
+    const top = ab.about?.isTopInning, bat = top ? A.id : H.id, field = top ? H.id : A.id, inn = ab.about?.inning;
+    const base = { period: inn, periodText: `${top ? "Top" : "Bottom"} ${ORD(inn)}`, head: `${top ? "Top" : "Bottom"} ${ORD(inn)}`, clock: null, seq: 0, minor: false };
+    // runners moving between pitches: steals, wild pitches, pickoffs, and pitching changes
+    for (const e of ab.playEvents || []) {
+      if (e.type !== "action" || !e.details?.description) continue;
+      const t = e.details.description, ev = e.details.eventType || "";
+      if (/substitution|switch|umpire|mound_visit|no_pitch|batter_timeout|game_advisory/.test(ev) && !/pitching_substitution/.test(ev)) continue;
+      const change = /pitching_substitution/.test(ev);
+      plays.push({ ...base, id: `ab${ab.about.atBatIndex}e${e.index}`, text: t, type: e.details.event || null, kind: change ? "change" : /stolen|caught_stealing|pickoff/.test(ev) ? "steal" : "play",
+        minor: change, scoring: !!e.details.isScoringPlay, team: change ? field : bat, away: e.details.awayScore ?? null, home: e.details.homeScore ?? null });
+    }
+    const pitches = (ab.playEvents || []).filter(e => e.isPitch), hit = pitches.map(e => e.hitData).filter(Boolean).pop();
+    const who = ab.matchup?.batter, done = ab.about?.isComplete;
+    if (!done && st.state === "in") {
+      plays.push({ ...base, id: `ab${ab.about.atBatIndex}-now`, text: `${who?.fullName || ""} batting against ${ab.matchup?.pitcher?.fullName || ""}`, kind: "atbat", live: true,
+        batter: who?.fullName || null, pitcher: ab.matchup?.pitcher?.fullName || null, pitches: pitches.map(pitchKind), team: bat, away: ab.result?.awayScore ?? null, home: ab.result?.homeScore ?? null,
+        who: who ? { id: String(who.id), name: who.fullName, photo: mlbPhoto(who.id) } : undefined });
+      continue;
+    }
+    if (!ab.result?.description) continue;
+    const ev = ab.result.eventType || "", kind = MLB_KIND[ev] || (ab.result.isOut ? "out" : "play");
+    plays.push({ ...base, id: `ab${ab.about.atBatIndex}`, text: ab.result.description, type: ab.result.event || null, kind, scoring: !!ab.about?.isScoringPlay, team: bat,
+      away: ab.result.awayScore ?? null, home: ab.result.homeScore ?? null, batter: who?.fullName || null, pitcher: ab.matchup?.pitcher?.fullName || null,
+      pitches: pitches.map(pitchKind), outs: ab.count?.outs ?? null, x: hit?.coordinates?.coordX ?? null, y: hit?.coordinates?.coordY ?? null,
+      trajectory: MLB_TRAJ[hit?.trajectory] || null, who: who ? { id: String(who.id), name: who.fullName, photo: mlbPhoto(who.id) } : undefined });
+  }
+  plays.forEach((p, i) => { p.ord = i; });
+  // box score
+  const row = (side) => bx.teams?.[side] || {};
+  const TEAM = [["batting", "hits", "Hits"], ["batting", "homeRuns", "Home runs"], ["batting", "rbi", "RBI"], ["batting", "baseOnBalls", "Walks"], ["batting", "strikeOuts", "Strikeouts"],
+    ["batting", "stolenBases", "Stolen bases"], ["batting", "leftOnBase", "Left on base"], ["pitching", "strikeOuts", "Pitchers' strikeouts"], ["pitching", "baseOnBalls", "Walks allowed"], ["fielding", "errors", "Errors"]];
+  const boxTeams = ["away", "home"].map(side => ({ id: side === "home" ? H.id : A.id, side, stats: TEAM.map(([g, k, l]) => { const v = row(side).teamStats?.[g]?.[k]; return v == null ? null : [l, String(v)]; }).filter(Boolean) }));
+  const person = (side, id) => row(side).players?.["ID" + id] || {};
+  const boxPlayers = ["away", "home"].map(side => {
+    const bat = (row(side).batters || []).map(id => person(side, id)).filter(p => p.stats?.batting && Object.keys(p.stats.batting).length);
+    const pit = (row(side).pitchers || []).map(id => person(side, id)).filter(p => p.stats?.pitching && Object.keys(p.stats.pitching).length);
+    const B = ["atBats", "runs", "hits", "rbi", "baseOnBalls", "strikeOuts", "homeRuns"], P = ["inningsPitched", "hits", "runs", "earnedRuns", "baseOnBalls", "strikeOuts", "homeRuns", "numberOfPitches"];
+    const r = (p, keys, g) => ({ id: String(p.person?.id || ""), name: p.person?.fullName || "", short: p.person?.fullName || "", photo: mlbPhoto(p.person?.id), pos: p.position?.abbreviation || "",
+      starter: g === "batting" ? !!p.battingOrder && String(p.battingOrder).endsWith("00") : false, dnp: false, stats: [...keys.map(k => String(p.stats[g][k] ?? "")), ...(g === "batting" ? [p.seasonStats?.batting?.avg || ""] : [])] });
+    const bt = row(side).teamStats?.batting || {}, pt = row(side).teamStats?.pitching || {};
+    return { team: side === "home" ? H.id : A.id, groups: [
+      { name: "Batting", labels: ["AB", "R", "H", "RBI", "BB", "K", "HR", "AVG"], rows: bat.map(p => r(p, B, "batting")), totals: [...B.map(k => String(bt[k] ?? "")), ""] },
+      { name: "Pitching", labels: ["IP", "H", "R", "ER", "BB", "K", "HR", "PC"], rows: pit.map(p => r(p, P, "pitching")), totals: P.map(k => String(pt[k] ?? "")) }] };
+  });
+  // standout hitters
+  const leaders = ["away", "home"].map(side => {
+    const hitters = (row(side).batters || []).map(id => person(side, id)).filter(p => p.stats?.batting?.atBats != null).map(p => { const b = p.stats.batting;
+      const line = [`${b.hits}-${b.atBats}`, b.homeRuns ? `${b.homeRuns > 1 ? b.homeRuns + " " : ""}HR` : "", b.rbi ? `${b.rbi} RBI` : "", b.runs ? `${b.runs} R` : ""].filter(Boolean).join(", ");
+      return { cat: "Batting", value: line, name: p.person?.fullName || "", photo: mlbPhoto(p.person?.id), score: b.hits + 3 * b.homeRuns + 1.5 * b.rbi + b.runs + .5 * b.baseOnBalls }; })
+      .filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 3).map(({ score, ...x }) => x);
+    return hitters.length ? { team: side === "home" ? H.id : A.id, items: hitters } : null;
+  }).filter(Boolean);
+  // win probability through the game and the swings that mattered
+  const W = (Array.isArray(wp) ? wp : []).filter(x => typeof x.homeTeamWinProbability === "number");
+  const series = W.map(x => x.homeTeamWinProbability / 100), n = Math.min(90, series.length);
+  const wpSeries = n >= 2 ? Array.from({ length: n }, (_, i) => Math.round(series[Math.round(i * (series.length - 1) / (n - 1))] * 1000) / 1000) : null;
+  const swings = W.map((x, i) => ({ x, i, d: (x.homeTeamWinProbabilityAdded || 0) / 100 })).filter(s => Math.abs(s.d) >= .07 && s.x.result?.description)
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3).sort((a, b) => a.i - b.i)
+    .map(s => ({ text: s.x.result.description, side: s.d > 0 ? "home" : "away", delta: Math.round(Math.abs(s.d) * 100), wp: Math.round(s.x.homeTeamWinProbability * 10) / 1000,
+      at: Math.round(s.i / Math.max(1, W.length - 1) * 1000) / 1000, when: `${s.x.about?.isTopInning ? "Top" : "Bottom"} ${ORD(s.x.about?.inning)}`, pid: `ab${s.x.about?.atBatIndex}` }));
+  // video: MLB's own clips, matched to the plays they show
+  const videos = ((content?.highlights?.highlights?.items) || []).map(v => {
+    const mp4 = (v.playbacks || []).find(p => p.name === "mp4Avc") || (v.playbacks || []).find(p => /\.mp4/.test(p.url || ""));
+    const cut = (v.image?.cuts || []).find(c => c.width <= 800) || (v.image?.cuts || [])[0];
+    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), mp4: mp4?.url || null, web: null, geo: null };
+  }).filter(v => v.mp4).slice(0, 20);
+  const roster = Object.values({ ...(row("home").players || {}), ...(row("away").players || {}) }).map(p => ({ name: p.person?.fullName || "" }));
+  linkVideos(plays, videos, roster);
+  plays.reverse();
+  const off = (bx.officials || []).map(o => [o.officialType || "", o.official?.fullName || ""]).filter(o => o[1]);
+  const w = gd.weather || {}, v = gd.venue || {};
+  const info = { venue: v.name || null, city: [v.location?.city, v.location?.stateAbbrev].filter(Boolean).join(", ") || null, capacity: v.fieldInfo?.capacity || null,
+    attendance: (bx.info || []).find(x => x.label === "Att")?.value?.replace(/\.$/, "") || null, grass: v.fieldInfo?.turfType || null,
+    weather: w.temp ? { temp: +w.temp, text: [w.condition, w.wind ? "wind " + w.wind : ""].filter(Boolean).join(", ") } : null, officials: off.slice(0, 6), odds: null, injuries: [], form: [], news: [],
+    probables: gd.probablePitchers ? ["away", "home"].map(s => gd.probablePitchers[s]?.fullName || null) : null,
+    decisions: ld.decisions ? { win: ld.decisions.winner?.fullName || null, loss: ld.decisions.loser?.fullName || null, save: ld.decisions.save?.fullName || null } : null };
+  const inn = ls.innings || [];
+  const lines = inn.length ? { n: inn.length, away: inn.map(x => x.away?.runs == null ? "" : String(x.away.runs)), home: inn.map(x => x.home?.runs == null ? "" : String(x.home.runs)),
+    extra: { away: [ls.teams?.away?.hits ?? "", ls.teams?.away?.errors ?? ""], home: [ls.teams?.home?.hits ?? "", ls.teams?.home?.errors ?? ""] } } : null;
+  const last = [...plays].find(p => p.kind === "atbat") || null;
+  return { league: "mlb", id: "m" + (gd.game?.pk || feed.gamePk), asof: new Date().toISOString(), status: st, home: H, away: A, teams,
+    homeWinProb: series.length ? series[series.length - 1] : null, wpSeries, leaders, box: { teams: boxTeams, players: boxPlayers }, info, lines,
+    date: gd.datetime?.dateTime || null, neutral: false, tv: null, situation: st.state === "in" ? mlbSit(ls) : null, videos, plays: plays.slice(0, 300), count: plays.length, swings };
+}
+/* ---------- NHL ---------- */
+const nm = x => (x && (x.default || x)) || "";
+function nhlTeamObj(t, pre, winner) {
+  const full = [nm(t.placeName), nm(t.commonName || t.name)].filter(Boolean).join(" ");
+  const name = Object.keys((typeof TEAM_COLORS !== "undefined" && TEAM_COLORS.nhl) || {}).find(k => k.endsWith(nm(t.commonName || t.name))) || full || nm(t.name);
+  const c = tcolors("nhl", name) || [];
+  return { id: String(t.id), name, short: nm(t.commonName || t.name), abbr: t.abbrev || "", color: c[0] || null, alt: c[1] || null, logo: t.logo || null,
+    score: pre ? null : String(t.score ?? 0), record: t.record || null, winner: !!winner };
+}
+function nhlStatus(g) {
+  const s = g.gameState, state = s === "LIVE" || s === "CRIT" ? "in" : s === "FINAL" || s === "OFF" ? "post" : "pre", per = g.periodDescriptor?.number ?? g.period ?? null;
+  const pt = g.periodDescriptor?.periodType, clock = g.clock?.timeRemaining || null, perTxt = pt === "OT" ? "OT" : pt === "SO" ? "SO" : per ? ORD(per) : "";
+  const short = state === "in" ? (g.clock?.inIntermission ? `End ${perTxt}` : `${clock || ""} - ${perTxt}`) : state === "post" ? (pt && pt !== "REG" ? `Final/${pt}` : "Final") : kickoff(g.startTimeUTC);
+  return { state, detail: short, short, completed: state === "post", clock, period: per };
+}
+function normNhlScore(d) {
+  const games = (d.games || []).map(g => { const st = nhlStatus(g), pre = st.state === "pre", post = st.state === "post";
+    return { id: "h" + g.id, date: g.startTimeUTC, name: `${g.awayTeam.abbrev} @ ${g.homeTeam.abbrev}`, status: st,
+      home: nhlTeamObj(g.homeTeam, pre, post && g.homeTeam.score > g.awayTeam.score), away: nhlTeamObj(g.awayTeam, pre, post && g.awayTeam.score > g.homeTeam.score),
+      neutral: !!g.neutralSite, venue: nm(g.venue) || null, tv: (g.tvBroadcasts || []).map(b => b.network).slice(0, 2), odds: null, situation: null }; });
+  return { league: "nhl", asof: new Date().toISOString(), games };
+}
+const NHL_KIND = { goal: "goal", "shot-on-goal": "shot", "missed-shot": "miss", "blocked-shot": "miss", hit: "play", giveaway: "play", takeaway: "play", faceoff: "break",
+  stoppage: "break", "period-start": "break", "period-end": "break", "game-end": "break", "shootout-complete": "break", penalty: "penalty", "delayed-penalty": "break" };
+function normNhlGame(pbp, box) {
+  const st = nhlStatus(pbp), pre = st.state === "pre", post = st.state === "post";
+  const H = nhlTeamObj(pbp.homeTeam, pre, post && pbp.homeTeam.score > pbp.awayTeam.score), A = nhlTeamObj(pbp.awayTeam, pre, post && pbp.awayTeam.score > pbp.homeTeam.score);
+  const teams = { [H.id]: { name: H.name, short: H.short, abbr: H.abbr, color: H.color, alt: H.alt, logo: H.logo, side: "home" }, [A.id]: { name: A.name, short: A.short, abbr: A.abbr, color: A.color, alt: A.alt, logo: A.logo, side: "away" } };
+  const who = {}; for (const r of pbp.rosterSpots || []) who[r.playerId] = { id: String(r.playerId), name: `${nm(r.firstName)} ${nm(r.lastName)}`.trim(), photo: r.headshot || null, team: String(r.teamId) };
+  const N = id => (who[id] || {}).name || "";
+  let sc = [0, 0];
+  const plays = (pbp.plays || []).map((p, i) => {
+    const d = p.details || {}, k = p.typeDescKey, per = p.periodDescriptor?.number, pt = p.periodDescriptor?.periodType;
+    if (d.awayScore != null) sc = [d.awayScore, d.homeScore];
+    const shot = d.shotType ? ` ${d.shotType[0].toUpperCase()}${d.shotType.slice(1)}` : "";
+    const text = k === "goal" ? `${N(d.scoringPlayerId)} Goal (${d.scoringPlayerTotal || 1})${shot}${d.assist1PlayerId ? `, assists: ${N(d.assist1PlayerId)} (${d.assist1PlayerTotal})${d.assist2PlayerId ? `, ${N(d.assist2PlayerId)} (${d.assist2PlayerTotal})` : ""}` : ", unassisted"}`
+      : k === "shot-on-goal" ? `${N(d.shootingPlayerId)}${shot} shot saved by ${N(d.goalieInNetId) || "the goalie"}`
+      : k === "missed-shot" ? `${N(d.shootingPlayerId)}${shot} shot missed${d.reason ? ` (${String(d.reason).replace(/-/g, " ")})` : ""}`
+      : k === "blocked-shot" ? `${N(d.blockingPlayerId)} blocked a shot from ${N(d.shootingPlayerId)}`
+      : k === "hit" ? `${N(d.hittingPlayerId)} hit ${N(d.hitteePlayerId)}`
+      : k === "faceoff" ? `${N(d.winningPlayerId)} won the faceoff against ${N(d.losingPlayerId)}`
+      : k === "giveaway" || k === "takeaway" ? `${N(d.playerId)} ${k}`
+      : k === "penalty" ? `${N(d.committedByPlayerId) || "Bench"} ${String(d.descKey || "penalty").replace(/-/g, " ")} (${d.duration || 2} min)`
+      : k === "period-start" ? `Start of the ${pt === "OT" ? "overtime" : ORD(per) + " period"}` : k === "period-end" ? `End of the ${pt === "OT" ? "overtime" : ORD(per) + " period"}`
+      : k === "stoppage" ? `Stoppage${d.reason ? `: ${String(d.reason).replace(/-/g, " ")}` : ""}` : k === "game-end" ? "End of game" : k.replace(/-/g, " ");
+    const kind = NHL_KIND[k] || "play", owner = d.eventOwnerTeamId ? String(d.eventOwnerTeamId) : null;
+    const actor = who[d.scoringPlayerId || d.shootingPlayerId || d.hittingPlayerId || d.winningPlayerId || d.playerId || d.committedByPlayerId];
+    return { id: String(p.eventId), text, type: k, kind, minor: kind === "break" || kind === "play", period: per, periodText: pt === "OT" ? "OT" : ORD(per),
+      head: per <= 3 ? `${ORD(per)} Period` : pt === "SO" ? "Shootout" : "Overtime", clock: p.timeInPeriod || null, away: sc[0], home: sc[1],
+      scoring: k === "goal", team: owner, seq: p.sortOrder ?? i, ord: i, x: d.xCoord ?? null, y: d.yCoord ?? null, who: actor ? { id: actor.id, name: actor.name, photo: actor.photo } : undefined };
+  }).filter(p => p.type !== "delayed-penalty");
+  plays.forEach((p, i) => { p.ord = i; });
+  const b = box?.playerByGameStats || {};
+  const grp = (side, list, name, labels, keys) => ({ name, labels, rows: (b[side]?.[list] || []).map(x => ({ id: String(x.playerId), name: (who[x.playerId] || {}).name || nm(x.name), short: nm(x.name),
+    photo: (who[x.playerId] || {}).photo || null, pos: x.position || "", starter: false, dnp: x.toi === "00:00", stats: keys.map(k => typeof k === "function" ? k(x) : String(x[k] ?? "")) })), totals: null });
+  const SK = ["goals", "assists", "plusMinus", "sog", "hits", "blockedShots", "pim", "toi"], GK = ["shotsAgainst", "saves", "goalsAgainst", x => x.savePctg ? Number(x.savePctg).toFixed(3) : "", "toi"];
+  const boxPlayers = [["awayTeam", A.id], ["homeTeam", H.id]].map(([side, id]) => ({ team: id, groups: [grp(side, "forwards", "Forwards", ["G", "A", "+/-", "SOG", "HT", "BS", "PIM", "TOI"], SK),
+    grp(side, "defense", "Defense", ["G", "A", "+/-", "SOG", "HT", "BS", "PIM", "TOI"], SK), grp(side, "goalies", "Goalies", ["SA", "SV", "GA", "SV%", "TOI"], GK)].filter(g => g.rows.length) }));
+  const tot = side => { const all = [...(b[side]?.forwards || []), ...(b[side]?.defense || [])], s = k => all.reduce((n, x) => n + (+x[k] || 0), 0);
+    return [["Shots on goal", String(side === "homeTeam" ? pbp.homeTeam.sog ?? s("sog") : pbp.awayTeam.sog ?? s("sog"))], ["Hits", String(s("hits"))], ["Blocked shots", String(s("blockedShots"))], ["Penalty minutes", String(s("pim"))], ["Giveaways", String(s("giveaways"))], ["Takeaways", String(s("takeaways"))]]; };
+  const byPer = side => { const out = []; for (const p of plays) if (p.scoring) { const i = Math.min(p.period, 4) - 1; while (out.length <= i) out.push(0); if (p.team === (side === "home" ? H.id : A.id)) out[i]++; } return out; };
+  const pa = byPer("away"), ph = byPer("home"), np = Math.max(pa.length, ph.length, pre ? 0 : Math.min(st.period || 0, 4));
+  const lines = np ? { n: np, away: Array.from({ length: np }, (_, i) => String(pa[i] || 0)), home: Array.from({ length: np }, (_, i) => String(ph[i] || 0)), extra: null } : null;
+  const skaters = side => [...(b[side]?.forwards || []), ...(b[side]?.defense || [])].map(x => ({ x, pts: (+x.goals || 0) * 2 + (+x.assists || 0) })).filter(v => v.pts > 0).sort((a, c) => c.pts - a.pts).slice(0, 3)
+    .map(({ x }) => ({ cat: "Points", value: `${x.goals} G, ${x.assists} A`, name: (who[x.playerId] || {}).name || nm(x.name), photo: (who[x.playerId] || {}).photo || null }));
+  const leaders = [["awayTeam", A.id], ["homeTeam", H.id]].map(([s, id]) => ({ team: id, items: skaters(s) })).filter(l => l.items.length);
+  const chron = plays.filter(p => p.scoring); let lead = 0; const ev = [];
+  for (const p of chron) { const now = Math.sign(p.home - p.away); if (now !== lead) ev.push({ p, now, was: lead }); lead = now; }
+  const swings = ev.slice(-3).map(e => ({ text: e.p.text, side: e.now > 0 ? "home" : e.now < 0 ? "away" : e.was > 0 ? "away" : "home", label: e.now === 0 ? "Tied it" : e.was === 0 ? "Went ahead" : "Flipped the lead",
+    score: `${e.p.away}-${e.p.home}`, at: Math.round(e.p.ord / Math.max(1, plays.length - 1) * 1000) / 1000, when: [e.p.head, e.p.clock].filter(Boolean).join(" · "), pid: e.p.id }));
+  plays.reverse();
+  return { league: "nhl", id: "h" + pbp.id, asof: new Date().toISOString(), status: st, home: H, away: A, teams, homeWinProb: null, wpSeries: null, leaders,
+    box: { teams: [{ id: A.id, side: "away", stats: tot("awayTeam") }, { id: H.id, side: "home", stats: tot("homeTeam") }], players: boxPlayers },
+    info: { venue: nm(pbp.venue) || null, city: nm(pbp.venueLocation) || null, capacity: null, attendance: null, grass: null, weather: null, officials: [], odds: null, injuries: [], form: [], news: [] },
+    lines, date: pbp.startTimeUTC || null, neutral: false, tv: (pbp.tvBroadcasts || [])[0]?.network || null, situation: null, videos: [], plays: plays.slice(0, 300), count: plays.length, swings };
+}
+const ymdDash = s => /^\d{8}$/.test(s || "") ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : null;
+const todayUS = () => new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);   // the US sports day rolls over a few hours after midnight UTC
+async function mlbScoreboard(dates, fetchImpl) {
+  return normMlbSchedule(await getJSON(`${MLB_API}v1/schedule?sportId=1&date=${ymdDash(dates) || todayUS()}&hydrate=linescore,team,broadcasts(all)`, fetchImpl));
+}
+async function mlbGame(id, fetchImpl) {
+  const pk = String(id).replace(/^m/, "");
+  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
+    getJSON(`${MLB_API}v1/game/${pk}/content`, fetchImpl).catch(() => null)]);
+  return normMlbGame(feed, wp, content);
+}
+async function nhlScoreboard(dates, fetchImpl) { return normNhlScore(await getJSON(`${NHL_API}score/${ymdDash(dates) || todayUS()}`, fetchImpl)); }
+async function nhlGame(id, fetchImpl) {
+  const g = String(id).replace(/^h/, "");
+  const [pbp, box] = await Promise.all([getJSON(`${NHL_API}gamecenter/${g}/play-by-play`, fetchImpl), getJSON(`${NHL_API}gamecenter/${g}/boxscore`, fetchImpl).catch(() => null)]);
+  return normNhlGame(pbp, box);
+}
+
 /* ---- line score: points by quarter, period, half or inning (plus hits and errors in baseball) ---- */
 function linesOf(c, H, A) {
   const cs = c.competitors || [], row = id => cs.find(x => String(x.team?.id || x.id) === String(id)) || {};
@@ -3520,7 +3794,7 @@ function drawGame(g, lg){
     $("#gbody").innerHTML = `<header class="ghd" id="gHead"></header><div class="gfield" id="gScene" hidden></div><div class="pbar" id="gBar"></div><div class="plays" id="gList"></div>`;
   }
   const tn = t => `<div class="tn">${logoChip(t, "big", lg)}<span>${esc(t.name || "")}</span></div>`;
-  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button>${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
+  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button><button class="sharebtn cardbtn" id="gAsk" type="button">Ask</button>${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
     <div class="row">${tn(A)}<div class="big">${esc(A.score ?? "")}</div></div>
     <div class="row">${tn(H)}<div class="big">${esc(H.score ?? "")}</div></div>
     ${g.status?.state === "pre" && g.date ? `<div class="countdown">Starts in <b data-launch="${esc(g.date)}" data-big="1"></b></div>` : ""}
@@ -3529,6 +3803,7 @@ function drawGame(g, lg){
   $("#gClose").onclick = () => $("#gameDlg").close();
   $("#gShare").onclick = () => shareGame(g, lg);
   $("#gCard").onclick = () => openCard(g, lg);
+  $("#gAsk").onclick = () => openAsk();
   const bh = $("#gHead [data-bell]"); if (bh) bh.onclick = async () => { if (await toggleBell(lg, g)) drawGame(g, lg); };
   if (scored){ nova($("#gHead")); const [pa, ph] = (G_PREV_SC[g.id] || "").split("-"); document.querySelectorAll("#gHead .big").forEach((b, i) => { if ((i ? ph : pa) !== String(i ? H.score : A.score)) b.classList.add("roll"); }); }
   G_PREV_SC[g.id] = sk;
@@ -3664,7 +3939,7 @@ function downloadIcs(games){
   a.href = URL.createObjectURL(blob); a.download = "cosmo-sports-game.ics"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function handleHash(){
-  const m = /^#(game|team)=(nfl|nba|mlb|nhl|epl|tennis)\/(\d+)$/.exec(location.hash);
+  const m = /^#(game|team)=(nfl|nba|mlb|nhl|epl|tennis)\/([mh]?\d+)$/.exec(location.hash);
   if (!m) return;
   if (m[1] === "game") openGame(m[2], m[3]); else openTeam(m[2], m[3]);
 }
@@ -3847,6 +4122,88 @@ function renderNtf(){
 }
 // keep the alerts service's copy of your teams fresh (subscriptions can also change on the browser's side)
 if (NTF.on) setTimeout(ntfSync, 3000);
+
+/* ================= Ask Cosmo: the AI sports companion ================= */
+let ASK = (() => { try { return JSON.parse(sessionStorage.getItem("cosmo-ask") || "[]"); } catch { return []; } })();
+let ASK_BUSY = false;
+const saveAsk = () => { try { sessionStorage.setItem("cosmo-ask", JSON.stringify(ASK.slice(-20))); } catch {} };
+function gameBrief(g, lg){
+  const A = g.away || {}, H = g.home || {}, out = [`The game open on screen (${LEAGUE_LABEL[lg] || lg}): ${A.name} ${A.score ?? ""} at ${H.name} ${H.score ?? ""}, ${g.status?.detail || g.status?.short || ""}.`];
+  if (g.homeWinProb != null) out.push(`Live win probability: ${H.short || H.name} ${Math.round(g.homeWinProb * 100)}%.`);
+  const pred = withSport(lg, () => { const Ht = findTeam(H.name), At = findTeam(A.name); return Ht && At ? teamPredict(Ht, At, g.neutral) : null; });
+  if (pred) out.push(`Cosmo model before the game: ${A.short || A.name} ${Math.round(pred.away * 100)}%, ${H.short || H.name} ${Math.round(pred.home * 100)}%${pred.draw != null ? `, draw ${Math.round(pred.draw * 100)}%` : ""}.`);
+  const ex = pulseOf(g, lg, pred); if (ex != null) out.push(`Excitement score: ${ex}/100.`);
+  if (g.lines) out.push(`Line score: ${A.abbr || "Away"} ${g.lines.away.join(" ")} | ${H.abbr || "Home"} ${g.lines.home.join(" ")}.`);
+  for (const L of g.leaders || []) { const T = (g.teams || {})[L.team]; out.push(`Top performers ${T ? T.short || T.name : ""}: ${L.items.map(i => `${i.name} (${[i.cat, i.value].filter(Boolean).join(" ")})`).join("; ")}.`); }
+  if ((g.swings || []).length) out.push("Turning points: " + g.swings.map(s => `${s.when}: ${s.text}${s.delta != null ? ` (+${s.delta}% for ${s.side})` : ""}`).join(" | "));
+  const plays = (g.plays || []).filter(p => !p.minor && p.text).slice(0, 14).map(p => `${[p.head, p.clock].filter(Boolean).join(" ")}: ${p.text}`);
+  if (plays.length) out.push("Latest plays, newest first:\n- " + plays.join("\n- "));
+  for (const t of g.box?.teams || []) { const T = (g.teams || {})[t.id]; if (t.stats?.length) out.push(`${T ? T.short || T.name : t.side} team stats: ${t.stats.slice(0, 10).map(([k, v]) => `${k} ${v}`).join(", ")}.`); }
+  if (g.info?.venue) out.push(`Venue: ${g.info.venue}${g.info.city ? ", " + g.info.city : ""}.`);
+  return out.join("\n");
+}
+function askContext(){
+  const out = [];
+  const fav = Object.entries(FAV).filter(([, a]) => a.length).map(([lg, a]) => `${LEAGUE_LABEL[lg] || lg}: ${a.map(k => (LG_TEAMS(lg).find(t => tkey(t.name) === k) || {}).name || k).join(", ")}`);
+  out.push("Teams they follow: " + (fav.length ? fav.join("; ") : "none yet"));
+  out.push("Screen they're on: " + (SPORT === "universe" ? "Today (all leagues)" : SPORT === "following" ? "Following" : SPORT === "tennis" ? "Tennis" : `${LEAGUE_LABEL[SPORT]} (${TT})`));
+  if ($("#gameDlg").open && G_LAST) out.push(gameBrief(G_LAST[0], G_LAST[1]));
+  const games = (UNI || []).length ? UNI : Object.entries(SB).flatMap(([lg, d]) => (d?.games || []).map(g => ({ ...g, lg })));
+  const rows = games.slice(0, 60).map(g => {
+    const p = g.pred || withSport(g.lg, () => { const H = findTeam(g.home.name), A = findTeam(g.away.name); return H && A ? teamPredict(H, A, g.neutral) : null; });
+    if (!p) return null; const ex = pulseOf(g, g.lg, p);
+    return `${g.away.name} at ${g.home.name} (${LEAGUE_LABEL[g.lg] || g.lg}): ${g.away.short || g.away.name} ${Math.round(p.away * 100)}%, ${g.home.short || g.home.name} ${Math.round(p.home * 100)}%${p.draw != null ? `, draw ${Math.round(p.draw * 100)}%` : ""}${ex != null ? `; excitement ${ex}/100` : ""}`;
+  }).filter(Boolean);
+  if (rows.length) out.push("Cosmo model win chances for games on today's scoreboards:\n- " + rows.join("\n- "));
+  for (const lg of Object.keys(LEAGUE_LABEL)){ const t = LG_TEAMS(lg).slice(0, 8).map((x, i) => `${i + 1}. ${x.name}`); if (t.length) out.push(`Cosmo power ratings, ${LEAGUE_LABEL[lg]}: ${t.join(", ")}`); }
+  const s = pickStats(); if (s.done.length) out.push(`Their picks: ${s.you}-${s.done.length - s.you}; the model on the same games: ${s.cosmo}-${s.done.length - s.cosmo}; current streak ${s.streak}.`);
+  return out.join("\n\n").slice(0, 7800);
+}
+const askFmt = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split(/\n{2,}/).map(par => {
+  const lines = par.split("\n"), items = lines.filter(l => /^\s*[-•]\s+/.test(l));
+  return items.length === lines.length ? `<ul>${items.map(l => `<li>${l.replace(/^\s*[-•]\s+/, "")}</li>`).join("")}</ul>` : `<p>${lines.join("<br>")}</p>`;
+}).join("");
+function askSuggestions(){
+  if ($("#gameDlg").open && G_LAST){ const g = G_LAST[0], live = g.status?.state === "in", pre = g.status?.state === "pre";
+    return pre ? ["Who wins this one?", "What should I watch for?", "How do these teams match up?"] : [live ? "What's happening in this game?" : "Summarize this game", "Why did the win chances swing?", "Who's been the best player?"]; }
+  return ["What should I watch tonight?", "How did my teams do?", "Who does the model like today?", "Which games are the closest calls?"];
+}
+function renderAsk(){
+  const box = $("#askMsgs"); if (!box) return;
+  box.innerHTML = ASK.length ? ASK.map(m => `<div class="amsg ${m.role}">${m.role === "assistant" ? `<span class="aav" aria-hidden="true"></span>` : ""}<div class="abody">${m.role === "assistant" ? (m.content ? askFmt(m.content) : `<span class="atyping"><i></i><i></i><i></i></span>`) : esc(m.content)}</div></div>`).join("")
+    : `<div class="aintro"><span class="aav big" aria-hidden="true"></span><b>Ask Cosmo anything</b><p>What's worth watching, how your teams are doing, why a game swung, what the model thinks. Answers use live scores and the Cosmo model.</p></div>`;
+  const asked = new Set(ASK.filter(m => m.role === "user").map(m => m.content));
+  $("#askSug").innerHTML = ASK_BUSY ? "" : askSuggestions().filter(q => !asked.has(q)).map(s => `<button type="button" class="asug">${esc(s)}</button>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+function openAsk(){
+  const dlg = $("#askDlg");
+  if (!dlg.open) dlg.showModal();
+  $("#askNote").hidden = HOSTED && !!ALERTS_URL;
+  renderAsk(); setTimeout(() => $("#askIn").focus(), 60);
+}
+async function sendAsk(q){
+  q = String(q || "").trim(); if (!q || ASK_BUSY) return;
+  if (!HOSTED || !ALERTS_URL){ toast("Ask Cosmo works in the installed app."); return; }
+  ASK.push({ role: "user", content: q.slice(0, 1000) }); const ans = { role: "assistant", content: "" }; ASK.push(ans);
+  ASK_BUSY = true; renderAsk(); $("#askIn").value = "";
+  try {
+    const r = await fetch(ALERTS_URL + "/ask", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: ASK.slice(0, -1).slice(-10), context: askContext() }) });
+    if (!r.ok || !r.body){ const e = await r.json().catch(() => ({})); throw new Error(e.error || "unavailable"); }
+    const rd = r.body.getReader(), dec = new TextDecoder(); let last = 0;
+    for (;;){ const { value, done } = await rd.read(); if (done) break; ans.content += dec.decode(value, { stream: true });
+      if (performance.now() - last > 60){ last = performance.now(); const el = $("#askMsgs .amsg.assistant:last-child .abody"); if (el) el.innerHTML = askFmt(ans.content); $("#askMsgs").scrollTop = $("#askMsgs").scrollHeight; } }
+    if (!ans.content.trim()) ans.content = "Sorry, I didn't get an answer back. Try again in a moment.";
+  } catch (e) { ans.content = /too many/i.test(e.message) ? e.message : "Ask Cosmo isn't reachable right now. Check your connection and try again."; }
+  ASK_BUSY = false; saveAsk(); renderAsk();
+}
+$("#askFab").onclick = () => openAsk();
+$("#askClose").onclick = () => $("#askDlg").close();
+$("#askClear").onclick = () => { ASK = []; saveAsk(); renderAsk(); };
+$("#askForm").onsubmit = e => { e.preventDefault(); sendAsk($("#askIn").value); };
+$("#askSug").onclick = e => { const b = e.target.closest(".asug"); if (b) sendAsk(b.textContent); };
+$("#askDlg").addEventListener("click", e => { if (e.target.id === "askDlg") $("#askDlg").close(); });
 
 /* ================= Cosmic motion: warp intro, comets, supernovas, loaders, launch countdowns ================= */
 const cosmoLoad = t => `<div class="cload"><span class="cl-orbit" aria-hidden="true"><i></i></span><span>${t}</span></div>`;
@@ -4246,7 +4603,7 @@ document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click",
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
-  if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
+  if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
   else if (g === "following" || g === "universe"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
 }));
