@@ -9,54 +9,12 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
 **What makes it different**
 * **Ask Cosmo:** an AI sports companion that answers questions about any game, team or pick from live scores,
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
-* **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
-  links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
-* **Cosmo Showdown (the main game):** pick a sport and draft real players under a salary cap. Every player's ratings
-  come from their real stats: MLB's and the NHL's official stats, ESPN's stats for the NBA and NFL, and Fantasy
-  Premier League. Then play a full game against a computer team of real players, with a box score and a win-loss
-  record per sport:
-  * **Baseball:** at-bats with real counts, base runners and a linescore, over three innings.
-  * **Basketball:** three on three to 21, where you pick the shooter and the shot.
-  * **Football:** drives where you throw to the open receiver, with downs and field goals.
-  * **Hockey:** power plays between their chances against your goalie.
-  * **Soccer:** a full penalty shootout.
-  * **Season mode:** draft once, play six games against tougher and tougher teams, win four to make the playoffs,
-    then win the semifinal and final for the title.
-* **Cosmo Cards:** every real player in Showdown is a collectible card (Bronze, Silver, Gold and Legend, from their
-  ratings). Coins come with all XP. Open a free Daily pack each day, or buy Standard and Premium packs with coins.
-  Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. You can browse your
-  collection by league.
-* **Daily Challenge:** one arcade target a day, the same for everyone, with a streak. Completing it earns a pack.
-* **Challenge a friend:** share a link with your arcade score, and your friend plays the same game to beat it. Or send
-  your drafted Showdown team: your friend drafts theirs and plays against it.
-* **Daily leaderboard:** pick a nickname and your best Daily Challenge score goes on a board shared by everyone, which
-  resets each day. It's kept by the alerts service: a best score per device, the top 100 each day, with checks on
-  names and scores.
-* **Player profiles:** tap any card or league leader for their ratings, this season's stats, your copies of their card
-  and a "Play as" shortcut.
-* **Collection goals:** milestones (25 cards, half a league's set, 5 Legends, every Legend) that pay out packs.
-* **Getting around:** a five-stop bottom bar (Today, Scores, Play, Following, More), an in-app **Guide** covering
-  every feature (More › Guide), a one-time What's new screen after big updates, and an offline notice. Showdown and
-  Cards keep working offline too.
-* **Morning briefing:** the daily alert also names the day's Daily Challenge and says your free pack is ready.
-* **Get the app:** installing adds a free Welcome pack the first time you open it from the home screen, and +1 card in
-  every Daily pack.
+* **Picks:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and friend challenge
+  links (no account needed), plus your running record against the Cosmo model.
+* **Getting around:** a five-stop bottom bar (Today, Scores, Picks, Following, More), an in-app **Guide** (More ›
+  Guide), a one-time What's new screen after big updates, and an offline notice.
 * **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
-* **Daily Trivia:** five new questions a day written from real stats.
-* **Cosmo Level:** XP for picks, games, Showdown wins and trivia, with levels and 32 achievements.
-* **Arcade:** six sports games with shaded, animated athletes, full stadiums and crowds that react. Each uses
-  real controls and gets harder as you play. Big moments get a slow-motion **instant replay** (tap to skip, or turn
-  replays off in Settings). You'll also hear **stadium sound**: a crowd that swells with the action, bat cracks,
-  swishes, rim clangs and goal horns, all generated in the browser. Courts and ice reflect the players:
-  * **Home Run Derby:** tap where and when to swing, with real launch angles, a 330-to-400-foot fence and five
-    pitch types.
-  * **Penalty Shootout:** a full shootout against the computer. Swipe to shoot, and tap to dive when you're in goal.
-  * **Three-Point Contest:** five racks around the arc and money balls. Hold, then release in the green.
-  * **Field Goal Challenge:** swipe to kick through wind and a pass rush, with a play clock.
-  * **Top Shelf:** a power play where you pass to move the goalie and rip one-timers.
-  * **Logo Quiz:** three lives through pixel, silhouette, close-up and spin rounds.
-
-  In five of the games you can "play as" a real player, whose ratings change how you hit, shoot or kick.
+  Tap a player for their season stats and how they rank against the league's best.
 * **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
   changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
   text to speech, inside the free daily allowance), with the phone's own voice as the backup. Pick the voice and
@@ -172,7 +130,7 @@ No model is certain. Bet only what you can afford to lose.
 | --- | --- |
 | While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
 | Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
-| Every night | New results and rankings download, every rating recalculates, the Showdown player ratings update from real stats, and the site republishes |
+| Every night | New results and rankings download, every rating recalculates, player stats for League Leaders update from real stats, and the site republishes |
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.
 
@@ -200,14 +158,13 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
-  standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Play the
-  Daily 3 and challenge your friends, keep your streak alive in Rating Rumble, and see how your picks stack up
-  against our prediction model. Draft real players in Cosmo Showdown and play full games in five sports. Play six arcade games with real controls: Home Run Derby, a Penalty Shootout
-  against the computer, a Three-Point Contest, Field Goal Challenge, a Top Shelf power play and a Logo Quiz. Tap Listen in a live game to
+  standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Every game
+  gets a prediction from a multi-factor model with the reasons behind it, tested on seasons it never saw. Play the
+  Daily 3 and see how your picks stack up against the model. Tap Listen in a live game to
   hear the plays called by a natural human voice. Get alerts for your teams, close finishes and a morning briefing, and turn on the
   spoiler shield when you're watching later. No account, no ads, no tracking.
 * **Keywords:** live scores, sports scores, NFL, NBA, MLB, NHL, Premier League, tennis, play by play, box score,
-  predictions, picks, sports alerts, AI sports, sports games, arcade
+  predictions, picks, sports alerts, AI sports, sports analytics, win probability
 * **Category:** Sports · **Content rating:** 17+ / Mature: answer "yes" to gambling-related content (the app shows
   odds but takes no bets and has no prizes) and "yes" to AI-generated content (Ask Cosmo) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
 * **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /

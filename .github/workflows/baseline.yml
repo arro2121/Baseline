@@ -3,7 +3,7 @@ name: Baseline
 on:
   push:
     branches: [main]
-    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "team_models.py", "team_history.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
   schedule:
     - cron: "*/5 * * * *"    # live: a backup copy of the scores on the site itself (plus tennis when there is no alerts service)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
@@ -93,7 +93,7 @@ jobs:
         run: python sports_engine.py --download --espn
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - name: Update the real players for Cosmo Showdown
+      - name: Update player stats for League Leaders
         run: node alerts/allstars.mjs || echo "Kept the previous players"
       - name: Build the app
         run: python build_site.py

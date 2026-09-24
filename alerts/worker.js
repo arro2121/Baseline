@@ -158,9 +158,6 @@ export class Store {
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
     else if (d.op === "subDel") { await st.delete("sub:" + await subId(d.e)); v = true; }
-    else if (d.op === "lbAdd") { const k = "lb:" + d.day, list = lbMerge((await st.get(k)) || [], d.row); await st.put(k, list); v = lbView(list, d.row.id);
-      const cut = new Date(Date.now() - 8 * 864e5).toISOString().slice(0, 10).replace(/-/g, "");          // boards older than a week are deleted
-      if (Math.random() < .05) for (const key of (await st.list({ prefix: "lb:" })).keys()) if (key.slice(3, 11) < cut) await st.delete(key); }
     return new Response(JSON.stringify({ v }), { headers: { "Content-Type": "application/json" } });
   }
 }
@@ -168,39 +165,14 @@ export function store(env) {
   if (env.STORE) {
     const stub = env.STORE.get(env.STORE.idFromName("main"));
     const call = async (op, a = {}) => { const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op, ...a }) }); if (!r.ok) throw new Error("store " + r.status); return (await r.json()).v; };
-    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }),
-      lbAdd: (day, row) => call("lbAdd", { day, row }) };
+    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }) };
   }
   const all = async () => JSON.parse(await env.KV.get("subs") || "[]");
   return { durable: false, get: k => env.KV.get(k), put: (k, v) => env.KV.put(k, v), subs: all,
     subGet: async e => (await all()).find(s => s.sub.endpoint === e) || null,
     subPut: async rec => env.KV.put("subs", JSON.stringify([...(await all()).filter(s => s.sub.endpoint !== rec.sub.endpoint), rec].slice(-2000))),
-    subDel: async e => env.KV.put("subs", JSON.stringify((await all()).filter(s => s.sub.endpoint !== e))),
-    lbAdd: async (day, row) => { const list = lbMerge(JSON.parse(await env.KV.get("lb:" + day) || "[]"), row); await env.KV.put("lb:" + day, JSON.stringify(list), { expirationTtl: 86400 * 8 }); return lbView(list, row.id); } };
+    subDel: async e => env.KV.put("subs", JSON.stringify((await all()).filter(s => s.sub.endpoint !== e))) };
 }
-
-/* ---------------- Daily Challenge leaderboard: one list a day, best score per device, top 100 kept ---------------- */
-const LB_MAX = { derby: 80, pens: 6000, hoops: 100, kick: 75, shelf: 120, logos: 100 };
-export function lbMerge(list, row){
-  const old = list.find(r => r.id === row.id);
-  if (old && old.score >= row.score){ old.name = row.name; return list; }
-  const out = list.filter(r => r.id !== row.id); out.push(row);
-  out.sort((a, b) => b.score - a.score || a.at - b.at); return out.slice(0, 100);
-}
-export function lbView(list, id){
-  const i = list.findIndex(r => r.id === id);
-  return { top: list.slice(0, 25).map(r => ({ name: r.name, score: r.score, me: r.id === id })), rank: i >= 0 ? i + 1 : null, total: list.length };
-}
-export function lbClean(d, now = Date.now()){
-  const day = String(d.day || ""), game = String(d.game || ""), score = Math.floor(+d.score), id = String(d.id || "").replace(/[^\w-]/g, "").slice(0, 40);
-  const name = String(d.name || "").replace(/[^\p{L}\p{N} ._-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 16);
-  const ok = [-1, 0, 1].some(k => new Date(now + k * 864e5).toISOString().slice(0, 10).replace(/-/g, "") === day);   // today, give or take a time zone
-  if (!ok || !(game in LB_MAX) || !(score >= 0 && score <= LB_MAX[game]) || id.length < 8 || name.length < 2) return null;
-  if (/f+u+c+k|s+h+i+t|c+u+n+t|n+i+g+g|b+i+t+c+h|a+s+s+h+o+l+e/i.test(name.toLowerCase().replace(/[013457@$]/g, c => ({ 0: "o", 1: "i", 3: "e", 4: "a", 5: "s", 7: "t", "@": "a", $: "s" })[c]).replace(/[^a-z]/g, ""))) return null;
-  return { day, game, row: { id, name, score, at: now } };
-}
-const LB_RATE = new Map();
-function lbAllowed(ip){ const now = Date.now(), list = (LB_RATE.get(ip) || []).filter(t => now - t < 600e3); if (list.length >= 30) return false; list.push(now); LB_RATE.set(ip, list); if (LB_RATE.size > 5000) LB_RATE.clear(); return true; }
 
 /* ---------------- one scheduled run ---------------- */
 export async function tick(env, fetchImpl = fetch) {
@@ -326,9 +298,6 @@ export async function sportsTick(env, fetchImpl = fetch) {
   const brief = await morningBrief(env, subs.filter(s => !s.dead), fetchImpl).catch(e => String(e));
   return { leagues: leagues.length, events: events.length, sent, brief };
 }
-// the day's arcade challenge, picked from the date exactly the way the app picks it (template.html, dchToday)
-const DCH = ["Hit 4 home runs in Home Run Derby", "Score 700 points in Penalty Shootout", "Score 14 in the Three-Point Contest", "Make a 45-yard field goal", "Score 8 points in Top Shelf", "Name 8 logos in Logo Quiz"];
-export function dailyChallenge(day){ let h = 7; for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) % 100003; return DCH[h % DCH.length]; }
 // once a day around 9 AM US Eastern: how your teams did yesterday and who plays today
 const etParts = d => Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "numeric", hour12: false }).formatToParts(d).map(p => [p.type, p.value]));
 export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date()) {
@@ -365,8 +334,7 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
       if (next) { const home = tkey(next.home.name) === t; lines.push(`${(home ? next.home : next.away).short} ${home ? "host" : "at"} ${(home ? next.away : next.home).short}, ${time(next.date)}`); }
     }
     if (!lines.length) continue;
-    const body = [...lines.slice(0, 3), `🎯 Today's challenge: ${dailyChallenge(today)}. Your free card pack is ready`].join(" · ");
-    const r = await sendPush(s.sub, { title: "Your Cosmo morning", body, tag: "brief-" + today, url: "./?sport=play" }, env, fetchImpl).catch(() => null);
+    const r = await sendPush(s.sub, { title: "Your Cosmo morning", body: lines.slice(0, 4).join(" · "), tag: "brief-" + today, url: "./" }, env, fetchImpl).catch(() => null);
     if (r && r.ok) sent++;
   }
   return { sent };
@@ -779,7 +747,8 @@ export function normMlbSchedule(d) {
     return { id: "m" + g.gamePk, date: g.gameDate, name: `${A.team.abbreviation} @ ${H.team.abbreviation}`, status: st,
       home: mlbTeamObj(H.team, pre ? null : H.score ?? 0, H.leagueRecord, H.isWinner), away: mlbTeamObj(A.team, pre ? null : A.score ?? 0, A.leagueRecord, A.isWinner),
       neutral: false, venue: g.venue?.name || null, tv: [...new Set((nat.length ? nat : tv).map(b => b.name))].slice(0, 2), odds: null,
-      situation: st.state === "in" ? mlbSit(ls) : null };
+      situation: st.state === "in" ? mlbSit(ls) : null,
+      probables: (H.probablePitcher || A.probablePitcher) ? [A.probablePitcher?.fullName || null, H.probablePitcher?.fullName || null] : null };
   });
   return { league: "mlb", asof: new Date().toISOString(), games };
 }
@@ -959,7 +928,7 @@ export function normNhlGame(pbp, box) {
 const ymdDash = s => /^\d{8}$/.test(s || "") ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : null;
 const todayUS = () => new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);   // the US sports day rolls over a few hours after midnight UTC
 async function mlbScoreboard(dates, fetchImpl) {
-  return normMlbSchedule(await getJSON(`${MLB_API}v1/schedule?sportId=1&date=${ymdDash(dates) || todayUS()}&hydrate=linescore,team,broadcasts(all)`, fetchImpl));
+  return normMlbSchedule(await getJSON(`${MLB_API}v1/schedule?sportId=1&date=${ymdDash(dates) || todayUS()}&hydrate=linescore,team,broadcasts(all),probablePitcher`, fetchImpl));
 }
 async function mlbGame(id, fetchImpl) {
   const pk = String(id).replace(/^m/, "");
@@ -1293,17 +1262,6 @@ export default {
     if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
-    if (url.pathname === "/board" && req.method === "POST") {
-      if (!lbAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "slow down" }, 429);
-      const c = lbClean(await req.json().catch(() => ({}))); if (!c) return json({ error: "bad score" }, 400);
-      try { return json(await db.lbAdd(c.day + ":" + c.game, c.row)); } catch (e) { return json({ error: "board unavailable" }, 503); }
-    }
-    if (url.pathname === "/board") {
-      const day = String(url.searchParams.get("day") || "").replace(/\D/g, "").slice(0, 8), game = String(url.searchParams.get("game") || "");
-      if (!(game in LB_MAX) || day.length !== 8) return json({ error: "bad day" }, 400);
-      let list = []; try { const v = await db.get("lb:" + day + ":" + game); list = typeof v === "string" ? JSON.parse(v) : v || []; } catch {}
-      return json(lbView(list, String(url.searchParams.get("id") || "")), 200, { "Cache-Control": "no-store" });
-    }
     if (url.pathname === "/ask" && req.method === "POST") {
       if (!askAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
       const body = await req.json().catch(() => null);

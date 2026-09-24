@@ -1,13 +1,13 @@
 // Cosmo Sports offline helper and notifications. The app opens instantly and still works without signal,
-// showing the last ratings and scores it saw. Build: 20260924-2586591
-const CACHE = "baseline-20260924-2586591";
+// showing the last ratings and scores it saw. Build: 20260924-2353292
+const CACHE = "baseline-20260924-2353292";
 const SHELL = ["./", "index.html", "live.json", "allstars.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
-  const data = url.origin === location.origin && (url.pathname.match(/(live|scores|allstars)\.json$/) || [])[0];
+  const data = url.origin === location.origin && (url.pathname.match(/(live|scores|allstars|models)\.json$/) || [])[0];
   if (url.origin === location.origin && (e.request.mode === "navigate" || data || url.pathname.endsWith("index.html"))) {
     // fresh first: new scores and nightly ratings win, the cached copy is the offline fallback
     e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); if (r.ok) caches.open(CACHE).then(k => k.put(data || e.request, c)); return r; })
