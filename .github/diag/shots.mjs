@@ -1,9 +1,9 @@
 import { chromium } from "playwright";
-const b = await chromium.launch();
-const p = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+const b = await chromium.launch({ channel: "chrome" });   // real Chrome: it can play H.264 video
+const p = await b.newPage({ ignoreHTTPSErrors: false, viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 const errs = []; p.on("pageerror", e => errs.push(e.message));
 await p.goto("http://localhost:8000/", { waitUntil: "load" }); await p.waitForTimeout(800);
-for (const lg of ["mlb", "nhl", "epl", "nfl"]) {
+for (const lg of ["mlb", "nhl"]) {
   await p.click(`[data-sport="${lg}"]`); await p.waitForTimeout(300);
   await p.click('[data-tt="games"]'); await p.waitForTimeout(4000);
   // open finished games until one has a replay button
@@ -21,7 +21,7 @@ for (const lg of ["mlb", "nhl", "epl", "nfl"]) {
       await p.waitForTimeout(6000);
       const v = await p.evaluate(() => { const v = document.querySelector("#gScene video"); return v ? { readyState: v.readyState, t: v.currentTime.toFixed(1), err: v.error && v.error.code, src: v.currentSrc.slice(0, 80), w: v.videoWidth } : document.querySelector("#gScene .gvideo")?.textContent; });
       console.log("  video:", JSON.stringify(v));
-      await p.screenshot({ path: `shots/${lg}-video.png` });
+      await p.screenshot({ path: `shots/${lg}-video.png` }); await p.waitForTimeout(3000); console.log("  3s later:", await p.evaluate(() => { const v = document.querySelector("#gScene video"); return v ? v.currentTime.toFixed(1) + "s played, paused=" + v.paused : "no video"; }));
     }
     await p.keyboard.press("Escape"); await p.waitForTimeout(400);
   }
