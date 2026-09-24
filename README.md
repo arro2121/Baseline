@@ -1,17 +1,26 @@
-# Baseline
+<p align="center"><img src="docs/icon-192.png" width="96" alt="Cosmo Sports"></p>
 
-Predictions and rankings for tennis (every ATP and WTA pro), the NFL, NBA, MLB, NHL and Premier League, with
-live scores and live play-by-play. It installs on iPhone, Android, Windows and Mac, updates itself every night,
-and runs on free hosting.
+# Cosmo Sports
+
+**Every game, every league, one app.** Live scores, animated play-by-play with real highlight replays, box scores,
+standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.
+It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
 **What's in it**
-* **Tennis:** win chances for any matchup on any surface from a 20-factor model, a betting-line checker,
-  full rankings with player profiles, and live matches with point-by-point.
-* **NFL, NBA, MLB, NHL, Premier League:** power rankings, a predictor for any two teams (win chances, fair
-  prices, NFL spreads, soccer draw chances), and today's games with scores, betting lines, the market's odds,
-  Baseline's prediction and live play-by-play that updates every 15 seconds.
-
----
+* **Games:** today's scores (or any other day) with team logos, win chances, betting lines and live situations;
+  follow teams with ☆ to pin their games first; add upcoming games to your calendar.
+* **Play-by-play:** readable plays grouped by inning, quarter or period, with player photos, labels for the big
+  moments, and an animated field for every sport that replays each play. ESPN's real highlight clips play inside
+  the app, matched to the play they show.
+* **Box scores:** line scores, team stat comparisons and full player tables for every sport, plus top performers.
+* **Game info and previews:** Cosmo's prediction, the betting line, injuries, recent form, venue, weather,
+  officials and news.
+* **Standings, news and team pages:** official standings, league and team news, and a page for every team with
+  its schedule, results and roster.
+* **Following:** your teams across every league in one feed, with live scores, last results and next games.
+* **Search, sharing and links:** find any team; share a game or team with a link that opens it directly.
+* **Predictions:** power ratings and a predictor for any two teams (win chances, fair prices, NFL spreads,
+  soccer draw chances), and a 20-factor tennis model for every ATP and WTA pro with live point-by-point.
 
 ## Set it up from your iPhone (about 20 minutes, no computer needed)
 
@@ -44,7 +53,7 @@ This unpacks the app, sets up the live service, downloads results, builds every 
 Watch it in the **Actions** tab; the first run takes 15 to 30 minutes.
 
 **Step 8: Install it.** Open `https://YOUR-GITHUB-USERNAME.github.io/baseline/` in **Safari**, tap **Share** >
-**Add to Home Screen** > **Add**, and open Baseline from its new icon.
+**Add to Home Screen** > **Add**, and open Cosmo Sports from its new icon.
 
 *Tip:* if a GitHub menu is missing on your phone, tap **aA** in Safari's address bar > **Request Desktop Website**.
 
@@ -88,11 +97,42 @@ No model is certain. Bet only what you can afford to lose.
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.
 
-## Put it in the App Store or Google Play (optional)
+## Publish it (Google Play, App Store, Microsoft Store)
 
-Use the free [PWABuilder](https://www.pwabuilder.com) with your site's address. Google Play needs a $25
-developer account; Apple's App Store needs a Mac with Xcode and a $99/year developer account, and Apple can reject
-apps that mainly wrap a website. The privacy policy is at `.../baseline/privacy.html`.
+Cosmo Sports is a Progressive Web App, so the website *is* the app. It's ready for store packaging: a complete
+manifest (name, description, categories, icons including a maskable icon, store screenshots and shortcuts),
+an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/terms.html), and social previews.
+
+1. **Check your site address works**: `https://YOUR-GITHUB-USERNAME.github.io/Baseline/` (or your repository name).
+2. Open **[PWABuilder](https://www.pwabuilder.com)**, paste the address and press **Start**. It should report the
+   manifest, service worker and icons as ready.
+3. **Google Play:** choose **Android** > **Generate package**. Create a Google Play developer account ($25 once),
+   make a new app, upload the `.aab` file, and add the `assetlinks.json` file PWABuilder gives you at
+   `docs/.well-known/assetlinks.json` (upload it with **Add file** > **Upload files**) so the app opens without a
+   browser bar.
+4. **Microsoft Store:** choose **Windows** > **Generate package** and upload it in Partner Center (free for
+   individuals).
+5. **Apple App Store:** choose **iOS** > **Generate package**, then open the project in Xcode on a Mac and submit
+   it with an Apple developer account ($99 a year). Apple sometimes rejects apps that mainly wrap a website; the
+   app's own features (replays, box scores, following) help, but approval isn't guaranteed.
+
+**Store listing text (copy and paste)**
+* **Name:** Cosmo Sports
+* **Short description:** Live scores, replays, box scores and predictions for every game.
+* **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
+  League and tennis together: live scores, animated play-by-play with real highlight replays, full box scores,
+  standings, team pages with schedules and rosters, news, and data-driven win predictions. Follow your teams
+  across every league, get game previews with injuries and betting lines, add games to your calendar, and share
+  any game with a link. No account, no ads, no tracking.
+* **Category:** Sports · **Content rating:** answer "yes" to gambling-related content (the app shows odds but
+  takes no bets) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
+* **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /
+  social image:** `docs/og-image.png`. The source artwork for the logo is in `brand/`.
+
+**Before you publish, know this:** the scores, clips, photos and logos come from ESPN's public data and belong to
+ESPN, the leagues and the teams. That's fine for a free personal app, but stores may ask whether you have the
+rights to them, and ESPN doesn't officially license this data. Keep the app free and ad-free, and consider a
+licensed sports-data provider if you ever want to charge for it or run ads.
 
 ## Files
 

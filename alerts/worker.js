@@ -1,5 +1,5 @@
 /**
- * Baseline alerts: a Cloudflare Worker that
+ * Cosmo Sports live service (formerly Baseline alerts): a Cloudflare Worker that
  *   - every 2 minutes checks live scores on API-Tennis,
  *   - notices when a match starts, a set ends, or a match finishes,
  *   - sends a push notification to every device watching one of those players (even with the app closed),
@@ -367,7 +367,8 @@ export function normGame(d, lg) {
   if (lg === "mlb" && sit) situation = { balls: sit.balls ?? 0, strikes: sit.strikes ?? 0, outs: sit.outs ?? 0, bases: [!!sit.onFirst, !!sit.onSecond, !!sit.onThird] };
   if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
-    homeWinProb: typeof wp === "number" ? wp : null, wpSeries: wpSeries(d), leaders: leadersOf(d, lg, H, A), situation, videos, plays: plays.slice(0, 300), count: plays.length };
+    homeWinProb: typeof wp === "number" ? wp : null, wpSeries: wpSeries(d), leaders: leadersOf(d, lg, H, A), box: boxOf(d, lg), info: infoOf(d, lg), lines: linesOf(c, H, A), date: c.date || null, neutral: !!c.neutralSite,
+    tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null, situation, videos, plays: plays.slice(0, 300), count: plays.length };
 }
 // ESPN's win probability through the game, thinned to at most 90 points for a small chart
 function wpSeries(d) {
@@ -501,6 +502,149 @@ export async function espnGame(lg, id, fetchImpl = fetch) {
     () => getJSON(`${ESPN}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
   ]), lg);
 }
+/* ---- line score: points by quarter, period, half or inning (plus hits and errors in baseball) ---- */
+function linesOf(c, H, A) {
+  const cs = c.competitors || [], row = id => cs.find(x => String(x.team?.id || x.id) === String(id)) || {};
+  const a = row(A.id), h = row(H.id), n = Math.max((a.linescores || []).length, (h.linescores || []).length);
+  if (!n) return null;
+  const v = (x, i) => { const l = (x.linescores || [])[i]; return l == null ? "" : String(l.displayValue ?? l.value ?? ""); };
+  return { n, away: Array.from({ length: n }, (_, i) => v(a, i)), home: Array.from({ length: n }, (_, i) => v(h, i)),
+    extra: a.hits != null ? { away: [a.hits, a.errors], home: [h.hits, h.errors] } : null };
+}
+/* ---- box score: team totals side by side, and each team's player tables ---- */
+const NHL_SKATER = ["G", "A", "+/-", "SOG", "HT", "BS", "PIM", "TOI"], NHL_GOALIE = ["SA", "SV", "GA", "SV%", "TOI"];
+const SOCCER_COLS = [["totalGoals", "G"], ["goalAssists", "A"], ["totalShots", "SH"], ["shotsOnTarget", "SOG"], ["foulsCommitted", "FC"], ["yellowCards", "YC"], ["redCards", "RC"], ["saves", "SV"]];
+function boxOf(d, lg) {
+  const bx = d.boxscore || {}, photo = (a) => a?.headshot?.href || (a?.id ? `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${a.id}.png` : null);
+  // baseball nests its team totals by batting/pitching/fielding; pick the ones fans read
+  const MLB_TEAM = [["batting", "H", "Hits"], ["batting", "HR", "Home runs"], ["batting", "RBI", "RBI"], ["batting", "BB", "Walks"], ["batting", "SO", "Strikeouts"], ["batting", "SB", "Stolen bases"], ["batting", "LOB", "Left on base"], ["pitching", "K", "Pitchers' strikeouts"], ["pitching", "BB", "Walks allowed"], ["fielding", "E", "Errors"]];
+  const teams = (bx.teams || []).map(t => {
+    const st = t.statistics || [];
+    const stats = lg === "mlb"
+      ? MLB_TEAM.map(([g, ab, label]) => { const x = (st.find(s => s.name === g)?.stats || []).find(s => s.abbreviation === ab); return x ? [label, String(x.displayValue)] : null; }).filter(Boolean)
+      : st.filter(x => x.displayValue != null && x.displayValue !== "").map(x => [x.label || x.displayName || x.name, String(x.displayValue)]);
+    return { id: String(t.team?.id || ""), side: t.homeAway || null, stats };
+  });
+  const players = [];
+  if (Array.isArray(bx.players) && bx.players.length) {
+    for (const t of bx.players) {
+      const groups = [];
+      for (const st of t.statistics || []) {
+        if (!(st.athletes || []).length) continue;
+        let labels = st.labels || st.names || [], pick = labels.map((_, i) => i);
+        const name = st.name || st.type || st.text || "";
+        if (lg === "nhl") { const want = /goal/i.test(name) ? NHL_GOALIE : NHL_SKATER; pick = want.map(w => labels.indexOf(w)).filter(i => i >= 0); }
+        groups.push({ name: name ? name[0].toUpperCase() + name.slice(1) : "Players", labels: pick.map(i => labels[i]),
+          rows: st.athletes.map(x => ({ id: String(x.athlete?.id || ""), name: x.athlete?.displayName || "", short: x.athlete?.shortName || "", photo: photo(x.athlete),
+            pos: x.position?.abbreviation || x.athlete?.position?.abbreviation || "", starter: !!x.starter, dnp: !!x.didNotPlay || !(x.stats || []).length,
+            stats: pick.map(i => (x.stats || [])[i] ?? "") })),
+          totals: st.totals ? pick.map(i => st.totals[i] ?? "") : null });
+      }
+      if (groups.length) players.push({ team: String(t.team?.id || ""), groups });
+    }
+  } else if (Array.isArray(d.rosters)) {                       // soccer: lineups with each player's match stats
+    for (const r of d.rosters) {
+      const rows = (r.roster || []).map(x => { const m = {}; for (const s of x.stats || []) m[s.name] = s.displayValue;
+        return { id: String(x.athlete?.id || ""), name: x.athlete?.displayName || "", photo: photo(x.athlete), pos: x.position?.abbreviation || "", jersey: x.jersey || "",
+          starter: !!x.starter, subIn: !!x.subbedIn, stats: SOCCER_COLS.map(([k]) => m[k] ?? "") }; }).filter(x => x.starter || x.subIn);
+      if (rows.length) players.push({ team: String(r.team?.id || ""), formation: r.formation || null, groups: [{ name: "Lineup", labels: SOCCER_COLS.map(c => c[1]), rows, totals: null }] });
+    }
+  }
+  return teams.length || players.length ? { teams, players } : null;
+}
+/* ---- everything around the game: venue, weather, officials, odds, injuries, form and news ---- */
+function infoOf(d, lg) {
+  const gi = d.gameInfo || {}, v = gi.venue || {};
+  const pc = (d.pickcenter || [])[0] || null;
+  const injuries = (d.injuries || []).map(t => ({ team: String(t.team?.id || ""), items: (t.injuries || []).slice(0, 12).map(x => ({
+    name: x.athlete?.displayName || "", pos: x.athlete?.position?.abbreviation || "", status: x.status || x.type?.description || "",
+    detail: [x.details?.type, x.details?.location, x.details?.side].filter(Boolean).join(", ") || x.details?.detail || "",
+    photo: x.athlete?.headshot?.href || (x.athlete?.id ? `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${x.athlete.id}.png` : null) })) })).filter(t => t.items.length);
+  const form = (d.lastFiveGames || []).map(t => ({ team: String(t.team?.id || ""), results: (t.events || []).slice(0, 5).map(e => ({ r: e.gameResult || "", score: e.score || "", opp: e.opponent?.abbreviation || e.opponent?.displayName || "", date: e.gameDate || "" })) })).filter(t => t.results.length);
+  return {
+    venue: v.fullName || null, city: [v.address?.city, v.address?.state || v.address?.country].filter(Boolean).join(", ") || null,
+    capacity: v.capacity || null, attendance: gi.attendance || null, grass: v.grass == null ? null : v.grass ? "Grass" : "Turf",
+    weather: gi.weather ? { temp: gi.weather.temperature ?? null, text: gi.weather.displayValue || gi.weather.conditionId || "" } : null,
+    officials: (gi.officials || []).map(o => [o.position?.displayName || o.position?.name || "", o.displayName || o.fullName || ""]).filter(o => o[1]).slice(0, 8),
+    odds: pc ? { provider: pc.provider?.name || "", details: pc.details || null, overUnder: pc.overUnder ?? null, spread: pc.spread ?? null,
+      homeML: pc.homeTeamOdds?.moneyLine ?? null, awayML: pc.awayTeamOdds?.moneyLine ?? null, drawML: pc.drawOdds?.moneyLine ?? null } : null,
+    injuries, form,
+    news: ((d.news && d.news.articles) || []).slice(0, 6).map(a => ({ title: a.headline || "", desc: a.description || "", url: a.links?.web?.href || null, img: (a.images || [])[0]?.url || null, date: a.published || null })),
+  };
+}
+/* ---- standings ---- */
+const STAND_COLS = {
+  nfl: [["wins", "W"], ["losses", "L"], ["ties", "T"], ["winPercent", "PCT"], ["pointsFor", "PF"], ["pointsAgainst", "PA"], ["pointDifferential", "DIFF"], ["streak", "STRK"]],
+  nba: [["wins", "W"], ["losses", "L"], ["winPercent", "PCT"], ["gamesBehind", "GB"], ["avgPointsFor", "PPG"], ["avgPointsAgainst", "OPP"], ["streak", "STRK"]],
+  mlb: [["wins", "W"], ["losses", "L"], ["winPercent", "PCT"], ["gamesBehind", "GB"], ["pointsFor", "RS"], ["pointsAgainst", "RA"], ["Last Ten Games", "L10"], ["streak", "STRK"]],
+  nhl: [["gamesPlayed", "GP"], ["wins", "W"], ["losses", "L"], ["otLosses", "OTL"], ["points", "PTS"], ["pointsFor", "GF"], ["pointsAgainst", "GA"], ["streak", "STRK"]],
+  epl: [["gamesPlayed", "GP"], ["wins", "W"], ["ties", "D"], ["losses", "L"], ["pointsFor", "GF"], ["pointsAgainst", "GA"], ["pointDifferential", "GD"], ["points", "PTS"]],
+};
+export function normStandings(d, lg) {
+  const cols = STAND_COLS[lg] || [], groups = [];
+  const walk = (node, label) => {
+    const entries = node.standings?.entries || [];
+    if (entries.length) {
+      const rows = entries.map(e => { const m = {}; for (const s of e.stats || []) if (!(s.name in m)) m[s.name] = s.displayValue ?? s.summary ?? "";
+        const logo = (e.team?.logos || [])[0]?.href || null;
+        return { id: String(e.team?.id || ""), name: e.team?.displayName || "", short: e.team?.shortDisplayName || "", abbr: e.team?.abbreviation || "", logo,
+          seed: +(m.playoffSeed || m.rank || 0) || null, note: e.note ? { color: e.note.color, text: e.note.description } : null, vals: cols.map(([k]) => m[k] ?? "") }; });
+      const sortKey = lg === "epl" || lg === "nhl" ? "points" : "winPercent", i = cols.findIndex(c => c[0] === sortKey);
+      if (i >= 0) rows.sort((a, b) => (parseFloat(b.vals[i]) || 0) - (parseFloat(a.vals[i]) || 0) || (a.seed || 99) - (b.seed || 99));
+      groups.push({ name: label || node.name || "", rows });
+    }
+    for (const c of node.children || []) walk(c, c.name);
+  };
+  walk(d, d.name);
+  return { league: lg, cols: cols.map(c => c[1]), groups, season: d.seasons?.[0]?.displayName || null };
+}
+export async function espnStandings(lg, fetchImpl = fetch) {
+  return normStandings(await firstOf([() => getJSON(`https://site.web.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings`, fetchImpl),
+    () => getJSON(`https://site.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings`, fetchImpl)]), lg);
+}
+/* ---- news ---- */
+export function normNews(d) {
+  return (d.articles || []).filter(a => a.headline).map(a => ({ title: a.headline, desc: a.description || "", url: a.links?.web?.href || a.links?.mobile?.href || null,
+    img: (a.images || []).find(i => i.url)?.url || null, date: a.published || a.lastModified || null, byline: a.byline || null, video: a.type === "Media" }));
+}
+export async function espnNews(lg, teamId = null, fetchImpl = fetch) {
+  const q = `?limit=${teamId ? 12 : 30}${teamId ? `&team=${teamId}` : ""}`;
+  return normNews(await firstOf([() => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/news${q}`, fetchImpl), () => getJSON(`${ESPN}${LEAGUES[lg]}/news${q}`, fetchImpl)]));
+}
+/* ---- a team's page: record, schedule and results, roster ---- */
+export function normTeam(t, sched, roster, lg) {
+  t = t?.team || t || {};
+  const logo = (t.logos || [])[0]?.href || null;
+  const games = ((sched && sched.events) || []).map(e => {
+    const c = (e.competitions || [])[0] || {}, cs = c.competitors || [], me = cs.find(x => String(x.id || x.team?.id) === String(t.id)) || cs[0] || {}, op = cs.find(x => x !== me) || {};
+    const sc = x => x.score == null ? null : typeof x.score === "object" ? x.score.displayValue ?? x.score.value : String(x.score);
+    const st = c.status?.type || e.status?.type || {};
+    return { id: String(e.id), date: e.date, home: me.homeAway === "home", state: st.state || "pre", detail: st.shortDetail || st.detail || "",
+      opp: { id: String(op.team?.id || op.id || ""), name: op.team?.displayName || "", short: op.team?.shortDisplayName || "", abbr: op.team?.abbreviation || "", logo: (op.team?.logos || [])[0]?.href || op.team?.logo || null },
+      us: sc(me), them: sc(op), won: me.winner === true, lost: op.winner === true, tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null,
+      label: e.week?.text || e.seasonType?.name || "" };
+  });
+  const groups = [];
+  const people = roster?.athletes || [];
+  const person = x => ({ id: String(x.id || ""), name: x.displayName || x.fullName || "", jersey: x.jersey || "", pos: x.position?.abbreviation || "", age: x.age || null,
+    ht: x.displayHeight || "", wt: x.displayWeight || "", photo: x.headshot?.href || (x.id ? `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${x.id}.png` : null),
+    hurt: (x.injuries || [])[0]?.status || null, from: x.college?.name || x.birthPlace?.country || "" });
+  if (people.length && people[0].items) for (const g of people) groups.push({ name: (g.position || "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, c => c.toUpperCase()), players: (g.items || []).map(person) });
+  else if (people.length) {
+    const by = {}; for (const x of people) { const k = x.position?.displayName || x.position?.name || "Players"; (by[k] = by[k] || []).push(person(x)); }
+    for (const [name, players] of Object.entries(by)) groups.push({ name, players });
+  }
+  for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].players.length) groups.splice(i, 1);
+  return { league: lg, id: String(t.id || ""), name: t.displayName || "", short: t.shortDisplayName || "", abbr: t.abbreviation || "", logo,
+    color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null,
+    record: t.record?.items?.[0]?.summary || null, standing: t.standingSummary || null, games, roster: groups,
+    coach: roster?.coach?.[0] ? `${roster.coach[0].firstName || ""} ${roster.coach[0].lastName || ""}`.trim() : null };
+}
+export async function espnTeam(lg, id, fetchImpl = fetch) {
+  const base = `${ESPN_WEB}${LEAGUES[lg]}/teams/${id}`, soft = p => p.catch(() => null);
+  const [t, s, r] = await Promise.all([getJSON(base, fetchImpl), soft(getJSON(base + "/schedule", fetchImpl)), soft(getJSON(base + "/roster", fetchImpl))]);
+  return normTeam(t, s, r, lg);
+}
 async function cached(req, ctx, ttl, make) {
   const cache = typeof caches !== "undefined" ? caches.default : null, k = new Request(req.url, { method: "GET" });
   if (cache) { const hit = await cache.match(k); if (hit) return hit; }
@@ -541,6 +685,12 @@ export default {
         return await cached(req, ctx, 20, async () => espnScoreboard(m[1], fetch, url.searchParams.get("dates")));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/(\d+)$/)))
         return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/standings$/)))
+        return await cached(req, ctx, 600, async () => espnStandings(m[1]));
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/news$/)))
+        return await cached(req, ctx, 300, async () => espnNews(m[1], url.searchParams.get("team")));
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/team\/(\d+)$/)))
+        return await cached(req, ctx, 300, async () => espnTeam(m[1], m[2]));
       if ((m = url.pathname.match(/^\/tennis\/game\/(\d+)$/)))
         return await cached(req, ctx, 10, async () => {
           const q = new URLSearchParams({ method: "get_livescore", APIkey: env.API_TENNIS_KEY, match_key: m[1], timezone: "America/New_York" });
@@ -575,10 +725,10 @@ export default {
       const d = await req.json().catch(() => ({}));
       const s = JSON.parse(await env.KV.get("subs") || "[]").find(x => x.sub.endpoint === d.endpoint);
       if (!s) return json({ error: "not subscribed" }, 404);
-      const r = await sendPush(s.sub, { title: "Baseline alerts are on", body: "You'll hear from us when your players are on court.", tag: "test", url: "./?tab=watch" }, env);
+      const r = await sendPush(s.sub, { title: "Cosmo Sports alerts are on", body: "You'll hear from us when your players are on court.", tag: "test", url: "./?tab=watch" }, env);
       return json({ ok: r.ok, status: r.status });
     }
-    return json({ service: "Baseline alerts", ok: true });
+    return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) { ctx.waitUntil(tick(env).then(r => console.log(JSON.stringify(r)))); },
 };
