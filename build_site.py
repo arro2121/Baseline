@@ -35,7 +35,7 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 
 MANIFEST = {
     "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
-    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks and games against our prediction model, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
+    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
     "categories": ["sports", "news", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
     "background_color": "#140F3A", "theme_color": "#140F3A",
@@ -48,7 +48,8 @@ MANIFEST = {
     "screenshots": [
         {"src": "screenshots/phone-universe.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Universe: every live game at once, ranked by excitement"},
         {"src": "screenshots/phone-ask.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Ask Cosmo, your AI sports companion"},
-        {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Daily 3 picks and Rating Rumble"},
+        {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Arcade games, Daily 3 picks and Rating Rumble"},
+        {"src": "screenshots/phone-arcade.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Penalty Shootout in the arcade"},
         {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
         {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
         {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
