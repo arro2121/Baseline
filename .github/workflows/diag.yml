@@ -1,0 +1,17 @@
+# Temporary: checks the live-scores service from GitHub's servers. Safe to delete.
+name: Diagnose live scores
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
+          for p in / /sports/mlb/scoreboard /sports/nfl/scoreboard; do
+            echo "=== $W$p"; curl -sS -m 30 -D - -o body.txt "$W$p" | head -20; head -c 600 body.txt; echo
+          done
+          echo "=== nslookup"; nslookup baseline-alerts.baseline-arro2121-3091.workers.dev || true
+          echo "=== ESPN direct"; curl -sS -m 30 -o body.txt -w "%{http_code}\n" https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard; head -c 300 body.txt; echo
