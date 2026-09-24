@@ -6,30 +6,22 @@
 standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
-**Only in Cosmo**
-* **Universe:** every game in every league at once, drawn as planets orbiting the Cosmo core. The hottest games
-  sit closest and glow brightest, with a "watch this now" pick and live, upcoming and final lists across leagues.
-* **Cosmo Pulse:** a 0-100 excitement score for every game from how close it is, how late it is, upsets in the
-  making and overtime. Live games show how gripping they are right now; finals are tagged "Thriller" or "Close one"
-  so you know which replays are worth your time.
-* **Turning points:** the plays that swung win probability the most (or, in hockey and soccer, the goals that
-  changed who led), marked on the win-probability chart. Tap one to replay it on the animated field.
-* **Cosmo Picks:** call the winner before any game, then see Cosmo's pick. Picks grade themselves when games end,
-  and you get a running record against the model, a win streak and a badge when you're beating it.
-* **Cosmo forecast:** the model's locks for today, upset alerts where it disagrees with the betting market, and
-  coin flips that are too close to call.
-* **Galaxy power rankings:** each league's ratings drawn as a galaxy, with the strongest teams orbiting the core.
-* **Season constellations:** every team page draws its season as a constellation. Each game is a star, wins sit
-  above the horizon, and bigger margins shine brighter.
-* **Star of the Game:** the standout player of every game, with their line.
-* **Astronaut ranks and badges:** climb from Cadet to Star Admiral with correct picks, and unlock badges like
-  Comet (3 in a row), Supernova (5 in a row), Rogue satellite (right when Cosmo was wrong) and Oracle.
-* **Launch countdowns:** a T-minus clock to every game's start.
-* **Cosmic motion:** a jump to warp speed when the app opens; balls fly as comets in every animated replay;
-  scores set off supernovas on the field, the game header, the scoreboard and the Universe; shooting stars cross the
-  sky; views materialize as you switch.
-* **Score cards:** turn any game into a shareable image with both logos, the score, the win-probability line,
-  its Pulse and the turning point. Share it straight to messages or social, or save it.
+**What makes it different**
+* **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center,
+  the best game on right now, and live, upcoming and final lists.
+* **Excitement score:** a 0-100 rating of how close and how late each game is, so you know what's worth
+  switching to. Finals are tagged "Thriller" or "Close game".
+* **Notifications:** game starts, scoring plays, close finishes and final scores for the teams you follow and any
+  game you tap the bell on, even with the app closed. You can also get alerts for close finishes in any game.
+* **Turning points:** the plays that swung win probability the most, marked on the win-probability chart.
+  Tap one to replay it.
+* **Animated replays:** every play drawn on the field with the players moving: formations and routes in football,
+  fielders chasing the ball in baseball, closeouts and rebounds in basketball, a diving keeper in soccer, and
+  skaters and the goalie in hockey. The camera eases in on the key moment.
+* **Model picks:** the prediction model's strongest picks for today, games where it disagrees with the betting
+  market, and toss-ups.
+* **Picks:** pick winners before games start; picks are graded automatically and compared with the model.
+* **Player of the game, season results chart, power-rankings map** and **shareable score images**.
 
 **What's in it**
 * **Games:** today's scores (or any other day) with team logos, win chances, betting lines and live situations;
@@ -145,12 +137,10 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Name:** Cosmo Sports
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
-  League and tennis together. See every live game at once in the Universe, where the most exciting games glow
-  brightest; Cosmo Pulse scores how gripping each game is, turning points show the plays that swung it, and Cosmo
-  Picks lets you call winners against our prediction model. Share any game as a score card image. Plus live scores, animated play-by-play with real highlight replays, full box scores,
-  standings, team pages with schedules and rosters, news, and data-driven win predictions. Follow your teams
-  across every league, get game previews with injuries and betting lines, add games to your calendar, and share
-  any game with a link. No account, no ads, no tracking.
+  League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
+  standings, team pages with schedules and rosters, news and data-driven win predictions. See every game on one
+  screen with an excitement score for each, get notifications for your teams and close finishes, find the plays
+  that swung each game, and pick winners against the prediction model. No account, no ads, no tracking.
 * **Category:** Sports · **Content rating:** answer "yes" to gambling-related content (the app shows odds but
   takes no bets) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
 * **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /
