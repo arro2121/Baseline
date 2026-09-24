@@ -1,0 +1,24 @@
+name: History fetch (temporary)
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml", ".github/diag/*.py", "team_history.py"]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Fetch
+        run: |
+          python .github/diag/peek.py 2>&1 | tee .github/diag/peek.log || true
+          python team_history.py --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
+          curl -sL https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv -o .github/diag/hist/nfl_games.csv || true
+      - name: Save
+        run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add -A .github/diag && git commit -q -m "History fetch results" && git pull -q --rebase && git push || echo nothing
