@@ -26,7 +26,7 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
-<meta property="og:description" content="Live scores, animated play-by-play, real replays, box scores, standings, team pages, news and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
 <meta property="og:image" content="__SITE__og-image.png">
 <meta property="og:url" content="__SITE__">
 <meta name="twitter:card" content="summary_large_image">
@@ -35,7 +35,7 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 
 MANIFEST = {
     "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
-    "description": "Every game, every league, one app. Live scores, animated play-by-play with real highlight replays, box scores, standings, team pages with schedules and rosters, news, and data-driven win predictions for the NFL, NBA, MLB, NHL, Premier League and tennis. Follow your teams across every league.",
+    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks and games against our prediction model, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
     "categories": ["sports", "news", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
     "background_color": "#140F3A", "theme_color": "#140F3A",
@@ -47,15 +47,20 @@ MANIFEST = {
         {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
     "screenshots": [
         {"src": "screenshots/phone-universe.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Universe: every live game at once, ranked by excitement"},
+        {"src": "screenshots/phone-ask.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Ask Cosmo, your AI sports companion"},
+        {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Daily 3 picks and Rating Rumble"},
         {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
         {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
         {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
         {"src": "screenshots/phone-team.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Team pages with schedule and roster"},
         {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "The Universe on a computer"}],
     "shortcuts": [
+        {"name": "Today: every game", "short_name": "Today", "url": "./?sport=universe", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Ask Cosmo", "short_name": "Ask", "url": "./?ask=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Play: Daily 3", "short_name": "Play", "url": "./?sport=play", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Following", "short_name": "Following", "url": "./?sport=following", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Find a team", "short_name": "Search", "url": "./?search=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Tennis live scores", "short_name": "Tennis", "url": "./?tab=live", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}],
+        ],
 }
 
 SW = """// Cosmo Sports offline helper and notifications. The app opens instantly and still works without signal,

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
-<meta name="description" content="Live scores, animated play-by-play, real replays, box scores, standings, team pages, news and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
 <!--PWA-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1193,6 +1193,61 @@ body:has(dialog[open]) .askfab{display:none}
 .askform input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 16px;font-size:.92rem}
 .askform input:focus{outline:2px solid #9D7BFF;outline-offset:1px}
 .askfine{margin:0;padding:0 16px calc(10px + env(safe-area-inset-bottom,0px));font-size:.7rem;color:var(--faint);text-align:center}
+/* ---------- Play: Daily 3, Rating Rumble ---------- */
+.setrow.wrapr{flex-wrap:wrap}.setrow.wrapr > div:first-child{flex:1 1 220px}
+.playgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;align-items:start}
+.dnote{margin:-4px 0 10px;color:var(--muted);font-size:.82rem}
+.daily{background:linear-gradient(160deg,rgba(122,61,245,.18),var(--surface) 55%);border-color:rgba(185,139,255,.35)}
+.dlist{display:flex;flex-direction:column;gap:8px}
+.drow{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 64px;align-items:center;gap:6px 6px}
+.dmeta{grid-column:1/-1;font-size:.7rem;font-weight:700;color:var(--muted);margin-top:2px}
+.dat{text-align:center;font-size:.7rem;color:var(--muted)}
+.dside{display:flex;align-items:center;gap:7px;min-width:0;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:12px;padding:7px 9px;font-size:.84rem;transition:transform .12s,border-color .12s,background .12s}
+.dside b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dside:not([disabled]):hover{border-color:#B98BFF;transform:translateY(-1px)}
+.dside.on{background:linear-gradient(135deg,rgba(122,61,245,.55),rgba(194,51,143,.45));border-color:rgba(255,122,200,.7);box-shadow:0 0 16px -4px rgba(194,51,143,.8)}
+.dside.win{border-color:var(--pos)}.dside.on.lose{background:rgba(255,125,142,.18);border-color:var(--neg)}
+.dside[disabled]{cursor:default;opacity:.95}
+.dres{display:flex;flex-direction:column;align-items:flex-end;font-weight:800;font-size:1rem}.dres small{font-size:.64rem;color:var(--muted);font-weight:600;text-align:right}.dres .dvs{color:#FFD678}
+.dfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;font-size:.84rem}
+.dbtns{display:flex;gap:8px}
+.rumble h3 .rstreak{margin-left:auto;font-size:.76rem;font-weight:600;color:var(--muted)}.rumble h3 .rstreak b{color:var(--ink)}
+.rpair{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.rvs{align-self:center;font-weight:900;color:var(--muted);font-size:.8rem}
+.rcard{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:16px 10px;border-radius:16px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);transition:transform .15s,border-color .15s,box-shadow .15s}
+.rcard:not([disabled]):hover{transform:translateY(-3px);border-color:#B98BFF;box-shadow:0 12px 30px -12px rgba(122,61,245,.8)}
+.rcard .tlogo{width:58px;height:58px}.rcard b{font-size:.92rem;line-height:1.2}
+.rcard .rq{font-size:.72rem;color:var(--muted)}
+.rcard .rval{font-weight:900;font-size:1.05rem;display:flex;flex-direction:column}.rcard .rval small{font-weight:600;color:var(--muted);font-size:.72rem}
+.rcard.win{border-color:var(--pos);box-shadow:0 0 0 1px var(--pos),0 0 24px -6px var(--pos);animation:rwin .5s cubic-bezier(.2,.8,.3,1.4)}
+.rcard.lose{opacity:.7}
+@keyframes rwin{40%{transform:scale(1.05)}}
+.rover{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-2)}.rover b{font-size:1.05rem}.rover span{color:var(--muted);font-size:.84rem}.rover .dbtns{margin-left:auto}
+.rnext{display:flex;justify-content:flex-end;margin-top:10px}
+/* ---------- spoiler shield ---------- */
+.gteam .sc.hid{color:var(--faint);letter-spacing:.1em}
+.hidnote{justify-content:space-between;align-items:center}.hidnote .ghost{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;padding:4px 10px;font-weight:700;font-size:.76rem}
+.hidtxt{color:var(--muted);font-weight:700}
+.shield{min-height:100%;display:grid;place-items:center;padding:60px 24px;background:radial-gradient(ellipse at 50% 30%,rgba(122,61,245,.3),transparent 60%)}
+.shieldin{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:34ch}
+.shico{font-size:2.4rem;filter:drop-shadow(0 0 12px rgba(185,139,255,.8))}.shieldin b{font-size:1.2rem}.shieldin p{margin:0 0 8px;color:var(--muted)}.shieldin small{color:var(--faint);font-size:.74rem}
+/* ---------- first run ---------- */
+dialog.modal.onb{max-width:580px}
+dialog.onb .dlg{box-sizing:border-box;width:100%}
+dialog.onb h2{font-size:1.35rem;margin:0 0 6px}
+dialog.onb p{margin:0 0 12px}
+.onbhero{display:flex;flex-direction:column;align-items:center;text-align:center}
+.onbmark svg{width:92px;height:92px;filter:drop-shadow(0 0 22px rgba(143,120,255,.8));animation:corespin 30s linear infinite}
+.onbbell{width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:rgba(255,214,120,.14);color:#FFD678;margin-bottom:10px}.onbbell svg{width:34px;height:34px}
+.onblist{list-style:none;padding:0;margin:8px 0 4px;text-align:left;display:grid;gap:8px}.onblist li{padding:9px 12px;border-radius:12px;background:var(--surface-2);font-size:.88rem;color:var(--muted)}.onblist b{color:var(--ink)}
+.onbtabs{display:flex;flex-wrap:wrap;margin-bottom:10px}.onbtabs button{padding:6px 11px;font-size:.8rem}
+.onbteams{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:min(46vh,420px);overflow-y:auto;padding:2px}
+.onbteam{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:12px;padding:7px 9px;font-size:.8rem;text-align:left}
+.onbteam span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.onbteam.on{border-color:#FFD678;background:rgba(255,214,120,.14);box-shadow:inset 0 0 0 1px rgba(255,214,120,.5)}
+.onbdots{display:flex;gap:6px;justify-content:center;margin:14px 0 10px}.onbdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.onbdots i.on{background:#B98BFF;width:20px;border-radius:4px}
+.onbbtns{display:flex;justify-content:space-between;align-items:center;gap:10px}.onbcount{color:var(--muted);font-size:.84rem}
+@media (max-width:760px){ .playgrid{grid-template-columns:1fr} .drow{grid-template-columns:minmax(0,1fr) 14px minmax(0,1fr) 52px;gap:4px} .dside{padding:6px 7px;font-size:.78rem;gap:5px} .dside .tlogo{width:22px;height:22px} .onbteams{grid-template-columns:repeat(2,minmax(0,1fr))} }
 </style>
 </head>
 <body data-surface="Hard">
@@ -1253,6 +1308,7 @@ body:has(dialog[open]) .askfab{display:none}
   <nav class="sportnav" id="sportNav" aria-label="Sport">
     <button data-sport="universe" aria-pressed="false"><span aria-hidden="true">◎</span>Today</button>
     <button data-sport="following" aria-pressed="false"><span aria-hidden="true">★</span>Following</button>
+    <button data-sport="play" aria-pressed="false"><span aria-hidden="true">🎯</span>Play</button>
     <button data-sport="tennis" aria-pressed="true"><span aria-hidden="true">🎾</span>Tennis</button>
     <button data-sport="nfl" aria-pressed="false"><span aria-hidden="true">🏈</span>NFL</button>
     <button data-sport="nba" aria-pressed="false"><span aria-hidden="true">🏀</span>NBA</button>
@@ -1378,6 +1434,7 @@ body:has(dialog[open]) .askfab{display:none}
 
   <div id="followView" hidden></div>
   <div id="uniView" hidden></div>
+  <div id="playView" hidden></div>
   <div id="teamView" hidden>
     <div class="lghead"><div><h1 id="lgTitle"></h1><p id="lgSub"></p></div>
       <div class="seg" role="group" aria-label="Section" id="ttSeg"><button data-tt="games" aria-pressed="true">Games</button><button data-tt="stand" aria-pressed="false">Standings</button><button data-tt="news" aria-pressed="false">News</button><button data-tt="rank" aria-pressed="false">Ratings</button><button data-tt="predict" aria-pressed="false">Predict</button></div></div>
@@ -1433,6 +1490,7 @@ body:has(dialog[open]) .askfab{display:none}
 
 <dialog id="profile" class="drawer" aria-labelledby="pName"><div class="pbody" id="pbody"></div></dialog>
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
+<dialog id="onbDlg" class="modal onb" aria-label="Welcome to Cosmo Sports"><div class="dlg" id="onbBody"></div></dialog>
 <button class="askfab" id="askFab" type="button" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span><span>Ask Cosmo</span></button>
 <dialog id="askDlg" class="drawer askd" aria-labelledby="askTitle"><div class="askwrap">
   <header class="askhd"><span class="aav" aria-hidden="true"></span><div><h2 id="askTitle">Ask Cosmo</h2><small>Your AI sports companion</small></div>
@@ -1470,6 +1528,7 @@ body:has(dialog[open]) .askfab{display:none}
   <div class="sheetin">
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
+    <button class="sheetrow" data-go="play"><b>Play</b><span>Daily 3 picks, Rating Rumble and your record against the model</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
     <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
@@ -1485,14 +1544,19 @@ body:has(dialog[open]) .askfab{display:none}
   <div class="dlg">
     <h2 id="setTitle">Settings</h2>
     <div id="ntfBox"></div>
+    <div class="setrow wrapr"><div><b>Spoiler shield</b><small>Hide scores until you tap to reveal them, in the app and in alerts</small></div>
+      <div class="seg" role="group" aria-label="Spoiler shield"><button type="button" data-spoil="off">Off</button><button type="button" data-spoil="mine">My teams</button><button type="button" data-spoil="all">All games</button></div></div>
+    <div class="setrow"><div><b>Sound effects</b><small>Short sounds for scores, picks and games</small></div>
+      <div class="seg" role="group" aria-label="Sound effects"><button type="button" data-snd="0">Off</button><button type="button" data-snd="1">On</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
-      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
+      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Play</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
     <div class="setrow"><div><b>Odds format</b><small>How prices are shown</small></div>
       <div class="seg" role="group" aria-label="Odds format"><button data-oddsfmt="us">American</button><button data-oddsfmt="dec">Decimal</button></div></div>
-    <div class="setrow"><div><b>Your data</b><small>Your settings stay on this device</small></div><button class="btn" id="resetData">Reset</button></div>
+    <div class="setrow"><div><b>Your data</b><small>Everything stays on this device. Reset clears your teams, picks, settings and chat, and turns off alerts</small></div><button class="btn" id="resetData">Reset</button></div>
+    <div class="setrow"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); maybeOnboard(true)">Start</button></div>
     <div class="dlgfoot" style="margin-top:14px"><small id="verInfo"></small><button class="btn" id="setClose">Done</button></div>
   </div>
 </dialog>
@@ -1500,15 +1564,17 @@ body:has(dialog[open]) .askfab{display:none}
 <dialog id="aboutDlg" class="modal wide" aria-labelledby="aboutTitle">
   <div class="dlg helpbody">
     <div class="aboutbrand"><img src="icon-192.png" alt="" width="64" height="64"><div><h2 id="aboutTitle">Cosmo Sports</h2><p>Every game, every league, one app.</p></div></div>
-    <p>Cosmo Sports brings live scores, play-by-play with animated replays, box scores, standings, team pages, news and data-driven predictions for tennis, the NFL, NBA, MLB, NHL and the Premier League together in one place.</p>
+    <p>Cosmo Sports brings live scores, play-by-play with animated replays, box scores, standings, team pages, news and data-driven predictions for tennis, the NFL, NBA, MLB, NHL and the Premier League together in one place, with alerts for your teams, Ask Cosmo (an AI sports companion), and daily picks and games.</p>
     <h3>Where the data comes from</h3>
-    <p>Live scores, play-by-play, box scores, standings, schedules, rosters, news, highlight clips and team logos come from ESPN's public sports data; ESPN's articles and videos open or play from ESPN. Tennis results and ratings are built from Jeff Sackmann's Tennis Abstract data and API-Tennis; NFL history from nflverse; Premier League history from openfootball.</p>
+    <p>Baseball comes from MLB's official Stats API, including MLB's own highlight clips. Other live scores, play-by-play, box scores, standings, schedules, rosters, news, highlight clips and team logos come from ESPN's public sports data, with the NHL's official API as a backup for hockey; ESPN's articles and videos open or play from ESPN. Tennis results and ratings are built from Jeff Sackmann's Tennis Abstract data and API-Tennis; NFL history from nflverse; Premier League history from openfootball.</p>
     <h3>Predictions</h3>
     <p>Win chances come from Cosmo Sports' own rating models and are estimates, not guarantees. Betting lines are shown for information only. If you bet, bet only what you can afford to lose; in the US, call 1-800-GAMBLER for help.</p>
     <h3>Not affiliated</h3>
     <p>Cosmo Sports is an independent app. It isn't affiliated with or endorsed by ESPN, the NFL, NBA, MLB, NHL, the Premier League, the ATP, the WTA or any team. Team names and logos belong to their owners and are used to identify the teams.</p>
+    <h3>Ask Cosmo</h3>
+    <p>Answers are written by an AI model from live data and can be wrong; check anything important. Your questions are sent to the AI provider to answer them and aren't stored by us.</p>
     <h3>Your privacy</h3>
-    <p>No account, no ads, no tracking. The teams you follow and your settings stay on this device. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></p>
+    <p>No account, no ads, no tracking. The teams you follow, your picks and your settings stay on this device; alerts and Ask Cosmo send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></p>
     <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" onclick="this.closest('dialog').close()">Done</button></div>
   </div>
 </dialog>
@@ -1902,12 +1968,17 @@ const saveSet = () => { try { localStorage.setItem("baseline:settings", JSON.str
 const fmtOdds = dec => SET.odds === "dec" ? dec.toFixed(2) : toAmerican(dec);
 function renderSettings(){
   renderNtf();
+  document.querySelectorAll("[data-spoil]").forEach(b => b.setAttribute("aria-pressed", (SPOIL.on ? SPOIL.scope : "off") === b.dataset.spoil));
+  document.querySelectorAll("[data-snd]").forEach(b => b.setAttribute("aria-pressed", String(SND ? 1 : 0) === b.dataset.snd));
   document.querySelectorAll("[data-deftour]").forEach(b => b.setAttribute("aria-pressed", b.dataset.deftour === SET.tour));
   $("#startSel").value = lsGet("startSport", "");
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
   document.querySelectorAll("[data-oddsfmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.oddsfmt === SET.odds));
   $("#verInfo").textContent = `Ratings through ${fmtDate(T().data_through)}`;
 }
+document.querySelectorAll("[data-spoil]").forEach(b => b.addEventListener("click", () => { const v = b.dataset.spoil; SPOIL.on = v !== "off"; if (SPOIL.on) SPOIL.scope = v; saveSpoil(); renderSettings(); toast(SPOIL.on ? "Spoiler shield is on" : "Spoiler shield is off");
+  if (SPORT === "universe") drawUniverse(); else if (SPORT === "following") renderFollowing(); else if (SPORT !== "tennis" && SPORT !== "play" && !$("#tt-games").hidden && SB[SPORT]) drawGames(); }));
+document.querySelectorAll("[data-snd]").forEach(b => b.addEventListener("click", () => { SND = b.dataset.snd === "1"; lsSet("sounds", SND); renderSettings(); sfx("tap"); }));
 document.querySelectorAll("[data-deftour]").forEach(b => b.addEventListener("click", () => { SET.tour = b.dataset.deftour; saveSet(); renderSettings(); }));
 $("#startSel").addEventListener("change", e => { lsSet("startSport", e.target.value); toast(e.target.value ? "Saved" : "The app will open where you left off"); });
 document.querySelectorAll("[data-oddsfmt]").forEach(b => b.addEventListener("click", () => { SET.odds = b.dataset.oddsfmt; saveSet(); renderSettings(); update(); }));
@@ -2227,7 +2298,7 @@ function setTour(t){
   $("#asof span").textContent = `Results through ${fmtDate(T().data_through,{month:"short",day:"numeric"})}`;
   renderRankings(); update(); renderAccuracy();
   $("#foot").innerHTML = `${T().tour === "ATP" ? "Men's" : "Women's"} ratings are built from ${T().all_matches.toLocaleString()} matches (${T().matches.toLocaleString()} tour-level, the rest ${T().tour==="ATP"?"Challenger":"WTA 125 and ITF"} and qualifying) from 2012 through ${fmtDate(T().data_through)}. ${T().live_rank_date ? `Rankings: ${T().live_rank_full ? "full list" : "top 15"} as of ${fmtDate(T().live_rank_date)}${T().live_rank_full ? "" : `, the rest as of ${fmtDate(T().rank_date)}`}.` : `Official rankings as of ${fmtDate(T().rank_date)}.`} Match data by Jeff Sackmann / Tennis Abstract and official tournament draws, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> for non-commercial use. Predictions are estimates, not guarantees. Bet only what you can afford to lose.`;
-  try { history.replaceState(null, "", "#" + t); } catch {}
+  try { if (!location.hash || /^#(atp|wta)$/.test(location.hash)) history.replaceState(null, "", "#" + t); } catch {}   // never clobber a shared link
 }
 document.querySelectorAll("[data-tour]").forEach(b=>b.addEventListener("click",()=>setTour(b.dataset.tour)));
 document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>{ st.surface = b.dataset.s; document.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed", x===b)); update(); if (SURF.includes(st.sort)) { st.sort = st.surface; renderRankings(); } }));
@@ -2273,13 +2344,14 @@ const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l
 function setSport(sp){
   SPORT = sp; lsSet("sport", sp);
   document.querySelectorAll("[data-sport]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sport === sp));
-  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe";
-  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
+  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play";
+  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
   clearInterval(sbTimer); sbTimer = null;
   if (tennis){ document.body.dataset.surface = st.surface; return; }
-  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : $("#teamView"));
+  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : $("#teamView"));
   if (follow){ document.body.dataset.surface = "Hard"; renderFollowing(); return; }
   if (uni){ document.body.dataset.surface = "Hard"; drawUniverse(); loadUniverse(); if (HOSTED) sbTimer = setInterval(loadUniverse, 30000); return; }
+  if (play){ document.body.dataset.surface = "Hard"; drawPlay(); if (HOSTED){ loadUniverse(); sbTimer = setInterval(loadUniverse, 60000); } return; }
   lsSet("lastLeague", sp);
   document.body.dataset.surface = sp === "epl" || sp === "mlb" ? "Grass" : "Hard";
   const L = LG();
@@ -2436,11 +2508,11 @@ function shiftDay(lg, n){
 /* favorite teams, kept on this device; their games come first */
 let FAV = {}; try { FAV = JSON.parse(localStorage.getItem("fav-teams") || "{}") || {}; } catch {}
 const isFav = (lg, name) => (FAV[lg] || []).includes(tkey(name));
-function toggleFav(lg, name){
+function toggleFav(lg, name, quiet){
   const k = tkey(name), a = FAV[lg] = FAV[lg] || []; const i = a.indexOf(k); i >= 0 ? a.splice(i, 1) : a.push(k);
   try { localStorage.setItem("fav-teams", JSON.stringify(FAV)); } catch {}
   if (typeof ntfSync === "function") ntfSync();
-  toast(i >= 0 ? `Stopped following ${name}` : `Following ${name}`);
+  if (!quiet) toast(i >= 0 ? `Stopped following ${name}` : `Following ${name}`);
   if (SPORT === lg && !$("#tt-games").hidden) drawGames();
   if (SPORT === "following") renderFollowing();
 }
@@ -2481,8 +2553,9 @@ function drawGames(){
     const live = g.status.state === "in", post = g.status.state === "post";
     const hs = +g.home.score, as = +g.away.score;
     const prev = PREV_SCORE[g.id], now = `${g.away.score}-${g.home.score}`, bumped = prev != null && prev !== now; PREV_SCORE[g.id] = now;
+    const hid = shielded(SPORT, g);
     const row = (t, pr, won, changed) => `<div class="gteam"><i style="background:${t.color || "var(--line)"}"></i><div class="nm">${logoChip(t)}<span>${esc(t.short || t.name)}</span><small>${esc(t.record || "")}</small><button class="fav" type="button" data-fav="${esc(t.name)}" aria-pressed="${isFav(SPORT, t.name)}" aria-label="${isFav(SPORT, t.name) ? "Unfollow" : "Follow"} ${esc(t.name)}">${isFav(SPORT, t.name) ? "★" : "☆"}</button></div>
-      <div class="sc ${post && !won ? "lose" : ""} ${changed ? "bump" : ""}">${g.status.state === "pre" ? "" : esc(t.score ?? "")}</div><div class="pr">${pr == null ? "" : Math.round(pr*100) + "%"}</div></div>`;
+      <div class="sc ${post && !won && !hid ? "lose" : ""} ${changed && !hid ? "bump" : ""} ${hid ? "hid" : ""}">${g.status.state === "pre" ? "" : hid ? "•" : esc(t.score ?? "")}</div><div class="pr">${pr == null ? "" : Math.round(pr*100) + "%"}</div></div>`;
     const sit = g.situation, sitHtml = live && sit ? (SPORT === "mlb" && sit.outs != null
       ? `<div class="gsit"><span>${sit.balls ?? 0}-${sit.strikes ?? 0}, ${sit.outs} out${sit.outs===1?"":"s"}<span class="bases"><b class="${sit.bases?.[1]?"on":""}"></b><b class="${sit.bases?.[0]?"on":""}"></b><b class="${sit.bases?.[2]?"on":""}"></b><b></b></span></span><span>${esc(sit.batter || "")}</span></div>`
       : sit.text || sit.last ? `<div class="gsit"><span>${esc(sit.text || sit.last)}</span></div>` : "") : "";
@@ -2492,7 +2565,7 @@ function drawGames(){
     const pl = pulseOf(g, SPORT, p);
     const bar = p && g.status.state !== "post" ? `<div class="gwin" title="Cosmo's pre-game win chances"><i style="width:${p.away * 100}%;background:${ac}"></i>${p.draw != null ? `<i style="width:${p.draw * 100}%;background:var(--line)"></i>` : ""}<i style="width:${p.home * 100}%;background:${hc}"></i></div>` : "";
     return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""} ${pl >= 82 && live ? "hotg" : ""}" data-gid="${esc(g.id)}" style="--ac:${ac};--hc:${hc}"><div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${esc(g.status.short || "")}${pulseChip(pl, g.status.state)}${g.status.state === "pre" ? `<span class="launch"><b data-launch="${esc(g.date)}"></b></span>` : ""}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
-      ${row(g.away, p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${bar}${sitHtml}${pickRow(g, SPORT, p)}
+      ${row(g.away, p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${bar}${hid ? "" : sitHtml}${hid ? `<div class="gsit hidnote"><span>🛡️ Score hidden</span><button type="button" class="ghost" data-reveal="${esc(g.id)}">Reveal</button></div>` : pickRow(g, SPORT, p)}
       <div class="gfoot"><span>${g.odds?.details ? `Line ${esc(g.odds.details)}${g.odds.overUnder ? `, O/U ${g.odds.overUnder}` : ""}` : ""}${mk != null && p ? ` · market ${Math.round(mk*100)}% home` : ""}${p?.draw != null ? ` · draw ${Math.round(p.draw*100)}%` : ""}</span>
         <span class="gbtns">${g.status.state !== "post" ? bellBtn(SPORT, g) : ""}${g.status.state === "pre" ? `<button class="ghost" data-cal="${g.id}" aria-label="Add to calendar">📅</button><button data-pbp="${g.id}">Preview</button>` : `<button data-pbp="${g.id}">${g.status.state === "post" ? "Recap" : "Play-by-play"}</button>`}</span></div></div>`; }).join("")}</div>
     <p class="condNote" style="margin-top:12px">Percentages and the colored bar are Cosmo's pre-game prediction; ⚡ is how exciting a game is right now, 0 to 100. Tap ☆ to put a team's games first. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${day ? "" : "; refreshes every 30 seconds"}.</p>`;
@@ -2500,6 +2573,7 @@ function drawGames(){
   $("#tt-games").querySelectorAll("[data-fav]").forEach(b => b.onclick = e => { e.stopPropagation(); toggleFav(SPORT, b.dataset.fav); });
   $("#tt-games").querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { const g = d.games.find(x => x.id === b.closest(".gcard").dataset.gid); if (!g) return;
     const H = findTeam(g.home.name), A = findTeam(g.away.name); makePick(SPORT, g, b.dataset.pick, H && A ? teamPredict(H, A, g.neutral) : null); drawGames(); });
+  $("#tt-games").querySelectorAll("[data-reveal]").forEach(b => b.onclick = () => { reveal(SPORT + "/" + b.dataset.reveal); drawGames(); });
   $("#tt-games").querySelectorAll("[data-bell]").forEach(b => b.onclick = async () => { const g = d.games.find(x => x.id === b.dataset.bell); if (g && await toggleBell(SPORT, g)) drawGames(); });
   $("#tt-games").querySelectorAll("[data-cal]").forEach(b => b.onclick = () => { const g = d.games.find(x => x.id === b.dataset.cal); if (g) downloadIcs([{ ...g, lg: SPORT }]); });
   $("#tt-games").querySelectorAll(".gteam .nm > span").forEach(n => { n.classList.add("tlink"); n.onclick = () => openTeamByName(SPORT, n.closest(".gteam").querySelector("[data-fav]").dataset.fav); });
@@ -3024,6 +3098,12 @@ function drawGame(g, lg){
   if (lg === "tennis" || !g.teams) return drawTennisGame(g, lg);
   const first = !GSEEN.size, live = g.status?.state === "in", H = g.home || {}, A = g.away || {}, wp = g.homeWinProb;
   learnLogos(lg, [H, A]);
+  if (shielded(lg, g)){
+    $("#gbody").innerHTML = `<button class="xbtn" id="gClose" aria-label="Close">✕</button>` + shieldCover(g, lg);
+    $("#gClose").onclick = () => $("#gameDlg").close();
+    $("#shieldReveal").onclick = () => { reveal(lg + "/" + g.id); drawGame(g, lg); };
+    return;
+  }
   const sk = `${A.score}-${H.score}`, scored = !first && G_SCORE[g.id] != null && G_SCORE[g.id] !== sk; G_SCORE[g.id] = sk;
   if (first || !$("#gScene")){
     SCENE_KEY = null; SCENE_PICK = null; SCENE_VIDEO = null;
@@ -3041,7 +3121,7 @@ function drawGame(g, lg){
   $("#gCard").onclick = () => openCard(g, lg);
   $("#gAsk").onclick = () => openAsk();
   const bh = $("#gHead [data-bell]"); if (bh) bh.onclick = async () => { if (await toggleBell(lg, g)) drawGame(g, lg); };
-  if (scored){ nova($("#gHead")); const [pa, ph] = (G_PREV_SC[g.id] || "").split("-"); document.querySelectorAll("#gHead .big").forEach((b, i) => { if ((i ? ph : pa) !== String(i ? H.score : A.score)) b.classList.add("roll"); }); }
+  if (scored){ nova($("#gHead")); sfx("score"); const [pa, ph] = (G_PREV_SC[g.id] || "").split("-"); document.querySelectorAll("#gHead .big").forEach((b, i) => { if ((i ? ph : pa) !== String(i ? H.score : A.score)) b.classList.add("roll"); }); }
   G_PREV_SC[g.id] = sk;
   if (first) $("#gHead .wpchart")?.classList.add("reveal");
   tickLaunch();
@@ -3175,6 +3255,9 @@ function downloadIcs(games){
   a.href = URL.createObjectURL(blob); a.download = "cosmo-sports-game.ics"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function handleHash(){
+  if (location.hash === "#play"){ setSport("play"); return; }
+  const dm = /^#duel=([\w-]+)$/.exec(location.hash);
+  if (dm){ takeDuel(dm[1]); history.replaceState(null, "", APP_URL()); setSport("play"); return; }
   const m = /^#(game|team)=(nfl|nba|mlb|nhl|epl|tennis)\/([mh]?\d+)$/.exec(location.hash);
   if (!m) return;
   if (m[1] === "game") openGame(m[2], m[3]); else openTeam(m[2], m[3]);
@@ -3232,7 +3315,7 @@ async function openTeam(lg, id){
   body.innerHTML = `<header class="thd" style="--tc:${esc(col)}"><button class="xbtn" id="tClose" aria-label="Close">✕</button>
       <div class="tid">${logoChip(t, "xl", lg)}<div><h2>${esc(t.name)}</h2><p>${esc([t.record, t.standing].filter(Boolean).join(" · "))}</p>${rank ? `<p class="trank">Cosmo rating: #${rank} in ${esc(LEAGUE_LABEL[lg])}</p>` : ""}</div></div>
       <div class="tacts"><button class="btn" id="tFav" type="button" aria-pressed="${fav}">${fav ? "★ Following" : "☆ Follow"}</button><button class="btn" id="tShare" type="button">Share</button>${t.games.some(x => x.state === "pre") ? `<button class="btn" id="tCal" type="button">Add games to calendar</button>` : ""}</div>
-      ${next || last ? `<div class="tnext">${last ? `<div><small>Last game</small>${gameLine(last, lg)}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Live now" : "Next game"}</small>${gameLine(next, lg)}</div>` : ""}</div>` : ""}</header>
+      ${next || last ? `<div class="tnext">${last ? `<div><small>Last game</small>${gameLine(last, lg, teamShielded(lg, t.name))}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Live now" : "Next game"}</small>${gameLine(next, lg, teamShielded(lg, t.name))}</div>` : ""}</div>` : ""}</header>
     <div class="pbar ttabs"><span class="gtabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" data-tt2="${k}" aria-selected="${TTAB === k}">${l}</button>`).join("")}</span></div>
     <div class="plays" id="tList"></div>`;
   $("#tClose").onclick = () => dlg.close();
@@ -3244,7 +3327,7 @@ async function openTeam(lg, id){
     const L = $("#tList");
     if (TTAB === "schedule"){
       const up = t.games.filter(x => x.state !== "post"), done = t.games.filter(x => x.state === "post").reverse();
-      L.innerHTML = constellationHtml(t) + (up.length ? `<div class="pgrp">Coming up</div>${up.slice(0, 25).map(x => schedRow(x, lg)).join("")}` : "") + (done.length ? `<div class="pgrp">Results</div>${done.map(x => schedRow(x, lg)).join("")}` : "") || `<div class="teamnote">No games scheduled.</div>`;
+      L.innerHTML = constellationHtml(t) + (up.length ? `<div class="pgrp">Coming up</div>${up.slice(0, 25).map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") + (done.length ? `<div class="pgrp">Results</div>${done.map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") || `<div class="teamnote">No games scheduled.</div>`;
     } else if (TTAB === "roster"){
       L.innerHTML = t.roster.length ? (t.coach ? `<p class="bnote">Head coach: <b>${esc(t.coach)}</b></p>` : "") + t.roster.map(gr => `<div class="pgrp">${esc(gr.name)} <span>${gr.players.length}</span></div>${gr.players.map(p => `<div class="rrow"><span class="pchip" style="--tc:${esc(col)}">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(p.name)}</b><small>${esc([p.jersey ? "#" + p.jersey : "", p.pos, p.age ? "Age " + p.age : "", p.ht, p.wt].filter(Boolean).join(" · "))}</small></div>${p.hurt ? `<em class="${/out|reserve/i.test(p.hurt) ? "out" : "q"}">${esc(p.hurt)}</em>` : ""}</div>`).join("")}`).join("") : `<div class="teamnote">No roster available.</div>`;
     } else {
@@ -3257,13 +3340,14 @@ async function openTeam(lg, id){
   body.onclick = e => { const r = e.target.closest("[data-game]"); if (r) openGame(lg, r.dataset.game); };
   drawTab();
 }
-function gameLine(x, lg){
+function gameLine(x, lg, hide){
+  if (hide && x.state !== "pre") return `<button class="gline" type="button" data-game="${esc(x.id)}">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<span class="gn">${esc(x.opp.short || x.opp.name)}</span><b class="hidtxt">🛡️ Hidden</b></button>`;
   const res = x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"} ${esc(x.us ?? "")}–${esc(x.them ?? "")}</b>` : x.state === "in" ? `<b class="livetxt">${esc(x.us ?? "")}–${esc(x.them ?? "")}</b>` : `<b>${esc(new Date(x.date).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</b>`;
   return `<button class="gline" type="button" data-game="${esc(x.id)}">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<span class="gn">${esc(x.opp.short || x.opp.name)}</span>${res}</button>`;
 }
-function schedRow(x, lg){
+function schedRow(x, lg, hide){
   const d = new Date(x.date), when = d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
-  const res = x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"}</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : x.state === "in" ? `<b class="livetxt">Live</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : `${esc(d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}${x.tv ? ` · ${esc(x.tv)}` : ""}`;
+  const res = hide && x.state !== "pre" ? `<b class="hidtxt">🛡️ Hidden</b>` : x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"}</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : x.state === "in" ? `<b class="livetxt">Live</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : `${esc(d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}${x.tv ? ` · ${esc(x.tv)}` : ""}`;
   return `<button class="srow" type="button" data-game="${esc(x.id)}"><span class="sd">${esc(when)}${x.label ? `<small>${esc(x.label)}</small>` : ""}</span><span class="so">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<b>${esc(x.opp.short || x.opp.name)}</b></span><span class="sr">${res}</span></button>`;
 }
 
@@ -3282,14 +3366,15 @@ async function renderFollowing(){
       const t = await espnOr(() => ESPN_DIRECT.team(p.lg, id), `${ALERTS_URL}/sports/${p.lg}/team/${id}`);
       const next = t.games.find(x => x.state !== "post"), last = [...t.games].reverse().find(x => x.state === "post");
       card.querySelector("small").textContent = [LEAGUE_LABEL[p.lg], t.record, t.standing].filter(Boolean).join(" · ");
-      card.querySelector(".fbody").innerHTML = `${next && next.state === "in" ? `<div class="flive">Live now</div>` : ""}${last ? `<div><small>Last</small>${gameLine(last, p.lg)}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Now" : "Next"}</small>${gameLine(next, p.lg)}</div>` : ""}<button class="btn" type="button" data-open="1">Team page</button>`;
+      card.querySelector(".fbody").innerHTML = `${next && next.state === "in" ? `<div class="flive">Live now</div>` : ""}${last ? `<div><small>Last</small>${gameLine(last, p.lg, teamShielded(p.lg, p.name))}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Now" : "Next"}</small>${gameLine(next, p.lg, teamShielded(p.lg, p.name))}</div>` : ""}<button class="btn" type="button" data-open="1">Team page</button>`;
       card.onclick = e => { const g = e.target.closest("[data-game]"); if (g) return openGame(p.lg, g.dataset.game); if (e.target.closest("[data-open]")) openTeam(p.lg, t.id); };
     } catch { card.querySelector(".fbody").textContent = "Couldn't load this team right now."; }
   });
 }
 
 /* ================= Notifications: alerts for your teams and the games you ask about, even with the app closed ================= */
-const NTF = Object.assign({ on: false, prefs: { start: true, score: true, close: true, final: true, anyClose: false }, games: [] }, lsGet("ntf", {}) || {});
+const NTF = Object.assign({ on: false, prefs: {}, games: [] }, lsGet("ntf", {}) || {});
+NTF.prefs = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, ...(NTF.prefs || {}) };
 const saveNtf = () => lsSet("ntf", NTF);
 const pushOK = () => HOSTED && !!ALERTS_URL && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const BELL = on => `<svg viewBox="0 0 20 20" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8a4.6 4.6 0 0 0-4.6 4.6v2.9L4 13.3h12l-1.4-3V7.4A4.6 4.6 0 0 0 10 2.8Z"/><path d="M8.2 15.6a1.9 1.9 0 0 0 3.6 0" fill="none"/></svg>`;
@@ -3310,7 +3395,7 @@ function ntfSync(){
   NTF_T = setTimeout(async () => {
     if (!NTF.on || !pushOK()) return;
     try { const s = await pushSub(false); if (!s) return;
-      await fetch(ALERTS_URL + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sub: s.toJSON(), teams: ntfTeams(), games: NTF.games, prefs: NTF.prefs }) }); } catch {}
+      await fetch(ALERTS_URL + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sub: s.toJSON(), teams: ntfTeams(), games: NTF.games, prefs: { ...NTF.prefs, noSpoilers: SPOIL.on } }) }); } catch {}
   }, 500);
 }
 async function ntfEnable(){
@@ -3346,7 +3431,7 @@ function bellBtn(lg, g, cls = "ghost bell"){
 function renderNtf(){
   const box = $("#ntfBox"); if (!box) return;
   const nTeams = Object.values(FAV).reduce((n, a) => n + a.length, 0), nGames = NTF.games.length;
-  const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["anyClose", "Close finishes in any game", "not just your teams"]];
+  const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"]];
   box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
       <button class="btn ${NTF.on ? "" : "primary"}" id="ntfBtn" type="button">${NTF.on ? "Turn off" : "Turn on"}</button></div>
     ${NTF.on ? `<div class="ntfprefs">${P.map(([k, l, h]) => `<label class="ntfrow"><input type="checkbox" data-np="${k}" ${NTF.prefs[k] ? "checked" : ""}><span><b>${l}</b>${h ? `<small>${h}</small>` : ""}</span></label>`).join("")}
@@ -3440,6 +3525,205 @@ $("#askClear").onclick = () => { ASK = []; saveAsk(); renderAsk(); };
 $("#askForm").onsubmit = e => { e.preventDefault(); sendAsk($("#askIn").value); };
 $("#askSug").onclick = e => { const b = e.target.closest(".asug"); if (b) sendAsk(b.textContent); };
 $("#askDlg").addEventListener("click", e => { if (e.target.id === "askDlg") $("#askDlg").close(); });
+
+/* ================= Sounds (optional, off by default) ================= */
+let SND = !!lsGet("sounds", false), ACX = null;
+function sfx(kind){
+  if (!SND) return;
+  try {
+    ACX = ACX || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ACX.currentTime, notes = { score: [523, 659, 784, 1047], win: [659, 784, 1047], lose: [392, 311], tap: [880], reveal: [440, 660] }[kind] || [660];
+    notes.forEach((f, i) => { const o = ACX.createOscillator(), g = ACX.createGain(), at = t + i * .085;
+      o.type = "triangle"; o.frequency.value = f; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.11, at + .02); g.gain.exponentialRampToValueAtTime(.0008, at + .38);
+      o.connect(g).connect(ACX.destination); o.start(at); o.stop(at + .42); });
+  } catch {}
+}
+
+/* ================= Spoiler shield: hide scores until you're ready ================= */
+const SPOIL = Object.assign({ on: false, scope: "mine" }, lsGet("spoil", {}) || {});
+const saveSpoil = () => { lsSet("spoil", SPOIL); if (typeof ntfSync === "function") ntfSync(); };
+const REVEALED = new Set((() => { try { return JSON.parse(sessionStorage.getItem("cosmo-revealed") || "[]"); } catch { return []; } })());
+const reveal = k => { REVEALED.add(k); try { sessionStorage.setItem("cosmo-revealed", JSON.stringify([...REVEALED])); } catch {} sfx("reveal"); };
+const teamShielded = (lg, name) => SPOIL.on && (SPOIL.scope === "all" || isFav(lg, name));
+function shielded(lg, g){
+  if (!SPOIL.on || !g || g.status?.state === "pre" || REVEALED.has(lg + "/" + g.id)) return false;
+  return SPOIL.scope === "all" || isFav(lg, g.home?.name) || isFav(lg, g.away?.name);
+}
+function shieldCover(g, lg){
+  return `<div class="shield"><div class="shieldin"><span class="shico" aria-hidden="true">🛡️</span><b>Spoiler shield is on</b>
+    <p>${esc(g.away?.name || "")} at ${esc(g.home?.name || "")} · ${g.status?.state === "in" ? "in progress" : "finished"}${g.pulse != null || true ? "" : ""}</p>
+    <button class="btn primary" type="button" id="shieldReveal">Reveal the score</button><small>Change this any time in Settings.</small></div></div>`;
+}
+
+/* ================= Play: Daily 3, friend challenges, Rating Rumble ================= */
+const todayKey = () => ymd(new Date());
+let DAILY = lsGet("daily", {}) || {};
+const saveDaily = () => { const keep = Object.keys(DAILY).sort().slice(-40), o = {}; for (const k of keep) o[k] = DAILY[k]; DAILY = o; lsSet("daily", DAILY); };
+// three upcoming games worth calling today: the closest model calls, spread across leagues
+function dailyPick(){
+  const k = todayKey(); if (DAILY[k]) return DAILY[k];
+  const pool = (UNI || []).filter(g => g.status.state === "pre" && g.pred && ymd(new Date(g.date)) === k && g.pred.draw == null)
+    .map(g => ({ g, close: Math.abs(g.pred.home - g.pred.away) })).sort((a, b) => a.close - b.close || String(a.g.id).localeCompare(String(b.g.id)));
+  const out = [], seen = new Set();
+  for (const x of pool) if (out.length < 3 && !seen.has(x.g.lg)){ out.push(x.g); seen.add(x.g.lg); }
+  for (const x of pool) if (out.length < 3 && !out.includes(x.g)) out.push(x.g);
+  if (!out.length) return null;
+  DAILY[k] = { games: out.map(g => ({ lg: g.lg, id: g.id, date: g.date, a: abbrOf(g.away), h: abbrOf(g.home), an: g.away.name, hn: g.home.name, al: teamLogo(g.away, g.lg), hl: teamLogo(g.home, g.lg) })) };
+  saveDaily(); return DAILY[k];
+}
+function dailyState(day){
+  const D = DAILY[day]; if (!D) return null;
+  const rows = D.games.map(x => ({ ...x, P: PICKS[x.lg + "/" + x.id] }));
+  const picked = rows.filter(r => r.P).length, graded = rows.filter(r => r.P && r.P.result), right = graded.filter(r => r.P.pick === r.P.result).length;
+  return { D, rows, picked, graded: graded.length, right, done: graded.length === rows.length && rows.length > 0 };
+}
+function dailyStreak(){   // days in a row with all of the Daily picked
+  let n = 0; const d = new Date();
+  for (let i = 0; i < 400; i++){ const k = ymd(d), s = dailyState(k);
+    if (s && s.picked === s.rows.length && s.rows.length) n++; else if (i > 0 || (s && s.picked)) break;
+    d.setDate(d.getDate() - 1); }
+  return n;
+}
+const dailyGrid = s => s.rows.map(r => !r.P ? "⬜" : !r.P.result ? "🟦" : r.P.pick === r.P.result ? "🟩" : "🟥").join("");
+function duelLink(day){
+  const s = dailyState(day); if (!s) return APP_URL();
+  const payload = { d: day, p: s.rows.filter(r => r.P).map(r => [r.lg, r.id, r.P.pick === "home" ? 1 : r.P.pick === "away" ? 0 : 2]) };
+  return APP_URL() + "#duel=" + btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+let DUELS = lsGet("duels", {}) || {};
+function takeDuel(code){
+  try { const j = JSON.parse(atob(code.replace(/-/g, "+").replace(/_/g, "/"))); if (!/^\d{8}$/.test(j.d) || !Array.isArray(j.p)) throw 0;
+    (DUELS[j.d] = DUELS[j.d] || []).push(j.p.slice(0, 3).map(([lg, id, s]) => ({ lg: String(lg), id: String(id), pick: s === 1 ? "home" : s === 0 ? "away" : "draw" })));
+    DUELS[j.d] = DUELS[j.d].slice(-5); lsSet("duels", DUELS); toast("Challenge accepted. Make your Daily 3 picks to compare."); return true; }
+  catch { toast("That challenge link didn't work."); return false; }
+}
+function dailyHtml(compact){
+  const k = todayKey(), D = dailyPick();
+  if (!D) return `<section class="usec daily"><h3>Daily 3</h3><p class="dnote">Today's Daily 3 appears when there are games left to pick. Check back later, or play Rating Rumble below.</p></section>`;
+  const s = dailyState(k), streak = dailyStreak(), duels = DUELS[k] || [];
+  const side = (r, sd) => { const on = r.P?.pick === sd, name = sd === "home" ? r.h : r.a, logo = sd === "home" ? r.hl : r.al;
+    const res = r.P?.result ? (r.P.result === sd ? " win" : " lose") : "";
+    return `<button type="button" class="dside${on ? " on" : ""}${res}" data-dpick="${sd}" data-lg="${r.lg}" data-gid="${esc(r.id)}" ${r.P?.result || new Date(r.date) < new Date() ? "disabled" : ""}>${logoChip({ name: sd === "home" ? r.hn : r.an, logo }, "", r.lg)}<b>${esc(name)}</b></button>`; };
+  const rows = s.rows.map(r => { const vs = duels.map(d => d.find(x => x.id === r.id)).filter(Boolean)[0];
+    return `<div class="drow"><span class="dmeta">${LG_ICON[r.lg] || ""} ${esc(LEAGUE_LABEL[r.lg] || "")} · ${esc(new Date(r.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}</span>${side(r, "away")}<span class="dat">at</span>${side(r, "home")}
+      <span class="dres">${r.P?.result ? (r.P.pick === r.P.result ? "✓" : "✗") : r.P ? `<small>Model: ${esc(r.P.model === "home" ? r.h : r.P.model === "away" ? r.a : "–")}</small>` : ""}${vs ? `<small class="dvs">Friend: ${esc(vs.pick === "home" ? r.h : r.a)}</small>` : ""}</span></div>`; }).join("");
+  const status = s.done ? `<b>${s.right}/${s.rows.length}</b> today ${dailyGrid(s)}` : s.picked < s.rows.length ? `${s.rows.length === 1 ? "Pick the winner before it starts" : `Pick all ${s.rows.length} before they start`} · ${s.picked}/${s.rows.length} picked` : `All picked ${dailyGrid(s)} · results as games finish`;
+  return `<section class="usec daily${compact ? " compact" : ""}"><h3>Daily 3 <small>${esc(new Date().toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" }))}</small>${streak ? `<span class="pbadge">${streak}-day streak</span>` : ""}</h3>
+    <p class="dnote">Today's three closest calls. Pick a winner in each; results come in as games finish.</p>
+    <div class="dlist">${rows}</div>
+    <div class="dfoot"><span>${status}</span><span class="dbtns">${s.picked ? `<button class="btn" type="button" data-dshare="1">Share</button><button class="btn primary" type="button" data-dduel="1">Challenge a friend</button>` : ""}</span></div></section>`;
+}
+function bindDaily(root){
+  root.querySelectorAll("[data-dpick]").forEach(b => b.onclick = () => {
+    const g = (UNI || []).find(x => x.id === b.dataset.gid && x.lg === b.dataset.lg);
+    const D = DAILY[todayKey()], row = D && D.games.find(x => x.id === b.dataset.gid);
+    const game = g || (row && { id: row.id, date: row.date, home: { name: row.hn, abbr: row.h, short: row.h }, away: { name: row.an, abbr: row.a, short: row.a } });
+    if (!game) return;
+    const pred = g ? g.pred : null, cur = PICKS[b.dataset.lg + "/" + b.dataset.gid];
+    if (cur && cur.pick === b.dataset.dpick) return;                 // keep a Daily pick; tap the other side to switch
+    makePick(b.dataset.lg, game, b.dataset.dpick, pred); sfx("tap"); redrawPlay();
+  });
+  root.querySelectorAll("[data-dshare]").forEach(b => b.onclick = () => { const s = dailyState(todayKey());
+    shareText(`Cosmo Sports Daily 3 · ${new Date().toLocaleDateString([], { month: "short", day: "numeric" })}\n${dailyGrid(s)} ${s.done ? `${s.right}/${s.rows.length}` : ""}${dailyStreak() > 1 ? ` · ${dailyStreak()}-day streak` : ""}`, APP_URL() + "#play"); });
+  root.querySelectorAll("[data-dduel]").forEach(b => b.onclick = () => shareText("I made my Cosmo Sports Daily 3 picks. Can you do better?", duelLink(todayKey())));
+}
+async function shareText(text, url){
+  try { if (navigator.share){ await navigator.share({ title: "Cosmo Sports", text, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(`${text}\n${url}`); toast("Copied. Paste it anywhere to share."); } catch { toast("Couldn't share from this browser."); }
+}
+/* ---- Rating Rumble: which team does the Cosmo model rate higher? ---- */
+const RUM = { streak: 0, best: +lsGet("rumbleBest", 0) || 0, q: null, done: false, over: false };
+function rumbleNew(){
+  const lgs = Object.keys(LEAGUE_LABEL).filter(lg => LG_TEAMS(lg).length >= 8);
+  if (!lgs.length){ RUM.q = null; return; }
+  const lg = lgs[Math.floor(Math.random() * lgs.length)], T = LG_TEAMS(lg);
+  let a, b, tries = 0; const gap = Math.max(4, 30 - RUM.streak * 2);        // it gets harder as the streak grows
+  do { a = T[Math.floor(Math.random() * T.length)]; b = T[Math.floor(Math.random() * T.length)]; tries++; }
+  while ((a === b || Math.abs(a.rating - b.rating) < gap) && tries < 200);
+  RUM.q = { lg, a, b }; RUM.done = false;
+}
+function rumbleHtml(){
+  if (!RUM.q && !RUM.over) rumbleNew();
+  const q = RUM.q;
+  if (!q) return `<section class="usec rumble"><h3>Rating Rumble</h3><p class="dnote">Ratings are loading.</p></section>`;
+  const rank = t => LG_TEAMS(q.lg).indexOf(t) + 1, rec = t => t.w == null ? "" : `${t.w}-${t.l}${t.d != null ? "-" + t.d : t.otl ? "-" + t.otl : ""}`;
+  const card = (t, k) => { const win = (k === "a" ? q.a : q.b).rating >= (k === "a" ? q.b : q.a).rating;
+    return `<button type="button" class="rcard${RUM.done ? (win ? " win" : " lose") : ""}" data-rum="${k}" ${RUM.done ? "disabled" : ""}>${logoChip(t, "big", q.lg)}<b>${esc(t.name)}</b>
+      ${RUM.done ? `<span class="rval">#${rank(t)} · ${Math.round(t.rating)}<small>${esc(rec(t))}</small></span>` : `<span class="rq">Tap if stronger</span>`}</button>`; };
+  const over = RUM.over ? `<div class="rover"><b>${RUM.streak ? `${RUM.streak} in a row` : "Missed it"}</b><span>Best: ${RUM.best}</span><span class="dbtns"><button class="btn" type="button" data-rshare="1">Share</button><button class="btn primary" type="button" data-ragain="1">Play again</button></span></div>` : "";
+  return `<section class="usec rumble"><h3>Rating Rumble <small>${esc(LEAGUE_LABEL[q.lg])}</small><span class="rstreak">Streak <b>${RUM.streak}</b> · Best <b>${RUM.best}</b></span></h3>
+    <p class="dnote">Which team does the Cosmo model rate higher right now? Keep your streak alive; it gets harder as you go.</p>
+    <div class="rpair">${card(q.a, "a")}<span class="rvs">vs</span>${card(q.b, "b")}</div>${over}
+    ${RUM.done && !RUM.over ? `<div class="rnext"><button class="btn primary" type="button" data-rnext="1">Next</button></div>` : ""}</section>`;
+}
+function bindRumble(root){
+  root.querySelectorAll("[data-rum]").forEach(b => b.onclick = () => {
+    const q = RUM.q; if (!q || RUM.done) return;
+    const pick = b.dataset.rum === "a" ? q.a : q.b, other = pick === q.a ? q.b : q.a, ok = pick.rating >= other.rating;
+    RUM.done = true;
+    if (ok){ RUM.streak++; if (RUM.streak > RUM.best){ RUM.best = RUM.streak; lsSet("rumbleBest", RUM.best); } sfx("win"); }
+    else { RUM.over = true; sfx("lose"); }
+    redrawPlay();
+    if (ok) setTimeout(() => { if (RUM.done && !RUM.over && SPORT === "play"){ rumbleNew(); redrawPlay(); } }, 1400);
+  });
+  root.querySelectorAll("[data-rnext]").forEach(b => b.onclick = () => { rumbleNew(); redrawPlay(); });
+  root.querySelectorAll("[data-ragain]").forEach(b => b.onclick = () => { RUM.streak = 0; RUM.over = false; rumbleNew(); redrawPlay(); });
+  root.querySelectorAll("[data-rshare]").forEach(b => b.onclick = () => shareText(`I got ${RUM.streak} in a row in Cosmo Sports' Rating Rumble (best ${RUM.best}). Beat that.`, APP_URL() + "#play"));
+}
+function drawPlay(){
+  const el = $("#playView"); if (!el) return;
+  const head = `<div class="lghead"><div><h1>Play</h1><p>Daily picks, a quick ratings game and your record against the Cosmo model.</p></div></div>`;
+  if (HOSTED && !UNI){ el.innerHTML = head + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; return; }
+  el.innerHTML = head + `<div class="playgrid">${HOSTED ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
+  bindDaily(el); bindRumble(el);
+  el.querySelectorAll(".prow[data-lg]").forEach(b => b.onclick = () => openGame(b.dataset.lg, b.dataset.id));
+}
+function redrawPlay(){ if (SPORT === "play") drawPlay(); else if (SPORT === "universe") drawUniverse(); }
+
+/* ================= First run: welcome, your teams, alerts ================= */
+let ONB = { step: 0, lg: "nfl" };
+function onbHtml(){
+  const dots = `<div class="onbdots">${[0, 1, 2].map(i => `<i class="${i === ONB.step ? "on" : ""}"></i>`).join("")}</div>`;
+  if (ONB.step === 0) return `<div class="onbhero"><span class="onbmark">${document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="o$1"').replace(/url\(#([^)]+)\)/g, "url(#o$1)").replace(/href="#([^"]+)"/g, 'href="#o$1"') || ""}</span>
+    <h2>Welcome to Cosmo Sports</h2><p>Every game in the NFL, NBA, MLB, NHL, Premier League and tennis, in one place.</p>
+    <ul class="onblist"><li><b>Live scores and animated replays</b> of every play</li><li><b>Alerts</b> for your teams and close finishes</li><li><b>Ask Cosmo</b>, an AI that knows today's games</li><li><b>Daily picks and games</b> against our prediction model</li></ul></div>
+    ${dots}<div class="onbbtns"><button class="btn" type="button" data-onb="skip">Skip</button><button class="btn primary" type="button" data-onb="next">Get started</button></div>`;
+  if (ONB.step === 1){
+    const lgs = Object.keys(LEAGUE_LABEL).filter(lg => LG_TEAMS(lg).length), n = Object.values(FAV).reduce((a, l) => a + l.length, 0);
+    const teams = [...LG_TEAMS(ONB.lg)].sort((a, b) => a.name.localeCompare(b.name));
+    return `<h2>Pick your teams</h2><p>Their games come first, and you'll get their alerts. Pick as many as you like.</p>
+      <div class="seg onbtabs" role="group" aria-label="League">${lgs.map(lg => `<button type="button" data-onblg="${lg}" aria-pressed="${lg === ONB.lg}">${LG_ICON[lg] || ""} ${esc(LEAGUE_LABEL[lg])}</button>`).join("")}</div>
+      <div class="onbteams">${teams.map(t => `<button type="button" class="onbteam${isFav(ONB.lg, t.name) ? " on" : ""}" data-onbteam="${esc(t.name)}">${logoChip(t, "", ONB.lg)}<span>${esc(t.name)}</span></button>`).join("")}</div>
+      ${dots}<div class="onbbtns"><span class="onbcount">${n ? `${n} team${n === 1 ? "" : "s"} picked` : "No teams yet"}</span><button class="btn primary" type="button" data-onb="next">${n ? "Next" : "Skip for now"}</button></div>`;
+  }
+  return `<div class="onbhero"><span class="onbbell">${BELL(true)}</span><h2>Never miss the finish</h2><p>Get a heads-up when your teams start, score, head into a close finish and finish, plus a short morning briefing. You can fine-tune or turn these off in Settings.</p></div>
+    ${dots}<div class="onbbtns"><button class="btn" type="button" data-onb="done">Not now</button><button class="btn primary" type="button" data-onb="alerts">Turn on alerts</button></div>`;
+}
+function drawOnb(){
+  const box = $("#onbBody"); box.innerHTML = onbHtml();
+  box.querySelectorAll("[data-onblg]").forEach(b => b.onclick = () => { ONB.lg = b.dataset.onblg; drawOnb(); });
+  box.querySelectorAll("[data-onbteam]").forEach(b => b.onclick = () => { toggleFav(ONB.lg, b.dataset.onbteam, true); b.classList.toggle("on"); sfx("tap");
+    const n = Object.values(FAV).reduce((a, l) => a + l.length, 0); box.querySelector(".onbcount").textContent = n ? `${n} team${n === 1 ? "" : "s"} picked` : "No teams yet"; box.querySelector('[data-onb="next"]').textContent = n ? "Next" : "Skip for now"; });
+  box.querySelectorAll("[data-onb]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.onb;
+    if (a === "next"){ ONB.step = Math.min(2, ONB.step + 1); if (ONB.step === 2 && !pushOK() && !isIOS) return finishOnb(); drawOnb(); return; }
+    if (a === "alerts"){ const ok = await ntfEnable(); if (ok) toast("Alerts are on"); }
+    finishOnb();
+  });
+}
+function finishOnb(){ lsSet("onboarded", true); $("#onbDlg").close(); setSport(Object.values(FAV).some(l => l.length) ? "universe" : lsGet("sport", "universe")); }
+function maybeOnboard(force){
+  if (!force && (lsGet("onboarded", false) || navigator.webdriver || !HOSTED)) return;
+  ONB = { step: 0, lg: Object.keys(LEAGUE_LABEL).find(lg => LG_TEAMS(lg).length) || "nfl" };
+  drawOnb(); $("#onbDlg").showModal();
+}
+/* ================= Reset everything this device keeps ================= */
+async function resetAll(){
+  if (!confirm("Reset Cosmo Sports on this device? This clears your teams, picks, settings and chat, and turns off notifications.")) return;
+  try { if (NTF.on) await ntfDisable(); } catch {}
+  try { Object.keys(localStorage).filter(k => /^baseline:|^fav-teams|^pbp-|^cosmo-/.test(k)).forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); } catch {}
+  location.replace(APP_URL());
+}
 
 /* ================= Cosmic motion: warp intro, comets, supernovas, loaders, launch countdowns ================= */
 const cosmoLoad = t => `<div class="cload"><span class="cl-orbit" aria-hidden="true"><i></i></span><span>${t}</span></div>`;
@@ -3671,8 +3955,8 @@ async function loadUniverse(){
     UNI = res.flat().map(g => { const pred = withSport(g.lg, () => { const H = findTeam(g.home.name), A = findTeam(g.away.name); return H && A ? teamPredict(H, A, g.neutral) : null; });
       return { ...g, pred, pulse: pulseOf(g, g.lg, pred) }; });
   } finally { UNI_LOADING = false; }
-  if (SPORT === "universe") drawUniverse();
-  if (await gradeOldPicks() && SPORT === "universe") drawUniverse();
+  if (SPORT === "universe") drawUniverse(); else if (SPORT === "play") drawPlay();
+  if (await gradeOldPicks()) redrawPlay();
 }
 const UNI_SCORES = {};
 function planetHtml(g, i, ring, n){
@@ -3681,13 +3965,13 @@ function planetHtml(g, i, ring, n){
   const r = ring ? 41 : 23, x = 50 + r * Math.cos(ang), y = 50 + r * Math.sin(ang);
   const live = g.status.state === "in", v = g.pulse || 0, sz = live ? 11 + v * .06 : 10;
   const ac = tcolor(g.away, "#7A3DF5"), hc = tcolor(g.home, "#4C8DFF");
-  const lab = g.status.state === "pre" ? new Date(g.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : `${esc(g.away.score ?? "")}–${esc(g.home.score ?? "")}`;
+  const lab = g.status.state === "pre" ? new Date(g.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : shielded(g.lg, g) ? "🛡️" : `${esc(g.away.score ?? "")}–${esc(g.home.score ?? "")}`;
   return `<button type="button" class="planet ${live ? "live" : "pre"} ${v >= 82 ? "hot" : ""} ${scored ? "nova" : ""}" data-lg="${g.lg}" data-id="${esc(g.id)}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${sz.toFixed(1)}%;--ac:${ac};--hc:${hc};--glow:${Math.round(6 + v * .34)}px" aria-label="${esc(g.away.name)} at ${esc(g.home.name)}, ${esc(g.status.short || "")}">
     <span class="pw"><span class="orb">${logoChip(g.away, "", g.lg)}${logoChip(g.home, "", g.lg)}</span><span class="plab"><b><span class="ab">${esc(abbrOf(g.away))} </span>${lab}<span class="ab"> ${esc(abbrOf(g.home))}</span></b>${live ? `<small>${LG_ICON[g.lg] || ""} ${esc(g.status.short || "")}</small>` : `<small>${LG_ICON[g.lg] || ""} ${esc(LEAGUE_LABEL[g.lg])}</small>`}</span></span></button>`;
 }
 function uniRow(g){
   const st = g.status.state, v = g.pulse;
-  const side = T => `<span class="ut">${logoChip(T, "", g.lg)}<b>${esc(abbrOf(T))}</b>${st === "pre" ? "" : `<em>${esc(T.score ?? "")}</em>`}</span>`;
+  const hid = shielded(g.lg, g), side = T => `<span class="ut">${logoChip(T, "", g.lg)}<b>${esc(abbrOf(T))}</b>${st === "pre" ? "" : `<em>${hid ? "•" : esc(T.score ?? "")}</em>`}</span>`;
   const when = st === "pre" ? new Date(g.date).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : g.status.short || "";
   const launch = st === "pre" ? `<small class="launch"><b data-launch="${esc(g.date)}"></b></small>` : "";
   const P = PICKS[g.lg + "/" + g.id];
@@ -3713,16 +3997,17 @@ function drawUniverse(){
       <div class="orbit">${inner.map((g, i) => planetHtml(g, i, 0, inner.length)).join("")}${outer.map((g, i) => planetHtml(g, i, 1, outer.length)).join("")}</div>
       ${sky.length ? "" : `<p class="skyempty">A quiet night in the cosmos. No games today.</p>`}
     </div>
-    ${top ? `<button type="button" class="uhero" data-lg="${top.lg}" data-id="${esc(top.id)}"><small>Best game on now</small><b>${esc(top.away.short || top.away.name)} ${esc(top.away.score ?? "")}, ${esc(top.home.short || top.home.name)} ${esc(top.home.score ?? "")}</b><span>${esc(LEAGUE_LABEL[top.lg])} · ${esc(top.status.short || "")} · ⚡ ${top.pulse}</span></button>` : ""}</div>
+    ${top ? `<button type="button" class="uhero" data-lg="${top.lg}" data-id="${esc(top.id)}"><small>Best game on now</small><b>${shielded(top.lg, top) ? `${esc(top.away.short || top.away.name)} at ${esc(top.home.short || top.home.name)}` : `${esc(top.away.short || top.away.name)} ${esc(top.away.score ?? "")}, ${esc(top.home.short || top.home.name)} ${esc(top.home.score ?? "")}`}</b><span>${esc(LEAGUE_LABEL[top.lg])} · ${esc(top.status.short || "")} · ⚡ ${top.pulse}</span></button>` : ""}</div>
     <div class="ucols">
+      ${dailyHtml(true)}
       <section class="usec"><h3>${live.length ? `Live now <small>${live.length} game${live.length === 1 ? "" : "s"}, hottest first</small>` : "Live now"}</h3>${live.length ? `<div class="ulist">${live.map(uniRow).join("")}</div>` : `<div class="teamnote">Nothing live right now. The next games are below.</div>`}</section>
       ${forecastHtml()}
       ${soon.length ? `<section class="usec"><h3>Coming up</h3><div class="ulist">${soon.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
       ${done.length ? `<section class="usec"><h3>Final <small>best games first</small></h3><div class="ulist">${done.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
-      ${picksHtml()}
       ${!NTF.on && pushOK() ? `<section class="usec ntfnudge"><h3>Get alerts</h3><p>Starts, scores, close finishes and finals for the teams you follow, even with the app closed.</p><button class="btn primary" type="button" id="uniNtf">Turn on notifications</button></section>` : ""}
     </div>`;
   el.onclick = e => { const b = e.target.closest("[data-lg][data-id]"); if (b) openGame(b.dataset.lg, b.dataset.id); };
+  bindDaily(el);
   const un = $("#uniNtf"); if (un) un.onclick = async e => { e.stopPropagation(); if (await ntfEnable()){ toast("Notifications are on. Pick what you get in Settings."); drawUniverse(); } };
   tickLaunch();
 }
@@ -3830,7 +4115,7 @@ $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $(
 function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
   const n = b.dataset.nav;
-  if ((SPORT === "following" || SPORT === "universe") && n !== "more") setSport(lsGet("lastLeague", "nfl"));
+  if (["following", "universe", "play"].includes(SPORT) && n !== "more") setSport(lsGet("lastLeague", "nfl"));
   if (SPORT !== "tennis" && n !== "more"){ setTT({ predict: "predict", rankings: "rank", live: "games" }[n]); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
   if (n === "predict"){ window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelectorAll("[data-nav]").forEach(x => x.setAttribute("aria-current", x === b ? "page" : "false")); return; }
   if (n === "more"){ $("#moreDlg").showModal(); return; }
@@ -3840,7 +4125,7 @@ $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $(
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
   if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
-  else if (g === "following" || g === "universe"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
+  else if (g === "following" || g === "universe" || g === "play"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
 }));
 $("#helpBtn").addEventListener("click", () => $("#helpDlg").showModal());
@@ -3848,11 +4133,7 @@ $("#helpClose").addEventListener("click", () => $("#helpDlg").close());
 $("#settingsBtn").addEventListener("click", () => { renderSettings(); $("#settingsDlg").showModal(); });
 $("#setClose").addEventListener("click", () => $("#settingsDlg").close());
 [["#helpDlg"],["#settingsDlg"]].forEach(([id]) => $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).close(); }));
-$("#resetData").addEventListener("click", () => {
-  if (!confirm("Clear your watchlist, bets, settings and game scores on this device?")) return;
-  try { Object.keys(localStorage).filter(k => k.startsWith("baseline:")).forEach(k => localStorage.removeItem(k)); } catch {}
-  location.reload();
-});
+$("#resetData").addEventListener("click", () => resetAll());
 /* installable app (hosted version only: needs its own web address) */
 if (HOSTED){
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
@@ -3888,7 +4169,9 @@ renderFeed();
   update();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
-  if (sp0 === "following" || sp0 === "universe" || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
+  if (["following", "universe", "play"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
+  maybeOnboard(q.get("onboard") === "1");
+  if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut
   $("#teamDlg").addEventListener("close", () => { if (/^#team=/.test(location.hash)) history.replaceState(null, "", APP_URL()); });

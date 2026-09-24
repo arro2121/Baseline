@@ -4,7 +4,7 @@
  "short_name": "Cosmo Sports",
  "lang": "en",
  "dir": "ltr",
- "description": "Every game, every league, one app. Live scores, animated play-by-play with real highlight replays, box scores, standings, team pages with schedules and rosters, news, and data-driven win predictions for the NFL, NBA, MLB, NHL, Premier League and tennis. Follow your teams across every league.",
+ "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks and games against our prediction model, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
  "categories": [
   "sports",
   "news",
@@ -56,6 +56,20 @@
    "label": "The Universe: every live game at once, ranked by excitement"
   },
   {
+   "src": "screenshots/phone-ask.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Ask Cosmo, your AI sports companion"
+  },
+  {
+   "src": "screenshots/phone-play.png",
+   "sizes": "780x1688",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Daily 3 picks and Rating Rumble"
+  },
+  {
    "src": "screenshots/phone-games.png",
    "sizes": "780x1688",
    "type": "image/png",
@@ -93,6 +107,39 @@
  ],
  "shortcuts": [
   {
+   "name": "Today: every game",
+   "short_name": "Today",
+   "url": "./?sport=universe",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Ask Cosmo",
+   "short_name": "Ask",
+   "url": "./?ask=1",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Play: Daily 3",
+   "short_name": "Play",
+   "url": "./?sport=play",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
    "name": "Following",
    "short_name": "Following",
    "url": "./?sport=following",
@@ -107,17 +154,6 @@
    "name": "Find a team",
    "short_name": "Search",
    "url": "./?search=1",
-   "icons": [
-    {
-     "src": "icon-192.png",
-     "sizes": "192x192"
-    }
-   ]
-  },
-  {
-   "name": "Tennis live scores",
-   "short_name": "Tennis",
-   "url": "./?tab=live",
    "icons": [
     {
      "src": "icon-192.png",
