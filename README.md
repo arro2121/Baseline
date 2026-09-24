@@ -11,6 +11,8 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Picks:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and friend challenge
   links (no account needed), plus your running record against the Cosmo model.
+* **Comets:** articles and takes from you to everyone who uses the app, with a reader, share links, a teaser on
+  Today and an optional alert to everyone when you publish. Only the holder of the writer key can post (setup below).
 * **Getting around:** a five-stop bottom bar (Today, Scores, Picks, Following, More), an in-app **Guide** (More ›
   Guide), a one-time What's new screen after big updates, and an offline notice.
 * **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
@@ -113,6 +115,15 @@ the app free and ad-free. There is no free official feed with the same detail fo
 **Ask Cosmo (the AI companion)** runs on your Cloudflare account's free Workers AI allowance, with no extra key
 or cost. For sharper answers, add a GitHub secret named `ANTHROPIC_API_KEY` (from console.anthropic.com) and run
 the workflow; the companion then uses Claude (billed to your Anthropic account per question).
+
+**Comets (your articles)** are stored by the alerts service and shown to everyone. Only you can write them:
+1. Pick a long passphrase you don't use anywhere else (this is your writer key).
+2. In the GitHub repository go to **Settings › Secrets and variables › Actions › New repository secret**, name it
+   `COMETS_KEY` and paste the passphrase.
+3. Run the workflow (**Actions › Baseline › Run workflow**, "everything" or "alerts") so the service picks it up.
+4. In the app open **Comets**, tap **Writer sign-in** at the bottom and enter the same passphrase. That device can
+   now publish, edit and delete articles (and send an alert to everyone when you publish). Sign out from the same
+   place. Anyone without the key can only read. After 8 wrong keys from one address, sign-in pauses for 15 minutes.
 
 ## How good are the predictions?
 
