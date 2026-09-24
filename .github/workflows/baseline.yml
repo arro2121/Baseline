@@ -2,7 +2,8 @@
 name: Baseline
 on:
   push:
-    paths: ["baseline.zip", ".github/workflows/baseline.yml"]
+    branches: [main]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml"]
   schedule:
     - cron: "*/5 * * * *"    # live scores (skipped automatically once the alerts service is running)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
@@ -27,11 +28,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - name: Unpack baseline.zip (if it was just uploaded)
         run: |
-          if [ ! -f baseline.zip ]; then echo "Nothing to unpack"; exit 0; fi
-          unzip -o -q baseline.zip -x ".github/*" -d .
-          git rm -q baseline.zip
+          if ! ls baseline*.zip >/dev/null 2>&1; then echo "Nothing to unpack"; exit 0; fi
+          # GitHub's uploader may save it as "baseline (2).zip", and renaming it in the web editor
+          # corrupts it, so unpack the newest baseline*.zip in history that is a real zip file.
+          for c in $(git rev-list HEAD -- 'baseline*.zip'); do
+            for blob in $(git ls-tree "$c" | grep -P '\tbaseline[^/]*\.zip$' | awk '{print $3}'); do
+              git cat-file -p "$blob" > "$RUNNER_TEMP/baseline.zip"
+              if unzip -tq "$RUNNER_TEMP/baseline.zip" >/dev/null 2>&1; then found=1; break 2; fi
+            done
+          done
+          if [ -z "$found" ]; then echo "::error::No valid baseline.zip found. Upload it again with Add file > Upload files."; exit 1; fi
+          unzip -o -q "$RUNNER_TEMP/baseline.zip" -x ".github/*" -d .
+          git rm -q -- baseline*.zip
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
           git add -A && git commit -q -m "Unpack Baseline" && git push
 

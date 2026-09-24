@@ -1275,6 +1275,19 @@ let LIVE = /*LIVE*/;
 const HOSTED = /*HOSTED*/false;
 const SPORTS = /*SPORTS*/;
 const ALERTS_URL = "/*ALERTS_URL*/".replace(/^\/\*.*\*\/$/, "").replace(/\/$/, "");
+// ESPN's scores and play-by-play, read straight from the phone (build_site.py copies this code from alerts/worker.js)
+const ESPN_DIRECT = (() => { /*ESPN_NORM*/
+  const get = async path => { const r = await fetch(ESPN + path); if (!r.ok) throw new Error(`ESPN ${r.status}`); return r.json(); };
+  return { scoreboard: async lg => normScoreboard(await get(`${LEAGUES[lg]}/scoreboard`), lg),
+           game: async (lg, id) => normGame(await get(`${LEAGUES[lg]}/summary?event=${id}`), lg) };
+})();
+// ESPN first, then the alerts service as a backup
+async function espnOr(direct, viaAlerts){
+  let err = new Error("no source");
+  if (direct) try { return await direct(); } catch (e) { err = e; }
+  if (!ALERTS_URL) throw err;
+  const r = await fetch(viaAlerts); if (!r.ok) throw err; return r.json();
+}
 const hold = p => { const q = 1-p; return Math.pow(p,4)*(1+4*q+10*q*q) + 20*Math.pow(p*q,3)*p*p/(p*p+q*q); };
 function gameFrom(p, a, b){
   if (a>=4 && a-b>=2) return 1; if (b>=4 && b-a>=2) return 0;
@@ -1716,7 +1729,7 @@ function setTT(t){
   ["games","rank","predict"].forEach(x => $("#tt-"+x).hidden = x !== t);
   document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", ({ games: "live", rank: "rankings", predict: "predict" })[t] === b.dataset.nav ? "page" : "false"));
   clearInterval(sbTimer); sbTimer = null;
-  if (t === "rank") renderTeamRank(); else if (t === "predict") renderTeamPredict(); else { renderGames(); if (HOSTED && ALERTS_URL) sbTimer = setInterval(() => loadScoreboard(true), 30000); }
+  if (t === "rank") renderTeamRank(); else if (t === "predict") renderTeamPredict(); else { renderGames(); if (HOSTED) sbTimer = setInterval(() => loadScoreboard(true), 30000); }
 }
 document.querySelectorAll("[data-sport]").forEach(b => b.addEventListener("click", () => setSport(b.dataset.sport)));
 document.querySelectorAll("[data-tt]").forEach(b => b.addEventListener("click", () => setTT(b.dataset.tt)));
@@ -1833,13 +1846,13 @@ $("#tSwap").addEventListener("click", () => { const t = TP[SPORT]; if (!t) retur
 ["#tBank","#tThresh"].forEach(i => $(i).addEventListener("input", () => renderTeamPredict()));
 async function loadScoreboard(quiet){
   try {
-    const r = await fetch(`${ALERTS_URL}/sports/${SPORT}/scoreboard?t=${Math.floor(Date.now()/20000)}`);
-    if (!r.ok) throw 0; SB[SPORT] = await r.json();
+    const lg = SPORT;
+    SB[lg] = await espnOr(() => ESPN_DIRECT.scoreboard(lg), `${ALERTS_URL}/sports/${lg}/scoreboard?t=${Math.floor(Date.now()/20000)}`);
   } catch { if (!quiet) SB[SPORT] = { error: true, games: [] }; }
   if (!$("#tt-games").hidden && SPORT !== "tennis") drawGames();
 }
 function renderGames(){
-  if (!(HOSTED && ALERTS_URL)){
+  if (!HOSTED){
     $("#tt-games").innerHTML = `<div class="teamnote"><b>Live games appear in the installed app</b>Scores, the betting line, our prediction for every game, and live play-by-play come from ESPN, which this version can't reach. Rankings and Predict work here.</div>`;
     return;
   }
@@ -1875,7 +1888,10 @@ async function openGame(lg, id){
   if (!$("#gameDlg").open) $("#gameDlg").showModal();
   const url = lg === "tennis" ? `${ALERTS_URL}/tennis/game/${id}` : `${ALERTS_URL}/sports/${lg}/game/${id}`;
   const load = async () => {
-    try { const r = await fetch(url + `?t=${Math.floor(Date.now()/10000)}`); if (!r.ok) throw 0; drawGame(await r.json(), lg); }
+    try {
+      const via = url + `?t=${Math.floor(Date.now()/10000)}`;
+      drawGame(await espnOr(lg === "tennis" ? null : () => ESPN_DIRECT.game(lg, id), via), lg);
+    }
     catch { if (!GSEEN.size) $("#gbody").innerHTML = `<div class="plays"><div class="teamnote"><b>Couldn't load play-by-play</b>Trying again in a few seconds.</div></div>`; }
   };
   await load(); gTimer = setInterval(load, 15000);

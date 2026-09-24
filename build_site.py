@@ -94,6 +94,13 @@ def alerts_url():
     return url.rstrip("/")
 
 
+def espn_norm():
+    """The alerts service's ESPN code, reused by the page so it can read ESPN directly (ESPN turns away Cloudflare)."""
+    src = open("alerts/worker.js", encoding="utf-8").read()
+    start, end = src.index("export const LEAGUES"), src.index("async function cached")
+    return src[start:end].replace("export ", "")
+
+
 def main(hosted=True, out="docs/index.html"):
     snap = json.load(open("snapshot.json"))
     if os.path.exists("data/rankings_live.json"):
@@ -119,6 +126,7 @@ def main(hosted=True, out="docs/index.html"):
     html = (tpl.replace("/*LIVE*/", json.dumps(live)).replace("/*SPORTS*/", json.dumps(sports, separators=(",", ":"))).replace("/*TEAMCOLORS*/", open("team_colors.json").read()).replace("/*FLAGFONT*/", font).replace("/*FLAGS*/", json.dumps(flags))
                .replace("/*HOSTED*/false", "true" if hosted else "false")
                .replace("/*ALERTS_URL*/", alerts_url() if hosted else "")
+               .replace("/*ESPN_NORM*/", espn_norm())
                .replace("/*DATA*/", json.dumps(snap, separators=(",", ":")).replace("<", "\\u003c")))
     if hosted:
         stamp = str(snap.get("built", "")) + "-" + str(len(html))
