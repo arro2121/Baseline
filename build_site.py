@@ -35,7 +35,7 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 
 MANIFEST = {
     "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
-    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Daily 3 picks, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
+    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), Cosmo Showdown (draft real players and play full games), League Leaders, Daily Trivia, six arcade games, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
     "categories": ["sports", "news", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
     "background_color": "#140F3A", "theme_color": "#140F3A",
@@ -50,6 +50,7 @@ MANIFEST = {
         {"src": "screenshots/phone-ask.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Ask Cosmo, your AI sports companion"},
         {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Arcade games, Daily 3 picks and Rating Rumble"},
         {"src": "screenshots/phone-arcade.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Home Run Derby in the arcade"},
+        {"src": "screenshots/phone-showdown.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Cosmo Showdown: a football drive with real players"},
         {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
         {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
         {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
@@ -73,7 +74,7 @@ self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Pr
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
-  const data = url.origin === location.origin && (url.pathname.match(/(live|scores)\.json$/) || [])[0];
+  const data = url.origin === location.origin && (url.pathname.match(/(live|scores|allstars)\.json$/) || [])[0];
   if (url.origin === location.origin && (e.request.mode === "navigate" || data || url.pathname.endsWith("index.html"))) {
     // fresh first: new scores and nightly ratings win, the cached copy is the offline fallback
     e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); if (r.ok) caches.open(CACHE).then(k => k.put(data || e.request, c)); return r; })

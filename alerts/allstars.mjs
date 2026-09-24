@@ -84,7 +84,12 @@ const builders = {
     const teams = Object.fromEntries(d.teams.map(t => [t.id, t.short_name]));
     const img = code => `https://resources.premierleague.com/premierleague25/photos/players/110x140/${code}.png`;
     const P = d.elements.filter(e => e.status !== "u" && e.minutes >= 0);
-    const mk = e => ({ id: "e" + e.code, name: (`${e.first_name} ${e.second_name}`.length <= 22 ? `${e.first_name} ${e.second_name}` : `${e.first_name.split(" ")[0]} ${e.web_name.replace(/^[A-Z]\.\s?/, "")}`).trim(), team: teams[e.team] || "", pos: ["", "GK", "DEF", "MID", "FWD"][e.element_type], img: img(e.code), r: {},
+    // the name fans use: "Bruno Fernandes", not "Bruno Borges Fernandes" or "B.Fernandes"
+    const fplName = e => { const full = `${e.first_name} ${e.second_name}`.trim(), f = e.first_name.split(" ")[0], w = e.web_name;
+      if (full.length <= 18) return full;
+      if (/\.$/.test(w)) return `${f} ${e.second_name.split(" ")[0]}`;               // "Bruno G." -> "Bruno Guimarães"
+      const surname = w.replace(/^[A-Z]\.\s?/, ""); return surname.toLowerCase().includes(f.toLowerCase()) ? surname : `${f} ${surname}`; };
+    const mk = e => ({ id: "e" + e.code, name: fplName(e), team: teams[e.team] || "", pos: ["", "GK", "DEF", "MID", "FWD"][e.element_type], img: img(e.code), r: {},
       line: `£${(e.now_cost / 10).toFixed(1)}m · ${e.goals_scored} G · ${e.assists} A this season`, s: { g: e.goals_scored, a: e.assists, price: e.now_cost / 10, pts: e.total_points, cs: e.clean_sheets, sv: e.saves }, st: e });
     const attackers = P.filter(e => e.element_type >= 3).sort((a, b) => b.now_cost - a.now_cost).slice(0, 60).map(mk);
     rate(attackers, "fin", p => p.st.now_cost + (p.st.element_type === 4 ? 12 : 0)); rate(attackers, "power", p => p.st.now_cost + +p.st.threat / 40); rate(attackers, "comp", p => p.st.now_cost + +p.st.creativity / 50);

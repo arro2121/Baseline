@@ -11,6 +11,18 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Play:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and **friend challenge
   links** (no account needed), plus **Rating Rumble**, a quick "which team is stronger?" game with a best streak.
+* **Cosmo Showdown (the main game):** pick a sport and draft real players under a salary cap. Every player's ratings
+  come from their real stats: MLB's and the NHL's official stats, ESPN's stats for the NBA and NFL, and Fantasy
+  Premier League. Then play a full game against a computer team of real players, with a box score and a win-loss
+  record per sport:
+  * **Baseball:** at-bats with real counts, base runners and a linescore, over three innings.
+  * **Basketball:** three on three to 21, where you pick the shooter and the shot.
+  * **Football:** drives where you throw to the open receiver, with downs and field goals.
+  * **Hockey:** power plays between their chances against your goalie.
+  * **Soccer:** a full penalty shootout.
+* **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
+* **Daily Trivia:** five new questions a day written from real stats.
+* **Cosmo Level:** XP for picks, games, Showdown wins and trivia, with levels and 26 achievements.
 * **Arcade:** six sports games with shaded, animated athletes, full stadiums and crowds that react. Each uses
   real controls and gets harder as you play:
   * **Home Run Derby:** tap where and when to swing, with real launch angles, a 330-to-400-foot fence and five
@@ -20,6 +32,8 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   * **Field Goal Challenge:** swipe to kick through wind and a pass rush, with a play clock.
   * **Top Shelf:** a power play where you pass to move the goalie and rip one-timers.
   * **Logo Quiz:** three lives through pixel, silhouette, close-up and spin rounds.
+
+  In five of the games you can "play as" a real player, whose ratings change how you hit, shoot or kick.
 * **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
   changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
   text to speech, inside the free daily allowance), with the phone's own voice as the backup. Pick the voice and
@@ -135,7 +149,7 @@ No model is certain. Bet only what you can afford to lose.
 | --- | --- |
 | While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
 | Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
-| Every night | New results and rankings download, every rating recalculates, and the site republishes |
+| Every night | New results and rankings download, every rating recalculates, the Showdown player ratings update from real stats, and the site republishes |
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.
 
@@ -165,7 +179,7 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
   standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Play the
   Daily 3 and challenge your friends, keep your streak alive in Rating Rumble, and see how your picks stack up
-  against our prediction model. Play six arcade games with real controls: Home Run Derby, a Penalty Shootout
+  against our prediction model. Draft real players in Cosmo Showdown and play full games in five sports. Play six arcade games with real controls: Home Run Derby, a Penalty Shootout
   against the computer, a Three-Point Contest, Field Goal Challenge, a Top Shelf power play and a Logo Quiz. Tap Listen in a live game to
   hear the plays called by a natural human voice. Get alerts for your teams, close finishes and a morning briefing, and turn on the
   spoiler shield when you're watching later. No account, no ads, no tracking.
