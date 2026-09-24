@@ -16,6 +16,18 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   changed who led), marked on the win-probability chart. Tap one to replay it on the animated field.
 * **Cosmo Picks:** call the winner before any game, then see Cosmo's pick. Picks grade themselves when games end,
   and you get a running record against the model, a win streak and a badge when you're beating it.
+* **Cosmo forecast:** the model's locks for today, upset alerts where it disagrees with the betting market, and
+  coin flips that are too close to call.
+* **Galaxy power rankings:** each league's ratings drawn as a galaxy, with the strongest teams orbiting the core.
+* **Season constellations:** every team page draws its season as a constellation. Each game is a star, wins sit
+  above the horizon, and bigger margins shine brighter.
+* **Star of the Game:** the standout player of every game, with their line.
+* **Astronaut ranks and badges:** climb from Cadet to Star Admiral with correct picks, and unlock badges like
+  Comet (3 in a row), Supernova (5 in a row), Rogue satellite (right when Cosmo was wrong) and Oracle.
+* **Launch countdowns:** a T-minus clock to every game's start.
+* **Cosmic motion:** a jump to warp speed when the app opens; balls fly as comets in every animated replay;
+  scores set off supernovas on the field, the game header, the scoreboard and the Universe; shooting stars cross the
+  sky; views materialize as you switch.
 * **Score cards:** turn any game into a shareable image with both logos, the score, the win-probability line,
   its Pulse and the turning point. Share it straight to messages or social, or save it.
 
