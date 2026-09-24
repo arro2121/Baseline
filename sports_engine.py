@@ -154,6 +154,34 @@ def espn_standings(lg):
         stack += node.get("children", [])
     return rows
 
+ESPN_PATHS = {"nfl": "football/nfl", "nba": "basketball/nba", "mlb": "baseball/mlb", "nhl": "hockey/nhl", "epl": "soccer/eng.1"}
+
+def espn_logos(lg):
+    """Team logos from ESPN's team list, keyed by the team's full name and then by its other names."""
+    import urllib.request
+    d = json.load(urllib.request.urlopen(f"https://site.api.espn.com/apis/site/v2/sports/{ESPN_PATHS[lg]}/teams", timeout=30))
+    teams = [t["team"] for t in d["sports"][0]["leagues"][0]["teams"]]
+    out = {}
+    for fields in (("displayName",), ("shortDisplayName", "location", "name", "nickname")):
+        for t in teams:
+            logos = t.get("logos") or []
+            logo = next((l["href"] for l in logos if "default" in l.get("rel", [])), None) or (logos[0]["href"] if logos else None)
+            for f in fields:
+                if logo and t.get(f): out.setdefault(key(t[f]), logo)
+    return out
+
+def add_logos(out, prev_lg, use_espn):
+    """Give every team its logo, keeping the last known one when ESPN can't be reached."""
+    for lg, L in out["leagues"].items():
+        old = {key(t["name"]): t.get("logo") for t in prev_lg.get(lg, {}).get("teams", [])}
+        logos = {}
+        if use_espn:
+            try: logos = espn_logos(lg)
+            except Exception as e: print(f"ESPN logos for {lg} unavailable ({e}); keeping the saved ones")
+        for t in L["teams"]:
+            logo = logos.get(key(t["name"])) or old.get(key(t["name"]))
+            if logo: t["logo"] = logo
+
 def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), previous=None, use_espn=False):
     feed = json.load(open(feed_path))
     prev_lg = (previous or {}).get("leagues", {})
@@ -183,6 +211,7 @@ def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), prev
                                   method=f"Team strength from {note}, pulled toward average to account for luck ({k} games' worth), plus home advantage ({hw:.1%} home win rate).")
     for lg in out["leagues"].values():
         lg["teams"].sort(key=lambda x: -x["rating"])
+    add_logos(out, prev_lg, use_espn)
     return out
 
 SOURCES = {"nfl.csv": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"}
