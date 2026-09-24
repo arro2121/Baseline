@@ -1,0 +1,25 @@
+# Temporary: plays a real replay in the finished app against live ESPN. Safe to delete.
+name: App screenshots
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml", ".github/diag/shots.mjs"]
+permissions:
+  contents: write
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install -q -r requirements.txt && python sports_engine.py --download --espn && python build_site.py
+      - run: (cd docs && python -m http.server 8000 >/dev/null 2>&1 &) && sleep 1
+      - run: cd .github/diag && mkdir -p shots && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null 2>&1 && node shots.mjs
+      - run: |
+          curl -sS -o /dev/null -w "mp4 check: %{http_code} %{content_type} %{size_download}B\n" -r 0-99999 -H "Referer: https://arro2121.github.io/" "$(python3 -c "import json,urllib.request;d=json.load(urllib.request.urlopen('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summary?event=401879362'));print(d['videos'][1]['links']['source']['HD']['href'])")"
+      - run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag/shots && git commit -q -m "App screenshots" && git push
