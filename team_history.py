@@ -9,7 +9,7 @@ the current season is refreshed every night.
 * Premier League: every match from football-data.co.uk, with shots, shots on target, corners and closing odds.
 * NFL: nflverse's games file (scores, rest, divisions, quarterbacks, betting lines) is read directly by sports_engine.py.
 """
-import csv, datetime as dt, json, os, sys, time, urllib.request
+import csv, datetime as dt, json, os, sys, time, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FOLDER = os.path.join(HERE, "data", "history")
@@ -77,15 +77,48 @@ def nhl(season):
     return rows
 
 # ------------------------------------------------------------------ NBA
-NBA_HEAD = ["date", "id", "home", "away", "hs", "as", "type", "hfg", "afg", "h3", "a3", "hreb", "areb", "hto", "ato", "spread", "total"]
+NBA_HEAD = ["date", "id", "home", "away", "hs", "as", "type", "hfg", "afg", "h3", "a3", "hreb", "areb", "hto", "ato", "spread", "total", "hml", "aml"]
+def alerts_url():
+    try: return json.load(open(os.path.join(HERE, "site_config.json"))).get("alerts_url", "").rstrip("/")
+    except Exception: return ""
 def nba(season):
-    """season = the year it starts (2024 means 2024-25). ESPN's scoreboard, a week at a time."""
+    """season = the year it starts (2024 means 2024-25). ESPN's scoreboard a week at a time; if ESPN turns this computer
+    away, our alerts service (which reads the same scoreboard) a day at a time."""
+    try:
+        return nba_espn(season)
+    except urllib.error.HTTPError as e:
+        if e.code != 403 or not alerts_url(): raise
+    return nba_alerts(season)
+def nba_alerts(season):
+    base, rows, seen = alerts_url(), [], set()
+    d, end = dt.date(season, 10, 18), min(dt.date(season + 1, 6, 25), dt.date.today() - dt.timedelta(days=1))
+    while d <= end:
+        try: js = jget(f"{base}/sports/nba/scoreboard?dates={d:%Y%m%d}")
+        except Exception as ex: print("  nba day", d, ex); d += dt.timedelta(days=1); continue
+        for g in js.get("games", []):
+            if g["id"] in seen or (g.get("status") or {}).get("state") != "post": continue
+            h, a = g["home"], g["away"]
+            if h.get("score") in (None, "") or a.get("score") in (None, ""): continue
+            o = g.get("odds") or {}; seen.add(g["id"])
+            rows.append([(g.get("date") or str(d))[:10], g["id"], h["name"], a["name"], h["score"], a["score"], "", "", "", "", "", "", "", "", "",
+                         "", o.get("overUnder") or "", o.get("homeML") or "", o.get("awayML") or ""])
+        d += dt.timedelta(days=1); time.sleep(.15)
+    # preseason and exhibition teams drop out: keep teams that play a full schedule
+    from collections import Counter
+    n = Counter([r[2] for r in rows] + [r[3] for r in rows])
+    rows = [r for r in rows if n[r[2]] >= 40 and n[r[3]] >= 40]
+    rows.sort()
+    return rows
+def nba_espn(season):
     start, end = dt.date(season, 10, 1), dt.date(season + 1, 6, 30)
     rows, seen = [], set()
     d = start
     while d <= end and d <= dt.date.today():
         e = min(end, d + dt.timedelta(days=6))
         try: js = jget(f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates={d:%Y%m%d}-{e:%Y%m%d}&limit=300")
+        except urllib.error.HTTPError as ex:
+            if ex.code == 403: raise
+            print("  nba week", d, ex); d = e + dt.timedelta(days=1); continue
         except Exception as ex: print("  nba week", d, ex); d = e + dt.timedelta(days=1); continue
         for ev in js.get("events", []):
             if ev["id"] in seen: continue
@@ -101,7 +134,7 @@ def nba(season):
             rows.append([ev["date"][:10], ev["id"], side["home"]["team"]["displayName"], side["away"]["team"]["displayName"], side["home"].get("score"), side["away"].get("score"), typ,
                          st(side["home"], "fieldGoalPct"), st(side["away"], "fieldGoalPct"), st(side["home"], "threePointFieldGoalPct"), st(side["away"], "threePointFieldGoalPct"),
                          st(side["home"], "rebounds"), st(side["away"], "rebounds"), st(side["home"], "turnovers"), st(side["away"], "turnovers"),
-                         odds.get("spread", ""), odds.get("overUnder", "")])
+                         odds.get("spread", ""), odds.get("overUnder", ""), (odds.get("homeTeamOdds") or {}).get("moneyLine", ""), (odds.get("awayTeamOdds") or {}).get("moneyLine", "")])
         d = e + dt.timedelta(days=1); time.sleep(.3)
     rows.sort()
     return rows
@@ -117,8 +150,9 @@ def epl(season):
     for r in csv.DictReader(raw):
         if not r.get("HomeTeam") or r.get("FTHG") in (None, ""): continue
         dd, mm, y = r["Date"].split("/"); y = ("20" + y) if len(y) == 2 else y
-        close = lambda a, b, c: next(((r.get(x), r.get(y2), r.get(z)) for x, y2, z in (a, b, c) if r.get(x)), ("", "", ""))
-        oh, od, oa = close(("PSCH", "AvgCH", "B365H"), ("PSCD", "AvgCD", "B365D"), ("PSCA", "AvgCA", "B365A"))
+        # closing odds from the first bookmaker with all three prices: Pinnacle, then the market average, then Bet365
+        oh, od, oa = next(((r[h], r[d_], r[a]) for h, d_, a in (("PSCH", "PSCD", "PSCA"), ("AvgCH", "AvgCD", "AvgCA"), ("B365H", "B365D", "B365A"))
+                           if r.get(h) and r.get(d_) and r.get(a)), ("", "", ""))
         rows.append([f"{y}-{mm}-{dd}", r["HomeTeam"], r["AwayTeam"], r["FTHG"], r["FTAG"], r.get("HS", ""), r.get("AS", ""), r.get("HST", ""), r.get("AST", ""),
                      r.get("HC", ""), r.get("AC", ""), r.get("HY", ""), r.get("AY", ""), r.get("HR", ""), r.get("AR", ""), oh, od, oa,
                      r.get("AvgC>2.5") or r.get("B365>2.5") or "", r.get("AvgC<2.5") or r.get("B365<2.5") or ""])

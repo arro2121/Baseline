@@ -16,8 +16,8 @@ jobs:
       - name: Fetch
         run: |
           python .github/diag/peek.py 2>&1 | tee .github/diag/peek.log || true
-          python team_history.py --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
-          curl -sL https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv -o .github/diag/hist/nfl_games.csv || true
+          python team_history.py nba epl --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
+          true
       - name: Save
         run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
