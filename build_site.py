@@ -49,7 +49,7 @@ MANIFEST = {
         {"src": "screenshots/phone-universe.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Universe: every live game at once, ranked by excitement"},
         {"src": "screenshots/phone-ask.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Ask Cosmo, your AI sports companion"},
         {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Arcade games, Daily 3 picks and Rating Rumble"},
-        {"src": "screenshots/phone-arcade.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Penalty Shootout in the arcade"},
+        {"src": "screenshots/phone-arcade.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Home Run Derby in the arcade"},
         {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
         {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
         {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
