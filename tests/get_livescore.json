@@ -1,0 +1,12 @@
+{"success":1,"result":[
+ {"event_key":"9001","event_date":"2026-09-24","event_time":"08:30","event_first_player":"J. Sinner","first_player_key":"1","event_second_player":"C. Alcaraz","second_player_key":"2",
+  "event_final_result":"1 - 0","event_game_result":"30 - 15","event_serve":"First Player","event_winner":null,"event_status":"Set 2","event_type_type":"Atp Singles",
+  "tournament_name":"Beijing","tournament_key":"100","tournament_round":"ATP Beijing - Final","tournament_season":"2026","event_live":"1","event_qualification":"False",
+  "scores":[{"score_first":"6","score_second":"4","score_set":"1"},{"score_first":"3","score_second":"3","score_set":"2"}]},
+ {"event_key":"9002","event_date":"2026-09-24","event_time":"09:00","event_first_player":"E. Rybakina","first_player_key":"3","event_second_player":"A. Sabalenka","second_player_key":"4",
+  "event_final_result":"0 - 0","event_game_result":"A - 40","event_serve":"Second Player","event_winner":null,"event_status":"Set 1","event_type_type":"Wta Singles",
+  "tournament_name":"Beijing","tournament_key":"101","tournament_round":"WTA Beijing - 1/4-finals","tournament_season":"2026","event_live":"1","event_qualification":"False",
+  "scores":[{"score_first":"5","score_second":"5","score_set":"1"}]},
+ {"event_key":"9003","event_date":"2026-09-24","event_time":"10:00","event_first_player":"S. Doubles/ T. Pair","first_player_key":"5","event_second_player":"X/ Y","second_player_key":"6",
+  "event_game_result":"0 - 0","event_serve":"First Player","event_status":"Set 1","event_type_type":"Atp Doubles","tournament_name":"Beijing","event_live":"1","scores":[]}
+]}

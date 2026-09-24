@@ -1,0 +1,18 @@
+name = "baseline-alerts"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Check scores and send alerts every 2 minutes (fits Cloudflare's free plan limits).
+[triggers]
+crons = ["*/2 * * * *"]
+
+# Replace the id with the one printed by: npx wrangler kv namespace create KV
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+[vars]
+SITE_URL = "https://YOUR-USERNAME.github.io/YOUR-REPO"
+VAPID_SUBJECT = "mailto:you@example.com"
+# The public key printed by: node make-keys.mjs
+VAPID_PUBLIC_KEY = "PASTE_PUBLIC_KEY_HERE"
