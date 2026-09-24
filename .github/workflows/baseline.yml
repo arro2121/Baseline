@@ -91,6 +91,10 @@ jobs:
         run: python engine.py
       - name: Update NFL, NBA, MLB, NHL and Premier League ratings
         run: python sports_engine.py --download --espn
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Update the real players for Cosmo Showdown
+        run: node alerts/allstars.mjs || echo "Kept the previous players"
       - name: Build the app
         run: python build_site.py
       - name: Save
