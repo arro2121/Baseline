@@ -1,6 +1,6 @@
 // Baseline offline helper and notifications. The app opens instantly and still works without signal,
-// showing the last ratings and scores it saw. Build: 20260924-2051594
-const CACHE = "baseline-20260924-2051594";
+// showing the last ratings and scores it saw. Build: 20260924-2052017
+const CACHE = "baseline-20260924-2052017";
 const SHELL = ["./", "index.html", "live.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -9,7 +9,7 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   if (url.origin === location.origin && (e.request.mode === "navigate" || url.pathname.endsWith("live.json") || url.pathname.endsWith("index.html"))) {
     // fresh first: new scores and nightly ratings win, the cached copy is the offline fallback
-    e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(CACHE).then(k => k.put(url.pathname.endsWith("live.json") ? "live.json" : e.request, c)); return r; })
+    e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); caches.open(CACHE).then(k => k.put(url.pathname.endsWith("live.json") ? "live.json" : e.request, c)); return r; })
       .catch(() => caches.match(url.pathname.endsWith("live.json") ? "live.json" : e.request).then(r => r || caches.match("index.html"))));
     return;
   }
