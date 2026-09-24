@@ -49,6 +49,23 @@ def mlb(season):
                          hp.get("id", ""), hp.get("fullName", ""), ap.get("id", ""), ap.get("fullName", ""), g.get("gameNumber", 1), (g.get("venue") or {}).get("id", "")])
     return rows
 
+PITCH_HEAD = ["id", "name", "season", "ip", "so", "bb", "hr", "er", "gs"]
+def mlb_pitchers(season, ids):
+    """each pitcher's season line, 100 at a time"""
+    rows, ids = [], sorted({int(i) for i in ids if str(i).strip() not in ("", "nan")})
+    for k in range(0, len(ids), 100):
+        chunk = ",".join(str(i) for i in ids[k:k + 100])
+        d = jget(f"https://statsapi.mlb.com/api/v1/people?personIds={chunk}&hydrate=stats(group=[pitching],type=[season],season={season})")
+        for p in d.get("people", []):
+            for st in p.get("stats", []):
+                for sp in st.get("splits", []):
+                    s = sp.get("stat", {})
+                    if (sp.get("sport") or {}).get("id", 1) != 1: continue
+                    ip = s.get("inningsPitched", "0"); w, _, f = str(ip).partition("."); ipf = int(w or 0) + int(f or 0) / 3
+                    rows.append([p["id"], p.get("fullName", ""), season, round(ipf, 2), s.get("strikeOuts", 0), s.get("baseOnBalls", 0), s.get("homeRuns", 0), s.get("earnedRuns", 0), s.get("gamesStarted", 0)])
+        time.sleep(.2)
+    return rows
+
 # ------------------------------------------------------------------ NHL
 NHL_HEAD = ["date", "id", "home", "away", "hs", "as", "ot", "hsog", "asog", "hpp", "app"]
 def nhl(season):
@@ -183,6 +200,17 @@ def update(leagues=("mlb", "nhl", "nba", "epl"), back=None, folder=FOLDER, today
                 print(f"  {lg} {season}: unavailable ({e})" + ("; keeping the saved copy" if os.path.exists(path) else ""))
                 if os.path.exists(path): paths.append(path)
         out[lg] = paths
+        if lg == "mlb":                              # the starters' season lines, for the pitcher ratings
+            for season in range(cur - back[lg] - 1, cur + 1):
+                path = os.path.join(folder, f"mlb_pitchers_{season}.csv")
+                if os.path.exists(path) and season < cur: continue
+                ids = set()
+                for q in (season, season + 1):       # everyone who started that season or the next
+                    f = os.path.join(folder, f"mlb_{q}.csv")
+                    if os.path.exists(f):
+                        for r in csv.DictReader(open(f)): ids.update([r["hsp"], r["asp"]])
+                try: n = save(path, PITCH_HEAD, mlb_pitchers(season, ids)); print(f"  mlb pitchers {season}: {n}")
+                except Exception as e: print(f"  mlb pitchers {season}: unavailable ({e})")
     return out
 
 if __name__ == "__main__":

@@ -28,13 +28,13 @@ from sklearn.metrics import log_loss, brier_score_loss
 
 def elo_p(d): return 1 / (1 + 10 ** (-d / 400))
 
-# settings per league: Elo K and home edge, the offseason pull toward average, how fast running stats forget,
+# settings per league (K, home edge and offseason pull tuned on a validation season before the test seasons): Elo K and home edge, the offseason pull toward average, how fast running stats forget,
 # the cap on rest days that still matter, and the per-sport margin multiplier for Elo
 CFG = {
-    "nfl": dict(K=20, HFA=48, revert=1 / 3, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
+    "nfl": dict(K=16, HFA=48, revert=1 / 3, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
     "nba": dict(K=18, HFA=70, revert=.25, half=12, rest_cap=4, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
-    "mlb": dict(K=4, HFA=24, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
-    "nhl": dict(K=6, HFA=30, revert=1 / 3, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
+    "mlb": dict(K=2.5, HFA=16, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
+    "nhl": dict(K=4, HFA=45, revert=1 / 3, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
     "epl": dict(K=22, HFA=55, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
 }
 LABELS = {
@@ -61,13 +61,19 @@ def walk(lg, games, extras=()):
     Returns (feature rows for played games, team states, pitcher states, head-to-head log)."""
     C = CFG[lg]; T = defaultdict(Team); a = .5 ** (1 / C["half"])
     lg_pts = [None]                                         # running league scoring average (points per team per game)
-    SP = defaultdict(lambda: [None, 0])                     # MLB: pitcher -> [runs-allowed average, starts]
+    SP = defaultdict(lambda: [None, 0])                     # MLB: pitcher -> [runs allowed in his starts this season (running), starts]
+    FIP = games.attrs.get("fip", {})                        # MLB: (pitcher, season) -> that season's FIP, regressed by innings
+    def sp_val(pid, season):
+        """a starter's expected runs allowed per game: last season's FIP, moving toward this season's starts as they add up"""
+        prior = FIP.get((pid, season - 1), 4.45); v, n = SP[pid] if pid else (None, 0)
+        return prior if v is None else (prior * 8 + v * n) / (8 + n)
     h2h = defaultdict(lambda: deque(maxlen=6))
     rows, cur = [], None
     for r in games.itertuples(index=False):
         d = r.date; s = season_of(lg, d)
         if s != cur:                                        # new season: pull ratings back toward average, forget some of last season
             if cur is not None:
+                SP.clear()
                 for t in T.values():
                     t.elo = t.elo * (1 - C["revert"]) + 1505 * C["revert"]; t.mov *= .5; t.sn = 0; t.res.clear(); t.hw = t.hl = t.aw = t.al = 0; t.streak = 0
                     for k in t.x:
@@ -86,11 +92,8 @@ def walk(lg, games, extras=()):
                  pf_h=pf(H), pa_h=pa(H), pf_a=pf(A), pa_a=pa(A), lg_avg=avg, n_min=min(H.n, A.n), sn_min=min(H.sn, A.sn),
                  p_elo=elo_p(H.elo - A.elo + (0 if getattr(r, "neutral", 0) else C["HFA"])))
         if lg == "mlb":
-            def sp_ra(pid):
-                v, n = SP[pid] if pid else (None, 0)
-                prior = avg; return ((v if v is not None else prior) * n + prior * 5) / (n + 5)       # five league-average starts of prior
             hp, ap = getattr(r, "hsp", None), getattr(r, "asp", None)
-            f["sp_d"] = sp_ra(ap) - sp_ra(hp); f["hsp"] = hp; f["asp"] = ap
+            f["sp_d"] = sp_val(ap, s) - sp_val(hp, s); f["hsp"] = hp; f["asp"] = ap
         if lg in ("nhl", "epl", "nba"):
             key = {"nhl": "shots_share", "epl": "sot_share", "nba": "fg_share"}[lg]
             f[{"nhl": "shots_d", "epl": "sot_d", "nba": "fg_d"}[lg]] = (H.x.get(key) if H.x.get(key) is not None else .5) - (A.x.get(key) if A.x.get(key) is not None else .5)
@@ -124,7 +127,7 @@ def walk(lg, games, extras=()):
         if lg == "mlb":
             for pid, ra in ((getattr(r, "hsp", None), as_), (getattr(r, "asp", None), hs)):
                 if pid:
-                    v, n = SP[pid]; SP[pid] = [ra if v is None else .88 * v + .12 * ra, n + 1]
+                    v, n = SP[pid]; SP[pid] = [ra if v is None else .9 * v + .1 * ra, n + 1]
         def share(t, key, us, them):
             if us is None or them is None or pd.isna(us) or pd.isna(them) or (us + them) <= 0: return
             v = us / (us + them); t.x[key] = v if t.x.get(key) is None else a * t.x[key] + (1 - a) * v
@@ -133,7 +136,7 @@ def walk(lg, games, extras=()):
             share(H, "sot_share", r.hst, r.ast); share(A, "sot_share", r.ast, r.hst)
             share(H, "shots_share", r.hsh, r.ash); share(A, "shots_share", r.ash, r.hsh)
         if lg == "nba": share(H, "fg_share", r.hfg, r.afg); share(A, "fg_share", r.afg, r.hfg)
-    return pd.DataFrame(rows), T, SP, h2h
+    return pd.DataFrame(rows), T, (SP, FIP, cur), h2h
 
 # ------------------------------------------------------------------ fitting and testing
 def rep(y, p):
@@ -302,6 +305,17 @@ def load(lg, paths=None, nfl_csv=None):
     if lg == "mlb":
         d = d.rename(columns={"as": "as_"}); d["neutral"] = 0
         d["hsp"] = d.hsp_name.where(d.hsp_name.notna(), None); d["asp"] = d.asp_name.where(d.asp_name.notna(), None)
+        import glob as _g, os as _os
+        fip = {}
+        for f in sorted(_g.glob(_os.path.join(_os.path.dirname(paths[0]), "mlb_pitchers_*.csv"))):
+            P = pd.read_csv(f)
+            lgk = (13 * P.hr.sum() + 3 * P.bb.sum() - 2 * P.so.sum()) / max(1, P.ip.sum()); lgera = 9 * P.er.sum() / max(1, P.ip.sum())
+            for r in P.itertuples():
+                if r.ip <= 0: continue
+                v = (13 * r.hr + 3 * r.bb - 2 * r.so) / r.ip - lgk + lgera            # FIP, on the league's ERA scale
+                fip[(r.name, int(r.season))] = (v * r.ip + (lgera + .25) * 40) / (r.ip + 40)   # 40 innings of a below-average arm as the prior
+        d = d.sort_values("date", kind="stable").reset_index(drop=True); d.attrs["fip"] = fip
+        return d
     elif lg == "nhl":
         d = d.rename(columns={"as": "as_"}); d["neutral"] = 0
     elif lg == "nba":
@@ -321,7 +335,7 @@ def build_league(lg, G, today=None):
     """fit, test and export one league: the model, its report card, and every team's state today"""
     today = today or dt.date.today()
     extras = {"nfl": ("p_mkt", "qb_d"), "epl": ("odds_h", "odds_d", "odds_a")}.get(lg, ())
-    F, T, SP, H2 = walk(lg, G, extras)
+    F, T, (SP, FIP, last_season), H2 = walk(lg, G, extras)
     seasons = sorted(F.season.unique()); test = [s for s in seasons if s >= seasons[-1] - (1 if lg in ("nfl", "epl") else 1)]
     if lg in ("nfl", "epl"): test = seasons[-3:] if len(seasons) > 4 else seasons[-2:]
     if lg == "epl":
@@ -351,7 +365,10 @@ def build_league(lg, G, today=None):
     if names: out["h2h"] = {k: [[r[0], names.get(r[1], r[1]), names.get(r[2], r[2]), r[3], r[4]] for r in v] for k, v in out["h2h"].items()}
     if lg == "mlb":                                   # starting pitchers who pitched this season or last
         cut = pd.Timestamp(today) - pd.Timedelta(days=420); recent = set(G[G.date >= cut].hsp.dropna()) | set(G[G.date >= cut].asp.dropna())
-        out["pitchers"] = {p: [round(v, 3), n] for p, (v, n) in SP.items() if p in recent and v is not None}
+        season_now = season_of(lg, pd.Timestamp(today)); roll = SP if last_season == season_now else {}
+        out["pitchers"] = {p: [round(FIP.get((p, season_now - 1), 4.45), 3), round(roll[p][0], 3) if p in roll and roll[p][0] is not None else None, roll[p][1] if p in roll else 0]
+                           for p in recent}
+        out["pitchers"] = {k: v for k, v in out["pitchers"].items() if isinstance(k, str)}
     if lg == "nfl":                                   # each team's current starting quarterback
         qb = {}
         for r in G[G.hs.notna()].itertuples():

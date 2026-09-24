@@ -2449,7 +2449,8 @@ function mFeatures(lg, H, A, neutral, ctx){
   const restOf = s => { const d = daysBetween(s.last, when); return d == null ? cap : Math.max(0, Math.min(cap, d)); };
   const mean = a => a && a.length ? a.reduce((x, y) => x + y, 0) / a.length : .5;
   const share = (s, k) => s.x && s.x[k] != null ? s.x[k] : .5;
-  const spRa = name => { const p = name && M.pitchers && M.pitchers[name]; const v = p ? p[0] : avg, n = p ? p[1] : 0; return (v * n + avg * 5) / (n + 5); };
+  // a starter's expected runs allowed: last season's FIP, moving toward this season's starts as they add up (as in team_models.py)
+  const spRa = name => { const p = name && M.pitchers && M.pitchers[name]; if (!p) return 4.45; const [prior, roll, n] = p; return roll == null ? prior : (prior * 8 + roll * n) / (8 + n); };
   const pr = ctx && (ctx.probables || (ctx.info && ctx.info.probables));                                   // [away, home] probable starting pitchers
   const rH = restOf(H), rA = restOf(A), dH = daysBetween(H.last, when), dA = daysBetween(A.last, when);
   return { home: neutral ? 0 : 1, elo_d: H.elo - A.elo, mov_d: H.mov - A.mov, form_d: mean(H.form) - mean(A.form), rest_d: rH - rA,
@@ -2457,7 +2458,7 @@ function mFeatures(lg, H, A, neutral, ctx){
     sp_d: lg === "mlb" ? spRa(pr && pr[0]) - spRa(pr && pr[1]) : 0, qb_d: 0,
     shots_d: share(H, "shots_share") - share(A, "shots_share"), sot_d: share(H, "sot_share") - share(A, "sot_share"), fg_d: share(H, "fg_share") - share(A, "fg_share"),
     pf_h: H.pf ?? avg, pa_h: H.pa ?? avg, pf_a: A.pf ?? avg, pa_a: A.pa ?? avg, restH: rH, restA: rA,
-    spH: lg === "mlb" && pr && pr[1] ? { name: pr[1], ra: spRa(pr[1]), n: (M.pitchers[pr[1]] || [0, 0])[1] } : null, spA: lg === "mlb" && pr && pr[0] ? { name: pr[0], ra: spRa(pr[0]), n: (M.pitchers[pr[0]] || [0, 0])[1] } : null };
+    spH: lg === "mlb" && pr && pr[1] ? { name: pr[1], ra: spRa(pr[1]), n: (M.pitchers[pr[1]] || [0, 0, 0])[2] } : null, spA: lg === "mlb" && pr && pr[0] ? { name: pr[0], ra: spRa(pr[0]), n: (M.pitchers[pr[0]] || [0, 0, 0])[2] } : null };
 }
 function pois3(lh, la, rho){
   const N = 10, f = l => { const o = []; let p = Math.exp(-l); for (let i = 0; i <= N; i++){ o.push(p); p *= l / (i + 1); } return o; }, fh = f(lh), fa = f(la);
@@ -2577,7 +2578,7 @@ function factorSub(k, p, lg){
     case "rest_d": return `${rd(x.restH)} vs ${rd(x.restA)} days since their last game`;
     case "b2b_h": return x.b2b_h ? "the home team played yesterday" : "home team is rested";
     case "b2b_a": return x.b2b_a ? "the away team played yesterday" : "away team is rested";
-    case "sp_d": return x.spH && x.spA ? `${x.spH.name} ${x.spH.ra.toFixed(2)} vs ${x.spA.name} ${x.spA.ra.toFixed(2)} runs allowed per start` : "probable starters not announced yet";
+    case "sp_d": return x.spH && x.spA ? `${x.spH.name} ${x.spH.ra.toFixed(2)} vs ${x.spA.name} ${x.spA.ra.toFixed(2)} expected runs allowed per 9 (last season's FIP blended with this season's starts)` : "probable starters not announced yet";
     case "qb_d": return "starting quarterback continuity (backups and new starters count against)";
     case "shots_d": return `${sh(H, "shots_share")} vs ${sh(A, "shots_share")} of the shots in their games`;
     case "sot_d": return `${sh(H, "sot_share")} vs ${sh(A, "sot_share")} of the shots on target in their games`;

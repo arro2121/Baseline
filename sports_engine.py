@@ -264,7 +264,7 @@ if __name__ == "__main__":
     # the multi-factor models: game-by-game history for every league, fitted, tested and exported for the app
     try:
         import glob, team_history, team_models as tm
-        hist = team_history.update() if "--download" in sys.argv else {lg: sorted(glob.glob(os.path.join(here, "data", "history", f"{lg}_*.csv"))) for lg in ("mlb", "nhl", "nba", "epl")}
+        hist = team_history.update() if "--download" in sys.argv else {lg: sorted(p for p in glob.glob(os.path.join(here, "data", "history", f"{lg}_*.csv")) if re.search(r"_\d{4}\.csv$", p)) for lg in ("mlb", "nhl", "nba", "epl")}
         models = {}
         for lg in ("nfl", "nba", "mlb", "nhl", "epl"):
             try:

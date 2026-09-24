@@ -16,7 +16,7 @@ jobs:
       - name: Fetch
         run: |
           python .github/diag/peek.py 2>&1 | tee .github/diag/peek.log || true
-          python team_history.py nba epl --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
+          python team_history.py mlb --out .github/diag/hist 2>&1 | tee .github/diag/fetch.log || true
           true
       - name: Save
         run: |
