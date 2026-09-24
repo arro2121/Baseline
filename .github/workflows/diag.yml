@@ -2,7 +2,7 @@ name: Alerts check
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml", ".github/diag/webkit.mjs"]
+    paths: [".github/workflows/diag.yml"]
 permissions:
   contents: write
 jobs:
@@ -11,13 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - name: Run the live app in Safari's engine
+        with: { node-version: "22" }
+      - name: Snapshot
         run: |
-          cd .github/diag && npm init -y >/dev/null && npm i playwright@1.55.0 >/dev/null 2>&1 && npx playwright install --with-deps webkit chromium >/dev/null 2>&1
-          node webkit.mjs webkit | tee webkit.log || true
-          node webkit.mjs chromium | tee chromium.log || true
+          (cd alerts && npm install --no-audit --no-fund --silent)
+          node alerts/snapshot.mjs | tee .github/diag/snapshot.log
+          cp docs/scores.json .github/diag/scores.json || true
       - name: Save
         run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
-          git add .github/diag/*.png .github/diag/*.log && git commit -q -m "WebKit check results" && git push || echo nothing
+          git add .github/diag/snapshot.log .github/diag/scores.json && git commit -q -m "Snapshot check results" && git pull -q --rebase && git push || echo nothing

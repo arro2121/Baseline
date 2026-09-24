@@ -630,10 +630,14 @@ function linkVideos(plays, videos, roster = []) {
 const ESPN_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/", CDN = "https://cdn.espn.com/core/";
 const CDN_PAGE = { scoreboard: "scoreboard", game: "game", playbyplay: "playbyplay" }, CDN_SOCCER = { scoreboard: "scoreboard", game: "match", playbyplay: "commentary" };
 const cdnUrl = (lg, kind, q = "") => lg === "epl" ? `${CDN}soccer/${CDN_SOCCER[kind]}?xhr=1&league=eng.1${q}` : `${CDN}${lg}/${CDN_PAGE[kind]}?xhr=1${q}`;
-async function getJSON(url, fetchImpl) {
-  const r = await fetchImpl(url);
-  if (!r.ok) throw new Error(`ESPN ${r.status}`);
-  return r.json();
+async function getJSON(url, fetchImpl, ms = 10000) {  // a source that hangs (a blocked or slow network) gives up so the next one gets a turn
+  const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = ac && setTimeout(() => ac.abort(), ms);
+  try {
+    const r = await fetchImpl(url, ac ? { signal: ac.signal } : undefined);
+    if (!r.ok) throw new Error(`ESPN ${r.status}`);
+    return await r.json();
+  } finally { if (timer) clearTimeout(timer); }
 }
 async function firstOf(tries) {                     // the first source that answers wins
   let err;
@@ -884,7 +888,7 @@ async function mlbScoreboard(dates, fetchImpl) {
 }
 async function mlbGame(id, fetchImpl) {
   const pk = String(id).replace(/^m/, "");
-  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
+  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl, 20000), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
     getJSON(`${MLB_API}v1/game/${pk}/content`, fetchImpl).catch(() => null)]);
   return normMlbGame(feed, wp, content);
 }
