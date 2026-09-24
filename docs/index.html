@@ -1227,6 +1227,26 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .h2hl{display:grid;gap:6px}.h2hl > div{display:grid;grid-template-columns:96px 1fr auto;gap:8px;align-items:center;font-size:.82rem;padding:6px 0;border-top:1px solid var(--line-2)}.h2hl > div:first-child{border-top:0}.h2hl span,.h2hl small{color:var(--muted);font-size:.74rem}
 .mvm{display:grid;gap:6px}.mvm > div{display:grid;grid-template-columns:1fr auto auto 70px;gap:10px;align-items:center;font-size:.84rem}.mvm em{font-style:normal;color:var(--muted);font-size:.76rem}.mvm i{font-style:normal;font-weight:800;text-align:right;font-size:.78rem}.mvm i.pos{color:#1E8F4E}.mvm i.neg{color:#C0392B}
 @media (max-width:520px){.fsides{grid-template-columns:1fr}}
+.cmlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cmcard{display:flex;flex-direction:column;text-align:left;padding:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:transform .15s,border-color .15s}
+.cmcard:hover{transform:translateY(-2px);border-color:#B98BFF}.cmcard.lead{grid-column:1/-1}.cmcard.lead b{font-size:1.35rem}
+.cmimg{display:block;aspect-ratio:16/8;overflow:hidden;background:var(--surface-2)}.cmimg img{width:100%;height:100%;object-fit:cover;display:block}
+.cmtext{display:flex;flex-direction:column;gap:4px;padding:14px 16px 16px}.cmtext em{font-style:normal;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#FF7AC8}.cmtext b{font-size:1.05rem;line-height:1.25}.cmtext small{color:var(--muted);font-size:.84rem;line-height:1.45}.cmtext i{font-style:normal;color:var(--faint);font-size:.74rem;margin-top:2px}
+.cmfoot{margin:22px 0 0;color:var(--faint);font-size:.8rem;text-align:center}.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer;padding:0}
+.cmsign{display:flex;gap:8px;align-items:flex-end;justify-content:center;flex-wrap:wrap}.cmsign label{display:flex;flex-direction:column;gap:4px;text-align:left}.cmsign small{flex-basis:100%;color:var(--bad,#FF7D8E)}
+.cmin{width:100%;text-align:left;font-size:.95rem}
+.cmart{max-width:720px;margin:0 auto}.cmback{margin-bottom:14px}.cmtag{font-style:normal;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#FF7AC8}
+.cmart h1{font-size:clamp(1.6rem,5vw,2.3rem);line-height:1.15;margin:6px 0 8px}.cmmeta{color:var(--muted);font-size:.84rem;margin:0 0 16px}.cmcover{width:100%;border-radius:16px;margin:0 0 18px;display:block}
+.cmbody{font-size:1.02rem;line-height:1.7}.cmbody p{margin:0 0 1.1em}.cmbody h2,.cmbody h3,.cmbody h4{margin:1.4em 0 .5em;line-height:1.25}.cmbody a{color:#8FF3FF}.cmbody img{max-width:100%;border-radius:12px;display:block;margin:1em 0}
+.cmbody blockquote{margin:1em 0;padding:4px 16px;border-left:3px solid #B98BFF;color:var(--muted);font-style:italic}.cmbody hr{border:0;border-top:1px solid var(--line);margin:2em 0}.cmbody ul,.cmbody ol{padding-left:1.3em;margin:0 0 1.1em}.cmbody li{margin:.3em 0}
+.cmacts{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 8px;padding-top:16px;border-top:1px solid var(--line)}
+.cmedit{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}.cmedit label{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:.84rem}.cmedit label small{font-weight:400;color:var(--faint)}
+.cmrow{display:grid;grid-template-columns:1fr 2fr;gap:10px}.cmta{min-height:320px;font-family:ui-monospace,Menlo,monospace;font-size:.9rem;line-height:1.55;resize:vertical}
+.cmprev{border:1px dashed var(--line);border-radius:12px;padding:14px;min-height:200px}.cmhelp{font-size:.8rem;color:var(--muted)}.cmhelp code{background:var(--surface-2);padding:1px 5px;border-radius:5px}
+.cmnotify{flex-direction:row!important;align-items:center;gap:8px!important;font-weight:600!important}.cmerr{color:var(--bad,#FF7D8E);margin:0;font-size:.84rem}
+.cmteaser{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,122,200,.45);background:linear-gradient(135deg,rgba(110,24,90,.55),rgba(40,24,110,.55));color:#fff;font:inherit;text-align:left;cursor:pointer}
+.cmteaser > span:first-child{font-size:1.5rem}.cmteaser small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#FFB8E4}.cmteaser b{display:block;font-size:.95rem}.cmteaser em{margin-left:auto;font-style:normal;font-weight:800;color:#1C1440;background:#FF7AC8;padding:5px 12px;border-radius:999px}
+@media (max-width:600px){.cmrow{grid-template-columns:1fr}}
 /* league leaders, the guide, small fixes */
 dialog.packd{max-width:560px;background:radial-gradient(120% 80% at 50% 0%,#2A1466,#0B0722 70%);color:#fff}
 .pkhead{display:flex;gap:12px;align-items:center;margin-bottom:12px}.pkhead > span{font-size:2rem}.pkhead h2{margin:0;font-size:1.25rem}.pkhead p{margin:2px 0 0;color:#DCD2FF;font-size:.82rem}
@@ -1350,6 +1370,7 @@ dialog.onb p{margin:0 0 12px}
     <button data-sport="universe" aria-pressed="false"><span aria-hidden="true">◎</span>Today</button>
     <button data-sport="following" aria-pressed="false"><span aria-hidden="true">★</span>Following</button>
     <button data-sport="play" aria-pressed="false"><span aria-hidden="true">🎯</span>Picks</button>
+    <button data-sport="comets" aria-pressed="false"><span aria-hidden="true">☄️</span>Comets</button>
     <button data-sport="tennis" aria-pressed="true"><span aria-hidden="true">🎾</span>Tennis</button>
     <button data-sport="nfl" aria-pressed="false"><span aria-hidden="true">🏈</span>NFL</button>
     <button data-sport="nba" aria-pressed="false"><span aria-hidden="true">🏀</span>NBA</button>
@@ -1476,6 +1497,7 @@ dialog.onb p{margin:0 0 12px}
   <div id="followView" hidden></div>
   <div id="uniView" hidden></div>
   <div id="playView" hidden></div>
+  <div id="cometsView" hidden></div>
   <div id="teamView" hidden>
     <div class="lghead"><div><h1 id="lgTitle"></h1><p id="lgSub"></p></div>
       <div class="seg" role="group" aria-label="Section" id="ttSeg"><button data-tt="games" aria-pressed="true">Games</button><button data-tt="stand" aria-pressed="false">Standings</button><button data-tt="news" aria-pressed="false">News</button><button data-tt="lead" aria-pressed="false">Leaders</button><button data-tt="rank" aria-pressed="false">Ratings</button><button data-tt="model" aria-pressed="false">Model</button><button data-tt="predict" aria-pressed="false">Predict</button></div></div>
@@ -1585,6 +1607,7 @@ dialog.onb p{margin:0 0 12px}
   <div class="sheetin">
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
+    <button class="sheetrow" data-go="comets"><b>☄️ Comets</b><span>Articles and takes from Cosmo Sports</span></button>
     <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
@@ -1610,7 +1633,7 @@ dialog.onb p{margin:0 0 12px}
     <div class="setrow wrapr" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
-      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
+      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
@@ -3198,7 +3221,7 @@ const MKEY = {};
 async function loadModels(){
   try { const r = await fetch("models.json?t=" + Math.floor(Date.now() / 36e5)); if (r.ok){ MODELS = await r.json(); for (const k in MKEY) delete MKEY[k]; modelsReady(); } } catch {}
 }
-function modelsReady(){ try { if (SPORT === "universe") drawUniverse(); else if (SPORT === "play") drawPlay(); else if (SPORT !== "tennis" && SPORT !== "following") setTT(TT); } catch {} }
+function modelsReady(){ try { if (SPORT === "universe") drawUniverse(); else if (SPORT === "play") drawPlay(); else if (SPORTS.leagues[SPORT] && SPORT !== "tennis") setTT(TT); } catch {} }
 function mTeam(lg, name){
   const M = MODELS && MODELS[lg]; if (!M) return null;
   if (!MKEY[lg]){ MKEY[lg] = {}; for (const n of Object.keys(M.state)) MKEY[lg][tkey(n)] = n; }
@@ -3265,11 +3288,12 @@ const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l
 function setSport(sp){
   SPORT = sp; lsSet("sport", sp); document.body.dataset.sport = sp; if (sp === "tennis") lsSet("lastLeague", "tennis"); setTimeout(navMark, 0);
   document.querySelectorAll("[data-sport]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sport === sp));
-  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play";
-  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
+  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play", comets = sp === "comets";
+  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play || comets; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#cometsView").hidden = !comets; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
   clearInterval(sbTimer); sbTimer = null;
   if (tennis){ document.body.dataset.surface = st.surface; return; }
-  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : $("#teamView"));
+  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : comets ? $("#cometsView") : $("#teamView"));
+  if (comets){ document.body.dataset.surface = "Hard"; drawComets(); loadComets(); return; }
   if (follow){ document.body.dataset.surface = "Hard"; renderFollowing(); return; }
   if (uni){ document.body.dataset.surface = "Hard"; drawUniverse(); loadUniverse(); if (HOSTED) sbTimer = setInterval(loadUniverse, 30000); return; }
   if (play){ document.body.dataset.surface = "Hard"; drawPlay(); if (HOSTED){ loadUniverse(); sbTimer = setInterval(loadUniverse, 60000); } return; }
@@ -4437,6 +4461,8 @@ function downloadIcs(games){
 }
 function handleHash(){
   if (location.hash === "#play"){ setSport("play"); return; }
+  const cmh = /^#comet=([\w-]{3,60})$/.exec(location.hash);
+  if (cmh){ history.replaceState(null, "", APP_URL()); setSport("comets"); cmOpen(cmh[1]); return; }
   const dm = /^#duel=([\w-]+)$/.exec(location.hash);
   if (dm){ takeDuel(dm[1]); history.replaceState(null, "", APP_URL()); setSport("play"); return; }
   const m = /^#(game|team)=(nfl|nba|mlb|nhl|epl|tennis)\/([mh]?\d+)$/.exec(location.hash);
@@ -4555,7 +4581,7 @@ async function renderFollowing(){
 
 /* ================= Notifications: alerts for your teams and the games you ask about, even with the app closed ================= */
 const NTF = Object.assign({ on: false, prefs: {}, games: [] }, lsGet("ntf", {}) || {});
-NTF.prefs = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, ...(NTF.prefs || {}) };
+NTF.prefs = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, comets: true, ...(NTF.prefs || {}) };
 const saveNtf = () => lsSet("ntf", NTF);
 const pushOK = () => HOSTED && !!ALERTS_URL && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const BELL = on => `<svg viewBox="0 0 20 20" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8a4.6 4.6 0 0 0-4.6 4.6v2.9L4 13.3h12l-1.4-3V7.4A4.6 4.6 0 0 0 10 2.8Z"/><path d="M8.2 15.6a1.9 1.9 0 0 0 3.6 0" fill="none"/></svg>`;
@@ -4641,7 +4667,7 @@ function bellBtn(lg, g, cls = "ghost bell"){
 function renderNtf(){
   const box = $("#ntfBox"); if (!box) return;
   const nTeams = Object.values(FAV).reduce((n, a) => n + a.length, 0), nGames = NTF.games.length;
-  const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"]];
+  const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"], ["comets", "Comets articles", "when a new article is published"]];
   box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on && "Notification" in window && Notification.permission !== "granted" ? `<span style="color:var(--bad,#FF7D8E)">Blocked in your phone's settings. Allow notifications for Cosmo Sports, then turn this off and on.</span> · ` : ""}${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
       <button class="btn ${NTF.on ? "" : "primary"}" id="ntfBtn" type="button">${NTF.on ? "Turn off" : "Turn on"}</button></div>
     ${NTF.on ? `<div class="ntfprefs">${P.map(([k, l, h]) => `<label class="ntfrow"><input type="checkbox" data-np="${k}" ${NTF.prefs[k] ? "checked" : ""}><span><b>${l}</b>${h ? `<small>${h}</small>` : ""}</span></label>`).join("")}
@@ -4807,7 +4833,140 @@ async function playerOpen(id){
   const dlg = $("#infoDlg"); if (!dlg.open) dlg.showModal();
 }
 $("#infoDlg").addEventListener("click", e => { if (e.target.id === "infoDlg" || e.target.closest("[data-info=close]")) $("#infoDlg").close(); });
-document.addEventListener("click", e => { const r = e.target.closest(".ldrow[data-pid]"); if (r) playerOpen(r.dataset.pid); });
+document.addEventListener("click", e => { const r = e.target.closest(".ldrow[data-pid]"); if (r) playerOpen(r.dataset.pid);
+  const c = e.target.closest("[data-cmteaser]"); if (c){ setSport("comets"); cmOpen(c.dataset.cmteaser); } });
+
+/* ================= Comets: articles from Cosmo Sports, for everyone ================= */
+// Anyone can read. Writing needs the writer key (the alerts service's COMETS_KEY), which is kept only on the writer's device.
+const CM = { list: lsGet("comets-cache", []) || [], loaded: false, err: false, cur: null, post: null, edit: null, preview: false };
+const cmKey = () => lsGet("comets-key", "");
+const cmApi = async (path, opt = {}) => {
+  const r = await fetch(ALERTS_URL + path, { ...opt, headers: { "Content-Type": "application/json", ...(opt.auth ? { Authorization: "Bearer " + cmKey() } : {}), ...(opt.headers || {}) } });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || "Something went wrong (" + r.status + ")"); return d;
+};
+async function loadComets(){
+  if (!ALERTS_URL){ CM.loaded = true; return; }
+  try { const d = await cmApi("/comets?t=" + Math.floor(Date.now() / 30000)); CM.list = d.posts || []; lsSet("comets-cache", CM.list.slice(0, 50)); CM.err = false; } catch { CM.err = true; }
+  CM.loaded = true; if (SPORT === "comets") drawComets(); else if (SPORT === "universe") try { drawUniverse(); } catch {}
+}
+// a small, safe Markdown: everything is escaped first, then headings, bold, italics, links, images, lists, quotes and rules
+function cmMd(src){
+  const inline = s => esc(s)
+    .replace(/!\[([^\]]*)\]\((https:\/\/[^\s)]+)\)/g, (_, a, u) => `<img src="${u}" alt="${a}" loading="lazy">`)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, a, u) => `<a href="${u}" target="_blank" rel="noopener nofollow">${a}</a>`)
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, "$1<i>$2</i>").replace(/(^|\W)_([^_\s][^_]*?)_(?=\W|$)/g, "$1<i>$2</i>");
+  const out = []; let list = null;
+  const close = () => { if (list){ out.push(`</${list}>`); list = null; } };
+  for (const block of String(src || "").split(/\n{2,}/)){
+    const lines = block.split("\n");
+    if (lines.every(l => /^\s*([-*•]|\d+[.)])\s+/.test(l))){
+      const tag = /^\s*\d/.test(lines[0]) ? "ol" : "ul"; if (list !== tag){ close(); out.push(`<${tag}>`); list = tag; }
+      lines.forEach(l => out.push(`<li>${inline(l.replace(/^\s*([-*•]|\d+[.)])\s+/, ""))}</li>`)); continue;
+    }
+    close();
+    const b = block.trim(); if (!b) continue;
+    let m;
+    if ((m = /^(#{1,3})\s+(.+)$/.exec(b)) && lines.length === 1) out.push(`<h${m[1].length + 1}>${inline(m[2])}</h${m[1].length + 1}>`);
+    else if (/^(-{3,}|\*{3,})$/.test(b)) out.push("<hr>");
+    else if (lines.every(l => /^>\s?/.test(l))) out.push(`<blockquote>${inline(lines.map(l => l.replace(/^>\s?/, "")).join(" "))}</blockquote>`);
+    else if (/^!\[[^\]]*\]\(https:\/\/[^\s)]+\)$/.test(b)) out.push(`<figure>${inline(b)}</figure>`);
+    else out.push(`<p>${lines.map(inline).join("<br>")}</p>`);
+  }
+  close(); return out.join("");
+}
+const cmDate = s => { try { return new Date(s).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }); } catch { return ""; } };
+const cmMins = w => Math.max(1, Math.round((w || 0) / 220));
+function drawComets(){
+  const el = $("#cometsView"); if (!el) return; const writer = !!cmKey();
+  const head = `<div class="lghead"><div><h1>☄️ Comets</h1><p>Articles and takes from Cosmo Sports.</p></div>${writer && !CM.edit ? `<button class="btn primary" type="button" data-cm="new">New article</button>` : ""}</div>`;
+  if (CM.edit){ el.innerHTML = head + cmEditorHtml(); cmBindEditor(el); return; }
+  if (CM.cur){ el.innerHTML = head + cmReaderHtml(); cmBind(el); return; }
+  const list = CM.list;
+  el.innerHTML = head + (list.length ? `<div class="cmlist">${list.map((p, i) => `<button type="button" class="cmcard ${i === 0 ? "lead" : ""}" data-cmopen="${esc(p.id)}">
+      ${p.cover ? `<span class="cmimg"><img src="${esc(p.cover)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></span>` : ""}
+      <span class="cmtext">${p.tag ? `<em>${esc(p.tag)}</em>` : ""}<b>${esc(p.title)}</b><small>${esc(p.excerpt || "")}</small><i>${esc(cmDate(p.at))} · ${cmMins(p.words)} min read</i></span></button>`).join("")}</div>`
+    : `<div class="teamnote">${!CM.loaded ? cosmoLoad("Loading Comets…") : CM.err ? "<b>Couldn't load Comets</b>Check your connection and try again." : writer ? "<b>No articles yet</b>Tap New article to write the first one." : "<b>No articles yet</b>New articles will show up here, and you'll get an alert if notifications are on."}</div>`)
+    + `<p class="cmfoot">${writer ? `You're signed in as the writer on this device. <button type="button" class="linkbtn" data-cm="signout">Sign out</button>` : `<button type="button" class="linkbtn" data-cm="signin">Writer sign-in</button>`}</p>`;
+  cmBind(el);
+}
+function cmReaderHtml(){
+  const p = CM.post, idx = CM.list.find(x => x.id === CM.cur);
+  if (!p) return `<div class="teamnote">${cosmoLoad("Loading the article…")}</div>`;
+  const words = p.body.split(/\s+/).length;
+  return `<article class="cmart"><button type="button" class="btn cmback" data-cm="back">‹ All articles</button>
+    ${p.tag ? `<em class="cmtag">${esc(p.tag)}</em>` : ""}<h1>${esc(p.title)}</h1><p class="cmmeta">${esc(cmDate(p.at))}${p.updated ? ` · updated ${esc(cmDate(p.updated))}` : ""} · ${cmMins(words)} min read</p>
+    ${p.cover ? `<img class="cmcover" src="${esc(p.cover)}" alt="" onerror="this.remove()">` : ""}
+    <div class="cmbody">${cmMd(p.body)}</div>
+    <div class="cmacts"><button class="btn" type="button" data-cm="share">Share</button>${cmKey() ? `<button class="btn" type="button" data-cm="edit">Edit</button><button class="btn" type="button" data-cm="delete">Delete</button>` : ""}</div></article>`;
+}
+function cmEditorHtml(){
+  const e = CM.edit, isNew = !e.id;
+  return `<div class="cmedit card"><h2>${isNew ? "New article" : "Edit article"}</h2>
+    <label>Title<input class="field cmin" id="cmTitle" maxlength="160" value="${esc(e.title || "")}" placeholder="What's this one about?"></label>
+    <div class="cmrow"><label>Tag <small>optional</small><input class="field cmin" id="cmTag" maxlength="30" value="${esc(e.tag || "")}" placeholder="NFL, Takes, Model…"></label>
+      <label>Cover image <small>optional, an https:// link</small><input class="field cmin" id="cmCover" value="${esc(e.cover || "")}" placeholder="https://…"></label></div>
+    <div class="seg cmtabs" role="group" aria-label="Editor"><button type="button" data-cmtab="write" aria-pressed="${!CM.preview}">Write</button><button type="button" data-cmtab="preview" aria-pressed="${CM.preview}">Preview</button></div>
+    ${CM.preview ? `<div class="cmbody cmprev">${cmMd($("#cmBody")?.value ?? e.body ?? "") || "<p><i>Nothing to preview yet.</i></p>"}</div>` : `<textarea class="field cmin cmta" id="cmBody" rows="16" placeholder="Write your article…">${esc(e.body || "")}</textarea>`}
+    <details class="cmhelp"><summary>Formatting</summary><p><code># Heading</code> · <code>**bold**</code> · <code>*italic*</code> · <code>[link](https://…)</code> · <code>![photo](https://…)</code> · <code>- list item</code> · <code>1. numbered</code> · <code>&gt; quote</code> · <code>---</code> for a divider. Leave a blank line between paragraphs.</p></details>
+    ${isNew ? `<label class="cmnotify"><input type="checkbox" id="cmNotify" checked> Send a notification to everyone with alerts on</label>` : ""}
+    <p class="cmerr" id="cmErr" hidden></p>
+    <div class="dbtns"><button class="btn" type="button" data-cm="cancel">Cancel</button><button class="btn primary" type="button" data-cm="publish">${isNew ? "Publish" : "Save changes"}</button></div></div>`;
+}
+function cmCollect(){ const e = CM.edit; if ($("#cmTitle")) e.title = $("#cmTitle").value; if ($("#cmTag")) e.tag = $("#cmTag").value; if ($("#cmCover")) e.cover = $("#cmCover").value; if ($("#cmBody")) e.body = $("#cmBody").value; if ($("#cmNotify")) e.notify = $("#cmNotify").checked; lsSet("comets-draft", e.id ? null : e); }
+function cmBindEditor(el){
+  el.querySelectorAll("[data-cmtab]").forEach(b => b.onclick = () => { cmCollect(); CM.preview = b.dataset.cmtab === "preview"; drawComets(); });
+  el.querySelectorAll("input,textarea").forEach(i => i.oninput = () => cmCollect());
+  cmBind(el);
+}
+async function cmOpen(id){
+  CM.cur = id; CM.post = null; CM.edit = null; drawComets(); window.scrollTo({ top: 0 });
+  try { CM.post = await cmApi("/comets/" + encodeURIComponent(id)); } catch { CM.cur = null; toast("That article isn't available"); }
+  if (SPORT === "comets") drawComets();
+}
+function cmBind(el){
+  el.querySelectorAll("[data-cmopen]").forEach(b => b.onclick = () => cmOpen(b.dataset.cmopen));
+  el.querySelectorAll("[data-cm]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.cm;
+    if (a === "back"){ CM.cur = null; CM.post = null; drawComets(); return; }
+    if (a === "share" && CM.post){ shareText(CM.post.title + " · Comets on Cosmo Sports", `${APP_URL()}#comet=${CM.post.id}`); return; }
+    if (a === "new"){ CM.edit = lsGet("comets-draft", null) || { title: "", body: "", tag: "", cover: "" }; CM.preview = false; CM.cur = null; drawComets(); return; }
+    if (a === "edit" && CM.post){ CM.edit = { ...CM.post }; CM.preview = false; drawComets(); return; }
+    if (a === "cancel"){ CM.edit = null; drawComets(); return; }
+    if (a === "signout"){ lsSet("comets-key", ""); toast("Signed out of writing on this device"); drawComets(); return; }
+    if (a === "signin"){ cmSignIn(); return; }
+    if (a === "delete" && CM.post){
+      if (!confirm(`Delete "${CM.post.title}"? This can't be undone.`)) return;
+      try { await cmApi("/comets/" + CM.post.id, { method: "DELETE", auth: true }); toast("Deleted"); CM.cur = null; CM.post = null; await loadComets(); } catch (e) { toast(e.message); }
+      return;
+    }
+    if (a === "publish"){
+      cmCollect(); const e = CM.edit, err = $("#cmErr");
+      if ((e.title || "").trim().length < 2 || (e.body || "").trim().length < 2){ err.textContent = "An article needs a title and some text."; err.hidden = false; return; }
+      b.disabled = true; b.textContent = "Publishing…";
+      try {
+        const d = await cmApi(e.id ? "/comets/" + e.id : "/comets", { method: e.id ? "PUT" : "POST", auth: true, body: JSON.stringify({ title: e.title, body: e.body, tag: e.tag, cover: e.cover, notify: !!e.notify }) });
+        lsSet("comets-draft", null); CM.edit = null; toast(e.id ? "Saved" : d.notified ? "Published, and everyone with alerts on is being notified" : "Published");
+        await loadComets(); cmOpen(d.post.id);
+      } catch (x) { err.textContent = x.message; err.hidden = false; b.disabled = false; b.textContent = e.id ? "Save changes" : "Publish"; }
+    }
+  });
+}
+function cmSignIn(){
+  const el = $("#cometsView .cmfoot"); if (!el) return;
+  el.innerHTML = `<form class="cmsign" id="cmSign"><label>Writer key<input class="field cmin" id="cmKeyIn" type="password" autocomplete="current-password" placeholder="The COMETS_KEY you set"></label><button class="btn primary" type="submit">Sign in</button><small id="cmSignMsg"></small></form>`;
+  $("#cmSign").onsubmit = async e => { e.preventDefault(); const k = $("#cmKeyIn").value.trim(), msg = $("#cmSignMsg"); if (!k) return;
+    try { const r = await fetch(ALERTS_URL + "/comets/auth", { method: "POST", headers: { Authorization: "Bearer " + k } }), d = await r.json().catch(() => ({}));
+      if (d.ok){ lsSet("comets-key", k); toast("Signed in. You can write articles now."); drawComets(); }
+      else msg.textContent = r.status === 429 ? "Too many tries. Wait 15 minutes." : d.configured === false ? "Posting isn't set up yet: add the COMETS_KEY secret on GitHub (see the README)." : "That key didn't work.";
+    } catch { msg.textContent = "Couldn't reach the service. Check your connection."; } };
+  $("#cmKeyIn").focus();
+}
+// the newest article, for the Today page
+function cometTeaserHtml(){
+  const p = CM.list[0]; if (!p) return "";
+  const fresh = Date.now() - new Date(p.at).getTime() < 7 * 864e5;
+  return `<button type="button" class="cmteaser" data-cmteaser="${esc(p.id)}"><span>☄️</span><span><small>${fresh ? "New on Comets" : "Comets"}</small><b>${esc(p.title)}</b></span><em>Read</em></button>`;
+}
 
 /* ================= Spoiler shield: hide scores until you're ready ================= */
 const SPOIL = Object.assign({ on: false, scope: "mine" }, lsGet("spoil", {}) || {});
@@ -5230,13 +5389,14 @@ function drawUniverse(){
   if (!HOSTED){ el.innerHTML = head + `<div class="teamnote"><b>Live games appear in the installed app</b>Live games come from ESPN, which this version can't reach.</div>`; return; }
   if (UNI_ERR){ el.innerHTML = head + netErrHtml("today's games"); $("#netRetry").onclick = () => { UNI_ERR = false; UNI = null; drawUniverse(); loadUniverse(); }; return; }
   if (!UNI){ el.innerHTML = head + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; return; }
+  const teaser = cometTeaserHtml();
   const live = UNI.filter(g => g.status.state === "in").sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
   const soon = UNI.filter(g => g.status.state === "pre").sort((a, b) => new Date(a.date) - new Date(b.date));
   const done = UNI.filter(g => g.status.state === "post").sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
   const sky = [...live, ...soon].slice(0, 12), inner = sky.slice(0, Math.min(4, sky.length)), outer = sky.slice(inner.length, inner.length + 8);
   const top = live[0];
   const core = document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="u$1"').replace(/url\(#([^)]+)\)/g, "url(#u$1)").replace(/href="#([^"]+)"/g, 'href="#u$1"') || "";
-  el.innerHTML = head + staleNote(UNI_STALE) + `
+  el.innerHTML = head + teaser + staleNote(UNI_STALE) + `
     <div class="skywrap"><div class="sky" id="uniSky">
       <div class="ring r1"></div><div class="ring r2"></div>
       <div class="core">${core}</div>
@@ -5363,17 +5523,17 @@ function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTime
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
   const n = b.dataset.nav; sfx("tap");
   if (n === "more"){ $("#moreDlg").showModal(); return; }
-  if (n === "scores"){ const lg = ["universe", "following", "play"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
+  if (n === "scores"){ const lg = ["universe", "following", "play", "comets"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
     if (lg === "tennis"){ setSport("tennis"); goTab("live"); } else { if (SPORT !== lg) setSport(lg); setTT("games"); } }
   else if (SPORT !== n) setSport(n);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }));
-function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT) ? SPORT : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
+function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT) ? SPORT : SPORT === "comets" ? "more" : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
   if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
-  else if (g === "following" || g === "universe" || g === "play"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
+  else if (g === "following" || g === "universe" || g === "play" || g === "comets"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
 }));
 $("#helpBtn").addEventListener("click", () => $("#helpDlg").showModal());
@@ -5417,8 +5577,8 @@ renderFeed();
   update();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
-  if (["following", "universe", "play"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
-  maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); loadModels();
+  if (["following", "universe", "play", "comets"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
+  maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); loadModels(); loadComets();
   if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut

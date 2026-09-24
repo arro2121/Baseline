@@ -24,7 +24,7 @@ export const b64u = {
 };
 const concat = (...a) => { const out = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let o = 0; for (const x of a) { out.set(x, o); o += x.length; } return out; };
 export const norm = s => String(s || "").normalize("NFKD").replace(/[^A-Za-z ]/g, " ").toLowerCase().split(/\s+/).filter(Boolean);
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization" };
 const json = (d, status = 200, extra = {}) => new Response(JSON.stringify(d), { status, headers: { "Content-Type": "application/json", ...cors, ...extra } });
 
 /* ---------------- Web Push: VAPID signature (RFC 8292) ---------------- */
@@ -174,6 +174,77 @@ export function store(env) {
     subDel: async e => env.KV.put("subs", JSON.stringify((await all()).filter(s => s.sub.endpoint !== e))) };
 }
 
+/* ---------------- Comets: articles from the site's owner, for everyone ----------------
+   Anyone can read. Writing needs the owner's key (the COMETS_KEY secret, set from the GitHub secret of the same name).
+   Each article is its own record ("cm:<id>"), with a small index ("comets") of titles for the list. */
+const COMETS_FAIL = new Map();
+async function cometsAuthed(req, env) {
+  const key = env.COMETS_KEY, got = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!key || !got) return false;
+  const enc = new TextEncoder(), [a, b] = await Promise.all([crypto.subtle.digest("SHA-256", enc.encode(key)), crypto.subtle.digest("SHA-256", enc.encode(got))]);
+  const x = new Uint8Array(a), y = new Uint8Array(b); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];     // same time whatever matches
+  return diff === 0;
+}
+function cometsTooManyFails(ip) { const now = Date.now(), l = (COMETS_FAIL.get(ip) || []).filter(t => now - t < 900e3); COMETS_FAIL.set(ip, l); return l.length >= 8; }
+function cometsFail(ip) { const l = COMETS_FAIL.get(ip) || []; l.push(Date.now()); COMETS_FAIL.set(ip, l); if (COMETS_FAIL.size > 5000) COMETS_FAIL.clear(); }
+export function cometClean(d, old = {}) {
+  const s = (v, n) => String(v ?? "").replace(/\r\n?/g, "\n").slice(0, n);
+  const title = s(d.title ?? old.title, 160).trim(), body = s(d.body ?? old.body, 60000).trim();
+  if (title.length < 2 || body.length < 2) return null;
+  const tag = s(d.tag ?? old.tag ?? "", 30).trim(), cover = /^https:\/\/[^\s"'<>]+$/.test(String(d.cover ?? old.cover ?? "")) ? String(d.cover ?? old.cover).slice(0, 500) : "";
+  return { title, body, tag, cover };
+}
+const cometIndexRow = p => ({ id: p.id, title: p.title, tag: p.tag, cover: p.cover, at: p.at, updated: p.updated || null,
+  excerpt: p.body.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/[#*_>`\[\]]/g, "").replace(/\(https?:[^)]*\)/g, "").replace(/\s+/g, " ").trim().slice(0, 220),
+  words: p.body.split(/\s+/).filter(Boolean).length });
+async function cometsIndex(db) { const v = await db.get("comets"); return (typeof v === "string" ? JSON.parse(v) : v) || []; }
+async function cometsRoute(req, env, ctx, url, db) {
+  const ip = req.headers.get("CF-Connecting-IP") || "anon", m = url.pathname.match(/^\/comets(?:\/([\w-]{3,60}))?(?:\/(auth))?$/);
+  if (!m) return null;
+  const [, id] = m;
+  if (url.pathname === "/comets/auth" && req.method === "POST") {
+    if (cometsTooManyFails(ip)) return json({ ok: false, error: "Too many tries. Wait 15 minutes." }, 429);
+    const ok = await cometsAuthed(req, env); if (!ok) cometsFail(ip);
+    return json({ ok, configured: !!env.COMETS_KEY }, ok ? 200 : 401);
+  }
+  if (req.method === "GET") {
+    if (!id) return json({ posts: await cometsIndex(db) }, 200, { "Cache-Control": "public, max-age=30" });
+    const v = await db.get("cm:" + id); if (!v) return json({ error: "not found" }, 404);
+    return json(typeof v === "string" ? JSON.parse(v) : v, 200, { "Cache-Control": "public, max-age=30" });
+  }
+  // everything else writes
+  if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait 15 minutes." }, 429);
+  if (!(await cometsAuthed(req, env))) { cometsFail(ip); return json({ error: env.COMETS_KEY ? "Wrong writer key" : "Posting isn't set up yet: add the COMETS_KEY secret" }, 401); }
+  const d = await req.json().catch(() => ({}));
+  let list = await cometsIndex(db);
+  if (req.method === "DELETE" && id) {
+    await db.put("cm:" + id, ""); list = list.filter(p => p.id !== id); await db.put("comets", JSON.stringify(list));
+    return json({ ok: true });
+  }
+  const isNew = req.method === "POST" && !id;
+  if (!isNew && !(req.method === "PUT" && id)) return json({ error: "bad request" }, 400);
+  const oldRaw = id ? await db.get("cm:" + id) : null, old = oldRaw ? (typeof oldRaw === "string" ? JSON.parse(oldRaw) : oldRaw) : null;
+  if (!isNew && !old) return json({ error: "not found" }, 404);
+  const c = cometClean(d, old || {}); if (!c) return json({ error: "An article needs a title and some text." }, 400);
+  const now = new Date().toISOString(), slug = c.title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "post";
+  const post = isNew ? { id: `${slug}-${Date.now().toString(36)}`, ...c, at: now } : { ...old, ...c, updated: now };
+  await db.put("cm:" + post.id, JSON.stringify(post));
+  list = [cometIndexRow(post), ...list.filter(p => p.id !== post.id)].sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  await db.put("comets", JSON.stringify(list));
+  let notified = 0;
+  if (isNew && d.notify) {                           // tell everyone with alerts on (unless they turned Comets off)
+    ctx.waitUntil((async () => {
+      const subs = await db.subs().catch(() => []);
+      for (const s of subs.slice(0, 5000)) {
+        if (s.prefs && s.prefs.comets === false) continue;
+        await sendPush(s.sub, { title: "☄️ New on Comets", body: post.title, tag: "comet-" + post.id, url: `./#comet=${post.id}` }, env).catch(() => null);
+      }
+    })());
+    notified = 1;
+  }
+  return json({ ok: true, post, notified });
+}
+
 /* ---------------- one scheduled run ---------------- */
 export async function tick(env, fetchImpl = fetch) {
   if (!env.API_TENNIS_KEY) return { tennis: "off" };
@@ -251,7 +322,7 @@ export function sportEvents(lg, prev, games) {
   }
   return out;
 }
-const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, noSpoilers: false };
+const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, noSpoilers: false, comets: true };
 function wants(sub, e) {
   const pr = { ...DEFAULT_PREFS, ...(sub.prefs || {}) };
   const mine = (sub.games || []).includes(`${e.lg}/${e.id}`) || (sub.teams?.[e.lg] || []).some(t => e.teams.includes(t));
@@ -1262,6 +1333,7 @@ export default {
     if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
+    if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
     if (url.pathname === "/ask" && req.method === "POST") {
       if (!askAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
       const body = await req.json().catch(() => null);

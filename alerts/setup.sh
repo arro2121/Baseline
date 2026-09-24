@@ -49,6 +49,8 @@ if ! $WR secret list 2>/dev/null | grep -q VAPID_PRIVATE_JWK || [ ! -s vapid_pub
   $WR deploy
 fi
 if [ -n "${API_TENNIS_KEY:-}" ]; then printf '%s' "$API_TENNIS_KEY" | $WR secret put API_TENNIS_KEY; fi
+# Comets: only the holder of this key can publish articles (set a COMETS_KEY secret on GitHub to turn posting on)
+if [ -n "${COMETS_KEY:-}" ]; then printf '%s' "$COMETS_KEY" | $WR secret put COMETS_KEY; fi
 # Optional: Ask Cosmo uses Claude instead of the free Workers AI model when this secret is set
 if [ -n "${ANTHROPIC_API_KEY:-}" ]; then printf '%s' "$ANTHROPIC_API_KEY" | $WR secret put ANTHROPIC_API_KEY; fi
 
