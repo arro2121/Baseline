@@ -27,7 +27,14 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. You can browse your
   collection by league.
 * **Daily Challenge:** one arcade target a day, the same for everyone, with a streak. Completing it earns a pack.
-* **Challenge a friend:** share a link with your arcade score, and your friend plays the same game to beat it.
+* **Challenge a friend:** share a link with your arcade score, and your friend plays the same game to beat it. Or send
+  your drafted Showdown team: your friend drafts theirs and plays against it.
+* **Daily leaderboard:** pick a nickname and your best Daily Challenge score goes on a board shared by everyone, which
+  resets each day. It's kept by the alerts service: a best score per device, the top 100 each day, with checks on
+  names and scores.
+* **Player profiles:** tap any card or league leader for their ratings, this season's stats, your copies of their card
+  and a "Play as" shortcut.
+* **Collection goals:** milestones (25 cards, half a league's set, 5 Legends, every Legend) that pay out packs.
 * **Getting around:** a five-stop bottom bar (Today, Scores, Play, Following, More), an in-app **Guide** covering
   every feature (More › Guide), a one-time What's new screen after big updates, and an offline notice. Showdown and
   Cards keep working offline too.
