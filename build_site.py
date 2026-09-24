@@ -59,7 +59,7 @@ MANIFEST = {
     "shortcuts": [
         {"name": "Today: every game", "short_name": "Today", "url": "./?sport=universe", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Ask Cosmo", "short_name": "Ask", "url": "./?ask=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Play: Daily 3", "short_name": "Play", "url": "./?sport=play", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Play: Showdown, arcade and cards", "short_name": "Play", "url": "./?sport=play", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Following", "short_name": "Following", "url": "./?sport=following", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Find a team", "short_name": "Search", "url": "./?search=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         ],
@@ -68,7 +68,7 @@ MANIFEST = {
 SW = """// Cosmo Sports offline helper and notifications. The app opens instantly and still works without signal,
 // showing the last ratings and scores it saw. Build: __STAMP__
 const CACHE = "baseline-__STAMP__";
-const SHELL = ["./", "index.html", "live.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
+const SHELL = ["./", "index.html", "live.json", "allstars.json", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {

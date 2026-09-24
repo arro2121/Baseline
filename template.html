@@ -281,7 +281,7 @@ dialog.modal.wide{max-width:640px}
 .tourdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .tourdots i.on{background:var(--accent);width:20px;border-radius:99px}
 @media (max-width:760px){
-  .bottombar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+  .bottombar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
   .bottombar button{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.66rem;font-weight:650;color:var(--muted);padding:4px 0}
   .bottombar button svg{width:24px;height:24px}
   .bottombar button[aria-current="page"]{color:var(--accent)}
@@ -289,9 +289,8 @@ dialog.modal.wide{max-width:640px}
   .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
   #toast{bottom:calc(88px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);text-align:center}
   .top .livepill,.top #openUpdate,.top #shareBtn,.top #helpBtn{display:none}
-  .tabs [role=tab]{display:none}
-  .tabs{margin-top:28px}
-  .curtitle{display:block!important;margin:0;font-stretch:112%;font-size:1.25rem}
+  .tabs{margin-top:28px;flex-wrap:wrap}
+  .tabs [role=tab]{padding:6px 12px;font-size:.84rem}
   .top{flex-wrap:nowrap}
   .brand span{font-size:1.05rem}
 }
@@ -1212,6 +1211,12 @@ body:has(dialog[open]) .askfab{display:none}
 .ldrow{display:grid;grid-template-columns:18px 36px 1fr auto;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}.ldrow:first-of-type{border-top:0}
 .ldrow img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--surface-2)}.ldn{font-weight:900;color:var(--muted);font-size:.8rem}.ldp b{display:block;font-size:.86rem}.ldp small{color:var(--muted);font-size:.72rem}
 .ldv{font-weight:900;font-variant-numeric:tabular-nums}.ldrow.top .ldv{color:var(--accent,#FFD678)}.ldrow.top img{width:40px;height:40px;box-shadow:0 0 0 2px #FFD678}
+.helptoc{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}.helptoc a{font-size:.76rem;font-weight:750;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);text-decoration:none;background:var(--surface-2)}
+table.cmp{display:table;gap:0;padding:0}
+.stand th:nth-child(2),.stand td:nth-child(2){position:sticky;left:0;z-index:1;background:var(--surface)}
+@media (max-width:420px){body[data-sport="tennis"] .brand span{display:none}}
+.newlist{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:10px}.newlist li{display:flex;gap:10px;align-items:flex-start;font-size:.86rem;color:#DCD2FF}.newlist i{font-style:normal;font-size:1.3rem;line-height:1.2}.newlist b{color:#fff}
+.offbar{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom,0px));white-space:nowrap;left:50%;transform:translateX(-50%);z-index:60;background:#3A2A00;color:#FFE9B8;border:1px solid #FFD678;border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:700;max-width:calc(100% - 24px);text-align:center;box-shadow:0 8px 24px -10px rgba(0,0,0,.6)}
 /* Cosmo Cards, packs and the collection */
 .cardsec h3{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.cardsec .coins{margin-left:auto;font-weight:900;color:#FFD678;font-size:.95rem}
 .cardsub{margin:2px 0 10px;color:var(--muted);font-size:.8rem}
@@ -1637,7 +1642,7 @@ dialog.onb p{margin:0 0 12px}
   <div class="dlgfoot"><button class="btn" type="button" onclick="document.getElementById('cardDlg').close()">Close</button><span><button class="btn" id="cardSave" type="button">Save image</button> <button class="btn primary" id="cardShare" type="button" hidden>Share</button></span></div></div></dialog>
 <dialog id="teamDlg" class="drawer" aria-label="Team"><div class="pbody" id="tbody"></div></dialog>
 <dialog id="searchDlg" class="modal" aria-labelledby="searchTitle"><div class="dlg"><h2 id="searchTitle">Find a team</h2>
-  <input class="field" id="searchIn" type="search" placeholder="Team or city" autocomplete="off" aria-label="Team or city"><div class="srchout" id="searchOut"></div>
+  <input class="field" id="searchIn" style="width:100%;text-align:left;margin:6px 0 10px;font-size:1rem" type="search" placeholder="Team or city" autocomplete="off" aria-label="Team or city"><div class="srchout" id="searchOut"></div>
   <div class="dlgfoot"><small>Tap ☆ to follow, or a team to open its page</small><button class="btn" type="button" onclick="this.closest('dialog').close()">Done</button></div></div></dialog>
 <dialog id="updDlg" class="modal" aria-labelledby="updTitle">
   <div class="dlg">
@@ -1647,28 +1652,42 @@ dialog.onb p{margin:0 0 12px}
     <div class="dlgfoot"><small>Claude finds new results, recalculates every rating and republishes this page.</small><button class="btn" id="closeDlg">Done</button></div>
   </div>
 </dialog>
+<dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
+  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>The biggest update yet.</p></div></div>
+  <ul class="newlist">
+    <li><i>🎴</i><span><b>Cosmo Cards.</b> Every real player is a collectible card. Your first Daily pack is free, and you already have coins for every bit of XP you've earned.</span></li>
+    <li><i>🏆</i><span><b>Showdown seasons.</b> Draft once, play six games against tougher teams, then the playoffs and a title.</span></li>
+    <li><i>🎬</i><span><b>Instant replays and stadium sound.</b> Big moments replay in slow motion, and the crowd gets louder with the action.</span></li>
+    <li><i>🎯</i><span><b>Daily Challenge.</b> One target a day, the same for everyone. Keep a streak for bigger packs.</span></li>
+    <li><i>🥊</i><span><b>Challenge a friend.</b> Send any arcade score as a link and make them beat it.</span></li>
+    <li><i>🧭</i><span><b>A simpler bottom bar:</b> Today, Scores, Play and Following, one tap each.</span></li>
+  </ul>
+  <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">Open my free pack</button></div>
+</div></dialog>
+<div class="offbar" id="offBar" role="status" hidden>📡 Offline · showing the last saved scores</div>
 <dialog id="packDlg" class="modal packd" aria-labelledby="packTitle"><div class="dlg" id="packBody"></div></dialog>
 <dialog id="iosDlg" class="modal" aria-labelledby="iosTitle">
   <div class="dlg" id="installHow"></div>
 </dialog>
 <nav class="bottombar" aria-label="Sections">
-  <button data-nav="predict" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M12 5v14M3 12h4M17 12h4"/></svg><span>Predict</span></button>
-  <button data-nav="rankings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 20V11M12 20V5M18 20v-6"/></svg><span>Rankings</span></button>
-  <button data-nav="live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/></svg><span>Live</span><i class="navdot" id="navLiveDot" hidden></i></button>
+  <button data-nav="universe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10" ry="3.6" transform="rotate(-20 12 12)"/></svg><span>Today</span></button>
+  <button data-nav="scores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M7 10v4M17 10v4"/></svg><span>Scores</span><i class="navdot" id="navLiveDot" hidden></i></button>
+  <button data-nav="play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10a4 4 0 0 1 4 4v1.5a3.5 3.5 0 0 1-6.3 2.1L14 14.5h-4l-.7 1.1A3.5 3.5 0 0 1 3 13.5V12a4 4 0 0 1 4-4z"/><path d="M8 10.5v3M6.5 12h3"/><circle cx="16" cy="11" r=".6" fill="currentColor"/><circle cx="17.5" cy="13" r=".6" fill="currentColor"/></svg><span>Play</span></button>
+  <button data-nav="following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Following</span></button>
   <button data-nav="more"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg><span>More</span></button>
 </nav>
 <dialog id="moreDlg" class="sheet" aria-label="More">
   <div class="sheetin">
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
-    <button class="sheetrow" data-go="play"><b>Play</b><span>Daily 3 picks, Rating Rumble and your record against the model</span></button>
+    <button class="sheetrow" data-go="play"><b>Play</b><span>Cosmo Showdown, six arcade games, Cosmo Cards, the Daily Challenge, trivia and picks</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
     <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
     <button class="sheetrow" data-go="search"><b>Find a team</b><span>Any NFL, NBA, MLB, NHL or Premier League team</span></button>
     <button class="sheetrow" data-go="accuracy"><b>Model accuracy</b><span>How well the predictions hold up</span></button>
-    <button class="sheetrow" data-go="help"><b>How it works</b><span>Ratings, factors and betting terms explained</span></button>
-    <button class="sheetrow" data-go="settings"><b>Settings</b><span>Start page, default tour, odds format</span></button>
+    <button class="sheetrow" data-go="help"><b>Guide</b><span>How everything works: games, predictions, alerts, Play and Cards</span></button>
+    <button class="sheetrow" data-go="settings"><b>Settings</b><span>Alerts, spoiler shield, sounds, replays, voice and your start page</span></button>
     <button class="sheetrow" data-go="about"><b>About Cosmo Sports</b><span>Data sources, privacy and terms</span></button>
   </div>
 </dialog>
@@ -1685,7 +1704,7 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Instant replays"><button type="button" data-rpl="0">Off</button><button type="button" data-rpl="1">On</button></div></div>
     <div class="setrow wrapr" id="voiceRow"><div><b>Listen Live voice</b><small>Who reads the plays when you tap 🎧 Listen in a live game. Tap one to hear it.</small></div>
       <div class="seg" role="group" aria-label="Voice"><button type="button" data-vkind="male">Announcer</button><button type="button" data-vkind="female">Anchor</button><button type="button" data-vkind="device">Phone voice</button></div></div>
-    <div class="setrow" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
+    <div class="setrow wrapr" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Play</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
@@ -1721,15 +1740,28 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="helpDlg" class="modal wide" aria-labelledby="helpTitle">
   <div class="dlg helpbody">
     <h2 id="helpTitle">How Cosmo Sports works</h2>
-    <h3>The prediction</h3>
-    <p>Every player has an <b>Elo rating</b>: a number that goes up when they win and down when they lose, by more when the result is a surprise. Cosmo Sports keeps one overall rating and one for each surface, built from every tour-level, Challenger, WTA 125, ITF and qualifying match since 2012.</p>
+    <nav class="helptoc" aria-label="Guide sections"><a href="#h-around">Getting around</a><a href="#h-games">Games</a><a href="#h-predict">Predictions</a><a href="#h-alerts">Alerts</a><a href="#h-play">Play</a><a href="#h-cards">Cards</a><a href="#h-bet">Betting terms</a></nav>
+    <h3 id="h-around">Getting around</h3>
+    <p>The bar at the bottom has five stops. <b>Today</b> shows every game across the leagues, with the closest and latest nearest the middle. <b>Scores</b> opens the league you looked at last; switch leagues with the chips at the top. <b>Play</b> has all the games. <b>Following</b> gathers your teams. <b>More</b> has Ask Cosmo, search, settings and this guide. The 🔍 button finds any team, and the planet button opens <b>Ask Cosmo</b>, an AI that knows today's games.</p>
+    <h3 id="h-games">Games, box scores and replays</h3>
+    <p>Tap any game for its page: an animated field that replays each play, the win-probability chart with its turning points, highlight clips, the box score, team stats and game info. Tap ☆ next to a team to follow it; its games move to the top everywhere. <b>🎧 Listen</b> in a live game reads each play aloud like a radio call. Share a game as a link or a score card image.</p>
+    <p>In the installed app, the Live and Games sections follow matches as they happen, with every play (or, in tennis, every point) arriving within seconds. Live tennis win chances come from a point-by-point model of scoring that starts at the pre-match prediction.</p>
+    <h3 id="h-predict">Predictions</h3>
+    <p>Every team has an <b>Elo rating</b> that rises when they win and falls when they lose, by more for a surprise or a big margin. Each league's page explains how its ratings are built, and the percentage next to each team is the model's pre-game chance. ⚡ is how exciting a game is right now, from 0 to 100.</p>
+    <p><b>Tennis</b> goes further. Every player has an <b>Elo rating</b>: a number that goes up when they win and down when they lose, by more when the result is a surprise. Cosmo Sports keeps one overall rating and one for each surface, built from every tour-level, Challenger, WTA 125, ITF and qualifying match since 2012.</p>
     <p>A model then combines 20 factors, including those ratings, serve and return, head-to-head, momentum, rest, workload, age, experience, height, home crowd and the Grand Slam stage. Each factor's weight was learned from 2015–2023 matches and tested on 2024–26 matches the model never saw, where it picks about two-thirds of winners.</p>
     <h3>Reading the numbers</h3>
     <p><b>Win chance</b> is the model's estimate, not a certainty: a 70% favorite still loses 3 times in 10. <b>Fair price</b> is the betting price that would exactly match that chance.</p>
-    <h3>Betting terms</h3>
+    <h3 id="h-alerts">Alerts and the morning briefing</h3>
+    <p>Turn on alerts in Settings (on iPhone, add the app to your home screen first). You'll hear when your teams start, score, head into a close finish and finish, plus a short briefing each morning with how your teams did, who plays today and today's Daily Challenge. The <b>spoiler shield</b> hides scores in the app and in alerts until you tap to reveal them.</p>
+    <h3 id="h-play">Play</h3>
+    <p><b>Cosmo Showdown</b> is the main game. Pick a sport and draft real players under a salary cap; their ratings come from their real stats and update every night. Then play a full game against a computer team made of real players. <b>Season mode</b> keeps your roster for six games against tougher and tougher teams; win four to reach the playoffs, then win the semifinal and the final for the title.</p>
+    <p>The <b>Arcade</b> has six quick games with real controls: Home Run Derby, Penalty Shootout, the Three-Point Contest, the Field Goal Challenge, Top Shelf and the Logo Quiz. Pick a real player under <b>Play as</b> and their ratings change how you play. Big moments get a slow-motion instant replay; tap to skip it, or turn replays off in Settings. The 🔊 button mutes the stadium sound.</p>
+    <p>Every day brings a <b>Daily Challenge</b> (the same target for everyone), <b>Daily Trivia</b> written from real stats and the <b>Daily 3</b>, the day's three closest calls to pick against the model. <b>Challenge a friend</b> from any arcade result and they get a link to beat your score. Everything you do earns XP toward your <b>Cosmo level</b> and unlocks achievements.</p>
+    <h3 id="h-cards">Cosmo Cards</h3>
+    <p>Every real player in Showdown is a card: Bronze, Silver, Gold or Legend, from their overall rating. Every point of XP you earn is also a coin. Open a free Daily pack each day, spend coins on Standard or Premium packs, and earn packs for Daily Challenges, streaks and season titles. Duplicates turn back into coins, and players you own cost 1 less in Showdown drafts. The installed app adds a card to every Daily pack.</p>
+    <h3 id="h-bet">Betting terms</h3>
     <p><b>Bookmaker's cut:</b> the margin built into the odds; Cosmo Sports removes it to find the market's true view. <b>Edge:</b> how much higher the model's chance is than the market's. <b>¼ Kelly:</b> a cautious stake size based on your edge and bankroll. <b>Closing line value:</b> whether the odds moved your way before the match started, the most reliable early sign of a real edge.</p>
-    <h3>Live games and play-by-play</h3>
-    <p>In the installed app, the Live and Games sections follow matches as they happen, with every play (or, in tennis, every point) arriving within seconds. Live tennis win chances come from a point-by-point model of scoring that starts at the pre-match prediction.</p>
     <h3>Privacy</h3>
     <p>Your settings are stored only on your device. There are no accounts, ads or tracking.</p>
     <h3>Please bet responsibly</h3>
@@ -2487,7 +2519,6 @@ function showTab(name){
   document.querySelectorAll("[role=tab]").forEach(x=>x.setAttribute("aria-selected", x.dataset.tab===name));
   ["rankings","live","accuracy"].forEach(t => $("#tab-"+t).hidden = t!==name);
   $("#curTitle").textContent = { rankings: "Rankings", live: "Live", accuracy: "Model accuracy" }[name];
-  document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === name || (name==="accuracy") && b.dataset.nav === "more" ? "page" : "false"));
   $("#searchWrap").style.visibility = name==="rankings" ? "visible" : "hidden";
   $("#searchWrap").style.display = name==="rankings" || innerWidth > 760 ? "" : "none";
 }
@@ -2521,7 +2552,7 @@ function teamPredict(H, A, neutral){
 }
 const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l}` : `${t.w}-${t.l}${t.otl ? "-" + t.otl : ""}${t.t ? "-" + t.t : ""}`;
 function setSport(sp){
-  SPORT = sp; lsSet("sport", sp);
+  SPORT = sp; lsSet("sport", sp); document.body.dataset.sport = sp; if (sp === "tennis") lsSet("lastLeague", "tennis"); setTimeout(navMark, 0);
   document.querySelectorAll("[data-sport]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sport === sp));
   const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play";
   $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
@@ -2545,7 +2576,6 @@ function setSport(sp){
 function setTT(t){
   TT = t; document.querySelectorAll("[data-tt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tt === t));
   ["games","stand","news","lead","rank","predict"].forEach(x => $("#tt-"+x).hidden = x !== t); materialize($("#tt-" + t));
-  document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", ({ games: "live", rank: "rankings", predict: "predict" })[t] === b.dataset.nav ? "page" : "false"));
   clearInterval(sbTimer); sbTimer = null;
   if (t === "rank") renderTeamRank(); else if (t === "predict") renderTeamPredict(); else if (t === "stand") renderStandings(); else if (t === "news") renderNews(); else if (t === "lead") renderLeaders();
   else { renderGames(); if (HOSTED) sbTimer = setInterval(() => loadScoreboard(true), 30000); }
@@ -6278,7 +6308,7 @@ function bindRumble(root){
 }
 function drawPlay(){
   const el = $("#playView"); if (!el) return;
-  const head = `<div class="lghead"><div><h1>Play</h1><p>Arcade games, daily picks, a quick ratings game and your record against the Cosmo model.</p></div></div>`;
+  const head = `<div class="lghead"><div><h1>Play</h1><p>Draft real players, play the arcade, collect cards and take on the daily challenges.</p></div></div>`;
   if (HOSTED && !UNI && !UNI_ERR){ el.innerHTML = head + arcadeHtml() + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; bindArcade(el); return; }
   checkBadges();
   el.innerHTML = head + arcadeHtml() + `<div class="playgrid">${dchHtml()}${cardsHtml()}${appHtml()}${levelHtml()}${triviaCardHtml()}${HOSTED && UNI ? dailyHtml() : ""}${rumbleHtml()}${picksHtml()}</div>`;
@@ -6294,7 +6324,7 @@ function onbHtml(){
   const dots = `<div class="onbdots">${[0, 1, 2].map(i => `<i class="${i === ONB.step ? "on" : ""}"></i>`).join("")}</div>`;
   if (ONB.step === 0) return `<div class="onbhero"><span class="onbmark">${document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="o$1"').replace(/url\(#([^)]+)\)/g, "url(#o$1)").replace(/href="#([^"]+)"/g, 'href="#o$1"') || ""}</span>
     <h2>Welcome to Cosmo Sports</h2><p>Every game in the NFL, NBA, MLB, NHL, Premier League and tennis, in one place.</p>
-    <ul class="onblist"><li><b>Live scores and animated replays</b> of every play</li><li><b>Alerts</b> for your teams and close finishes</li><li><b>Ask Cosmo</b>, an AI that knows today's games</li><li><b>Daily picks and games</b> against our prediction model</li></ul></div>
+    <ul class="onblist"><li><b>Live scores and animated replays</b> of every play</li><li><b>Alerts</b> for your teams and close finishes</li><li><b>Ask Cosmo</b>, an AI that knows today's games</li><li><b>Games with real players:</b> Cosmo Showdown, six arcade games and collectible cards</li></ul></div>
     ${dots}<div class="onbbtns"><button class="btn" type="button" data-onb="skip">Skip</button><button class="btn primary" type="button" data-onb="next">Get started</button></div>`;
   if (ONB.step === 1){
     const lgs = Object.keys(LEAGUE_LABEL).filter(lg => LG_TEAMS(lg).length), n = Object.values(FAV).reduce((a, l) => a + l.length, 0);
@@ -6325,6 +6355,16 @@ function maybeOnboard(force){
   ONB = { step: 0, lg: Object.keys(LEAGUE_LABEL).find(lg => LG_TEAMS(lg).length) || "nfl" };
   drawOnb(); $("#onbDlg").showModal();
 }
+// a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
+const NEW_V = "2026-09-cards";
+function maybeWhatsNew(){
+  if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
+  lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
+}
+$("#newDlg").addEventListener("click", e => { const b = e.target.closest("[data-new]"); if (e.target.id === "newDlg" || b) $("#newDlg").close(); if (b && b.dataset.new === "play"){ setSport("play"); setTimeout(() => packOpen("free"), 300); } });
+// offline: say so, and quietly refresh when the connection comes back
+(() => { const bar = $("#offBar"), set = () => { bar.hidden = navigator.onLine !== false; document.body.classList.toggle("offline", !bar.hidden); };
+  addEventListener("offline", set); addEventListener("online", () => { set(); toast("Back online"); try { if (SPORT === "universe" || SPORT === "play") loadUniverse(); else if (SPORT !== "tennis" && SPORT !== "following") loadScoreboard(true); } catch {} }); set(); })();
 /* ================= Reset everything this device keeps ================= */
 async function resetAll(){
   if (!confirm("Reset Cosmo Sports on this device? This clears your teams, picks, settings and chat, and turns off notifications.")) return;
@@ -6727,14 +6767,16 @@ $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $(
 
 /* ---------- app shell: navigation, sheets, help, settings, tour, sharing ---------- */
 function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
+// bottom bar: Today, Scores (the league you last looked at), Play, Following, More
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
-  const n = b.dataset.nav;
-  if (["following", "universe", "play"].includes(SPORT) && n !== "more") setSport(lsGet("lastLeague", "nfl"));
-  if (SPORT !== "tennis" && n !== "more"){ setTT({ predict: "predict", rankings: "rank", live: "games" }[n]); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
-  if (n === "predict"){ window.scrollTo({ top: 0, behavior: "smooth" }); document.querySelectorAll("[data-nav]").forEach(x => x.setAttribute("aria-current", x === b ? "page" : "false")); return; }
+  const n = b.dataset.nav; sfx("tap");
   if (n === "more"){ $("#moreDlg").showModal(); return; }
-  goTab(n);
+  if (n === "scores"){ const lg = ["universe", "following", "play"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
+    if (lg === "tennis"){ setSport("tennis"); goTab("live"); } else { if (SPORT !== lg) setSport(lg); setTT("games"); } }
+  else if (SPORT !== n) setSport(n);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }));
+function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT) ? SPORT : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
@@ -6784,7 +6826,7 @@ renderFeed();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
-  maybeOnboard(q.get("onboard") === "1");
+  maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew();
   if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut

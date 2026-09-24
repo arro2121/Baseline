@@ -298,6 +298,9 @@ export async function sportsTick(env, fetchImpl = fetch) {
   const brief = await morningBrief(env, subs.filter(s => !s.dead), fetchImpl).catch(e => String(e));
   return { leagues: leagues.length, events: events.length, sent, brief };
 }
+// the day's arcade challenge, picked from the date exactly the way the app picks it (template.html, dchToday)
+const DCH = ["Hit 4 home runs in Home Run Derby", "Score 700 points in Penalty Shootout", "Score 14 in the Three-Point Contest", "Make a 45-yard field goal", "Score 8 points in Top Shelf", "Name 8 logos in Logo Quiz"];
+export function dailyChallenge(day){ let h = 7; for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) % 100003; return DCH[h % DCH.length]; }
 // once a day around 9 AM US Eastern: how your teams did yesterday and who plays today
 const etParts = d => Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "numeric", hour12: false }).formatToParts(d).map(p => [p.type, p.value]));
 export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date()) {
@@ -334,7 +337,8 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
       if (next) { const home = tkey(next.home.name) === t; lines.push(`${(home ? next.home : next.away).short} ${home ? "host" : "at"} ${(home ? next.away : next.home).short}, ${time(next.date)}`); }
     }
     if (!lines.length) continue;
-    const r = await sendPush(s.sub, { title: "Your Cosmo morning", body: lines.slice(0, 4).join(" · "), tag: "brief-" + today, url: "./" }, env, fetchImpl).catch(() => null);
+    const body = [...lines.slice(0, 3), `🎯 Today's challenge: ${dailyChallenge(today)}. Your free card pack is ready`].join(" · ");
+    const r = await sendPush(s.sub, { title: "Your Cosmo morning", body, tag: "brief-" + today, url: "./?sport=play" }, env, fetchImpl).catch(() => null);
     if (r && r.ok) sent++;
   }
   return { sent };
