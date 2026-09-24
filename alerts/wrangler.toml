@@ -21,3 +21,12 @@ VAPID_PUBLIC_KEY = "BAWuN8NN71xkl9gvznI6iIXS8E_uEbfP0t0zBlT8wxM2nZzN2BXqvImS7ZVq
 # Ask Cosmo, the AI companion: Cloudflare Workers AI (free daily allowance). Setting the ANTHROPIC_API_KEY secret switches it to Claude.
 [ai]
 binding = "AI"
+
+# Subscriptions and alert state (Durable Object with SQLite storage, available on the free plan: 100,000 writes a day)
+[[durable_objects.bindings]]
+name = "STORE"
+class_name = "Store"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Store"]

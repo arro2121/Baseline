@@ -1587,7 +1587,9 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Spoiler shield"><button type="button" data-spoil="off">Off</button><button type="button" data-spoil="mine">My teams</button><button type="button" data-spoil="all">All games</button></div></div>
     <div class="setrow"><div><b>Sound effects</b><small>Short sounds for scores, picks and games</small></div>
       <div class="seg" role="group" aria-label="Sound effects"><button type="button" data-snd="0">Off</button><button type="button" data-snd="1">On</button></div></div>
-    <div class="setrow" id="voiceRow"><div><b>Listen Live voice</b><small>How fast plays are read aloud when you tap 🎧 Listen in a live game</small></div>
+    <div class="setrow wrapr" id="voiceRow"><div><b>Listen Live voice</b><small>Who reads the plays when you tap 🎧 Listen in a live game. Tap one to hear it.</small></div>
+      <div class="seg" role="group" aria-label="Voice"><button type="button" data-vkind="male">Announcer</button><button type="button" data-vkind="female">Anchor</button><button type="button" data-vkind="device">Phone voice</button></div></div>
+    <div class="setrow" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Play</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
@@ -2045,7 +2047,8 @@ function renderSettings(){
   document.querySelectorAll("[data-snd]").forEach(b => b.setAttribute("aria-pressed", String(SND ? 1 : 0) === b.dataset.snd));
   document.querySelectorAll("[data-deftour]").forEach(b => b.setAttribute("aria-pressed", b.dataset.deftour === SET.tour));
   document.querySelectorAll("[data-vrate]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.vrate === voiceRate()));
-  const vr = $("#voiceRow"); if (vr) vr.hidden = !("speechSynthesis" in window);
+  document.querySelectorAll("[data-vkind]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.vkind === voiceKind()); b.hidden = b.dataset.vkind !== "device" && !ALERTS_URL; });
+  ["#voiceRow", "#voiceRow2"].forEach(id => { const r = $(id); if (r) r.hidden = !canListen(); });
   $("#startSel").value = lsGet("startSport", "");
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
   document.querySelectorAll("[data-oddsfmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.oddsfmt === SET.odds));
@@ -2054,7 +2057,9 @@ function renderSettings(){
 document.querySelectorAll("[data-spoil]").forEach(b => b.addEventListener("click", () => { const v = b.dataset.spoil; SPOIL.on = v !== "off"; if (SPOIL.on) SPOIL.scope = v; saveSpoil(); renderSettings(); toast(SPOIL.on ? "Spoiler shield is on" : "Spoiler shield is off");
   if (SPORT === "universe") drawUniverse(); else if (SPORT === "following") renderFollowing(); else if (SPORT !== "tennis" && SPORT !== "play" && !$("#tt-games").hidden && SB[SPORT]) drawGames(); }));
 document.querySelectorAll("[data-snd]").forEach(b => b.addEventListener("click", () => { SND = b.dataset.snd === "1"; lsSet("sounds", SND); renderSettings(); sfx("tap"); }));
-document.querySelectorAll("[data-vrate]").forEach(b => b.addEventListener("click", () => { lsSet("voiceRate", +b.dataset.vrate); renderSettings(); if (canListen()){ speechSynthesis.cancel(); say("This is how Listen Live sounds.", true); } }));
+const VOICE_SAMPLE = "Touchdown, Chiefs! Mahomes finds Kelce in the back of the end zone, and Kansas City leads 21 to 17.";
+document.querySelectorAll("[data-vrate]").forEach(b => b.addEventListener("click", () => { lsSet("voiceRate", +b.dataset.vrate); renderSettings(); if (canListen()){ voiceUnlock(); say(VOICE_SAMPLE, true); } }));
+document.querySelectorAll("[data-vkind]").forEach(b => b.addEventListener("click", () => { lsSet("voiceKind", b.dataset.vkind); LQ.down = 0; renderSettings(); if (canListen()){ voiceUnlock(); say(VOICE_SAMPLE, true); } }));
 document.querySelectorAll("[data-deftour]").forEach(b => b.addEventListener("click", () => { SET.tour = b.dataset.deftour; saveSet(); renderSettings(); }));
 $("#startSel").addEventListener("change", e => { lsSet("startSport", e.target.value); toast(e.target.value ? "Saved" : "The app will open where you left off"); });
 document.querySelectorAll("[data-oddsfmt]").forEach(b => b.addEventListener("click", () => { SET.odds = b.dataset.oddsfmt; saveSet(); renderSettings(); update(); }));
@@ -3215,21 +3220,63 @@ function drawGame(g, lg){
   if (!live) { clearInterval(gTimer); gTimer = null; }
 }
 /* ================= Listen Live: the game read aloud, like a radio call ================= */
-// Uses the phone's own voice (speechSynthesis), so it's free and works offline once the plays arrive. New key plays,
-// scores, period changes and the final are spoken in plain language; the spoiler shield keeps it silent until you reveal.
+// New key plays, scores, period changes and the final are spoken in plain language by a natural human voice (the alerts
+// service's text to speech); the phone's own voice takes over if that's unavailable. The spoiler shield keeps it silent.
 const LISTEN = { key: null, seen: new Set(), score: null, period: null, final: false };
-const canListen = () => "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+const hasDeviceVoice = () => "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+const canListen = () => (!!ALERTS_URL && typeof Audio !== "undefined") || hasDeviceVoice();
 function voiceRate(){ return +lsGet("voiceRate", 1.05) || 1.05; }
+function voiceKind(){ const k = lsGet("voiceKind", "male"); return ALERTS_URL || k === "device" ? k : "device"; }
 function pickVoice(){
   const vs = speechSynthesis.getVoices().filter(v => /^en(-|_|$)/i.test(v.lang));
-  return vs.find(v => /Samantha|Google US English|Aaron|Ava|Nathan/i.test(v.name)) || vs.find(v => /en-US/i.test(v.lang) && v.localService) || vs[0] || null;
+  return vs.find(v => /Premium|Enhanced|Natural|Neural/i.test(v.name)) || vs.find(v => /Google US English|Samantha|Ava|Aaron|Nathan/i.test(v.name)) || vs.find(v => /en-US/i.test(v.lang) && v.localService) || vs[0] || null;
+}
+const LQ = { el: null, queue: [], busy: false, down: 0, url: null };
+function silentWav(){                                    // a split second of silence, to unlock audio inside a tap
+  const n = 800, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), w = (o, t) => [...t].forEach((ch, i) => v.setUint8(o + i, ch.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+}
+function voiceUnlock(){                                  // must run inside a tap so phones allow the play calls that follow
+  if (!LQ.el && typeof Audio !== "undefined"){ LQ.el = new Audio(); LQ.el.preload = "auto"; LQ.el.addEventListener("ended", () => voiceNext()); LQ.el.addEventListener("error", () => { if (LQ.busy) voiceNext(); }); }
+  if (LQ.el) try { LQ.el.src = silentWav(); LQ.el.play().catch(() => {}); } catch {}
+  if (hasDeviceVoice()) try { speechSynthesis.cancel(); speechSynthesis.getVoices(); } catch {}
+}
+function voiceStop(){ LQ.queue.length = 0; LQ.busy = false; if (LQ.el) try { LQ.el.pause(); } catch {} if (hasDeviceVoice()) try { speechSynthesis.cancel(); } catch {} }
+const cleanSpeech = t => String(t).replace(/\s+/g, " ").replace(/\bvs\.?\s/gi, "versus ").replace(/(\d+)-(\d+)/g, "$1 to $2").trim();
+async function fetchVoice(text){
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), 12000);
+  try {
+    const r = await fetch(ALERTS_URL + "/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, voice: voiceKind() }), signal: ac.signal });
+    if (!r.ok) throw new Error("voice " + r.status);
+    return URL.createObjectURL(await r.blob());
+  } catch (e) { LQ.down = Date.now() + 120000; throw e; }          // use the phone's voice for a couple of minutes
+  finally { clearTimeout(t); }
 }
 function say(text, urgent){
-  if (!canListen() || !text) return;
-  if (urgent) speechSynthesis.cancel();
-  if (speechSynthesis.pending && !urgent) return;            // never build up a backlog behind a busy game
-  const u = new SpeechSynthesisUtterance(String(text).replace(/\s+/g, " ").replace(/\bvs\.?\s/gi, "versus ").replace(/(\d+)-(\d+)/g, "$1 to $2"));
-  const v = pickVoice(); if (v) u.voice = v; u.lang = (v && v.lang) || "en-US"; u.rate = voiceRate(); u.pitch = 1;
+  if (!text || !canListen()) return; text = cleanSpeech(text);
+  if (urgent) voiceStop();
+  if (LQ.queue.length >= 2) LQ.queue.shift();                       // never fall far behind a busy game
+  const item = { text, audio: voiceKind() !== "device" && ALERTS_URL && LQ.el && Date.now() > LQ.down ? fetchVoice(text).catch(() => null) : null };
+  LQ.queue.push(item); if (!LQ.busy) voiceNext();
+}
+async function voiceNext(){
+  const it = LQ.queue.shift(); if (!it){ LQ.busy = false; return; }
+  LQ.busy = true;
+  const url = it.audio ? await it.audio : null;
+  if (!LQ.busy) return;                                             // stopped while the voice was on its way
+  if (url && LQ.el){
+    if (LQ.url) URL.revokeObjectURL(LQ.url); LQ.url = url;
+    LQ.el.src = url; try { LQ.el.preservesPitch = true; } catch {} LQ.el.playbackRate = voiceRate();
+    try { await LQ.el.play(); return; } catch {}
+  }
+  deviceSay(it.text, () => voiceNext());
+}
+function deviceSay(text, then){
+  if (!hasDeviceVoice()){ then(); return; }
+  const u = new SpeechSynthesisUtterance(text), v = pickVoice(); if (v) u.voice = v; u.lang = (v && v.lang) || "en-US"; u.rate = voiceRate(); u.pitch = 1;
+  let done = false; const fin = () => { if (!done){ done = true; then(); } }; u.onend = fin; u.onerror = fin; setTimeout(fin, 20000);
   speechSynthesis.speak(u);
 }
 const lnm = t => (t && (t.short || t.name)) || "";
@@ -3248,7 +3295,7 @@ function listenStart(g, lg){
   say(`Listening to ${lnm(g.away)} at ${lnm(g.home)}. ${g.status?.state === "in" ? (g.status.detail || g.status.short || "") + ". " : ""}${scoreLine(g)}${last && g.status?.state === "in" ? " Last play: " + last.text : ""}`, true);
   if (g.status?.state === "post") setTimeout(() => { if (LISTEN.key === lg + "/" + g.id) listenStop(true); }, 200);
 }
-function listenStop(quiet){ LISTEN.key = null; if (!quiet && canListen()) speechSynthesis.cancel(); document.querySelectorAll("#gListen").forEach(b => b.setAttribute("aria-pressed", "false")); }
+function listenStop(quiet){ LISTEN.key = null; if (!quiet) voiceStop(); document.querySelectorAll("#gListen").forEach(b => b.setAttribute("aria-pressed", "false")); }
 function listenUpdate(g, lg){
   if (!listenOn() || LISTEN.key !== lg + "/" + g.id) return;
   const fresh = (g.plays || []).filter(p => !LISTEN.seen.has(p.id) && !p.live);
@@ -3272,9 +3319,9 @@ function listenBtn(g, lg){
 }
 function bindListen(g, lg){
   const b = $("#gListen"); if (!b) return;
-  b.onclick = () => { if (LISTEN.key === lg + "/" + g.id){ listenStop(); toast("Listen Live is off"); } else { listenStart(g, lg); if (g.status?.state === "in") toast("Listen Live is on. New plays will be read aloud."); } drawGame(g, lg); };
+  b.onclick = () => { if (LISTEN.key === lg + "/" + g.id){ listenStop(); toast("Listen Live is off"); } else { voiceUnlock(); listenStart(g, lg); if (g.status?.state === "in") toast("Listen Live is on. New plays will be read aloud."); } drawGame(g, lg); };
 }
-if (canListen()){ try { speechSynthesis.getVoices(); speechSynthesis.addEventListener?.("voiceschanged", () => {}); } catch {} }
+if (hasDeviceVoice()){ try { speechSynthesis.getVoices(); speechSynthesis.addEventListener?.("voiceschanged", () => {}); } catch {} }
 
 /* ================= Box score, game info, standings, news, team pages, following, search, sharing ================= */
 let GTAB = "plays", G_LAST = null, BOXTEAM = "away"; const G_SCORE = {}, G_PREV_SC = {};
@@ -3524,9 +3571,15 @@ const saveNtf = () => lsSet("ntf", NTF);
 const pushOK = () => HOSTED && !!ALERTS_URL && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const BELL = on => `<svg viewBox="0 0 20 20" fill="${on ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8a4.6 4.6 0 0 0-4.6 4.6v2.9L4 13.3h12l-1.4-3V7.4A4.6 4.6 0 0 0 10 2.8Z"/><path d="M8.2 15.6a1.9 1.9 0 0 0 3.6 0" fill="none"/></svg>`;
 const b64ToU8 = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
-async function pushSub(create){
-  const reg = await navigator.serviceWorker.ready; let s = await reg.pushManager.getSubscription();
-  if (!s && create){ const { key } = await (await fetch(ALERTS_URL + "/vapid")).json(); s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(key) }); }
+const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(msg)), ms))]);
+async function swReady(){
+  if (!navigator.serviceWorker.controller && navigator.serviceWorker.getRegistration && !(await navigator.serviceWorker.getRegistration())) await navigator.serviceWorker.register("sw.js");
+  return withTimeout(navigator.serviceWorker.ready, 10000, "The app's background helper didn't start. Reload the app and try again.");
+}
+async function pushSub(create, fresh){
+  const reg = await swReady(); let s = await reg.pushManager.getSubscription();
+  if (s && fresh){ await s.unsubscribe().catch(() => {}); s = null; }
+  if (!s && create){ const { key } = await (await fetchJSON(ALERTS_URL + "/vapid")); s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(key) }); }
   return s;
 }
 function ntfTeams(){
@@ -3535,13 +3588,32 @@ function ntfTeams(){
   return out;
 }
 let NTF_T = null;
-function ntfSync(){
+// send this phone's subscription and choices to the alerts service; resolves true once it's saved
+async function ntfSave(s){
+  const teams = ntfTeams(), none = !Object.keys(teams).length && !NTF.games.length;
+  const r = await fetch(ALERTS_URL + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sub: s.toJSON(), teams, games: NTF.games, prefs: { ...NTF.prefs, anyClose: NTF.prefs.anyClose || none, noSpoilers: SPOIL.on } }) });
+  return r.ok;
+}
+function ntfSync(now){
   clearTimeout(NTF_T);
-  NTF_T = setTimeout(async () => {
-    if (!NTF.on || !pushOK()) return;
-    try { const s = await pushSub(false); if (!s) return;
-      await fetch(ALERTS_URL + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sub: s.toJSON(), teams: ntfTeams(), games: NTF.games, prefs: { ...NTF.prefs, noSpoilers: SPOIL.on } }) }); } catch {}
-  }, 500);
+  return new Promise(done => { NTF_T = setTimeout(async () => {
+    if (!NTF.on || !pushOK()){ done(false); return; }
+    try {
+      let s = await pushSub(false);
+      if (!s && Notification.permission === "granted") s = await pushSub(true);     // the browser dropped it: make a new one
+      done(s ? await ntfSave(s) : false);
+    } catch { done(false); }
+  }, now ? 0 : 500); });
+}
+// ask the alerts service to send a notification to this phone right now
+async function ntfPing(welcome){
+  let s = await pushSub(false); if (!s) throw new Error("Notifications aren't set up on this device yet.");
+  const send = async sub => { await ntfSave(sub).catch(() => {}); const r = await fetch(ALERTS_URL + "/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint, sub: sub.toJSON(), welcome: !!welcome }) }); return [r, await r.json().catch(() => ({}))]; };
+  let [r, d] = await send(s);
+  if (!r.ok && [400, 401, 403, 404, 410].includes(d.status)){ s = await pushSub(true, true); [r, d] = await send(s); }   // stale or mismatched subscription: renew it once
+  if (!r.ok) throw new Error(d.status ? `The push service said no (${d.status}). Try turning notifications off and on.` : "The alerts service didn't answer. Check your connection and try again.");
+  return true;
 }
 async function ntfEnable(){
   if (!pushOK()){
@@ -3551,9 +3623,13 @@ async function ntfEnable(){
   }
   let perm = Notification.permission;
   if (perm !== "granted") perm = await Notification.requestPermission();
-  if (perm !== "granted"){ toast("Notifications are blocked for this site. Allow them in your browser or phone settings."); return false; }
-  try { await pushSub(true); NTF.on = true; saveNtf(); ntfSync(); return true; }
-  catch { toast("Couldn't turn on notifications. Check your connection and try again."); return false; }
+  if (perm !== "granted"){ toast(perm === "denied" ? "Notifications are blocked for Cosmo Sports. Turn them on in your phone's Settings (Notifications), then try again." : "Notifications weren't allowed."); return false; }
+  try {
+    const s = await pushSub(true); NTF.on = true; saveNtf();
+    if (!(await ntfSave(s))) throw new Error("The alerts service didn't save this device. Try again in a minute.");
+    ntfPing(true).catch(() => {});                                                  // a "you're all set" notification right away
+    return true;
+  } catch (e) { toast(e && e.message && !/^Failed to fetch|NetworkError|Load failed/i.test(e.message) ? e.message : "Couldn't reach the alerts service. Check your connection and try again."); return false; }
 }
 async function ntfDisable(){
   NTF.on = false; saveNtf();
@@ -3577,14 +3653,15 @@ function renderNtf(){
   const box = $("#ntfBox"); if (!box) return;
   const nTeams = Object.values(FAV).reduce((n, a) => n + a.length, 0), nGames = NTF.games.length;
   const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"]];
-  box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
+  box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on && "Notification" in window && Notification.permission !== "granted" ? `<span style="color:var(--bad,#FF7D8E)">Blocked in your phone's settings. Allow notifications for Cosmo Sports, then turn this off and on.</span> · ` : ""}${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
       <button class="btn ${NTF.on ? "" : "primary"}" id="ntfBtn" type="button">${NTF.on ? "Turn off" : "Turn on"}</button></div>
     ${NTF.on ? `<div class="ntfprefs">${P.map(([k, l, h]) => `<label class="ntfrow"><input type="checkbox" data-np="${k}" ${NTF.prefs[k] ? "checked" : ""}><span><b>${l}</b>${h ? `<small>${h}</small>` : ""}</span></label>`).join("")}
       <div class="ntfacts">${nTeams ? "" : `<small>Follow teams with ☆ to get their alerts.</small>`}<button class="btn" id="ntfTest" type="button">Send a test</button></div></div>` : ""}`;
   $("#ntfBtn").onclick = async () => { if (NTF.on) await ntfDisable(); else if (await ntfEnable()) toast("Notifications are on"); renderNtf(); };
   box.querySelectorAll("[data-np]").forEach(c => c.onchange = () => { NTF.prefs[c.dataset.np] = c.checked; saveNtf(); ntfSync(); });
-  const t = $("#ntfTest"); if (t) t.onclick = async () => { try { const s = await pushSub(false); if (!s) throw 0; await ntfSync(); await new Promise(r => setTimeout(r, 900));
-    const r = await fetch(ALERTS_URL + "/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: s.endpoint }) }); toast(r.ok ? "Test sent. It should arrive in a few seconds." : "Couldn't send a test right now."); } catch { toast("Couldn't send a test right now."); } };
+  const t = $("#ntfTest"); if (t) t.onclick = async () => { t.disabled = true;
+    try { await ntfPing(false); toast("Test sent. It should arrive in a few seconds. If it doesn't, check that notifications for Cosmo Sports are allowed and Focus or Do Not Disturb is off."); }
+    catch (e) { toast(e.message || "Couldn't send a test right now."); } finally { t.disabled = false; } };
 }
 // keep the alerts service's copy of your teams fresh (subscriptions can also change on the browser's side)
 if (NTF.on) setTimeout(ntfSync, 3000);
