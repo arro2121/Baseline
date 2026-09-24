@@ -16,7 +16,7 @@ jobs:
       - name: Fetch
         run: |
           true
-          echo "nothing to fetch"
+          python team_history.py nba epl --out .github/diag/hist 2>&1 | tee .github/diag/fetch_nba_epl.log || true
           true
       - name: Save
         run: |
