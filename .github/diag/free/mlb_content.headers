@@ -1,0 +1,20 @@
+HTTP/2 200 
+x-request-id: 806ab2cc-43e6-45e7-b89a-13e85640e705
+access-control-allow-origin: *
+access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS
+access-control-allow-headers: Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization
+access-control-expose-headers: Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization
+access-control-allow-credentials: true
+cache-control: max-age=10, public, stale-while-revalidate=30, stale-if-error=86400
+content-type: application/json;charset=UTF-8
+via: 1.1 google, 1.1 varnish, 1.1 varnish
+accept-ranges: bytes
+age: 0
+date: Thu, 24 Sep 2026 13:55:32 GMT
+x-served-by: cache-chi-klot8100178-CHI, cache-phx1710107-PHX
+x-cache: MISS, MISS
+x-cache-hits: 0, 0
+x-timer: S1790258132.919916,VS0,VE304
+vary: accept-encoding, Accept-Encoding
+content-length: 573092
+

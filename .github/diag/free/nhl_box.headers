@@ -1,0 +1,10 @@
+HTTP/2 200 
+date: Thu, 24 Sep 2026 13:55:34 GMT
+content-type: application/json
+vary: Accept-Encoding
+cache-control: no-transform, max-age=6, s-maxage=6
+etag: W/"6ab52bdc--gzip"
+cf-cache-status: MISS
+server: cloudflare
+cf-ray: a40249975fc4da3a-LAX
+

@@ -1,0 +1,11 @@
+HTTP/2 403 
+mime-version: 1.0
+content-type: text/html
+content-length: 443
+expires: Thu, 24 Sep 2026 13:55:34 GMT
+date: Thu, 24 Sep 2026 13:55:34 GMT
+x-frame-options: sameorigin
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+strict-transport-security: max-age=86400
+
