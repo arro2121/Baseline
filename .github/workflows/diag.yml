@@ -12,25 +12,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          mkdir -p .github/diag/odds; cd .github/diag/odds
-          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
-          for p in football/nfl basketball/nba baseball/mlb hockey/nhl soccer/eng.1; do n=${p##*/}
-            for d in "" "?dates=20260926" "?dates=20260927"; do
-              curl -sS -m 30 -A "Mozilla/5.0" "https://site.api.espn.com/apis/site/v2/sports/$p/scoreboard$d" -o "espn_${n}${d:+_${d#*=}}.json" -w "$n $d %{http_code} %{size_download}\n" || true
+          mkdir -p .github/diag/odds2; cd .github/diag/odds2
+          for p in soccer/eng.1 baseball/mlb football/nfl; do n=${p##*/}
+            for d in 20260925 20260926 20260927; do
+              curl -sS -m 30 -A "Mozilla/5.0" "https://site.web.api.espn.com/apis/site/v2/sports/$p/scoreboard?dates=$d" -o "web_${n}_$d.json" -w "web $n $d %{http_code} %{size_download}\n" || true
             done
           done
-          for lg in nfl nba mlb nhl epl; do curl -sS -m 30 "$W/sports/$lg/scoreboard" -o "w_$lg.json" -w "w $lg %{http_code} %{size_download}\n" || true; done
+          curl -sS -m 30 -A "Mozilla/5.0" "https://cdn.espn.com/core/soccer/scoreboard?xhr=1&league=eng.1&dates=20260926" -o cdn_epl.json -w "cdn epl %{http_code} %{size_download}\n" || true
+          curl -sS -m 30 -A "Mozilla/5.0" "https://cdn.espn.com/core/mlb/scoreboard?xhr=1&dates=20260925" -o cdn_mlb.json -w "cdn mlb %{http_code} %{size_download}\n" || true
           python3 - <<'PY'
           import json,glob
-          for f in sorted(glob.glob("espn_*.json")):
+          for f in sorted(glob.glob("*.json")):
               try: d=json.load(open(f))
-              except Exception as e: print(f, "bad", e); continue
-              ev=d.get("events",[]); n=sum(1 for e in ev if (e.get("competitions") or [{}])[0].get("odds"))
-              print(f, len(ev), "events,", n, "with odds")
-              for e in ev[:40]:
+              except Exception as e: print(f, "bad"); continue
+              d=d.get("content",{}).get("sbData",d) if "content" in d else d
+              ev=d.get("events",[]); print(f, len(ev), "events")
+              for e in ev:
                   o=((e.get("competitions") or [{}])[0].get("odds") or [None])[0]
-                  if o: json.dump(o, open(f.replace(".json","_odds1.json"),"w"), indent=1); break
+                  if o: json.dump(o, open("odds_"+f, "w"), indent=1); break
+              for g in glob.glob("*.json"): pass
           PY
+          find . -name '*.json' -size +300k -delete
       - run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
-          git add .github/diag && git commit -q -m "Odds samples" && git push
+          git add .github/diag && git commit -q -m "Odds samples 2" && git push
