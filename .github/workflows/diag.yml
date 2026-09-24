@@ -1,0 +1,17 @@
+# Temporary: saves real ESPN game data to this branch. Safe to delete.
+name: ESPN samples
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml", ".github/diag/**"]
+permissions:
+  contents: write
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd .github/diag && python3 samples.py
+      - run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag/samples && git commit -q -m "ESPN samples" && git push
