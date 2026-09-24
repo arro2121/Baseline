@@ -1,0 +1,28 @@
+name: Alerts check
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe sources the way a phone would
+        run: |
+          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1'
+          O='Origin: https://arro2121.github.io'
+          W=$(python3 -c "import json,urllib.request;print(json.load(urllib.request.urlopen('https://raw.githubusercontent.com/${{ github.repository }}/main/site_config.json'))['alerts_url'])")
+          probe(){ echo "-- $1"; curl -s -m 20 -A "$UA" -H "$O" -D /tmp/h -o /tmp/b "$2"; head -1 /tmp/h; grep -i "access-control-allow-origin\|^cf-ray\|^cf-cache" /tmp/h; head -c 160 /tmp/b; echo; }
+          for lg in football/nfl basketball/nba baseball/mlb hockey/nhl soccer/eng.1; do
+            probe "espn web $lg" "https://site.web.api.espn.com/apis/site/v2/sports/$lg/scoreboard"
+          done
+          probe "espn cdn nfl" "https://cdn.espn.com/core/nfl/scoreboard?xhr=1"
+          probe "espn site.api nfl" "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+          probe "espn now" "https://now.core.api.espn.com/v1/sports/news?limit=1"
+          for lg in nfl nba mlb nhl epl; do probe "worker $lg" "$W/sports/$lg/scoreboard"; done
+          probe "worker nfl game" "$W/sports/nfl/game/401872948"
+          probe "mlb api" "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
+          probe "nhl api" "https://api-web.nhle.com/v1/score/now"
+          probe "nba cdn" "https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json"
+          probe "site" "https://arro2121.github.io/Baseline/"
+          probe "sw" "https://arro2121.github.io/Baseline/sw.js"
