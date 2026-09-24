@@ -1,22 +1,23 @@
-# Temporary: checks that the nightly job finds a logo for every team. Safe to delete.
-name: Logo check
+# Temporary: screenshots of the finished app against live ESPN. Safe to delete.
+name: App screenshots
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml", "sports_engine.py"]
+    paths: [".github/workflows/diag.yml", ".github/diag/shots.mjs"]
+permissions:
+  contents: write
 jobs:
-  logos:
+  shots:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install -q -r requirements.txt && python sports_engine.py --download --espn
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install -q -r requirements.txt && python sports_engine.py --download --espn && python build_site.py
+      - run: (cd docs && python -m http.server 8000 >/dev/null 2>&1 &) && sleep 1
+      - run: cd .github/diag && mkdir -p shots && npm init -y >/dev/null && npm i -s playwright@1.56.1 && npx playwright install --with-deps chromium >/dev/null 2>&1 && node shots.mjs
       - run: |
-          python - <<'PY'
-          import json
-          d = json.load(open("sports.json"))
-          for lg, L in d["leagues"].items():
-              miss = [t["name"] for t in L["teams"] if not t.get("logo")]
-              print(lg, f"{len(L['teams']) - len(miss)}/{len(L['teams'])} logos", "missing:", miss, "sample:", L["teams"][0].get("logo"))
-          PY
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag/shots && git commit -q -m "App screenshots" && git push
