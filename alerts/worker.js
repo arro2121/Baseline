@@ -134,6 +134,7 @@ export function diffEvents(prev, now) {
 
 /* ---------------- one scheduled run ---------------- */
 export async function tick(env, fetchImpl = fetch) {
+  if (!env.API_TENNIS_KEY) return { tennis: "off" };
   const call = async (method, params = {}) => {
     const q = new URLSearchParams({ method, APIkey: env.API_TENNIS_KEY, timezone: "America/New_York", ...params });
     const r = await fetchImpl(`${API}?${q}`); const d = await r.json();
@@ -163,6 +164,94 @@ export async function tick(env, fetchImpl = fetch) {
     if (gone) await env.KV.put("subs", JSON.stringify(subs.filter(s => !s.dead)));
   }
   return { matches: matches.length, alerts: alerts.length, sent };
+}
+
+/* ---------------- team-sport alerts: starts, scores, close finishes and finals for the teams and games people follow ---------------- */
+const START_WORD = { nfl: "Kickoff", nba: "Tip-off", mlb: "First pitch", nhl: "Puck drop", epl: "Kick-off" };
+const tkey = n => norm(n).join(" ");
+const minsLeft = c => { const m = /^(\d+):(\d+)/.exec(String(c || "")); if (m) return +m[1] + m[2] / 60; const x = parseFloat(c); return isNaN(x) ? 99 : x / 60; };
+export function crunch(lg, g) {                     // late in the game and still close
+  const s = g.status || {}, per = +s.period || 0, m = Math.abs((+g.home?.score || 0) - (+g.away?.score || 0));
+  if (s.state !== "in") return false;
+  if (lg === "nfl") return per >= 4 && minsLeft(s.clock) <= 5 && m <= 8;
+  if (lg === "nba") return per >= 4 && minsLeft(s.clock) <= 3 && m <= 5;
+  if (lg === "nhl") return per >= 3 && minsLeft(s.clock) <= 5 && m <= 1;
+  if (lg === "mlb") return per >= 8 && m <= 1;
+  if (lg === "epl") return (parseFloat(String(s.clock || "").replace(/[^\d.]/g, " ")) || 0) >= 80 && m <= 1;
+  return false;
+}
+const scoreLine = g => `${g.away.short || g.away.name} ${g.away.score ?? 0}, ${g.home.short || g.home.name} ${g.home.score ?? 0}`;
+function scoredWhat(lg, pts) {
+  if (lg === "nfl") return pts >= 6 ? "Touchdown" : pts === 3 ? "Field goal" : pts === 2 ? "Safety" : "Score";
+  if (lg === "mlb") return pts > 1 ? `${pts} runs score` : "Run scores";
+  return lg === "nba" ? "Score" : "Goal";
+}
+// compare one league's scoreboard with the last one we saw and describe what happened
+export function sportEvents(lg, prev, games) {
+  const out = [];
+  for (const g of games) {
+    const p = prev[g.id], st = g.status?.state, a = +g.away.score || 0, h = +g.home.score || 0;
+    if (!p) continue;                                // first sighting: nothing to report yet
+    const base = { lg, id: g.id, teams: [tkey(g.home.name), tkey(g.away.name)], url: `./#game=${lg}/${g.id}` };
+    if (p.s === "pre" && st === "in") out.push({ ...base, type: "start", tag: `start-${g.id}`, title: `${START_WORD[lg]}: ${g.away.short} at ${g.home.short}`, body: g.tv?.length ? `On ${g.tv[0]}` : "The game has started" });
+    if (st === "in" && p.a != null && (a !== p.a || h !== p.h) && lg !== "nba") {
+      const side = h - p.h > a - p.a ? g.home : g.away, pts = Math.max(h - p.h, a - p.a);
+      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: `${scoredWhat(lg, pts)}, ${side.short}`, body: `${scoreLine(g)} · ${g.status.short || ""}` });
+    }
+    if (st === "in" && lg === "nba" && p.p && +g.status.period > p.p && p.p <= 4)
+      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: p.p === 2 ? "Halftime" : `End of the ${["", "1st", "2nd", "3rd", "4th"][p.p]} quarter`, body: scoreLine(g) });
+    if (crunch(lg, g) && !p.c) out.push({ ...base, type: "close", tag: `close-${g.id}`, title: `Close finish: ${scoreLine(g)}`, body: `${g.status.short || ""} · tap to follow it live` });
+    if (p.s === "in" && st === "post") { const w = h > a ? g.home : a > h ? g.away : null;
+      out.push({ ...base, type: "final", tag: `final-${g.id}`, title: `Final: ${scoreLine(g)}`, body: w ? `${w.short} win${/s$/.test(w.short || "") ? "" : "s"}` : "It ends level" }); }
+  }
+  return out;
+}
+const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false };
+function wants(sub, e) {
+  const pr = { ...DEFAULT_PREFS, ...(sub.prefs || {}) };
+  const mine = (sub.games || []).includes(`${e.lg}/${e.id}`) || (sub.teams?.[e.lg] || []).some(t => e.teams.includes(t));
+  if (mine) return !!pr[e.type];
+  return e.type === "close" && pr.anyClose;
+}
+export async function sportsTick(env, fetchImpl = fetch) {
+  const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.teams || s.games || s.prefs);
+  if (!subs.length) return { sports: 0 };
+  const any = subs.some(s => s.prefs?.anyClose), want = new Set();
+  for (const s of subs) { for (const [lg, list] of Object.entries(s.teams || {})) if (list.length) want.add(lg); for (const k of s.games || []) want.add(k.split("/")[0]); }
+  const leagues = Object.keys(LEAGUES).filter(lg => any || want.has(lg));
+  const followed = new Set(subs.flatMap(s => [...Object.entries(s.teams || {}).flatMap(([lg, l]) => l.map(t => lg + ":" + t)), ...(s.games || [])]));
+  const prevAll = JSON.parse(await env.KV.get("sports") || "{}"), next = {}, events = [];
+  for (const lg of leagues) {
+    let d; try { d = await espnScoreboard(lg, fetchImpl); } catch { next[lg] = prevAll[lg] || {}; continue; }
+    const games = d.games || [], prev = prevAll[lg] || {};
+    events.push(...sportEvents(lg, prev, games));
+    next[lg] = {};
+    for (const g of games) {
+      const track = followed.has(`${lg}/${g.id}`) || followed.has(`${lg}:${tkey(g.home.name)}`) || followed.has(`${lg}:${tkey(g.away.name)}`);
+      next[lg][g.id] = { s: g.status.state, p: +g.status.period || 0, c: crunch(lg, g) || !!prev[g.id]?.c,
+        ...(track ? { a: +g.away.score || 0, h: +g.home.score || 0 } : {}) };
+      if (!track) next[lg][g.id].p = 0;               // only followed games need the period (NBA quarter alerts)
+    }
+  }
+  for (const lg of Object.keys(prevAll)) if (!(lg in next)) next[lg] = prevAll[lg];
+  // KV allows about a thousand writes a day on the free plan, so only save when something that matters changed
+  if (JSON.stringify(next) !== JSON.stringify(prevAll)) await env.KV.put("sports", JSON.stringify(next));
+  let sent = 0, gone = false, budget = 30;
+  for (const e of events) for (const s of subs) {
+    if (budget <= 0 || s.dead || !wants(s, e)) continue;
+    budget--;
+    const r = await sendPush(s.sub, { title: e.title, body: e.body, tag: e.tag, url: e.url }, env, fetchImpl).catch(() => null);
+    if (r && (r.status === 404 || r.status === 410)) { s.dead = true; gone = true; } else if (r && r.ok) sent++;
+  }
+  // a game someone asked about has finished: forget it
+  const done = new Set(events.filter(e => e.type === "final").map(e => `${e.lg}/${e.id}`));
+  let pruned = false;
+  if (done.size) for (const s of subs) if ((s.games || []).some(k => done.has(k))) { s.games = s.games.filter(k => !done.has(k)); pruned = true; }
+  if (gone || pruned) {
+    const all = JSON.parse(await env.KV.get("subs") || "[]"), byEnd = new Map(subs.map(s => [s.sub.endpoint, s]));
+    await env.KV.put("subs", JSON.stringify(all.map(s => byEnd.get(s.sub.endpoint) || s).filter(s => !s.dead)));
+  }
+  return { leagues: leagues.length, events: events.length, sent };
 }
 
 /* ---------------- live team sports from ESPN ---------------- */
@@ -739,10 +828,14 @@ export default {
       const d = await req.json().catch(() => null);
       if (!d?.sub?.endpoint || !d.sub.keys?.p256dh || !d.sub.keys?.auth) return json({ error: "bad subscription" }, 400);
       const watch = { atp: (d.watch?.atp || []).slice(0, 50).map(String), wta: (d.watch?.wta || []).slice(0, 50).map(String) };
+      const teams = {}; for (const lg of Object.keys(LEAGUES)) { const l = (d.teams?.[lg] || []).slice(0, 40).map(tkey).filter(Boolean); if (l.length) teams[lg] = l; }
+      const games = (d.games || []).map(String).filter(k => /^(nfl|nba|mlb|nhl|epl)\/\d+$/.test(k)).slice(0, 60);
+      const prefs = {}; for (const k of Object.keys(DEFAULT_PREFS)) prefs[k] = d.prefs && k in d.prefs ? !!d.prefs[k] : DEFAULT_PREFS[k];
       const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.sub.endpoint !== d.sub.endpoint);
-      if (watch.atp.length + watch.wta.length) subs.push({ sub: d.sub, watch, at: Date.now() });
+      const n = watch.atp.length + watch.wta.length + Object.values(teams).flat().length + games.length;
+      if (n || prefs.anyClose) subs.push({ sub: d.sub, watch, teams, games, prefs, at: Date.now() });
       await env.KV.put("subs", JSON.stringify(subs.slice(-2000)));
-      return json({ ok: true, watching: watch.atp.length + watch.wta.length });
+      return json({ ok: true, watching: n });
     }
     if (url.pathname === "/unsubscribe" && req.method === "POST") {
       const d = await req.json().catch(() => ({}));
@@ -754,10 +847,12 @@ export default {
       const d = await req.json().catch(() => ({}));
       const s = JSON.parse(await env.KV.get("subs") || "[]").find(x => x.sub.endpoint === d.endpoint);
       if (!s) return json({ error: "not subscribed" }, 404);
-      const r = await sendPush(s.sub, { title: "Cosmo Sports alerts are on", body: "You'll hear from us when your players are on court.", tag: "test", url: "./?tab=watch" }, env);
+      const r = await sendPush(s.sub, { title: "Cosmo Sports notifications are on", body: "You'll get alerts for your teams and the games you follow.", tag: "test", url: "./" }, env);
       return json({ ok: r.ok, status: r.status });
     }
     return json({ service: "Cosmo Sports live service", ok: true });
   },
-  async scheduled(_evt, env, ctx) { ctx.waitUntil(tick(env).then(r => console.log(JSON.stringify(r)))); },
+  async scheduled(_evt, env, ctx) {
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+  },
 };
