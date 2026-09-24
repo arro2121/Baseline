@@ -101,6 +101,31 @@ def espn_norm():
     return src[start:end].replace("export ", "")
 
 
+def local_logos(sports, folder, refresh_days=30):
+    """Small copies of every team logo, served from this site: some browsers and blockers refuse images from ESPN's server."""
+    import time, urllib.request
+    for lg, L in sports.get("leagues", {}).items():
+        for t in L.get("teams", []):
+            src = t.get("logo")
+            if not src:
+                continue
+            name = re.sub(r"[^a-z0-9]+", "-", unicodedata.normalize("NFKD", t["name"]).encode("ascii", "ignore").decode().lower()).strip("-") + ".png"
+            path = os.path.join(folder, "logos", lg, name)
+            if not os.path.exists(path) or time.time() - os.path.getmtime(path) > refresh_days * 86400:
+                small = "https://a.espncdn.com/combiner/i?" + urllib.parse.urlencode({"img": urllib.parse.urlparse(src).path, "w": 96, "h": 96})
+                for url in (small, src):
+                    try:
+                        data = urllib.request.urlopen(url, timeout=20).read()
+                        if data[:8] == b"\x89PNG\r\n\x1a\n":
+                            os.makedirs(os.path.dirname(path), exist_ok=True)
+                            open(path, "wb").write(data)
+                            break
+                    except Exception:
+                        pass
+            if os.path.exists(path):
+                t["logo_local"] = f"logos/{lg}/{name}"
+
+
 def main(hosted=True, out="docs/index.html"):
     snap = json.load(open("snapshot.json"))
     if os.path.exists("data/rankings_live.json"):
@@ -123,6 +148,8 @@ def main(hosted=True, out="docs/index.html"):
     live = json.load(open(live_path)) if os.path.exists(live_path) else {"asof": "1970-01-01T00:00:00Z", "matches": []}
     tpl = open("template.html", encoding="utf-8").read()
     sports = json.load(open("sports.json")) if os.path.exists("sports.json") else {"built": "", "leagues": {}}
+    if hosted:
+        local_logos(sports, os.path.dirname(out))
     html = (tpl.replace("/*LIVE*/", json.dumps(live)).replace("/*SPORTS*/", json.dumps(sports, separators=(",", ":"))).replace("/*TEAMCOLORS*/", open("team_colors.json").read()).replace("/*FLAGFONT*/", font).replace("/*FLAGS*/", json.dumps(flags))
                .replace("/*HOSTED*/false", "true" if hosted else "false")
                .replace("/*ALERTS_URL*/", alerts_url() if hosted else "")
