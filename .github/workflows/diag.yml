@@ -2,7 +2,7 @@ name: Alerts check
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml", ".github/diag/*.mjs"]
+    paths: [".github/workflows/diag.yml", ".github/diag/*.mjs", "alerts/allstars.mjs"]
 permissions:
   contents: write
 jobs:
@@ -13,7 +13,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - name: Probe
-        run: node .github/diag/probe_players.mjs 2>&1 | tee .github/diag/probe.log || true
+        run: |
+          CHECK_IMAGES=1 node alerts/allstars.mjs 2>&1 | tee .github/diag/allstars.log || true
+          cp docs/allstars.json .github/diag/allstars.json || true
       - name: Save
         run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
