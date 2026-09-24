@@ -135,9 +135,49 @@ export function diffEvents(prev, now) {
   return events;
 }
 
+/* ---------------- storage ----------------
+   Subscriptions and the little state the cron keeps live in a Durable Object (free plan: 100,000 writes a day, one
+   record per subscription so two phones signing up at once can't overwrite each other). Setups without it fall back
+   to KV, which only allows about 1,000 writes a day. */
+const subId = async endpoint => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(endpoint)))].slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join("");
+export class Store {
+  constructor(state, env) { this.state = state; this.env = env; }
+  async migrate() {
+    const st = this.state.storage; if (await st.get("migrated")) return;
+    let old = []; try { old = JSON.parse(await this.env.KV.get("subs") || "[]"); } catch {}
+    for (const s of old) if (s?.sub?.endpoint) await st.put("sub:" + await subId(s.sub.endpoint), s);
+    for (const k of ["sports", "brief", "live"]) { try { const v = await this.env.KV.get(k); if (v != null && (await st.get(k)) == null) await st.put(k, v); } catch {} }
+    await st.put("migrated", 1);
+  }
+  async fetch(req) {
+    const st = this.state.storage, d = await req.json(); let v = null;
+    await this.migrate();
+    if (d.op === "get") v = (await st.get(d.k)) ?? null;
+    else if (d.op === "put") { await st.put(d.k, d.v); v = true; }
+    else if (d.op === "subs") v = [...(await st.list({ prefix: "sub:" })).values()];
+    else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
+    else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
+    else if (d.op === "subDel") { await st.delete("sub:" + await subId(d.e)); v = true; }
+    return new Response(JSON.stringify({ v }), { headers: { "Content-Type": "application/json" } });
+  }
+}
+export function store(env) {
+  if (env.STORE) {
+    const stub = env.STORE.get(env.STORE.idFromName("main"));
+    const call = async (op, a = {}) => { const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op, ...a }) }); if (!r.ok) throw new Error("store " + r.status); return (await r.json()).v; };
+    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }) };
+  }
+  const all = async () => JSON.parse(await env.KV.get("subs") || "[]");
+  return { durable: false, get: k => env.KV.get(k), put: (k, v) => env.KV.put(k, v), subs: all,
+    subGet: async e => (await all()).find(s => s.sub.endpoint === e) || null,
+    subPut: async rec => env.KV.put("subs", JSON.stringify([...(await all()).filter(s => s.sub.endpoint !== rec.sub.endpoint), rec].slice(-2000))),
+    subDel: async e => env.KV.put("subs", JSON.stringify((await all()).filter(s => s.sub.endpoint !== e))) };
+}
+
 /* ---------------- one scheduled run ---------------- */
 export async function tick(env, fetchImpl = fetch) {
   if (!env.API_TENNIS_KEY) return { tennis: "off" };
+  const db = store(env);
   const call = async (method, params = {}) => {
     const q = new URLSearchParams({ method, APIkey: env.API_TENNIS_KEY, timezone: "America/New_York", ...params });
     const r = await fetchImpl(`${API}?${q}`); const d = await r.json();
@@ -149,22 +189,21 @@ export async function tick(env, fetchImpl = fetch) {
   const today = new Date(Date.now() - 4 * 3600e3).toISOString().slice(0, 10);
   const events = [...await call("get_livescore"), ...await call("get_fixtures", { date_start: today, date_stop: today })];
   const matches = toLive(events, resolver(players));
-  const prev = JSON.parse(await env.KV.get("live") || '{"matches":[]}');
+  const prev = JSON.parse(await db.get("live") || '{"matches":[]}');
   const alerts = diffEvents(prev.matches, matches);
   const snapshot = { asof: new Date().toISOString().replace(/\.\d+Z$/, "Z"), matches };
-  if (JSON.stringify(prev.matches) !== JSON.stringify(matches)) await env.KV.put("live", JSON.stringify(snapshot));
+  if (JSON.stringify(prev.matches) !== JSON.stringify(matches)) await db.put("live", JSON.stringify(snapshot)).catch(e => console.log("save live:", e.message));
   let sent = 0;
   if (alerts.length) {
-    const subs = JSON.parse(await env.KV.get("subs") || "[]"); let gone = false;
+    const subs = await db.subs();
     for (const s of subs) {
       const mine = alerts.filter(a => (s.watch?.[a.tour] || []).some(n => norm(n).join(" ") === norm(a.player).join(" ")));
       for (const a of mine.slice(0, 5)) {
         const r = await sendPush(s.sub, { title: a.title, body: a.body, tag: a.tag, url: "./?tab=watch" }, env, fetchImpl);
-        if (r.status === 404 || r.status === 410) { s.dead = true; gone = true; break; }
+        if (r.status === 404 || r.status === 410) { await db.subDel(s.sub.endpoint).catch(() => {}); break; }
         if (r.ok) sent++;
       }
     }
-    if (gone) await env.KV.put("subs", JSON.stringify(subs.filter(s => !s.dead)));
   }
   return { matches: matches.length, alerts: alerts.length, sent };
 }
@@ -221,13 +260,14 @@ function wants(sub, e) {
   return e.type === "close" && pr.anyClose;
 }
 export async function sportsTick(env, fetchImpl = fetch) {
-  const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.teams || s.games || s.prefs);
+  const db = store(env);
+  const subs = (await db.subs()).filter(s => s.teams || s.games || s.prefs);
   if (!subs.length) return { sports: 0 };
   const any = subs.some(s => s.prefs?.anyClose), want = new Set();
   for (const s of subs) { for (const [lg, list] of Object.entries(s.teams || {})) if (list.length) want.add(lg); for (const k of s.games || []) want.add(k.split("/")[0]); }
   const leagues = Object.keys(LEAGUES).filter(lg => any || want.has(lg));
   const followed = new Set(subs.flatMap(s => [...Object.entries(s.teams || {}).flatMap(([lg, l]) => l.map(t => lg + ":" + t)), ...(s.games || [])]));
-  const prevAll = JSON.parse(await env.KV.get("sports") || "{}"), next = {}, events = [];
+  const prevAll = JSON.parse(await db.get("sports") || "{}"), next = {}, events = [];
   for (const lg of leagues) {
     let d; try { d = await espnScoreboard(lg, fetchImpl); } catch { next[lg] = prevAll[lg] || {}; continue; }
     const games = d.games || [], prev = prevAll[lg] || {};
@@ -241,25 +281,21 @@ export async function sportsTick(env, fetchImpl = fetch) {
     }
   }
   for (const lg of Object.keys(prevAll)) if (!(lg in next)) next[lg] = prevAll[lg];
-  // KV allows about a thousand writes a day on the free plan, so only save when something that matters changed
-  if (JSON.stringify(next) !== JSON.stringify(prevAll)) await env.KV.put("sports", JSON.stringify(next));
-  let sent = 0, gone = false, budget = 30;
+  let sent = 0, budget = 40;
   for (const e of events) for (const s of subs) {
     if (budget <= 0 || s.dead || !wants(s, e)) continue;
     budget--;
     const safe = s.prefs?.noSpoilers && e.safe ? e.safe : e;
     const r = await sendPush(s.sub, { title: safe.title, body: safe.body, tag: e.tag, url: e.url }, env, fetchImpl).catch(() => null);
-    if (r && (r.status === 404 || r.status === 410)) { s.dead = true; gone = true; } else if (r && r.ok) sent++;
+    if (r && (r.status === 404 || r.status === 410)) { s.dead = true; await db.subDel(s.sub.endpoint).catch(() => {}); } else if (r && r.ok) sent++;
   }
+  // save the new state after sending, and only when something changed, so a storage hiccup can never block an alert
+  if (JSON.stringify(next) !== JSON.stringify(prevAll)) await db.put("sports", JSON.stringify(next)).catch(e => console.log("save state:", e.message));
   // a game someone asked about has finished: forget it
   const done = new Set(events.filter(e => e.type === "final").map(e => `${e.lg}/${e.id}`));
   let pruned = false;
-  if (done.size) for (const s of subs) if ((s.games || []).some(k => done.has(k))) { s.games = s.games.filter(k => !done.has(k)); pruned = true; }
-  if (gone || pruned) {
-    const all = JSON.parse(await env.KV.get("subs") || "[]"), byEnd = new Map(subs.map(s => [s.sub.endpoint, s]));
-    await env.KV.put("subs", JSON.stringify(all.map(s => byEnd.get(s.sub.endpoint) || s).filter(s => !s.dead)));
-  }
-  const brief = await morningBrief(env, subs, fetchImpl).catch(e => String(e));
+  if (done.size) for (const s of subs) if (!s.dead && (s.games || []).some(k => done.has(k))) { s.games = s.games.filter(k => !done.has(k)); await db.subPut(s).catch(() => {}); pruned = true; }
+  const brief = await morningBrief(env, subs.filter(s => !s.dead), fetchImpl).catch(e => String(e));
   return { leagues: leagues.length, events: events.length, sent, brief };
 }
 // once a day around 9 AM US Eastern: how your teams did yesterday and who plays today
@@ -267,12 +303,14 @@ const etParts = d => Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZ
 export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date()) {
   const et = etParts(now), today = `${et.year}${et.month}${et.day}`;
   if (+et.hour !== 9) return "not time";
-  if (await env.KV.get("brief") === today) return "sent";
-  const who = subs.filter(s => s.prefs?.daily !== false && Object.values(s.teams || {}).some(l => l.length));
+  const db = store(env);
+  if (await db.get("brief") === today) return "sent";
+  const hasTeams = s => Object.values(s.teams || {}).some(l => l.length);
+  const who = subs.filter(s => s.prefs?.daily !== false);
   if (!who.length) return "nobody";
-  await env.KV.put("brief", today);                  // at most once a day, even if a send below fails
+  await db.put("brief", today);                      // at most once a day, even if a send below fails
   const y = etParts(new Date(now - 864e5)), yday = `${y.year}${y.month}${y.day}`;
-  const leagues = [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
+  const leagues = who.some(s => !hasTeams(s)) ? Object.keys(LEAGUES) : [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
   const boards = {};
   for (const lg of leagues) {
     boards[lg] = { y: [], t: [] };
@@ -280,9 +318,14 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
     try { boards[lg].t = (await espnScoreboard(lg, fetchImpl)).games || []; } catch {}
   }
   const time = iso => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+  // for people who don't follow a team yet: the day's headline games, national TV first
+  const headline = Object.entries(boards).flatMap(([lg, b]) => b.t.filter(g => g.status?.state === "pre").map(g => ({ lg, g })))
+    .sort((a, b) => (b.g.tv?.length ? 1 : 0) - (a.g.tv?.length ? 1 : 0) || new Date(a.g.date) - new Date(b.g.date)).slice(0, 3)
+    .map(({ lg, g }) => `${g.away.short} at ${g.home.short} ${time(g.date)} (${lg.toUpperCase()})`);
   let sent = 0;
-  for (const s of who.slice(0, 25)) {
+  for (const s of who.slice(0, 200)) {
     const lines = [];
+    if (!hasTeams(s)) lines.push(...headline);
     for (const [lg, list] of Object.entries(s.teams || {})) for (const t of list) {
       const mine = g => [tkey(g.home.name), tkey(g.away.name)].includes(t);
       const done = boards[lg]?.y.find(g => mine(g) && g.status?.state === "post"), next = boards[lg]?.t.find(g => mine(g) && g.status?.state === "pre");
@@ -1083,6 +1126,45 @@ function askAllowed(ip) {
   if (list.length >= 20) return false;
   list.push(now); ASK_RATE.set(ip, list); if (ASK_RATE.size > 5000) ASK_RATE.clear(); return true;
 }
+/* ---- Listen Live: a natural human voice for play calls (Workers AI text to speech, free daily allowance) ----
+   Deepgram's Aura voices sound like a real announcer; MeloTTS is the low-cost backup. The app falls back to the phone's own
+   voice if this is unavailable. Identical lines (the same play heard by many listeners) come from Cloudflare's cache. */
+const TTS_RATE = new Map();
+function ttsAllowed(ip) {
+  const now = Date.now(), list = (TTS_RATE.get(ip) || []).filter(t => now - t < 600e3);
+  if (list.length >= 120) return false;
+  list.push(now); TTS_RATE.set(ip, list); if (TTS_RATE.size > 5000) TTS_RATE.clear(); return true;
+}
+const TTS_MODELS = [
+  { m: "@cf/deepgram/aura-2-en", premium: true, input: (text, v) => ({ text, speaker: v === "female" ? "thalia" : "apollo", encoding: "mp3" }) },
+  { m: "@cf/deepgram/aura-1", premium: true, input: (text, v) => ({ text, speaker: v === "female" ? "asteria" : "orion", encoding: "mp3" }) },
+  { m: "@cf/myshell-ai/melotts", premium: false, input: text => ({ prompt: text, lang: "en" }) },
+];
+async function audioBytes(r) {
+  if (!r) return null;
+  if (r instanceof ArrayBuffer) return new Uint8Array(r);
+  if (ArrayBuffer.isView(r)) return new Uint8Array(r.buffer, r.byteOffset, r.byteLength);
+  if (typeof ReadableStream !== "undefined" && r instanceof ReadableStream) return new Uint8Array(await new Response(r).arrayBuffer());
+  if (typeof Response !== "undefined" && r instanceof Response) return r.ok ? new Uint8Array(await r.arrayBuffer()) : null;
+  if (typeof r.audio === "string") { const bin = atob(r.audio); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  if (r.audio) return audioBytes(r.audio);
+  return null;
+}
+const sniff = u => u[0] === 0x52 && u[1] === 0x49 ? "audio/wav" : u[0] === 0x4f && u[1] === 0x67 ? "audio/ogg" : "audio/mpeg";
+export async function speak(env, text, voice, premiumOk = true) {
+  let err;
+  for (const x of TTS_MODELS) {
+    if (x.premium && !premiumOk) continue;
+    for (const raw of x.premium ? [false, true] : [false]) {
+      try {
+        const bytes = await audioBytes(await env.AI.run(x.m, x.input(text, voice), raw ? { returnRawResponse: true } : undefined));
+        if (bytes && bytes.byteLength > 800) return { bytes, type: sniff(bytes), name: x.m.split("/").pop() };
+      } catch (e) { err = e; }
+    }
+  }
+  throw err || new Error("no voice available");
+}
+
 const LEAGUE_NAME = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League" };
 async function askBoard(fetchImpl, dates) {
   const parts = await Promise.all(Object.keys(LEAGUE_NAME).map(async lg => {
@@ -1175,7 +1257,8 @@ export default {
           return normTennis(e, n => resolver(players)(n, t));
         });
     } catch (err) { return json({ error: String(err.message || err) }, 502); }
-    if (url.pathname === "/live.json") return new Response(await env.KV.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
+    const db = store(env);
+    if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
     if (url.pathname === "/ask" && req.method === "POST") {
@@ -1184,6 +1267,24 @@ export default {
       try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
       catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
     }
+    if (url.pathname === "/tts" && req.method === "POST") {
+      if (!env.AI) return json({ error: "no voice" }, 503);
+      if (!ttsAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "slow down" }, 429);
+      const d = await req.json().catch(() => ({}));
+      const text = String(d.text || "").replace(/\s+/g, " ").trim().slice(0, 420), voice = d.voice === "female" ? "female" : "male";
+      if (!text) return json({ error: "no text" }, 400);
+      const key = new Request(`https://tts.cosmo/${voice}/${await subId(text)}`), cache = caches.default;
+      const hit = await cache.match(key); if (hit) return hit;
+      // keep the premium voice inside the free daily allowance (and leave room for Ask Cosmo)
+      const day = new Date().toISOString().slice(0, 10); let used = 0;
+      if (db.durable) { used = +(await db.get("ttsc:" + day).catch(() => 0)) || 0; ctx.waitUntil(db.put("ttsc:" + day, used + text.length).catch(() => {})); }
+      try {
+        const out = await speak(env, text, voice, used < 6000);
+        const res = new Response(out.bytes, { headers: { "Content-Type": out.type, "Cache-Control": "public, max-age=86400", "X-Voice": out.name, "Access-Control-Expose-Headers": "X-Voice", ...cors } });
+        ctx.waitUntil(cache.put(key, res.clone()));
+        return res;
+      } catch (e) { return json({ error: "voice unavailable", detail: String(e.message || e).slice(0, 200) }, 503); }
+    }
     if (url.pathname === "/subscribe" && req.method === "POST") {
       const d = await req.json().catch(() => null);
       if (!d?.sub?.endpoint || !d.sub.keys?.p256dh || !d.sub.keys?.auth) return json({ error: "bad subscription" }, 400);
@@ -1191,24 +1292,29 @@ export default {
       const teams = {}; for (const lg of Object.keys(LEAGUES)) { const l = (d.teams?.[lg] || []).slice(0, 40).map(tkey).filter(Boolean); if (l.length) teams[lg] = l; }
       const games = (d.games || []).map(String).filter(k => /^(nfl|nba|mlb|nhl|epl)\/[mh]?\d+$/.test(k)).slice(0, 60);
       const prefs = {}; for (const k of Object.keys(DEFAULT_PREFS)) prefs[k] = d.prefs && k in d.prefs ? !!d.prefs[k] : DEFAULT_PREFS[k];
-      const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.sub.endpoint !== d.sub.endpoint);
       const n = watch.atp.length + watch.wta.length + Object.values(teams).flat().length + games.length;
-      if (n || prefs.anyClose) subs.push({ sub: d.sub, watch, teams, games, prefs, at: Date.now() });
-      await env.KV.put("subs", JSON.stringify(subs.slice(-2000)));
-      return json({ ok: true, watching: n });
+      if (!n && !(d.prefs && d.prefs.anyClose === false && d.explicit)) prefs.anyClose = true;   // no teams yet: close finishes anywhere
+      const old = await db.subGet(d.sub.endpoint).catch(() => null);
+      try { await db.subPut({ sub: d.sub, watch, teams, games, prefs, at: Date.now() }); }
+      catch (e) { return json({ error: "Couldn't save your alerts right now: " + e.message }, 503); }
+      return json({ ok: true, watching: n, isNew: !old, storage: db.durable ? "durable" : "kv" });
     }
     if (url.pathname === "/unsubscribe" && req.method === "POST") {
       const d = await req.json().catch(() => ({}));
-      const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.sub.endpoint !== d.endpoint);
-      await env.KV.put("subs", JSON.stringify(subs));
+      if (d.endpoint) await db.subDel(String(d.endpoint)).catch(() => {});
       return json({ ok: true });
     }
     if (url.pathname === "/test" && req.method === "POST") {           // "Send test notification" button
       const d = await req.json().catch(() => ({}));
-      const s = JSON.parse(await env.KV.get("subs") || "[]").find(x => x.sub.endpoint === d.endpoint);
+      let s = d.endpoint ? await db.subGet(String(d.endpoint)).catch(() => null) : null;
+      if (!s && d.sub?.endpoint && d.sub.keys?.p256dh && d.sub.keys?.auth) s = { sub: d.sub };    // not saved yet: still prove the phone can receive
       if (!s) return json({ error: "not subscribed" }, 404);
-      const r = await sendPush(s.sub, { title: "Cosmo Sports notifications are on", body: "You'll get alerts for your teams and the games you follow.", tag: "test", url: "./" }, env);
-      return json({ ok: r.ok, status: r.status });
+      const msg = d.welcome ? { title: "You're all set", body: "Cosmo Sports alerts are on. You'll hear about starts, big plays, close finishes and finals.", tag: "welcome", url: "./" }
+        : { title: "Test from Cosmo Sports", body: "Notifications are working. This is what an alert looks like.", tag: "test", url: "./" };
+      let r; try { r = await sendPush(s.sub, msg, env); } catch (e) { return json({ ok: false, status: 0, detail: String(e.message || e) }, 502); }
+      const detail = r.ok ? "" : (await r.text().catch(() => "")).slice(0, 300);
+      if (r.status === 404 || r.status === 410) await db.subDel(s.sub.endpoint).catch(() => {});
+      return json({ ok: r.ok, status: r.status, detail }, r.ok ? 200 : 502);
     }
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },

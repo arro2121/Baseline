@@ -1,9 +1,0 @@
-16:21:51 worker: https://baseline-alerts.baseline-arro2121-3091.workers.dev {"service":"Cosmo Sports live service","ok":true,"ask":"workers-ai"}
-16:21:51 vapid key BAWuN8NN71xk…
-16:21:51 register 200 https://updates.push.services.mozilla.com/wpush/v2/gAAAAABqt…
-16:21:52 subscribe (no teams): 200 {"ok":true,"watching":0}
-16:21:52 test (no teams): 404 {"error":"not subscribed"}
-16:21:52 subscribe (teams): 200 {"ok":true,"watching":1}
-16:21:52 PUSH RECEIVED: {"title":"Cosmo Sports notifications are on","body":"You'll get alerts for your teams and the games you follow.","tag":"test","url":"./"}
-16:21:52 test (teams): 200 {"ok":true,"status":201}
-16:21:52 RESULT: OK, 1 notification(s) arrived

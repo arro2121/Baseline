@@ -21,8 +21,10 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   * **Logo Quiz:** a timer, streak multipliers and silhouette rounds.
 
   Best scores are saved on the phone.
-* **Listen Live:** tap 🎧 Listen in any live game and the phone reads new key plays, scores, period changes and the
-  final aloud, like a radio call. Speed is in Settings; the spoiler shield keeps it silent until you reveal.
+* **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
+  changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
+  text to speech, inside the free daily allowance), with the phone's own voice as the backup. Pick the voice and
+  speed in Settings; the spoiler shield keeps it silent until you reveal.
 * **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center.
 * **Notifications:** game starts, scoring plays, close finishes, final scores and a 9 AM morning briefing for your
   teams and any game you tap the bell on, even with the app closed.
