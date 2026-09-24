@@ -215,6 +215,21 @@ def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), prev
     add_logos(out, prev_lg, use_espn)
     return out
 
+def attach_models(s, models):
+    """ratings from the models' game-by-game Elo (records stay from the standings), plus a summary for the app"""
+    for lg, M in models.items():
+        L = s["leagues"].get(lg); st = {key(n): v for n, v in M["state"].items()}
+        if not L: continue
+        for t in L["teams"]:
+            v = st.get(key(t["name"])) or next((x for k, x in st.items() if k.endswith(" " + key(t["name"]).split(" ")[-1]) and len(key(t["name"]).split()) == 1), None)
+            if v: t["rating"] = round(v["elo"], 1)
+        L["teams"].sort(key=lambda x: -x["rating"])
+        m = M["model"]; L["hfa"] = m["hfa_elo"]
+        full = m["backtest"].get("Full model (all factors)", {})
+        L["model_summary"] = dict(games=m["games"], seasons=m["seasons"], test_games=m["test_games"], acc=full.get("acc"), factors=len(m["feats"]))
+        names = [(lambda s: s if s.startswith("Elo") else s[0].lower() + s[1:])(m["labels"][k].split(" (")[0]) for k in m["feats"]] + ["home advantage"]
+        L["method"] = f"A {len(names)}-factor model ({', '.join(names[:-1])} and {names[-1]}) built from {m['games']:,} games ({m['seasons']}) and tested on seasons it never saw."
+
 SOURCES = {"nfl.csv": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"}
 EPL_SEASONS = 5
 
@@ -246,6 +261,26 @@ if __name__ == "__main__":
     prev = json.load(open(out_path)) if os.path.exists(out_path) else None
     epl_files = sorted(p for n, p in files.items() if n.startswith("epl"))
     s = build(feed_path=os.path.join(here, "data", "standings_feed.json"), nfl_csv=files.get("nfl.csv"), epl_files=epl_files, previous=prev, use_espn="--espn" in sys.argv)
+    # the multi-factor models: game-by-game history for every league, fitted, tested and exported for the app
+    try:
+        import glob, team_history, team_models as tm
+        hist = team_history.update() if "--download" in sys.argv else {lg: sorted(p for p in glob.glob(os.path.join(here, "data", "history", f"{lg}_*.csv")) if re.search(r"_\d{4}\.csv$", p)) for lg in ("mlb", "nhl", "nba", "epl")}
+        models = {}
+        for lg in ("nfl", "nba", "mlb", "nhl", "epl"):
+            try:
+                G = tm.load(lg, hist.get(lg), nfl_csv=files.get("nfl.csv"))
+                if len(G) < 600: print(f"{lg}: not enough history for the model ({len(G)} games)"); continue
+                models[lg] = tm.build_league(lg, G)
+            except Exception as e:
+                import traceback; traceback.print_exc(); print(f"{lg}: model skipped ({e})")
+        attach_models(s, models)
+        os.makedirs(os.path.join(here, "docs"), exist_ok=True)
+        with open(os.path.join(here, "docs", "models.json"), "w") as fh: json.dump(models, fh, separators=(",", ":"), default=lambda o: o.item() if hasattr(o, "item") else str(o))
+        for lg, M in models.items():
+            m = M["model"]; print(f"  {lg} model: {m['games']} games ({m['seasons']}), factors {m['feats']}")
+            for k, v in m["backtest"].items(): print(f"     {k:32s} {v}")
+    except Exception as e:
+        import traceback; traceback.print_exc(); print(f"Models skipped ({e}); predictions stay on Elo")
     open(out_path, "w").write(json.dumps(s, separators=(",", ":")))
     print(f"sports.json written ({len(s['leagues'])} leagues)")
     json.dump(s, open("sports.json", "w"), separators=(",", ":"))

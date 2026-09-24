@@ -3,7 +3,7 @@ name: Baseline
 on:
   push:
     branches: [main]
-    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "team_models.py", "team_history.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json"]
   schedule:
     - cron: "*/5 * * * *"    # live: a backup copy of the scores on the site itself (plus tennis when there is no alerts service)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
@@ -61,6 +61,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           API_TENNIS_KEY: ${{ secrets.API_TENNIS_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COMETS_KEY: ${{ secrets.COMETS_KEY }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::notice::No CLOUDFLARE_API_TOKEN secret, so notifications with the app closed are off. Add it and run this workflow again to turn them on."; exit 0; fi
           bash alerts/setup.sh
@@ -93,7 +94,7 @@ jobs:
         run: python sports_engine.py --download --espn
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - name: Update the real players for Cosmo Showdown
+      - name: Update player stats for League Leaders
         run: node alerts/allstars.mjs || echo "Kept the previous players"
       - name: Build the app
         run: python build_site.py
