@@ -1,0 +1,8 @@
+{
+  "name": "cosmo-sports-live-service",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
+  }
+}

@@ -1,6 +1,7 @@
 name = "baseline-alerts"
 main = "worker.js"
 compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 # Check scores and send alerts every 2 minutes (fits Cloudflare's free plan limits).
 [triggers]
@@ -16,3 +17,7 @@ SITE_URL = "https://arro2121.github.io/Baseline"
 VAPID_SUBJECT = "mailto:arro2121@users.noreply.github.com"
 # The public key printed by: node make-keys.mjs
 VAPID_PUBLIC_KEY = "BAWuN8NN71xkl9gvznI6iIXS8E_uEbfP0t0zBlT8wxM2nZzN2BXqvImS7ZVqyXPkpToGJlBBcPJDFejTexmsrA0"
+
+# Ask Cosmo, the AI companion: Cloudflare Workers AI (free daily allowance). Setting the ANTHROPIC_API_KEY secret switches it to Claude.
+[ai]
+binding = "AI"

@@ -9,6 +9,9 @@
  * Storage: one KV namespace (binding "KV"). Keys: "subs" (all subscriptions), "live" (last scores).
  */
 
+import Anthropic from "@anthropic-ai/sdk";
+import { TEAM_COLORS } from "./colors.js";
+
 const API = "https://api.api-tennis.com/tennis/";
 const TYPES = { "Atp Singles": ["atp", true], "Wta Singles": ["wta", true],
   "Challenger Men Singles": ["atp", false], "Challenger Women Singles": ["wta", false] };
@@ -598,6 +601,11 @@ async function firstOf(tries) {                     // the first source that ans
   throw err || new Error("ESPN unavailable");
 }
 export async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
+  if (lg === "mlb") try { return await mlbScoreboard(dates, fetchImpl); } catch {}          // MLB's own API first
+  try { return await espnBoard(lg, fetchImpl, dates); }
+  catch (e) { if (lg === "nhl") return nhlScoreboard(dates, fetchImpl); throw e; }          // the NHL's API if ESPN is down
+}
+async function espnBoard(lg, fetchImpl, dates) {
   const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : "";   // YYYYMMDD, or today
   return normScoreboard(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
@@ -606,6 +614,8 @@ export async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
   ]), lg);
 }
 export async function espnGame(lg, id, fetchImpl = fetch) {
+  if (/^m\d+$/.test(id)) return mlbGame(id, fetchImpl);
+  if (/^h\d+$/.test(id)) return nhlGame(id, fetchImpl);
   const hasPlays = g => !!(g && (g.drives || g.plays?.length || g.commentary?.length || g.keyEvents?.length));
   return normGame(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
@@ -620,6 +630,231 @@ export async function espnGame(lg, id, fetchImpl = fetch) {
     () => getJSON(`${ESPN}${LEAGUES[lg]}/summary?event=${id}`, fetchImpl),
   ]), lg);
 }
+/* ---- official league APIs: MLB's Stats API (statsapi.mlb.com) and the NHL's (api-web.nhle.com). Free, no key, run by the leagues.
+   MLB's has everything ESPN has (every pitch, hit locations, win probability, box score, video), so it is the main source for
+   baseball; the NHL's is the backup for hockey. Their game ids carry a letter ("m…", "h…") so every game loads from its own source. */
+const MLB_API = "https://statsapi.mlb.com/api/", NHL_API = "https://api-web.nhle.com/v1/";
+const tcolors = (lg, name) => { try { return ((typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[lg]) || {})[name] || null; } catch { return null; } };
+const onPage = typeof window !== "undefined";
+const kickoff = iso => { const d = new Date(iso); return onPage ? d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }) + " ET"; };
+const hms = s => { const p = String(s || "").split(":").map(Number); return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : null; };
+/* ---------- MLB ---------- */
+function mlbTeamObj(t, score, rec, winner) {
+  const c = tcolors("mlb", t.name) || [];
+  return { id: String(t.id), name: t.name || "", short: t.teamName || t.clubName || t.name || "", abbr: t.abbreviation || c[2] || "", color: c[0] || null, alt: c[1] || null,
+    logo: `https://www.mlbstatic.com/team-logos/${t.id}.svg`, score: score == null ? null : String(score), record: rec ? `${rec.wins}-${rec.losses}` : null, winner: !!winner };
+}
+function mlbStatus(st, ls, date) {
+  const a = st?.abstractGameState, det = st?.detailedState || "";
+  const state = a === "Live" ? "in" : a === "Final" || /postponed|cancel|suspended/i.test(det) ? "post" : "pre";
+  const half = ls?.inningState ? ({ Middle: "Mid", Bottom: "Bot" }[ls.inningState] || ls.inningState) : "";
+  const short = state === "in" ? `${half} ${ls?.currentInningOrdinal || ""}`.trim() : state === "post" ? (/postponed|cancel|suspended/i.test(det) ? det : (ls?.currentInning || 9) > 9 ? `Final/${ls.currentInning}` : "Final") : kickoff(date);
+  return { state, detail: state === "in" ? `${ls?.inningState || ""} of the ${ls?.currentInningOrdinal || ""}`.trim() : det, short, completed: state === "post", clock: null, period: ls?.currentInning ?? null };
+}
+const mlbSit = ls => ls ? { balls: ls.balls ?? 0, strikes: ls.strikes ?? 0, outs: ls.outs ?? 0, bases: [!!ls.offense?.first, !!ls.offense?.second, !!ls.offense?.third],
+  batter: ls.offense?.batter?.fullName || null, pitcher: ls.defense?.pitcher?.fullName || null, last: null } : null;
+export function normMlbSchedule(d) {
+  const games = (d.dates || []).flatMap(x => x.games || []).map(g => {
+    const ls = g.linescore, st = mlbStatus(g.status, ls, g.gameDate), H = g.teams.home, A = g.teams.away, pre = st.state === "pre";
+    const tv = (g.broadcasts || []).filter(b => b.type === "TV"), nat = tv.filter(b => b.isNational);
+    return { id: "m" + g.gamePk, date: g.gameDate, name: `${A.team.abbreviation} @ ${H.team.abbreviation}`, status: st,
+      home: mlbTeamObj(H.team, pre ? null : H.score ?? 0, H.leagueRecord, H.isWinner), away: mlbTeamObj(A.team, pre ? null : A.score ?? 0, A.leagueRecord, A.isWinner),
+      neutral: false, venue: g.venue?.name || null, tv: [...new Set((nat.length ? nat : tv).map(b => b.name))].slice(0, 2), odds: null,
+      situation: st.state === "in" ? mlbSit(ls) : null };
+  });
+  return { league: "mlb", asof: new Date().toISOString(), games };
+}
+const MLB_KIND = { home_run: "hr", single: "hit1", double: "hit2", triple: "hit3", strikeout: "k", strikeout_double_play: "k", strikeout_triple_play: "k",
+  walk: "walk", intent_walk: "walk", hit_by_pitch: "walk", field_error: "hit1", fielders_choice: "out" };
+const MLB_TRAJ = { ground_ball: "G", fly_ball: "F", line_drive: "L", popup: "P", bunt_grounder: "G", bunt_popup: "P", bunt_line_drive: "L" };
+const mlbPhoto = id => id ? `https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${id}/headshot/67/current` : null;
+const pitchKind = e => { const c = e.details?.call?.code || e.details?.code || ""; return /^(B|\*B|V|P|I|H)$/.test(c) ? "b" : /^(F|T|L|R)$/.test(c) ? "f" : /^(X|D|E)$/.test(c) ? "x" : "s"; };
+export function normMlbGame(feed, wp, content) {
+  const gd = feed.gameData || {}, ld = feed.liveData || {}, ls = ld.linescore || {}, bx = ld.boxscore || {};
+  const st = mlbStatus(gd.status, ls, gd.datetime?.dateTime), pre = st.state === "pre";
+  const H = mlbTeamObj(gd.teams.home, pre ? null : ls.teams?.home?.runs ?? 0, gd.teams.home.record, st.state === "post" && (ls.teams?.home?.runs ?? 0) > (ls.teams?.away?.runs ?? 0));
+  const A = mlbTeamObj(gd.teams.away, pre ? null : ls.teams?.away?.runs ?? 0, gd.teams.away.record, st.state === "post" && (ls.teams?.away?.runs ?? 0) > (ls.teams?.home?.runs ?? 0));
+  const teams = { [H.id]: { name: H.name, short: H.short, abbr: H.abbr, color: H.color, alt: H.alt, logo: H.logo, side: "home" }, [A.id]: { name: A.name, short: A.short, abbr: A.abbr, color: A.color, alt: A.alt, logo: A.logo, side: "away" } };
+  const plays = [];
+  for (const ab of ld.plays?.allPlays || []) {
+    const top = ab.about?.isTopInning, bat = top ? A.id : H.id, field = top ? H.id : A.id, inn = ab.about?.inning;
+    const base = { period: inn, periodText: `${top ? "Top" : "Bottom"} ${ORD(inn)}`, head: `${top ? "Top" : "Bottom"} ${ORD(inn)}`, clock: null, seq: 0, minor: false };
+    // runners moving between pitches: steals, wild pitches, pickoffs, and pitching changes
+    for (const e of ab.playEvents || []) {
+      if (e.type !== "action" || !e.details?.description) continue;
+      const t = e.details.description, ev = e.details.eventType || "";
+      if (/substitution|switch|umpire|mound_visit|no_pitch|batter_timeout|game_advisory/.test(ev) && !/pitching_substitution/.test(ev)) continue;
+      const change = /pitching_substitution/.test(ev);
+      plays.push({ ...base, id: `ab${ab.about.atBatIndex}e${e.index}`, text: t, type: e.details.event || null, kind: change ? "change" : /stolen|caught_stealing|pickoff/.test(ev) ? "steal" : "play",
+        minor: change, scoring: !!e.details.isScoringPlay, team: change ? field : bat, away: e.details.awayScore ?? null, home: e.details.homeScore ?? null });
+    }
+    const pitches = (ab.playEvents || []).filter(e => e.isPitch), hit = pitches.map(e => e.hitData).filter(Boolean).pop();
+    const who = ab.matchup?.batter, done = ab.about?.isComplete;
+    if (!done && st.state === "in") {
+      plays.push({ ...base, id: `ab${ab.about.atBatIndex}-now`, text: `${who?.fullName || ""} batting against ${ab.matchup?.pitcher?.fullName || ""}`, kind: "atbat", live: true,
+        batter: who?.fullName || null, pitcher: ab.matchup?.pitcher?.fullName || null, pitches: pitches.map(pitchKind), team: bat, away: ab.result?.awayScore ?? null, home: ab.result?.homeScore ?? null,
+        who: who ? { id: String(who.id), name: who.fullName, photo: mlbPhoto(who.id) } : undefined });
+      continue;
+    }
+    if (!ab.result?.description) continue;
+    const ev = ab.result.eventType || "", kind = MLB_KIND[ev] || (ab.result.isOut ? "out" : "play");
+    plays.push({ ...base, id: `ab${ab.about.atBatIndex}`, text: ab.result.description, type: ab.result.event || null, kind, scoring: !!ab.about?.isScoringPlay, team: bat,
+      away: ab.result.awayScore ?? null, home: ab.result.homeScore ?? null, batter: who?.fullName || null, pitcher: ab.matchup?.pitcher?.fullName || null,
+      pitches: pitches.map(pitchKind), outs: ab.count?.outs ?? null, x: hit?.coordinates?.coordX ?? null, y: hit?.coordinates?.coordY ?? null,
+      trajectory: MLB_TRAJ[hit?.trajectory] || null, who: who ? { id: String(who.id), name: who.fullName, photo: mlbPhoto(who.id) } : undefined });
+  }
+  plays.forEach((p, i) => { p.ord = i; });
+  // box score
+  const row = (side) => bx.teams?.[side] || {};
+  const TEAM = [["batting", "hits", "Hits"], ["batting", "homeRuns", "Home runs"], ["batting", "rbi", "RBI"], ["batting", "baseOnBalls", "Walks"], ["batting", "strikeOuts", "Strikeouts"],
+    ["batting", "stolenBases", "Stolen bases"], ["batting", "leftOnBase", "Left on base"], ["pitching", "strikeOuts", "Pitchers' strikeouts"], ["pitching", "baseOnBalls", "Walks allowed"], ["fielding", "errors", "Errors"]];
+  const boxTeams = ["away", "home"].map(side => ({ id: side === "home" ? H.id : A.id, side, stats: TEAM.map(([g, k, l]) => { const v = row(side).teamStats?.[g]?.[k]; return v == null ? null : [l, String(v)]; }).filter(Boolean) }));
+  const person = (side, id) => row(side).players?.["ID" + id] || {};
+  const boxPlayers = ["away", "home"].map(side => {
+    const bat = (row(side).batters || []).map(id => person(side, id)).filter(p => p.stats?.batting && Object.keys(p.stats.batting).length);
+    const pit = (row(side).pitchers || []).map(id => person(side, id)).filter(p => p.stats?.pitching && Object.keys(p.stats.pitching).length);
+    const B = ["atBats", "runs", "hits", "rbi", "baseOnBalls", "strikeOuts", "homeRuns"], P = ["inningsPitched", "hits", "runs", "earnedRuns", "baseOnBalls", "strikeOuts", "homeRuns", "numberOfPitches"];
+    const r = (p, keys, g) => ({ id: String(p.person?.id || ""), name: p.person?.fullName || "", short: p.person?.fullName || "", photo: mlbPhoto(p.person?.id), pos: p.position?.abbreviation || "",
+      starter: g === "batting" ? !!p.battingOrder && String(p.battingOrder).endsWith("00") : false, dnp: false, stats: [...keys.map(k => String(p.stats[g][k] ?? "")), ...(g === "batting" ? [p.seasonStats?.batting?.avg || ""] : [])] });
+    const bt = row(side).teamStats?.batting || {}, pt = row(side).teamStats?.pitching || {};
+    return { team: side === "home" ? H.id : A.id, groups: [
+      { name: "Batting", labels: ["AB", "R", "H", "RBI", "BB", "K", "HR", "AVG"], rows: bat.map(p => r(p, B, "batting")), totals: [...B.map(k => String(bt[k] ?? "")), ""] },
+      { name: "Pitching", labels: ["IP", "H", "R", "ER", "BB", "K", "HR", "PC"], rows: pit.map(p => r(p, P, "pitching")), totals: P.map(k => String(pt[k] ?? "")) }] };
+  });
+  // standout hitters
+  const leaders = ["away", "home"].map(side => {
+    const hitters = (row(side).batters || []).map(id => person(side, id)).filter(p => p.stats?.batting?.atBats != null).map(p => { const b = p.stats.batting;
+      const line = [`${b.hits}-${b.atBats}`, b.homeRuns ? `${b.homeRuns > 1 ? b.homeRuns + " " : ""}HR` : "", b.rbi ? `${b.rbi} RBI` : "", b.runs ? `${b.runs} R` : ""].filter(Boolean).join(", ");
+      return { cat: "Batting", value: line, name: p.person?.fullName || "", photo: mlbPhoto(p.person?.id), score: b.hits + 3 * b.homeRuns + 1.5 * b.rbi + b.runs + .5 * b.baseOnBalls }; })
+      .filter(x => x.score > 0).sort((a, b) => b.score - a.score).slice(0, 3).map(({ score, ...x }) => x);
+    return hitters.length ? { team: side === "home" ? H.id : A.id, items: hitters } : null;
+  }).filter(Boolean);
+  // win probability through the game and the swings that mattered
+  const W = (Array.isArray(wp) ? wp : []).filter(x => typeof x.homeTeamWinProbability === "number");
+  const series = W.map(x => x.homeTeamWinProbability / 100), n = Math.min(90, series.length);
+  const wpSeries = n >= 2 ? Array.from({ length: n }, (_, i) => Math.round(series[Math.round(i * (series.length - 1) / (n - 1))] * 1000) / 1000) : null;
+  const swings = W.map((x, i) => ({ x, i, d: (x.homeTeamWinProbabilityAdded || 0) / 100 })).filter(s => Math.abs(s.d) >= .07 && s.x.result?.description)
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3).sort((a, b) => a.i - b.i)
+    .map(s => ({ text: s.x.result.description, side: s.d > 0 ? "home" : "away", delta: Math.round(Math.abs(s.d) * 100), wp: Math.round(s.x.homeTeamWinProbability * 10) / 1000,
+      at: Math.round(s.i / Math.max(1, W.length - 1) * 1000) / 1000, when: `${s.x.about?.isTopInning ? "Top" : "Bottom"} ${ORD(s.x.about?.inning)}`, pid: `ab${s.x.about?.atBatIndex}` }));
+  // video: MLB's own clips, matched to the plays they show
+  const videos = ((content?.highlights?.highlights?.items) || []).map(v => {
+    const mp4 = (v.playbacks || []).find(p => p.name === "mp4Avc") || (v.playbacks || []).find(p => /\.mp4/.test(p.url || ""));
+    const cut = (v.image?.cuts || []).find(c => c.width <= 800) || (v.image?.cuts || [])[0];
+    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), mp4: mp4?.url || null, web: null, geo: null };
+  }).filter(v => v.mp4).slice(0, 20);
+  const roster = Object.values({ ...(row("home").players || {}), ...(row("away").players || {}) }).map(p => ({ name: p.person?.fullName || "" }));
+  linkVideos(plays, videos, roster);
+  plays.reverse();
+  const off = (bx.officials || []).map(o => [o.officialType || "", o.official?.fullName || ""]).filter(o => o[1]);
+  const w = gd.weather || {}, v = gd.venue || {};
+  const info = { venue: v.name || null, city: [v.location?.city, v.location?.stateAbbrev].filter(Boolean).join(", ") || null, capacity: v.fieldInfo?.capacity || null,
+    attendance: (bx.info || []).find(x => x.label === "Att")?.value?.replace(/\.$/, "") || null, grass: v.fieldInfo?.turfType || null,
+    weather: w.temp ? { temp: +w.temp, text: [w.condition, w.wind ? "wind " + w.wind : ""].filter(Boolean).join(", ") } : null, officials: off.slice(0, 6), odds: null, injuries: [], form: [], news: [],
+    probables: gd.probablePitchers ? ["away", "home"].map(s => gd.probablePitchers[s]?.fullName || null) : null,
+    decisions: ld.decisions ? { win: ld.decisions.winner?.fullName || null, loss: ld.decisions.loser?.fullName || null, save: ld.decisions.save?.fullName || null } : null };
+  const inn = ls.innings || [];
+  const lines = inn.length ? { n: inn.length, away: inn.map(x => x.away?.runs == null ? "" : String(x.away.runs)), home: inn.map(x => x.home?.runs == null ? "" : String(x.home.runs)),
+    extra: { away: [ls.teams?.away?.hits ?? "", ls.teams?.away?.errors ?? ""], home: [ls.teams?.home?.hits ?? "", ls.teams?.home?.errors ?? ""] } } : null;
+  const last = [...plays].find(p => p.kind === "atbat") || null;
+  return { league: "mlb", id: "m" + (gd.game?.pk || feed.gamePk), asof: new Date().toISOString(), status: st, home: H, away: A, teams,
+    homeWinProb: series.length ? series[series.length - 1] : null, wpSeries, leaders, box: { teams: boxTeams, players: boxPlayers }, info, lines,
+    date: gd.datetime?.dateTime || null, neutral: false, tv: null, situation: st.state === "in" ? mlbSit(ls) : null, videos, plays: plays.slice(0, 300), count: plays.length, swings };
+}
+/* ---------- NHL ---------- */
+const nm = x => (x && (x.default || x)) || "";
+function nhlTeamObj(t, pre, winner) {
+  const full = [nm(t.placeName), nm(t.commonName || t.name)].filter(Boolean).join(" ");
+  const name = Object.keys((typeof TEAM_COLORS !== "undefined" && TEAM_COLORS.nhl) || {}).find(k => k.endsWith(nm(t.commonName || t.name))) || full || nm(t.name);
+  const c = tcolors("nhl", name) || [];
+  return { id: String(t.id), name, short: nm(t.commonName || t.name), abbr: t.abbrev || "", color: c[0] || null, alt: c[1] || null, logo: t.logo || null,
+    score: pre ? null : String(t.score ?? 0), record: t.record || null, winner: !!winner };
+}
+function nhlStatus(g) {
+  const s = g.gameState, state = s === "LIVE" || s === "CRIT" ? "in" : s === "FINAL" || s === "OFF" ? "post" : "pre", per = g.periodDescriptor?.number ?? g.period ?? null;
+  const pt = g.periodDescriptor?.periodType, clock = g.clock?.timeRemaining || null, perTxt = pt === "OT" ? "OT" : pt === "SO" ? "SO" : per ? ORD(per) : "";
+  const short = state === "in" ? (g.clock?.inIntermission ? `End ${perTxt}` : `${clock || ""} - ${perTxt}`) : state === "post" ? (pt && pt !== "REG" ? `Final/${pt}` : "Final") : kickoff(g.startTimeUTC);
+  return { state, detail: short, short, completed: state === "post", clock, period: per };
+}
+export function normNhlScore(d) {
+  const games = (d.games || []).map(g => { const st = nhlStatus(g), pre = st.state === "pre", post = st.state === "post";
+    return { id: "h" + g.id, date: g.startTimeUTC, name: `${g.awayTeam.abbrev} @ ${g.homeTeam.abbrev}`, status: st,
+      home: nhlTeamObj(g.homeTeam, pre, post && g.homeTeam.score > g.awayTeam.score), away: nhlTeamObj(g.awayTeam, pre, post && g.awayTeam.score > g.homeTeam.score),
+      neutral: !!g.neutralSite, venue: nm(g.venue) || null, tv: (g.tvBroadcasts || []).map(b => b.network).slice(0, 2), odds: null, situation: null }; });
+  return { league: "nhl", asof: new Date().toISOString(), games };
+}
+const NHL_KIND = { goal: "goal", "shot-on-goal": "shot", "missed-shot": "miss", "blocked-shot": "miss", hit: "play", giveaway: "play", takeaway: "play", faceoff: "break",
+  stoppage: "break", "period-start": "break", "period-end": "break", "game-end": "break", "shootout-complete": "break", penalty: "penalty", "delayed-penalty": "break" };
+export function normNhlGame(pbp, box) {
+  const st = nhlStatus(pbp), pre = st.state === "pre", post = st.state === "post";
+  const H = nhlTeamObj(pbp.homeTeam, pre, post && pbp.homeTeam.score > pbp.awayTeam.score), A = nhlTeamObj(pbp.awayTeam, pre, post && pbp.awayTeam.score > pbp.homeTeam.score);
+  const teams = { [H.id]: { name: H.name, short: H.short, abbr: H.abbr, color: H.color, alt: H.alt, logo: H.logo, side: "home" }, [A.id]: { name: A.name, short: A.short, abbr: A.abbr, color: A.color, alt: A.alt, logo: A.logo, side: "away" } };
+  const who = {}; for (const r of pbp.rosterSpots || []) who[r.playerId] = { id: String(r.playerId), name: `${nm(r.firstName)} ${nm(r.lastName)}`.trim(), photo: r.headshot || null, team: String(r.teamId) };
+  const N = id => (who[id] || {}).name || "";
+  let sc = [0, 0];
+  const plays = (pbp.plays || []).map((p, i) => {
+    const d = p.details || {}, k = p.typeDescKey, per = p.periodDescriptor?.number, pt = p.periodDescriptor?.periodType;
+    if (d.awayScore != null) sc = [d.awayScore, d.homeScore];
+    const shot = d.shotType ? ` ${d.shotType[0].toUpperCase()}${d.shotType.slice(1)}` : "";
+    const text = k === "goal" ? `${N(d.scoringPlayerId)} Goal (${d.scoringPlayerTotal || 1})${shot}${d.assist1PlayerId ? `, assists: ${N(d.assist1PlayerId)} (${d.assist1PlayerTotal})${d.assist2PlayerId ? `, ${N(d.assist2PlayerId)} (${d.assist2PlayerTotal})` : ""}` : ", unassisted"}`
+      : k === "shot-on-goal" ? `${N(d.shootingPlayerId)}${shot} shot saved by ${N(d.goalieInNetId) || "the goalie"}`
+      : k === "missed-shot" ? `${N(d.shootingPlayerId)}${shot} shot missed${d.reason ? ` (${String(d.reason).replace(/-/g, " ")})` : ""}`
+      : k === "blocked-shot" ? `${N(d.blockingPlayerId)} blocked a shot from ${N(d.shootingPlayerId)}`
+      : k === "hit" ? `${N(d.hittingPlayerId)} hit ${N(d.hitteePlayerId)}`
+      : k === "faceoff" ? `${N(d.winningPlayerId)} won the faceoff against ${N(d.losingPlayerId)}`
+      : k === "giveaway" || k === "takeaway" ? `${N(d.playerId)} ${k}`
+      : k === "penalty" ? `${N(d.committedByPlayerId) || "Bench"} ${String(d.descKey || "penalty").replace(/-/g, " ")} (${d.duration || 2} min)`
+      : k === "period-start" ? `Start of the ${pt === "OT" ? "overtime" : ORD(per) + " period"}` : k === "period-end" ? `End of the ${pt === "OT" ? "overtime" : ORD(per) + " period"}`
+      : k === "stoppage" ? `Stoppage${d.reason ? `: ${String(d.reason).replace(/-/g, " ")}` : ""}` : k === "game-end" ? "End of game" : k.replace(/-/g, " ");
+    const kind = NHL_KIND[k] || "play", owner = d.eventOwnerTeamId ? String(d.eventOwnerTeamId) : null;
+    const actor = who[d.scoringPlayerId || d.shootingPlayerId || d.hittingPlayerId || d.winningPlayerId || d.playerId || d.committedByPlayerId];
+    return { id: String(p.eventId), text, type: k, kind, minor: kind === "break" || kind === "play", period: per, periodText: pt === "OT" ? "OT" : ORD(per),
+      head: per <= 3 ? `${ORD(per)} Period` : pt === "SO" ? "Shootout" : "Overtime", clock: p.timeInPeriod || null, away: sc[0], home: sc[1],
+      scoring: k === "goal", team: owner, seq: p.sortOrder ?? i, ord: i, x: d.xCoord ?? null, y: d.yCoord ?? null, who: actor ? { id: actor.id, name: actor.name, photo: actor.photo } : undefined };
+  }).filter(p => p.type !== "delayed-penalty");
+  plays.forEach((p, i) => { p.ord = i; });
+  const b = box?.playerByGameStats || {};
+  const grp = (side, list, name, labels, keys) => ({ name, labels, rows: (b[side]?.[list] || []).map(x => ({ id: String(x.playerId), name: (who[x.playerId] || {}).name || nm(x.name), short: nm(x.name),
+    photo: (who[x.playerId] || {}).photo || null, pos: x.position || "", starter: false, dnp: x.toi === "00:00", stats: keys.map(k => typeof k === "function" ? k(x) : String(x[k] ?? "")) })), totals: null });
+  const SK = ["goals", "assists", "plusMinus", "sog", "hits", "blockedShots", "pim", "toi"], GK = ["shotsAgainst", "saves", "goalsAgainst", x => x.savePctg ? Number(x.savePctg).toFixed(3) : "", "toi"];
+  const boxPlayers = [["awayTeam", A.id], ["homeTeam", H.id]].map(([side, id]) => ({ team: id, groups: [grp(side, "forwards", "Forwards", ["G", "A", "+/-", "SOG", "HT", "BS", "PIM", "TOI"], SK),
+    grp(side, "defense", "Defense", ["G", "A", "+/-", "SOG", "HT", "BS", "PIM", "TOI"], SK), grp(side, "goalies", "Goalies", ["SA", "SV", "GA", "SV%", "TOI"], GK)].filter(g => g.rows.length) }));
+  const tot = side => { const all = [...(b[side]?.forwards || []), ...(b[side]?.defense || [])], s = k => all.reduce((n, x) => n + (+x[k] || 0), 0);
+    return [["Shots on goal", String(side === "homeTeam" ? pbp.homeTeam.sog ?? s("sog") : pbp.awayTeam.sog ?? s("sog"))], ["Hits", String(s("hits"))], ["Blocked shots", String(s("blockedShots"))], ["Penalty minutes", String(s("pim"))], ["Giveaways", String(s("giveaways"))], ["Takeaways", String(s("takeaways"))]]; };
+  const byPer = side => { const out = []; for (const p of plays) if (p.scoring) { const i = Math.min(p.period, 4) - 1; while (out.length <= i) out.push(0); if (p.team === (side === "home" ? H.id : A.id)) out[i]++; } return out; };
+  const pa = byPer("away"), ph = byPer("home"), np = Math.max(pa.length, ph.length, pre ? 0 : Math.min(st.period || 0, 4));
+  const lines = np ? { n: np, away: Array.from({ length: np }, (_, i) => String(pa[i] || 0)), home: Array.from({ length: np }, (_, i) => String(ph[i] || 0)), extra: null } : null;
+  const skaters = side => [...(b[side]?.forwards || []), ...(b[side]?.defense || [])].map(x => ({ x, pts: (+x.goals || 0) * 2 + (+x.assists || 0) })).filter(v => v.pts > 0).sort((a, c) => c.pts - a.pts).slice(0, 3)
+    .map(({ x }) => ({ cat: "Points", value: `${x.goals} G, ${x.assists} A`, name: (who[x.playerId] || {}).name || nm(x.name), photo: (who[x.playerId] || {}).photo || null }));
+  const leaders = [["awayTeam", A.id], ["homeTeam", H.id]].map(([s, id]) => ({ team: id, items: skaters(s) })).filter(l => l.items.length);
+  const chron = plays.filter(p => p.scoring); let lead = 0; const ev = [];
+  for (const p of chron) { const now = Math.sign(p.home - p.away); if (now !== lead) ev.push({ p, now, was: lead }); lead = now; }
+  const swings = ev.slice(-3).map(e => ({ text: e.p.text, side: e.now > 0 ? "home" : e.now < 0 ? "away" : e.was > 0 ? "away" : "home", label: e.now === 0 ? "Tied it" : e.was === 0 ? "Went ahead" : "Flipped the lead",
+    score: `${e.p.away}-${e.p.home}`, at: Math.round(e.p.ord / Math.max(1, plays.length - 1) * 1000) / 1000, when: [e.p.head, e.p.clock].filter(Boolean).join(" · "), pid: e.p.id }));
+  plays.reverse();
+  return { league: "nhl", id: "h" + pbp.id, asof: new Date().toISOString(), status: st, home: H, away: A, teams, homeWinProb: null, wpSeries: null, leaders,
+    box: { teams: [{ id: A.id, side: "away", stats: tot("awayTeam") }, { id: H.id, side: "home", stats: tot("homeTeam") }], players: boxPlayers },
+    info: { venue: nm(pbp.venue) || null, city: nm(pbp.venueLocation) || null, capacity: null, attendance: null, grass: null, weather: null, officials: [], odds: null, injuries: [], form: [], news: [] },
+    lines, date: pbp.startTimeUTC || null, neutral: false, tv: (pbp.tvBroadcasts || [])[0]?.network || null, situation: null, videos: [], plays: plays.slice(0, 300), count: plays.length, swings };
+}
+const ymdDash = s => /^\d{8}$/.test(s || "") ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : null;
+const todayUS = () => new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);   // the US sports day rolls over a few hours after midnight UTC
+async function mlbScoreboard(dates, fetchImpl) {
+  return normMlbSchedule(await getJSON(`${MLB_API}v1/schedule?sportId=1&date=${ymdDash(dates) || todayUS()}&hydrate=linescore,team,broadcasts(all)`, fetchImpl));
+}
+async function mlbGame(id, fetchImpl) {
+  const pk = String(id).replace(/^m/, "");
+  const [feed, wp, content] = await Promise.all([getJSON(`${MLB_API}v1.1/game/${pk}/feed/live`, fetchImpl), getJSON(`${MLB_API}v1/game/${pk}/winProbability`, fetchImpl).catch(() => null),
+    getJSON(`${MLB_API}v1/game/${pk}/content`, fetchImpl).catch(() => null)]);
+  return normMlbGame(feed, wp, content);
+}
+async function nhlScoreboard(dates, fetchImpl) { return normNhlScore(await getJSON(`${NHL_API}score/${ymdDash(dates) || todayUS()}`, fetchImpl)); }
+async function nhlGame(id, fetchImpl) {
+  const g = String(id).replace(/^h/, "");
+  const [pbp, box] = await Promise.all([getJSON(`${NHL_API}gamecenter/${g}/play-by-play`, fetchImpl), getJSON(`${NHL_API}gamecenter/${g}/boxscore`, fetchImpl).catch(() => null)]);
+  return normNhlGame(pbp, box);
+}
+
 /* ---- line score: points by quarter, period, half or inning (plus hits and errors in baseball) ---- */
 function linesOf(c, H, A) {
   const cs = c.competitors || [], row = id => cs.find(x => String(x.team?.id || x.id) === String(id)) || {};
@@ -793,6 +1028,80 @@ export function normTennis(e, resolve = n => n) {
 }
 
 /* ---------------- web requests from the site ---------------- */
+/* ---------------- Ask Cosmo: the AI companion ----------------
+ * Answers questions about games, teams and the model from live data. Runs on Cloudflare Workers AI (free daily
+ * allowance, no key needed) or, when the ANTHROPIC_API_KEY secret is set, on Claude for sharper answers. */
+const ASK_CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const ASK_CLAUDE_MODEL = "claude-opus-5";
+const ASK_RATE = new Map();                          // per-visitor limit, kept in memory
+function askAllowed(ip) {
+  const now = Date.now(), list = (ASK_RATE.get(ip) || []).filter(t => now - t < 600e3);
+  if (list.length >= 20) return false;
+  list.push(now); ASK_RATE.set(ip, list); if (ASK_RATE.size > 5000) ASK_RATE.clear(); return true;
+}
+const LEAGUE_NAME = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League" };
+async function askBoard(fetchImpl) {
+  const parts = await Promise.all(Object.keys(LEAGUE_NAME).map(async lg => {
+    try {
+      const d = await espnScoreboard(lg, fetchImpl);
+      const rows = (d.games || []).slice(0, 30).map(g => {
+        const st = g.status?.state, sc = st === "pre" ? "" : ` ${g.away.score ?? ""}-${g.home.score ?? ""}`;
+        return `${g.away.name} at ${g.home.name}${sc} (${st === "pre" ? g.status?.detail || "scheduled" : g.status?.short || st})${g.tv?.length ? ", TV " + g.tv[0] : ""}${g.odds?.details ? ", line " + g.odds.details : ""}`;
+      });
+      return rows.length ? `${LEAGUE_NAME[lg]}:\n- ${rows.join("\n- ")}` : `${LEAGUE_NAME[lg]}: no games on the current scoreboard`;
+    } catch { return `${LEAGUE_NAME[lg]}: scores unavailable right now`; }
+  }));
+  return parts.join("\n\n");
+}
+const ASK_SYSTEM = `You are Cosmo, the sports companion inside the Cosmo Sports app. You help fans follow the NFL, NBA, MLB, NHL, Premier League and tennis.
+How to answer:
+- Be direct and conversational, like a knowledgeable friend. Keep most answers under 150 words; use a short list only when it helps.
+- Ground every claim about scores, schedules, standings or predictions in the LIVE DATA and APP CONTEXT sections. If what's asked isn't there, say you don't have it right now instead of guessing, and suggest where in the app to look.
+- The app has its own prediction model; when you quote its win chances, call them "the Cosmo model" and remember they're probabilities, not certainties.
+- Betting: you may explain lines and compare them with the model, but don't tell people to bet or promise outcomes.
+- Plain text only. You may use **bold** for a name or number and "- " bullets. No headings, tables or links.`;
+export async function askCosmo(env, body, fetchImpl = fetch) {
+  const history = (Array.isArray(body?.messages) ? body.messages : []).slice(-10)
+    .filter(m => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .map(m => ({ role: m.role, content: m.content.slice(0, 2000) }));
+  while (history.length && history[0].role !== "user") history.shift();
+  if (!history.length || history[history.length - 1].role !== "user") throw new Error("no question");
+  const today = new Date().toLocaleString("en-US", { timeZone: "America/New_York", weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  const context = `Current time (US Eastern): ${today}\n\nLIVE DATA (current scoreboards):\n${await askBoard(fetchImpl)}\n\nAPP CONTEXT (from the person's app):\n${String(body?.context || "none").slice(0, 8000)}`;
+  const enc = new TextEncoder();
+  if (env.ANTHROPIC_API_KEY) {
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    // server-side fallbacks: if the model declines, the API retries on a fallback model in the same call
+    const stream = client.beta.messages.stream({
+      model: ASK_CLAUDE_MODEL, max_tokens: 4000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      output_config: { effort: "low" },
+      system: [{ type: "text", text: ASK_SYSTEM }, { type: "text", text: context }],
+      messages: history,
+    });
+    return new ReadableStream({
+      async start(ctrl) {
+        try {
+          for await (const ev of stream) if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") ctrl.enqueue(enc.encode(ev.delta.text));
+          const msg = await stream.finalMessage();
+          if (msg.stop_reason === "refusal") ctrl.enqueue(enc.encode("Sorry, I can't help with that one."));
+        } catch (e) { ctrl.enqueue(enc.encode(e instanceof Anthropic.RateLimitError ? "\n\nI'm getting a lot of questions right now. Try again in a minute." : "\n\nSorry, I couldn't finish that answer. Try again.")); }
+        ctrl.close();
+      },
+    });
+  }
+  if (!env.AI) throw new Error("no AI backend");
+  const src = await env.AI.run(ASK_CF_MODEL, { messages: [{ role: "system", content: ASK_SYSTEM + "\n\n" + context }, ...history], stream: true, max_tokens: 900 });
+  const dec = new TextDecoder(); let buf = "";
+  return src.pipeThrough(new TransformStream({
+    transform(chunk, ctrl) {
+      buf += dec.decode(chunk, { stream: true });
+      const lines = buf.split("\n"); buf = lines.pop();
+      for (const l of lines) { const m = /^data:\s*(.*)$/.exec(l.trim()); if (!m || m[1] === "[DONE]") continue;
+        try { const t = JSON.parse(m[1]).response; if (t) ctrl.enqueue(enc.encode(t)); } catch {} }
+    },
+  }));
+}
+
 export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
@@ -801,7 +1110,7 @@ export default {
     try {
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/scoreboard$/)))
         return await cached(req, ctx, 20, async () => espnScoreboard(m[1], fetch, url.searchParams.get("dates")));
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/(\d+)$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/([mh]?\d+)$/)))
         return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/standings$/)))
         return await cached(req, ctx, 600, async () => espnStandings(m[1]));
@@ -824,12 +1133,18 @@ export default {
     if (url.pathname === "/live.json") return new Response(await env.KV.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
+    if (url.pathname === "/ask" && req.method === "POST") {
+      if (!askAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
+      const body = await req.json().catch(() => null);
+      try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
+      catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
+    }
     if (url.pathname === "/subscribe" && req.method === "POST") {
       const d = await req.json().catch(() => null);
       if (!d?.sub?.endpoint || !d.sub.keys?.p256dh || !d.sub.keys?.auth) return json({ error: "bad subscription" }, 400);
       const watch = { atp: (d.watch?.atp || []).slice(0, 50).map(String), wta: (d.watch?.wta || []).slice(0, 50).map(String) };
       const teams = {}; for (const lg of Object.keys(LEAGUES)) { const l = (d.teams?.[lg] || []).slice(0, 40).map(tkey).filter(Boolean); if (l.length) teams[lg] = l; }
-      const games = (d.games || []).map(String).filter(k => /^(nfl|nba|mlb|nhl|epl)\/\d+$/.test(k)).slice(0, 60);
+      const games = (d.games || []).map(String).filter(k => /^(nfl|nba|mlb|nhl|epl)\/[mh]?\d+$/.test(k)).slice(0, 60);
       const prefs = {}; for (const k of Object.keys(DEFAULT_PREFS)) prefs[k] = d.prefs && k in d.prefs ? !!d.prefs[k] : DEFAULT_PREFS[k];
       const subs = JSON.parse(await env.KV.get("subs") || "[]").filter(s => s.sub.endpoint !== d.sub.endpoint);
       const n = watch.atp.length + watch.wta.length + Object.values(teams).flat().length + games.length;
@@ -850,7 +1165,7 @@ export default {
       const r = await sendPush(s.sub, { title: "Cosmo Sports notifications are on", body: "You'll get alerts for your teams and the games you follow.", tag: "test", url: "./" }, env);
       return json({ ok: r.ok, status: r.status });
     }
-    return json({ service: "Cosmo Sports live service", ok: true });
+    return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
     ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
