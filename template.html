@@ -1232,6 +1232,13 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .czcoin{width:1.15em;height:1.15em;vertical-align:-.2em;filter:drop-shadow(0 0 4px rgba(192,132,252,.55))}
 .czamt{display:inline-flex;align-items:center;gap:5px;font-weight:800;white-space:nowrap}.czamt.lg{font-size:1.5rem}.czamt.lg .czcoin{width:1.3em;height:1.3em}
 .czhead{align-items:center}.czbal{display:grid;justify-items:end;gap:4px}.czbal small{color:var(--muted);font-size:.78rem}.czdaily{font-size:.8rem}.czdaily.done{color:var(--muted)}
+.gate{position:fixed;inset:0;z-index:48;overflow-y:auto;background:radial-gradient(120% 80% at 50% 0%,#2a1766 0%,#0B0826 55%,#05030F 100%);padding:max(28px,env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
+.gate-sky{position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(1.2px 1.2px at 12% 18%,#fff8,transparent),radial-gradient(1px 1px at 72% 12%,#fff9,transparent),radial-gradient(1.4px 1.4px at 40% 70%,#e9d5ff99,transparent),radial-gradient(1px 1px at 88% 60%,#fff7,transparent),radial-gradient(1.1px 1.1px at 22% 88%,#a5f3fc88,transparent),radial-gradient(1px 1px at 60% 40%,#fff6,transparent)}
+.gate-in{position:relative;max-width:460px;margin:0 auto}
+.gate-brand{text-align:center;margin:10px 0 18px}.gate-brand img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 40px #7c3aed66}
+.gate-brand h1{margin:12px 0 4px;font-size:1.7rem}.gate-brand p{margin:0 auto;color:var(--muted);max-width:360px}
+.gate-perks{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:6px;color:var(--muted);font-size:.9rem}.gate-perks li{display:flex;gap:8px}
+body.gated{overflow:hidden}body.gated .askfab,body.gated .bottombar{display:none}
 .czjf{display:flex;gap:10px;flex-wrap:wrap}.czjf .field{flex:1;min-width:180px}
 .czmkts{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
 .czmkt{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow);display:grid;gap:8px}
@@ -1731,6 +1738,7 @@ dialog.onb p{margin:0 0 12px}
 
 <dialog id="profile" class="drawer" aria-labelledby="pName"><div class="pbody" id="pbody"></div></dialog>
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
+<div id="gate" class="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gateTitle"><div class="gate-sky" aria-hidden="true"></div><div class="gate-in" id="gateBody"></div></div>
 <dialog id="onbDlg" class="modal onb" aria-label="Welcome to Cosmo Sports"><div class="dlg" id="onbBody"></div></dialog>
 <button class="askfab" id="askFab" type="button" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span><span>Ask Cosmo</span></button>
 <dialog id="askDlg" class="drawer askd" aria-labelledby="askTitle"><div class="askwrap">
@@ -1820,12 +1828,13 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
+    <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><button class="btn" type="button" id="acctOut">Sign out</button></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
     <div class="setrow"><div><b>Odds format</b><small>How prices are shown</small></div>
       <div class="seg" role="group" aria-label="Odds format"><button data-oddsfmt="us">American</button><button data-oddsfmt="dec">Decimal</button></div></div>
-    <div class="setrow"><div><b>Your data</b><small>Everything stays on this device. Reset clears your teams, picks, settings and chat, and turns off alerts</small></div><button class="btn" id="resetData">Reset</button></div>
+    <div class="setrow"><div><b>Your data</b><small>Your teams, picks and settings are saved to your account. Reset clears this device's copy and chat, turns off alerts and signs you out here</small></div><button class="btn" id="resetData">Reset</button></div>
     <div class="setrow"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); maybeOnboard(true)">Start</button></div>
     <div class="dlgfoot" style="margin-top:14px"><small id="verInfo"></small><button class="btn" id="setClose">Done</button></div>
   </div>
@@ -2291,6 +2300,8 @@ function renderSettings(){
   document.querySelectorAll("[data-vkind]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.vkind === voiceKind()); b.hidden = b.dataset.vkind !== "device" && !ALERTS_URL; });
   ["#voiceRow", "#voiceRow2"].forEach(id => { const r = $(id); if (r) r.hidden = !canListen(); });
   $("#startSel").value = lsGet("startSport", "");
+  { const on = typeof GATE_ON !== "undefined" && GATE_ON && !!czKey(); $("#acctRow").hidden = !on; if (on) $("#acctSummary").textContent = CZ.me ? `Signed in as ${CZ.me.name}${CZ.me.passkey ? " with a passkey" : ""}` : "Signed in";
+    $("#acctOut").onclick = async () => { if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; $("#settingsDlg").close(); await czSignOut(); }; }
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
   document.querySelectorAll("[data-oddsfmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.oddsfmt === SET.odds));
   $("#verInfo").textContent = `Ratings through ${fmtDate(T().data_through)}`;
@@ -4376,7 +4387,7 @@ async function czLoad(what = ["me", "board", "vault", "lb"]){
     if (w === "lb") CZ.lb = await czApi("/leaders");
     if (w === "market") CZ.market = await czApi("/market");
   } catch (e) { if (w === "me" && e.status === 401){ lsSet("cz-auth", ""); CZ.me = null; } else CZ.err = e.message; } }));
-  CZ.loaded = true; if (SPORT === "cosmic") drawCosmic();
+  CZ.loaded = true; if (SPORT === "cosmic") drawCosmic(); if (what.includes("me")) drawGate();
 }
 function czTeam(lg, name){ return ["atp", "wta"].includes(lg) ? null : simTeam(lg, name); }
 // a collectible: galaxy card in the team's colours, with the tier's foil and the edition number
@@ -4482,11 +4493,11 @@ const b64uE = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/
 const b64uD = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
 function czPkHtml(link){
   const P = CZ.pk || (CZ.pk = {});
-  if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmic accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets, followed teams and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
+  if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmo Sports accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets, followed teams and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
     <button type="button" class="btn primary czpkbtn" data-czpk="link">${czPkIcon()}Create a passkey</button><p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p></section>`;
-  return `<section class="card czjoin"><h2>Sign in to Cosmic</h2><p class="sub">Cosmic uses passkeys: sign in with Face ID, your fingerprint or your device's passcode. No password, and your account, followed teams and settings follow you to any device.</p>
+  return `<section class="card czjoin"><h2>Sign in</h2><p class="sub">Cosmo Sports uses passkeys: sign in with Face ID, your fingerprint or your device's passcode. No password, and your account, cards, followed teams and settings follow you to any device.</p>
     <button type="button" class="btn primary czpkbtn" data-czpk="login">${czPkIcon()}Sign in with a passkey</button>
-    <h3 class="plh">New to Cosmic?</h3><p class="sub">Pick a name for the leaderboard, then create your passkey. You start with ${czAmt(1000)}.</p>
+    <h3 class="plh">New to Cosmo Sports?</h3><p class="sub">Pick a name for the leaderboard, then create your passkey. You start with ${czAmt(1000)}.</p>
     <form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn" type="submit">Create account</button></form>
     <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p><p class="sub" style="margin:10px 0 0">Played Cosmic before passkeys? <button type="button" class="linkbtn" data-cz="usekey">Use your old Cosmic key</button>, then add a passkey.</p></section>`;
 }
@@ -4509,12 +4520,39 @@ async function czPkLogin(){
 }
 function czPkBind(el){
   const P = CZ.pk || (CZ.pk = {}), redraw = () => drawCosmic();
-  const done = r => { lsSet("cz-auth", r.auth); CZ.me = r.user; CZ.pk = {}; toast(r.created ? `Welcome to Cosmic, ${r.user.name}. You have 1,000 coins.` : r.linked ? "Passkey saved. Your account is safe." : `Signed in as ${r.user.name}`); czSyncPull(true); czLoad(["board", "vault", "lb"]); redraw(); };
-  const run = async (btn, fn) => { if (btn) btn.disabled = true; P.err = ""; try { done(await fn()); } catch (e) { P.err = czPkErr(e); redraw(); } };
+  const done = r => { lsSet("cz-auth", r.auth); CZ.me = r.user; CZ.pk = {}; toast(r.created ? `Welcome to Cosmo Sports, ${r.user.name}. You have 1,000 Cosmic Coins.` : r.linked ? "Passkey saved. Your account is safe." : `Signed in as ${r.user.name}`); czSyncPull(true); czLoad(["board", "vault", "lb"]); redraw(); drawGate(); };
+  const run = async (btn, fn) => { if (btn) btn.disabled = true; P.err = ""; try { done(await fn()); } catch (e) { P.err = czPkErr(e); redraw(); GATE.sig = ""; drawGate(); } };
   el.querySelectorAll("[data-czpk=login]").forEach(b => b.onclick = () => run(b, czPkLogin));
   el.querySelectorAll("[data-czpk=link]").forEach(b => b.onclick = () => run(b, () => czPkCreate("", true)));
   el.querySelectorAll("[data-czpk=add]").forEach(b => b.onclick = async () => { try { await czPkCreate("", true); toast("Passkey added on this device"); } catch (e) { toast(czPkErr(e)); } });
   const f = el.querySelector("form[data-czpk=new]"); if (f) f.onsubmit = e => { e.preventDefault(); P.name = f.name.value.trim(); run(f.querySelector("button"), () => czPkCreate(P.name, false)); };
+}
+// ---- one account for all of Cosmo Sports: the app opens behind a sign-in screen until you're signed in with a passkey
+const GATE_ON = HOSTED && !!ALERTS_URL, GATE = { sig: "", open: false, after: null };
+function gateNeeded(){
+  if (!GATE_ON) return false;
+  if (!CZ.me) return !czKey();                                        // a saved session opens straight away (and works offline); the server check follows
+  return !CZ.me.passkey && czPkSupported();                          // old device-key accounts add a passkey first
+}
+function drawGate(){
+  const g = $("#gate"); if (!g) return;
+  const need = gateNeeded(); document.body.classList.toggle("gated", need);
+  if (!need){ if (GATE.open || !g.hidden){ g.hidden = true; GATE.open = false; GATE.sig = ""; } if (GATE.after){ const f = GATE.after; GATE.after = null; f(); } return; }
+  const P = CZ.pk || {}, link = !!CZ.me, pk = czPkSupported(), sig = `${link}|${pk}|${P.err || ""}`;
+  g.hidden = false; GATE.open = true; if (sig === GATE.sig) return; GATE.sig = sig;
+  $("#gateBody").innerHTML = `<div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to open the app."}</p></div>
+    ${link ? "" : `<ul class="gate-perks"><li>📈 Live scores, predictions and the model's track record for every league</li><li>🪐 Cosmic: free play coins, bets and limited-edition cards, down to 1 of 1</li><li>☁️ Your teams, cards and settings saved to your account on every device</li></ul>`}
+    ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free, no password, no email. <a href="privacy.html">Privacy</a></p>`;
+  czBind($("#gateBody")); czPkBind($("#gateBody"));
+}
+function gateStart(){
+  if (!GATE_ON){ GATE.after && GATE.after(); GATE.after = null; return; }
+  drawGate();
+  if (czKey()) czLoad(["me"]);                                         // a stale or removed session puts the sign-in screen back up
+  if (!CZ.cfg) czApi("/config").then(c => { CZ.cfg = c; }).catch(() => {});
+}
+async function czSignOut(){
+  await czSyncPush(true); lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; CZ.pk = {}; drawCosmic(); drawGate();
 }
 // ---- your data follows your account: followed teams, settings and picks
 const CZ_SYNC_LS = ["picks", "daily", "duels", "spoil", "sounds", "startSport", "voiceKind", "voiceRate", "rankView", "onboarded"];
@@ -4720,12 +4758,12 @@ function czBind(el){
   el.querySelectorAll("[data-czcard]").forEach(b => b.onclick = () => czHistory(b.dataset.czcard, +b.dataset.n));
   const f = el.querySelector("[data-czform=join]");
   if (f) f.onsubmit = async e => { e.preventDefault(); const name = f.name.value.trim(), btn = f.querySelector("button"); btn.disabled = true;
-    try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmic, ${r.user.name}. You have 1,000 coins.`); drawCosmic(); czLoad(["board", "vault", "lb"]); }
+    try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmo Sports, ${r.user.name}. You have 1,000 Cosmic Coins.`); drawCosmic(); drawGate(); czLoad(["board", "vault", "lb"]); }
     catch (err) { toast(err.message); btn.disabled = false; } };
   el.querySelectorAll("[data-cz]").forEach(b => b.onclick = async () => {
     const k = b.dataset.cz;
     if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); czLoad(["lb"]); } catch (e) { toast(e.message); } }
-    if (k === "signout"){ if (!confirm("Sign out of Cosmic on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSyncPush(true); lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; drawCosmic(); return; }
+    if (k === "signout"){ if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSignOut(); return; }
     if (k === "owner"){                                               // the site owner's testing switch, unlocked with the Comets writer key
       let key = cmKey();
       if (!key && !CZ.me.tester){ key = (prompt("Owner only: paste your owner key (the COMETS_KEY you set up for Comets) to give this account unlimited coins for testing.") || "").trim(); if (!key) return; }
@@ -4737,7 +4775,7 @@ function czBind(el){
     if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your Cosmic key</h2><p class="sub">This key is your account. Paste it into Cosmic on another device, or on the site's new address if it moves, to sign in there, then add a passkey. Keep it private: anyone with it can spend your coins.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
       $("#czCopy").onclick = async () => { try { await navigator.clipboard.writeText(czKey()); toast("Key copied"); } catch { $("#infoBody textarea").select(); } }; $("#infoDlg").showModal(); }
     if (k === "usekey"){ const v = (prompt("Paste your Cosmic key") || "").trim(); if (!/^[a-f0-9]{24}\.[a-f0-9]{64}$/i.test(v)) { if (v) toast("That doesn't look like a Cosmic key"); return; }
-      lsSet("cz-auth", v); CZ.me = null; await czLoad(["me"]); toast(CZ.me ? `Signed in as ${CZ.me.name}` : "That key didn't work"); drawCosmic(); }
+      lsSet("cz-auth", v); CZ.me = null; await czLoad(["me"]); toast(CZ.me ? `Signed in as ${CZ.me.name}` : "That key didn't work"); drawCosmic(); drawGate(); }
   });
 }
 /* ================= Comets: articles from Cosmo Sports, for everyone ================= */
@@ -5631,7 +5669,7 @@ renderFeed();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play", "comets", "record", "cosmic"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
-  maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); loadModels(); loadComets();
+  GATE.after = () => { maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); }; gateStart(); loadModels(); loadComets();
   if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut
