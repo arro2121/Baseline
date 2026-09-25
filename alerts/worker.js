@@ -1468,7 +1468,7 @@ const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
-const czPublic = u => u && ({ uid: u.uid, name: u.name, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czPublic = u => u && ({ uid: u.uid, name: u.name, phone: !!u.phone, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
 const czLbRow = u => ({ uid: u.uid, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
@@ -1477,6 +1477,21 @@ export async function czTx(st, a) {
   const get = async (k, d) => (await st.get(k)) ?? d;
   const feed = async ev => { const f = await get("cz:feed", []); f.unshift({ ...ev, at: a.now }); await st.put("cz:feed", f.slice(0, 60)); };
   const lb = async u => { const L = await get("cz:lb", {}); L[u.uid] = czLbRow(u); await st.put("cz:lb", L); };
+  if (a.act === "ident") {
+    // phone sign-in: the verified number (stored only as a hash) finds the account, links an existing one, or starts a new one.
+    // Each device that signs in gets its own key (only its hash is stored), so signing in on a new phone doesn't sign out the old.
+    const map = await get("cz:id:" + a.sub, null), addTok = u => { u.toks = [...(u.toks || []), a.tok].slice(-10); };
+    if (map) { const u = await st.get("cz:u:" + map); if (u) { addTok(u); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), uid: u.uid }; } }
+    if (a.linkUid) { const u = await st.get("cz:u:" + a.linkUid); if (!u) return { error: "Account not found." }; if (u.phone && u.phone !== a.sub) return { error: "This account is already linked to a different phone number." };
+      u.phone = a.sub; addTok(u); await st.put("cz:u:" + u.uid, u); await st.put("cz:id:" + a.sub, u.uid); return { user: czPublic(u), uid: u.uid, linked: true }; }
+    if (!a.name) return { needName: true };
+    const names = await get("cz:names", {}), key = a.name.toLowerCase();
+    if (names[key]) return { error: "That name is taken. Try another.", needName: true };
+    const u = { uid: a.uid, name: a.name, tok: a.tok, toks: [], phone: a.sub, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0 };
+    names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:u:" + a.uid, u); await st.put("cz:id:" + a.sub, a.uid); await lb(u);
+    await feed({ kind: "join", name: a.name });
+    return { user: czPublic(u), uid: a.uid, created: true };
+  }
   if (a.act === "join") {
     const names = await get("cz:names", {}), key = a.name.toLowerCase();
     if (names[key]) return { error: "That name is taken. Try another." };
@@ -1665,9 +1680,25 @@ async function czItem(env, id) {
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
   const u = await czRead(env, "cz:u:" + m[1], null); if (!u) return null;
-  return u.tok === await czHash(m[2]) ? u : null;
+  const h = await czHash(m[2]);
+  return u.tok === h || (u.toks || []).includes(h) ? u : null;
 }
 const CZ_JOIN = new Map();
+// phone sign-in: Twilio Verify texts a 6-digit code and checks it. Needs the TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and
+// TWILIO_VERIFY_SID secrets. Codes are rate-limited per number and per connection to stop anyone running up texts.
+const czPhoneOn = env => !!(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_VERIFY_SID);
+export function czPhone(raw) {
+  let d = String(raw || "").replace(/[^\d+]/g, "");
+  if (/^\d{10}$/.test(d)) d = "+1" + d; else if (/^1\d{10}$/.test(d)) d = "+" + d; else if (/^00\d+/.test(d)) d = "+" + d.slice(2);
+  return /^\+[1-9]\d{7,14}$/.test(d) ? d : null;
+}
+async function twilio(env, path, form, fetchImpl = fetch) {
+  const r = await fetchImpl(`https://verify.twilio.com/v2/Services/${env.TWILIO_VERIFY_SID}/${path}`, { method: "POST", body: new URLSearchParams(form),
+    headers: { Authorization: "Basic " + btoa(`${env.TWILIO_ACCOUNT_SID}:${env.TWILIO_AUTH_TOKEN}`), "Content-Type": "application/x-www-form-urlencoded" } });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(d.message || "Twilio " + r.status), { status: r.status, code: d.code }); return d;
+}
+const CZ_SMS = new Map();
+function czSmsAllowed(key, max, win) { const now = Date.now(), l = (CZ_SMS.get(key) || []).filter(t => now - t < win); if (l.length >= max) return false; l.push(now); CZ_SMS.set(key, l); if (CZ_SMS.size > 20000) CZ_SMS.clear(); return true; }
 const etDayStr = t => etDay(t);
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
@@ -1701,7 +1732,42 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25),
       collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
   }
+  if (p === "/config" && req.method === "GET") return json({ phone: czPhoneOn(env) });
+  if (p === "/phone/start" && req.method === "POST") {
+    if (!czPhoneOn(env)) return json({ error: "Phone sign-in isn't set up yet." }, 503);
+    const d = await req.json().catch(() => ({})), to = czPhone(d.phone);
+    if (!to) return json({ error: "Enter your mobile number with its country code, like +1 555 123 4567." }, 400);
+    if (!czSmsAllowed("ip:" + ip, 6, 3600e3) || !czSmsAllowed("to:" + to, 3, 900e3)) return json({ error: "Too many codes requested. Wait a few minutes and try again." }, 429);
+    try { await twilio(env, "Verifications", { To: to, Channel: "sms" }); } catch (e) { return json({ error: e.status === 400 ? "That number can't get texts. Check it and try again." : "We couldn't send the code right now. Try again soon." }, e.status === 400 ? 400 : 502); }
+    return json({ sent: true, to: to.slice(0, -4).replace(/\d/g, "•") + to.slice(-4) });
+  }
+  if (p === "/phone/check" && req.method === "POST") {
+    if (!czPhoneOn(env)) return json({ error: "Phone sign-in isn't set up yet." }, 503);
+    const d = await req.json().catch(() => ({})), to = czPhone(d.phone), code = String(d.code || "").replace(/\D/g, "");
+    if (!to || !/^\d{4,10}$/.test(code)) return json({ error: "Enter the code from the text." }, 400);
+    if (!czSmsAllowed("chk:" + to, 8, 900e3)) return json({ error: "Too many tries. Request a new code in a few minutes." }, 429);
+    let ok = false; try { ok = (await twilio(env, "VerificationCheck", { To: to, Code: code })).status === "approved"; } catch (e) { if (e.status !== 404) return json({ error: "We couldn't check the code right now. Try again." }, 502); }
+    if (!ok) return json({ error: "That code isn't right, or it has expired. Check it or send a new one." }, 401);
+    const sub = await czHash("phone:" + to), linker = d.link ? await czAuth(req, env) : null;
+    const token = czRand(32), r = await cz(env, { act: "ident", sub, uid: czRand(12), tok: await czHash(token), name: "", linkUid: linker ? linker.uid : null, now });
+    if (r.error) return json(r, 409);
+    if (r.needName) {                                                            // new number: a short-lived ticket to pick a name with
+      const ticket = czRand(16); await store(env).put("cz:pend:" + ticket, JSON.stringify({ sub, exp: now + 15 * 60e3 })); return json({ needName: true, ticket });
+    }
+    return json({ ...r, auth: `${r.uid}.${token}` });
+  }
+  if (p === "/phone/finish" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), t = await czRead(env, "cz:pend:" + String(d.ticket || "").replace(/[^a-f0-9]/g, ""), null);
+    if (!t || t.exp < now) return json({ error: "That sign-in has expired. Start again." }, 401);
+    const name = String(d.name || "").replace(/\s+/g, " ").trim();
+    if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+    const token = czRand(32), r = await cz(env, { act: "ident", sub: t.sub, uid: czRand(12), tok: await czHash(token), name, now });
+    if (r.error) return json(r, 409);
+    await store(env).put("cz:pend:" + String(d.ticket), JSON.stringify({ exp: 0 }));
+    return json({ ...r, auth: `${r.uid}.${token}` });
+  }
   if (p === "/join" && req.method === "POST") {
+    if (czPhoneOn(env)) return json({ error: "Sign in with your phone number to create a Cosmic account." }, 403);
     const l = (CZ_JOIN.get(ip) || []).filter(t => now - t < 3600e3); if (l.length >= 5) return json({ error: "Too many new accounts from here. Try again later." }, 429);
     const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
@@ -1714,6 +1780,13 @@ export async function cosmicRoute(req, env, ctx, url) {
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
   if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
+  if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
+  if (p === "/data" && req.method === "PUT") {
+    const raw = await req.text(); if (raw.length > 100000) return json({ error: "Too much data." }, 413);
+    let d; try { d = JSON.parse(raw); } catch { return json({ error: "bad data" }, 400); }
+    await store(env).put("cz:data:" + u.uid, JSON.stringify({ ...d, at: now })); return json({ ok: true, at: now });
+  }
   if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
   if (p === "/bet" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");

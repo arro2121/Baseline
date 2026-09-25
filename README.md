@@ -177,6 +177,18 @@ record in each league and overall, how often the betting favorite won the same g
 made: on every pick, and on value bets only (the model's chance at least 3 points above the market's). A copy is saved to
 `docs/track.json` every night.
 
+## Phone sign-in for Cosmic (Twilio Verify)
+
+Cosmic accounts sign in with a phone number (a texted 6-digit code), which also saves each player's followed teams, settings
+and picks to their account. Until it's set up, Cosmic uses device keys as before. To turn it on:
+1. Create a free account at **twilio.com** and add a payment method (Verify costs about $0.05 per code sent).
+2. In the Twilio Console open **Verify › Services › Create new**, name it "Cosmo Sports", tick **SMS**, and create it.
+3. Copy three values: the **Account SID** and **Auth Token** (Console home page) and the service's **Service SID** (starts with `VA`).
+4. In GitHub: **Settings › Secrets and variables › Actions › New repository secret**, add `TWILIO_ACCOUNT_SID`,
+   `TWILIO_AUTH_TOKEN` and `TWILIO_VERIFY_SID`, then run **Actions › Baseline › Run workflow › alerts**.
+5. Recommended: in Twilio, **Verify › Settings › Fraud Guard** on, and **Geo permissions** limited to the countries your
+   players are in. The service also limits codes to 3 per number per 15 minutes and 6 per connection per hour.
+
 ## Your own domain
 
 The site runs at **https://cosmosports.app**. To use a different domain: point its DNS at GitHub Pages (four A records for
