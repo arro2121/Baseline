@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -5345,7 +5345,7 @@ function czCard(it, ed, big){
   const lv = czLevel(it);
   return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
     <div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
-    <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed != null ? `#${ed}/${it.supply}` : `1/${it.supply}`}</em></div>
+    <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="czFaceNext(this)">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials)}'}))">` : `<b>${esc(initials)}</b>`}</div>
     ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
@@ -5454,13 +5454,13 @@ async function czShareCard(it, n){
   if (!pic){ const ini = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3); x.fillStyle = "rgba(255,255,255,.12)"; x.beginPath(); x.arc(W / 2, cy + 410, 210, 0, 7); x.fill();
     x.strokeStyle = TC[0]; x.lineWidth = 6; x.stroke(); x.fillStyle = "#fff"; x.textAlign = "center"; x.font = "900 150px system-ui,-apple-system,sans-serif"; x.fillText(ini, W / 2, cy + 465); x.textAlign = "left"; }
   x.fillStyle = TC[0]; x.font = "900 44px system-ui,-apple-system,sans-serif"; x.fillText(String(CZ_TIER_NAME[it.tier] || it.tier).toUpperCase(), cx + 44, cy + 84);
-  x.textAlign = "right"; x.fillStyle = "#fff"; x.fillText(n ? `#${n}/${it.supply}` : `1/${it.supply}`, cx + cw - 44, cy + 84); x.textAlign = "left";
+  x.textAlign = "right"; x.fillStyle = "#fff"; x.fillText(n ? `${n}/${it.supply}` : it.supply === 1 ? "1 exists" : `${it.supply} exist`, cx + cw - 44, cy + 84); x.textAlign = "left";
   x.font = "800 68px system-ui,-apple-system,sans-serif"; x.fillText(it.name.length > 18 ? it.name.slice(0, 17) + "…" : it.name, cx + 44, cy + ch - 150, cw - 88);
   x.font = "600 36px system-ui,-apple-system,sans-serif"; x.fillStyle = "rgba(255,255,255,.75)"; x.fillText([it.pos, it.team || "", CZ_LG[it.lg] || ""].filter(Boolean).join(" · "), cx + 44, cy + ch - 90, cw - 88);
   x.textAlign = "center"; x.font = "800 46px system-ui,-apple-system,sans-serif"; x.fillStyle = "#fff"; x.fillText(it.supply === 1 ? "The only one that exists" : `Only ${it.supply.toLocaleString()} exist`, W / 2, 1210);
   x.font = "600 34px system-ui,-apple-system,sans-serif"; x.fillStyle = "#c4b5fd"; x.fillText("Pulled on Cosmo Sports · cosmosports.app", W / 2, 1270);
   const blob = await new Promise(r => c.toBlob(r, "image/png")), file = new File([blob], "cosmo-card.png", { type: "image/png" });
-  try { if (navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], title: "Cosmo Sports", text: `${it.name} ${CZ_TIER_NAME[it.tier]}${n ? ` #${n}/${it.supply}` : ""} on Cosmo Sports` }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ files: [file], title: "Cosmo Sports", text: `${it.name} ${CZ_TIER_NAME[it.tier]}${n ? ` ${n}/${it.supply}` : ""} on Cosmo Sports` }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "cosmo-card.png"; document.body.appendChild(a); a.click(); a.remove(); toast("Card image saved");
 }
 // achievements: earned from what you've done, shown with progress
@@ -5478,7 +5478,7 @@ function czHomeHtml(){
   const games = (CZ.board || []).length, cheapest = CZ.packs ? CZ.packs.packs.filter(p => p.price <= me.bal).sort((a, b) => b.price - a.price)[0] : null, listings = CZ.market ? CZ.market.listings.filter(l => l.uid !== me.uid).length : null;
   const tile = (go, icon, title, sub, hot) => `<button type="button" class="czact ${hot ? "hot" : ""}" ${go}><span class="czact-i" aria-hidden="true">${icon}</span><b>${title}</b><small>${sub}</small></button>`;
   const edges = czEdges().slice(0, 3), L = CZ.lb, rk = czRank();
-  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} #${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} #${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : `${czWhoBtn(f.name)} joined Cosmic`;
+  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : `${czWhoBtn(f.name)} joined Cosmic`;
   const A = czAchievements(me), nA = A.filter(a => a.done).length;
   return `${me.freePack ? `<section class="czwelcome"><div><b>Your welcome pack is ready</b><small>A free Comet pack: 3 numbered cards from any league.</small></div><button type="button" class="btn primary" data-czfree>Open it free</button></section>` : ""}
     <div class="czacts">
@@ -5849,7 +5849,7 @@ function czRip(pk, cards){
     <p class="czripmsg" id="czRipMsg"></p>
     <div class="pkfoot"><small>They're in your Collection.</small><button class="btn" type="button" id="czShareBest">Share best card</button><button class="btn" type="button" data-info="close">Done</button><button class="btn primary" type="button" id="czAgain">Open another</button></div>`;
   const flips = [...$("#infoBody").querySelectorAll(".czflip")], flip = el => { if (el.classList.contains("on")) return; el.classList.add("on"); sfx(+el.dataset.i === order.length - 1 && best.supply <= 25 ? "win" : "reveal");
-    if (flips.every(f => f.classList.contains("on"))) $("#czRipMsg").innerHTML = best.supply <= 10 ? `🌌 <b>${best.supply === 1 ? "The only one in existence" : `#${best.n} of just ${best.supply}`}!</b> ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])}` : `Best pull: ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])} #${best.n}/${best.supply}`; };
+    if (flips.every(f => f.classList.contains("on"))) $("#czRipMsg").innerHTML = best.supply <= 10 ? `🌌 <b>${best.supply === 1 ? "The only one in existence" : `${best.n}/${best.supply}, one of just ${best.supply}`}!</b> ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])}` : `Best pull: ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])} ${best.n}/${best.supply}`; };
   flips.forEach(f => f.onclick = () => flip(f));
   flips.forEach((f, i) => setTimeout(() => flip(f), (RM() ? 0 : 700) + i * (RM() ? 0 : 750)));
   $("#czAgain").onclick = () => { $("#infoDlg").close(); czOpen(pk.id === "comet" && CZ.me && CZ.me.freePack ? "comet" : pk.id, false); };
@@ -5857,7 +5857,7 @@ function czRip(pk, cards){
   const d = $("#infoDlg"); if (!d.open) d.showModal();
 }
 function czReveal(it, n){
-  $("#infoBody").innerHTML = `<div class="czreveal">${czCard(it, n, true)}<h2 id="infoTitle">${n === 1 && it.supply === 1 ? "The only one in existence" : `#${n} of ${it.supply}`}</h2><p class="sub">${esc(it.name)} · ${esc(it.label)}. It's in your Collection.</p></div>
+  $("#infoBody").innerHTML = `<div class="czreveal">${czCard(it, n, true)}<h2 id="infoTitle">${n === 1 && it.supply === 1 ? "The only one in existence" : `${n}/${it.supply}`}</h2><p class="sub">${esc(it.name)} · ${esc(it.label)}. It's in your Collection.</p></div>
     <div class="pkfoot"><small>Minted ${esc(new Date().toLocaleString())}</small><button class="btn primary" type="button" data-info="close">Nice</button></div>`;
   const d = $("#infoDlg"); if (!d.open) d.showModal();
 }
@@ -5876,17 +5876,18 @@ async function czHistory(id, n){
   try { const d = await czApi("/card/" + encodeURIComponent(id)); owners = d.owners; V = d.item; } catch {}
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
-  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${esc(CZ_TIER_NAME[it.tier] || "")}${own ? ` #${n}` : ""} of ${it.supply}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${esc(CZ_TIER_NAME[it.tier] || "")} · ${own ? `${n}/${it.supply}` : it.supply === 1 ? "only 1 exists" : `${it.supply} exist`}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+    <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
     ${lv > 1 || V ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
     ${!own ? "" : `<div class="czsell">${it.auction ? `<p>Up for auction. Follow it in Market, Auctions.</p>` : it.listed ? `<p>On the market. <button type="button" class="btn" data-czact="unlist">Take it off the market</button></p>` : `
       <div><b>Sell to the shop</b><small>Coins right away. The copy goes back into packs.</small><button type="button" class="btn" data-czact="shop" ${shop ? "" : "disabled"}>Sell for ${shop ? czAmt(shop) : "…"}</button></div>
       <div><b>Sell to other players</b><small>Set your price. Buyers pay you, less a 5% market fee.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
       <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (less 5%). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
-    ${owners.length ? `<h3 class="plh">Who owns the ${it.supply === 1 ? "card" : "copies"}</h3><div class="czown-list">${owners.slice().sort((a, b) => a.n - b.n).map(o => `<div><b>#${o.n}</b><span>${esc(o.name)}</span><small>${esc(new Date(o.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small>${o.uid !== CZ.me.uid && !own ? `<button type="button" class="btn czbuy" data-cztrade="${esc(o.name)}">Trade</button>` : ""}</div>`).join("")}</div>` : `<p class="sub">Nobody owns a copy yet.</p>`}
+    ${owners.length ? `<h3 class="plh">Who owns the ${it.supply === 1 ? "card" : "copies"}</h3><div class="czown-list">${owners.slice().sort((a, b) => a.n - b.n).map(o => `<div><b>${o.n}/${it.supply}</b><span>${esc(o.name)}</span><small>${esc(new Date(o.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small>${o.uid !== CZ.me.uid && !own ? `<button type="button" class="btn czbuy" data-cztrade="${esc(o.name)}">Trade</button>` : ""}</div>`).join("")}</div>` : `<p class="sub">Nobody owns a copy yet.</p>`}
     <p class="czerr" id="czErr" role="alert"></p><div class="pkfoot"><small>Worth about ${czAmt(value || 0)} in the shop's book.</small>${own ? `<button class="btn" type="button" data-czshare>Share image</button>` : ""}<button class="btn primary" type="button" data-info="close">Close</button></div>`;
   const body = $("#infoBody"), done = (msg, r) => { if (r && r.user) CZ.me = r.user; $("#infoDlg").close(); toast(msg); drawCosmic(); czLoad(["vault", "market"]); };
   const fail = e => { $("#czErr").textContent = e.message; };
-  const shopBtn = body.querySelector('[data-czact="shop"]'); if (shopBtn) shopBtn.onclick = async () => { if (!confirm(`Sell ${it.name} ${CZ_TIER_NAME[it.tier]} #${n}/${it.supply} to the shop for ${shop.toLocaleString()} coins? It goes back into packs.`)) return;
+  const shopBtn = body.querySelector('[data-czact="shop"]'); if (shopBtn) shopBtn.onclick = async () => { if (!confirm(`Sell ${it.name} ${CZ_TIER_NAME[it.tier]} ${n}/${it.supply} to the shop for ${shop.toLocaleString()} coins? It goes back into packs.`)) return;
     try { const r = await czApi("/sell", { item: id }); sfx("win"); done(`Sold to the shop for ${r.paid.toLocaleString()} coins`, r); } catch (e) { fail(e); } };
   const lf = body.querySelector('form[data-czact="list"]'); if (lf) lf.onsubmit = async e => { e.preventDefault(); const price = Math.floor(+lf.price.value || 0);
     try { const r = await czApi("/list", { item: id, price }); done(`Listed for ${price.toLocaleString()} coins`, r); } catch (err) { fail(err); } };
@@ -5912,7 +5913,7 @@ function czAuctionsHtml(){
 }
 async function czBid(aid){
   const x = (CZ.auc || []).find(v => v.aid === aid); if (!x) return; const min = x.bid ? Math.max(x.bid + 1, Math.ceil(x.bid * 1.05)) : x.start;
-  const v = prompt(`Bid on ${x.name} ${CZ_TIER_NAME[x.tier]} #${x.n}/${x.supply}. The lowest bid is ${min.toLocaleString()} coins. Your coins are held until the auction ends, and returned if someone outbids you.`, String(min)); if (v == null) return;
+  const v = prompt(`Bid on ${x.name} ${CZ_TIER_NAME[x.tier]} ${x.n}/${x.supply}. The lowest bid is ${min.toLocaleString()} coins. Your coins are held until the auction ends, and returned if someone outbids you.`, String(min)); if (v == null) return;
   const amount = Math.floor(+String(v).replace(/[^\d]/g, "")); if (!amount) return;
   try { const r = await czApi("/auction/bid", { aid, amount }); CZ.me = r.user; sfx("tap"); toast(`You're the top bidder at ${amount.toLocaleString()} coins`); await czLoad(["market"]); drawCosmic(); } catch (e) { toast(e.message); czLoad(["market"]); }
 }
@@ -5935,7 +5936,7 @@ function czMarketHtml(){
 function czLbHtml(){
   const L = CZ.lb; if (!L) return `<div class="teamnote">${cosmoLoad("Loading the leaderboard…")}</div>`;
   const me = CZ.me.uid, board = CZ.lbv || "week";
-  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} #${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} #${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : `${czWhoBtn(f.name)} joined Cosmic`;
+  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : `${czWhoBtn(f.name)} joined Cosmic`;
   const left = L.weekEnds ? czLeft(L.weekEnds - Date.now()) : "";
   const boards = { week: ["This week", L.week || [], r => `<span class="${r.week >= 0 ? "pos" : "neg"}">${r.week > 0 ? "+" : ""}${Math.round(r.week).toLocaleString()}</span>`,
       `Coins won betting since Monday. Resets in ${left}. The top three win ${(L.prizes || [2000, 1000, 500]).map(v => v.toLocaleString()).join(", ")} coins and a trophy.${(L.lastWinners || []).length ? ` Last week: ${L.lastWinners.map(w => `${esc(w.name)} (${["1st", "2nd", "3rd"][w.place - 1]})`).join(", ")}.` : ""}`],
@@ -5991,7 +5992,7 @@ function czBind(el){
   el.querySelectorAll("[data-czunl]").forEach(b => b.onclick = async () => { try { const r = await czApi("/unlist", { lid: b.dataset.czunl }); CZ.me = r.user; toast("Taken off the market"); await czLoad(["market"]); } catch (e) { toast(e.message); } });
   el.querySelectorAll("[data-czbl]").forEach(b => b.onclick = async () => { const l = CZ.market.listings.find(x => x.lid === b.dataset.czbl); if (!l) return;
     if (czBal() < l.price){ toast(`You need ${(l.price - CZ.me.bal).toLocaleString()} more coins`); return; }
-    if (!confirm(`Buy ${l.name} ${CZ_TIER_NAME[l.tier]} #${l.n}/${l.supply} from ${l.seller} for ${l.price.toLocaleString()} coins?`)) return;
+    if (!confirm(`Buy ${l.name} ${CZ_TIER_NAME[l.tier]} ${l.n}/${l.supply} from ${l.seller} for ${l.price.toLocaleString()} coins?`)) return;
     try { const r = await czApi("/buylisting", { lid: l.lid }); CZ.me = r.user; sfx("win"); czReveal({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n); czLoad(["market"]); drawCosmic(); } catch (e) { toast(e.message); czLoad(["market", "me"]); } });
   el.querySelectorAll("[data-czscope]").forEach(b => b.onclick = () => { CZ.scope = b.dataset.czscope; lsSet("cz-scope", CZ.scope); drawCosmic(); });
   el.querySelectorAll("[data-czcard]").forEach(b => b.onclick = () => czHistory(b.dataset.czcard, +b.dataset.n));
