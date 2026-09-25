@@ -1,14 +1,8 @@
-name: college-history
+name: espn-probe
 on: { push: { branches: [claude/dreamy-davinci-hedx5u] } }
-permissions: { contents: write }
 jobs:
-  fetch:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - run: python3 -c "import team_history as th, json; print(json.dumps(th.update(['cfb','cbb']), indent=1))"
-      - run: |
-          wc -l data/history/cfb_*.csv data/history/cbb_*.csv
-          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
-          git add data/history/cfb_*.csv data/history/cbb_*.csv && git commit -q -m "College history (ESPN)" && git push
+      - run: python3 .github/probe/p.py
