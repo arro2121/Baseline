@@ -36,6 +36,8 @@ if [ -s ../custom_domain.txt ]; then SITE="https://$(tr -d ' \r\n' < ../custom_d
 set_var() { sed -i "s|^$1 = .*|$1 = \"$2\"|" wrangler.toml; }
 sed -i "s|^id = .*|id = \"$KV\"|" wrangler.toml
 set_var SITE_URL "$SITE"
+grep -q "^SITE_FALLBACK" wrangler.toml || sed -i "/^SITE_URL = /a SITE_FALLBACK = \"\"" wrangler.toml
+set_var SITE_FALLBACK "https://$OWNER.github.io/$REPO"
 set_var VAPID_SUBJECT "mailto:${OWNER}@users.noreply.github.com"
 [ -s vapid_public.txt ] && set_var VAPID_PUBLIC_KEY "$(cat vapid_public.txt)"
 

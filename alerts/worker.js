@@ -17,12 +17,15 @@ const TYPES = { "Atp Singles": ["atp", true], "Wta Singles": ["wta", true],
   "Challenger Men Singles": ["atp", false], "Challenger Women Singles": ["wta", false] };
 
 /* ---------------- small helpers ---------------- */
-// one of the site's own files (players, models). A new custom domain can take a while to get its HTTPS certificate,
-// so if the secure address fails, try the same address over plain http.
+// one of the site's own files (players, models). A new custom domain can take a while to get its HTTPS certificate (or may
+// not be set up yet), so if it fails, try it over plain http, then the site's github.io address.
 async function siteGet(env, path, fetchImpl = fetch) {
-  const base = String(env.SITE_URL || "").replace(/\/$/, "");
-  try { const r = await fetchImpl(base + path); if (r.ok || !/^https:/.test(base)) return r; } catch (e) { if (!/^https:/.test(base)) throw e; }
-  return fetchImpl(base.replace(/^https:/, "http:") + path);
+  const base = String(env.SITE_URL || "").replace(/\/$/, ""), tries = [base];
+  if (/^https:/.test(base)) tries.push(base.replace(/^https:/, "http:"));
+  if (env.SITE_FALLBACK && env.SITE_FALLBACK.replace(/\/$/, "") !== base) tries.push(env.SITE_FALLBACK.replace(/\/$/, ""));   // the github.io address
+  let last = null, err = null;
+  for (const b of tries) { try { const r = await fetchImpl(b + path); if (r.ok) return r; last = r; } catch (e) { err = e; } }
+  if (last) return last; throw err || new Error("site unreachable");
 }
 const enc = new TextEncoder();
 export const b64u = {
