@@ -1260,6 +1260,12 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czach{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.czbadge-a{position:relative;overflow:hidden;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);opacity:.6}
 .czbadge-a b{display:block;font-size:.82rem}.czbadge-a small{color:var(--muted);font-size:.7rem}.czbadge-a.on{opacity:1;border-color:rgba(253,230,138,.55);background:rgba(253,230,138,.08)}.czbadge-a.on b::before{content:"★ ";color:#FDE68A}
 .czbadge-a i{position:absolute;left:0;bottom:0;height:3px;width:var(--p);background:#6D3CE8}.gate-inv{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:rgba(253,230,138,.1);border:1px solid rgba(253,230,138,.4);font-size:.88rem}
+.instcard{margin:0 0 14px;padding:14px 16px;border-radius:18px;border:1px solid rgba(167,139,250,.5);background:linear-gradient(160deg,rgba(109,60,232,.22),rgba(109,60,232,.06));display:grid;gap:10px}
+.insthd{display:flex;align-items:center;gap:12px}.insthd img{border-radius:12px;flex:none}.insthd b{display:block;font-size:1rem}.insthd small{color:var(--muted);font-size:.8rem}.insthd>div{flex:1}
+.instx{border:0;background:none;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer;padding:4px 6px;align-self:flex-start}
+.inststeps{list-style:none;margin:0;padding:0;display:grid;gap:8px}.inststeps li{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;font-size:.9rem}
+.instn{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#6D3CE8;color:#fff;font-weight:800;font-size:.8rem}.inststeps i{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.08);color:#C4B5FD;font-style:normal}
+.instgo{justify-content:center}.instmore{font-size:.8rem;color:var(--muted);justify-self:start}.instcard.inst-gate{margin-bottom:12px}
 .setbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn.danger{color:#fca5a5;border-color:#7f1d1d}
 .czc-mid.noface .czbadge{position:static;width:58%;max-width:none;height:auto;aspect-ratio:1;max-height:70%;filter:drop-shadow(0 6px 18px rgba(0,0,0,.45));opacity:1;transform:none}
 .czjf{display:flex;gap:10px;flex-wrap:wrap}.czjf .field{flex:1;min-width:180px}
@@ -1874,6 +1880,7 @@ dialog.onb p{margin:0 0 12px}
     <button class="sheetrow" data-go="accuracy"><b>Model accuracy</b><span>How well the predictions hold up</span></button>
     <button class="sheetrow" data-go="help"><b>Guide</b><span>How the predictions work, reading the numbers, alerts and picks</span></button>
     <button class="sheetrow" data-go="settings"><b>Settings</b><span>Alerts, spoiler shield, sounds, replays, voice and your start page</span></button>
+    <button class="sheetrow webonly" data-go="getapp"><b>Get the app</b><span>Put Cosmo Sports on your home screen</span></button>
     <button class="sheetrow" data-go="about"><b>About Cosmo Sports</b><span>Data sources, privacy and terms</span></button>
   </div>
 </dialog>
@@ -4827,6 +4834,49 @@ function askReview(delay = 1500){
   if (n < 2 || Date.now() - lsGet("rv-at", 0) < 120 * 864e5) return;           // at most every four months, never on the first good moment
   lsSet("rv-at", Date.now()); lsSet("rv-n", 0); setTimeout(() => nat("InAppReview", "requestReview").catch(() => {}), delay);
 }
+// ---- getting the app on your phone: it installs from the browser (a web app), so the steps depend on the phone and browser
+const INST = { deferred: null };
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); INST.deferred = e; try { drawInstallSpots(); } catch {} });
+function instEnv(){
+  const ua = navigator.userAgent, ios = isIOS, android = /android/i.test(ua);
+  const standalone = NATIVE || matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const inapp = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Bytedance|Snapchat|Twitter|LinkedInApp|Line\/|GSA\/|Pinterest/i.test(ua);
+  const kind = ios ? (inapp ? "ios-inapp" : /CriOS|FxiOS|EdgiOS/i.test(ua) ? "ios-other" : "ios") : android ? (inapp ? "android-inapp" : "android") : "desktop";
+  return { standalone, kind, phone: ios || android, canPrompt: !!INST.deferred };
+}
+const IICON = { share: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Share icon"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`,
+  add: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-label="Add icon"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`,
+  dots: `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-label="Menu icon"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>` };
+function instSteps(kind){
+  if (kind === "ios") return [["Tap the <b>Share</b> button at the bottom of Safari", IICON.share], ["Scroll down and tap <b>Add to Home Screen</b>", IICON.add], ["Tap <b>Add</b>. Cosmo Sports is now on your home screen", ""]];
+  if (kind === "ios-other") return [["Tap the <b>Share</b> button (top right in Chrome)", IICON.share], ["Tap <b>Add to Home Screen</b>", IICON.add], ["Tap <b>Add</b>", ""]];
+  if (kind === "ios-inapp") return [["You're in another app's browser, which can't install apps. Tap <b>•••</b> (or the compass) and choose <b>Open in Safari</b>", IICON.dots], ["In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>", IICON.share]];
+  if (kind === "android-inapp") return [["You're in another app's browser. Tap <b>⋮</b> and choose <b>Open in Chrome</b>", IICON.dots], ["In Chrome, tap <b>⋮</b>, then <b>Install app</b> (or <b>Add to Home screen</b>)", IICON.add]];
+  if (kind === "android") return [["Tap <b>⋮</b> at the top right of Chrome", IICON.dots], ["Tap <b>Install app</b> (or <b>Add to Home screen</b>)", IICON.add], ["Tap <b>Install</b>", ""]];
+  return [["On your phone, open <b>cosmosports.app</b> (or scan the code on the Get the app page)", ""], ["iPhone: Safari, then <b>Share</b>, then <b>Add to Home Screen</b>", IICON.share], ["Android: Chrome, then <b>⋮</b>, then <b>Install app</b>", IICON.dots]];
+}
+function installCardHtml(where){
+  const E = instEnv(); if (E.standalone) return "";
+  if (where !== "sheet" && Date.now() - lsGet("inst-hide", 0) < 5 * 864e5) return "";
+  if (where === "gate" && !E.phone) return "";
+  const st = instSteps(E.kind);
+  return `<section class="instcard inst-${where}" aria-label="Get the app">
+    <div class="insthd"><img src="icon-192.png" alt="" width="46" height="46"><div><b>Get Cosmo Sports on your ${E.phone ? "home screen" : "phone"}</b><small>Free. Opens full screen like any app, no App Store needed.</small></div>${where === "today" ? `<button type="button" class="instx" data-insthide aria-label="Hide for now">×</button>` : ""}</div>
+    ${E.canPrompt ? `<button type="button" class="btn primary instgo" data-instgo>Install the app</button>` : `<ol class="inststeps">${st.map(([t, ic], i) => `<li><span class="instn">${i + 1}</span><span>${t}</span>${ic ? `<i>${ic}</i>` : ""}</li>`).join("")}</ol>`}
+    ${/inapp/.test(E.kind) ? `<button type="button" class="btn instgo" data-instcopy>Copy the link</button>` : ""}
+    <a class="instmore" href="install.html">Get the app page, with a QR code</a></section>`;
+}
+function bindInstall(){}                                   // the buttons are handled by one listener for the whole page (below)
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-instgo],[data-insthide],[data-instcopy]"); if (!b) return;
+  if (b.hasAttribute("data-instgo")){ if (!INST.deferred) return; INST.deferred.prompt(); try { await INST.deferred.userChoice; } catch {} INST.deferred = null; drawInstallSpots(); }
+  else if (b.hasAttribute("data-insthide")){ lsSet("inst-hide", Date.now()); drawInstallSpots(); }
+  else { const url = location.origin + location.pathname; try { await navigator.clipboard.writeText(url); toast("Link copied. Paste it into Safari or Chrome."); } catch { prompt("Copy this link and open it in Safari or Chrome", url); } }
+});
+function drawInstallSpots(){
+  const t = document.getElementById("instToday"); if (t){ t.innerHTML = installCardHtml("today"); bindInstall(t); }
+  const g = document.getElementById("instGate"); if (g){ g.innerHTML = installCardHtml("gate"); bindInstall(g); }
+}
 // ---- one account for all of Cosmo Sports: the app opens behind a sign-in screen until you're signed in with a passkey
 const GATE_ON = HOSTED && !!ALERTS_URL, GATE = { sig: "", open: false, after: null };
 { const ref = new URLSearchParams(location.search).get("ref"); if (/^[a-f0-9]{24}$/.test(ref || "")) lsSet("cz-ref", ref); }   // an invite link
@@ -4843,8 +4893,9 @@ function drawGate(){
   g.hidden = false; GATE.open = true; if (sig === GATE.sig) return; GATE.sig = sig;
   $("#gateBody").innerHTML = `<div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to open the app."}</p></div>
     ${link ? "" : `${lsGet("cz-ref", null) ? `<p class="gate-inv">A friend invited you: you'll both get 500 bonus coins when you join.</p>` : ""}<ul class="gate-perks"><li>📈 Live scores, predictions and the model's track record for every league</li><li>🪐 Cosmic: free play coins, bets and limited-edition cards, down to 1 of 1</li><li>☁️ Your teams, cards and settings saved to your account on every device</li></ul>`}
+    <div id="instGate">${installCardHtml("gate")}</div>
     ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free, no password, no email. By creating an account you agree to the <a href="terms.html">Terms of Use</a>. <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>`;
-  czBind($("#gateBody")); czPkBind($("#gateBody"));
+  czBind($("#gateBody")); czPkBind($("#gateBody")); bindInstall($("#gateBody"));
 }
 function gateStart(){
   if (!GATE_ON){ GATE.after && GATE.after(); GATE.after = null; return; }
@@ -5895,7 +5946,7 @@ function stakesHtml(){
 }
 function drawUniverse(){
   const el = $("#uniView"); if (!el) return;
-  const head = `<div class="lghead"><div><h1>Today</h1><p>Every game across the NFL, NBA, MLB, NHL and Premier League. The closest and latest games sit nearest the center.</p></div></div>`;
+  const head = `<div class="lghead"><div><h1>Today</h1><p>Every game across the NFL, NBA, MLB, NHL and Premier League. The closest and latest games sit nearest the center.</p></div></div><div id="instToday">${installCardHtml("today")}</div>`;
   if (!HOSTED){ el.innerHTML = head + `<div class="teamnote"><b>Live games appear in the installed app</b>Live games come from ESPN, which this version can't reach.</div>`; return; }
   if (UNI_ERR){ el.innerHTML = head + netErrHtml("today's games"); $("#netRetry").onclick = () => { UNI_ERR = false; UNI = null; drawUniverse(); loadUniverse(); }; return; }
   if (!UNI){ el.innerHTML = head + `<div class="teamnote">${cosmoLoad("Loading today's games…")}</div>`; return; }
@@ -6043,6 +6094,7 @@ function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
+  if (g === "getapp"){ if (INST.deferred){ INST.deferred.prompt(); INST.deferred = null; } else { $("#installHow").innerHTML = `<h2 id="iosTitle">Get Cosmo Sports</h2>${installCardHtml("sheet")}<div class="dlgfoot"><span></span><button class="btn" id="iosClose">Close</button></div>`; bindInstall($("#installHow")); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close(); } return; }
   if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
   else if (g === "following" || g === "universe" || g === "play" || g === "comets" || g === "record" || g === "cosmic"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
@@ -6059,6 +6111,7 @@ if (HOSTED && !NATIVE){
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   let deferred = null; const ib = $("#installBtn");
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; if (!standalone) ib.hidden = false; });
+  if (!standalone && instEnv().phone) ib.hidden = false;
   window.addEventListener("appinstalled", () => { ib.hidden = true; toast("Cosmo Sports is installed. Open it from your home screen."); });
   const ua = navigator.userAgent, ios = isIOS, macSafari = /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox/.test(ua) && !ios;
   const how = () => ios ? `<h2 id="iosTitle">Add Cosmo Sports to your home screen</h2><p>On iPhone and iPad, apps like this install from Safari:</p>
@@ -6073,7 +6126,7 @@ if (HOSTED && !NATIVE){
   if (!standalone && (ios || macSafari)) ib.hidden = false;
   ib.addEventListener("click", async () => {
     if (deferred){ deferred.prompt(); try { await deferred.userChoice; } catch {} deferred = null; ib.hidden = true; return; }
-    $("#installHow").innerHTML = how(); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close();
+    $("#installHow").innerHTML = instEnv().phone ? `<h2 id="iosTitle">Get Cosmo Sports</h2>${installCardHtml("sheet")}<div class="dlgfoot"><span></span><button class="btn" id="iosClose">Close</button></div>` : how(); bindInstall($("#installHow")); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close();
   });
 }
 buildSide("a"); buildSide("b");
