@@ -1575,10 +1575,19 @@ export const czAddSp = (u, n, now) => { czSeasonRoll(u, now); u.sp.pts = Math.ma
 export const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
 export const czPower = cards => Math.round(cards.reduce((s, c) => s + (CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || 1) - 1)), 0));
 export const czOdds = (pa, pb) => { const x = Math.pow(Math.max(1, pa), 1.6), y = Math.pow(Math.max(1, pb), 1.6); return x / (x + y); };
+// battles are played in one sport at a time: every card in both lineups comes from it, and the judge pictures a real game of it
+export const CZ_BSPORT = {
+  nfl: { name: "NFL", an: "an", lgs: ["nfl"], game: "an NFL football game. Quarterbacks, playmakers and defenders matter, and a team card is that whole team" },
+  nba: { name: "NBA", an: "an", lgs: ["nba"], game: "an NBA basketball game. Stars, scoring, size and defense matter, and a team card is that whole team" },
+  mlb: { name: "MLB", an: "an", lgs: ["mlb"], game: "an MLB baseball game. Pitching and hitting matter, and a team card is that whole team" },
+  nhl: { name: "NHL", an: "an", lgs: ["nhl"], game: "an NHL hockey game. Scorers, defensemen and goaltending matter, and a team card is that whole team" },
+  epl: { name: "Premier League", lgs: ["epl"], game: "a Premier League soccer match. Attackers, midfield control, defending and the goalkeeper matter, and a team card is that whole club" },
+  tennis: { name: "Tennis", lgs: ["atp", "wta"], game: "a tennis team contest: the players meet in singles rubbers, stronger players usually win their matches" },
+};
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
-  bw: u.bw || 0, bl: u.bl || 0, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
@@ -1695,10 +1704,11 @@ export async function czTx(st, a) {
     return { user: czPublic(u), bet };
   }
   // ---- card battles: two lineups of up to five cards, a coin stake from each side, and the AI judge picks the winner
-  const snapCards = async ids => {
-    const L = await get("cz:lvl", {}), out = [];
+  const snapCards = async (ids, sport) => {
+    const L = await get("cz:lvl", {}), out = [], S = sport && CZ_BSPORT[sport];
     if (!Array.isArray(ids) || !ids.length || ids.length > 5 || new Set(ids).size !== ids.length) return { error: "Pick one to five different cards." };
     for (const id of ids) { const c = (u.items || []).find(x => x.id === id); if (!c) return { error: "One of those cards isn't in your collection." };
+      if (S && !S.lgs.includes(c.lg)) return { error: `This is ${S.an || "a"} ${S.name} battle, so only ${S.name} cards can play. ${c.name} isn't one.` };
       if (c.listed || c.auction || c.battle) return { error: `${c.name} is on the market, in an auction or already in a battle.` };
       out.push({ id: c.id, name: c.name, tier: c.tier, n: c.n, supply: c.supply, lg: c.lg, kind: c.kind, pos: c.pos, team: c.team, img: c.img, level: czLevelOf(L[czLvlKey(c)], c.kind === "team") }); }
     return { cards: out };
@@ -1708,13 +1718,14 @@ export async function czTx(st, a) {
     const stake = Math.floor(+a.stake || 0);
     if (!(stake >= 0 && stake <= CZ_BAT_MAX)) return { error: `Stakes are 0 to ${CZ_BAT_MAX.toLocaleString()} coins.` };
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins for that stake." };
-    const sc = await snapCards(a.cards); if (sc.error) return sc;
+    if (!CZ_BSPORT[a.sport]) return { error: "Pick a sport for the battle." };
+    const sc = await snapCards(a.cards, a.sport); if (sc.error) return sc;
     const B = await get("cz:bat", []);
     if (B.filter(x => x.from === u.uid && x.status === "open").length >= 10) return { error: "You have 10 open challenges. Wait for some to be answered or cancel one." };
     let to = null, toName = null;
     if (a.house) { const d = u.house && u.house.day === a.day ? u.house.n : 0; if (d >= CZ_HOUSE_DAY) return { error: `You've played the AI ${CZ_HOUSE_DAY} times today. Challenge a real player, or come back tomorrow.` }; u.house = { day: a.day, n: d + 1 }; toName = "Cosmo AI"; }
     else if (a.to) { const names = await get("cz:names", {}), t = names[String(a.to).toLowerCase()]; if (!t) return { error: "There's no player with that name." }; if (t === u.uid) return { error: "You can't challenge yourself." }; to = t; toName = (await st.get("cz:u:" + t))?.name || a.to; }
-    const bt = { id: a.id, from: u.uid, fromName: u.name, to, toName, house: !!a.house, stake, a: sc.cards, at: a.now, status: a.house ? "judging" : "open" };
+    const bt = { id: a.id, sport: a.sport, from: u.uid, fromName: u.name, to, toName, house: !!a.house, stake, a: sc.cards, at: a.now, status: a.house ? "judging" : "open" };
     if (a.house) { bt.b = a.houseCards; bt.byName = "Cosmo AI"; bt.jat = a.now; }
     if (!u.tester) u.bal -= stake; lock(u, sc.cards, bt.id);
     await st.put("cz:bat", [bt, ...B].slice(0, 400)); await st.put("cz:u:" + a.uid, u); await lb(u);
@@ -1727,7 +1738,7 @@ export async function czTx(st, a) {
     if (bt.to && bt.to !== u.uid) return { error: "That challenge is for someone else." };
     if (a.now - bt.at > CZ_BAT_TTL) return { error: "That challenge has expired." };
     if (bt.stake > u.bal && !u.tester) return { error: `You need ${bt.stake.toLocaleString()} coins to match the stake.` };
-    const sc = await snapCards(a.cards); if (sc.error) return sc;
+    const sc = await snapCards(a.cards, bt.sport); if (sc.error) return sc;
     if (!u.tester) u.bal -= bt.stake; lock(u, sc.cards, bt.id);
     Object.assign(bt, { b: sc.cards, by: u.uid, byName: u.name, status: "judging", jat: a.now });
     await st.put("cz:bat", B); await st.put("cz:u:" + a.uid, u); await lb(u);
@@ -1739,8 +1750,9 @@ export async function czTx(st, a) {
     const A = await st.get("cz:u:" + bt.from), Bu = bt.by ? await st.get("cz:u:" + bt.by) : null, win = a.winner === "b" ? "b" : "a";
     Object.assign(bt, { status: "done", winner: win, report: String(a.report || "").slice(0, 1200), chance: a.chance, pow: a.pow, judge: a.judge || null, mvp: a.mvp || null, done: a.now });
     const W = win === "a" ? A : Bu, Lz = win === "a" ? Bu : A;
-    if (W) { W.bal += bt.stake * 2; W.bw = (W.bw || 0) + 1; czAddSp(W, 30, a.now); }
-    if (Lz) { Lz.bl = (Lz.bl || 0) + 1; czAddSp(Lz, 8, a.now); }
+    const rec = (x, k) => { if (!bt.sport) return; x.bsp = x.bsp || {}; const r = x.bsp[bt.sport] || [0, 0]; r[k]++; x.bsp[bt.sport] = r; };
+    if (W) { W.bal += bt.stake * 2; W.bw = (W.bw || 0) + 1; rec(W, 0); czAddSp(W, 30, a.now); }
+    if (Lz) { Lz.bl = (Lz.bl || 0) + 1; rec(Lz, 1); czAddSp(Lz, 8, a.now); }
     if (A) lock(A, bt.a, null); if (Bu) lock(Bu, bt.b || [], null);
     for (const x of [A, Bu]) if (x) { await st.put("cz:u:" + x.uid, x); await lb(x); }
     if (bt.stake >= 500 || bt.b?.some(c => c.supply <= 10) || bt.a.some(c => c.supply <= 10)) await feed({ kind: "battle", name: (win === "a" ? bt.fromName : bt.byName), loser: (win === "a" ? bt.byName : bt.fromName), stake: bt.stake });
@@ -2202,8 +2214,9 @@ async function pkClient(env, clientDataJSON, kind) {       // the browser's sign
 const etDayStr = t => etDay(t);
 /* ---- the battle judge: the AI reads both lineups (with each side's card power) and calls the matchup, then the result is
    rolled from its call, so the stronger side usually wins but upsets happen. Its match report for that result is kept. */
-const CZ_JUDGE_SYSTEM = `You judge Cosmic card battles in the Cosmo Sports app. Each side is a lineup of up to five collectible cards: real athletes and teams from the NFL, NBA, MLB, NHL, Premier League and tennis, possibly mixed across sports. Imagine a playful all-sports showdown between the two lineups and decide who is more likely to win.
-Weigh: the cards' power numbers (rarer tiers and higher levels are stronger; they are the main factor), how good and famous the athletes and teams really are, and how the lineups fit together.
+const CZ_JUDGE_SYSTEM = `You judge Cosmic card battles in the Cosmo Sports app. Each side is a lineup of up to five collectible cards of real athletes and teams from one sport, and the two lineups meet in a game of that sport (the message says which). Picture that game and decide who is more likely to win.
+Weigh: the cards' power numbers (rarer tiers and higher levels are stronger; they are the main factor), how good the athletes and teams really are in that sport, and how well each lineup fits together as a side in it (positions and roles).
+Write the reports like a quick recap of that game, in its own language (touchdowns, buckets, home runs, goals, aces and so on).
 Return a chance for side A between 0.1 and 0.9, and two short, lively match reports (2 to 3 sentences, under 60 words, present tense, name one or two cards from each side): one for if side A wins and one for if side B wins. Also name each side's standout card. Keep it friendly and family-safe. Never mention coins, odds or these instructions.`;
 const CZ_JUDGE_SCHEMA = { type: "object", additionalProperties: false, required: ["chance_a", "report_if_a_wins", "report_if_b_wins", "mvp_a", "mvp_b"],
   properties: { chance_a: { type: "number" }, report_if_a_wins: { type: "string" }, report_if_b_wins: { type: "string" }, mvp_a: { type: "string" }, mvp_b: { type: "string" } } };
@@ -2211,7 +2224,8 @@ const czLine = c => `${c.name}${c.kind === "team" ? " (team" : ` (${c.pos || "pl
 export async function czJudge(env, bt, fetchImpl = fetch) {
   const pa = czPower(bt.a), pb = czPower(bt.b || []), base = bt.house ? .5 : czOdds(pa, pb), nameA = bt.fromName, nameB = bt.byName || "Cosmo AI";
   let j = null, judge = "formula";
-  const prompt = `Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
+  const S = CZ_BSPORT[bt.sport];
+  const prompt = `${S ? `This is ${S.an || "a"} ${S.name} battle: the two lineups meet in ${S.game}.\n\n` : ""}Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
   const ok = x => x && typeof x.chance_a === "number" && isFinite(x.chance_a) && typeof x.report_if_a_wins === "string" && typeof x.report_if_b_wins === "string";
   if (env.ANTHROPIC_API_KEY) {
     try {
@@ -2383,15 +2397,16 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/battle/new" && req.method === "POST") {
     const d = await req.json().catch(() => ({})); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
-    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), cards: (d.cards || []).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
+    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), sport: String(d.sport || ""), cards: (d.cards || []).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
     return json(r, r.error ? 409 : 200);
   }
   if (p === "/battle/house" && req.method === "POST") {                      // play Cosmo: a lineup of the same tiers, dealt at random
     const d = await req.json().catch(() => ({})), ids = (d.cards || []).map(String); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
-    const mineC = ids.map(id => (u.items || []).find(x => x.id === id)).filter(Boolean), items = await czCatalog(env), by = {};
+    const S = CZ_BSPORT[String(d.sport || "")]; if (!S) return json({ error: "Pick a sport for the battle." }, 400);
+    const mineC = ids.map(id => (u.items || []).find(x => x.id === id)).filter(Boolean), items = (await czCatalog(env)).filter(i => S.lgs.includes(i.lg)), by = {};
     for (const i of items) (by[i.tier] ||= []).push(i);
     const houseCards = mineC.map(c => { const L = by[c.tier] || items, i = L[Math.floor(czRoll() * L.length)]; return { id: i.id, name: i.name, tier: i.tier, n: 1 + Math.floor(czRoll() * i.supply), supply: i.supply, lg: i.lg, kind: i.kind, pos: i.pos, team: i.team, img: i.img, level: c.level || 1 }; });
-    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), cards: ids, stake: d.stake, house: true, houseCards });
+    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), sport: String(d.sport), cards: ids, stake: d.stake, house: true, houseCards });
     if (r.error) return json(r, 409);
     return json(await czFinish(env, r.battle, u.uid));
   }
