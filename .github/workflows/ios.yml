@@ -7,6 +7,8 @@ on:
   push:
     branches: [main]
     paths: ["app/**", ".github/workflows/ios.yml"]
+  pull_request:
+    paths: ["app/**", ".github/workflows/ios.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +37,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -40
 
       - name: Is App Store Connect set up?
+        if: github.event_name != 'pull_request'
         id: keys
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
