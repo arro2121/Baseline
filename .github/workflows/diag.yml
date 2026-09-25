@@ -1,0 +1,49 @@
+# Temporary: data probes for season simulations and NFL leaders. Safe to delete.
+name: Probes
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .github/diag/p; cd .github/diag/p
+          c() { curl -sS -m 60 -A "Mozilla/5.0" "$2" -o "$1" -w "$1 %{http_code} %{size_download}\n" || echo "$1 failed"; }
+          c nba_cdn.json "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
+          c nhl_games.json "https://api.nhle.com/stats/rest/en/game?cayenneExp=season=20262027%20and%20gameType=2"
+          c nhl_sched.json "https://api-web.nhle.com/v1/schedule/2026-10-10"
+          c mlb_sched.json "https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=2026&gameType=R&startDate=2026-09-24&endDate=2026-10-05&fields=dates,date,games,gamePk,gameDate,status,abstractGameState,teams,home,away,team,name,score"
+          B="https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&seasontype=2&season=2026"
+          c nfl_pass.json "$B&sort=passing.passingYards:desc"
+          c nfl_rush.json "$B&sort=rushing.rushingYards:desc"
+          c nfl_def.json "$B&sort=defensive.sacks:desc"
+          c nfl_rec.json "$B&sort=receiving.receivingYards:desc"
+          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
+          c w_nbateam.json "$W/sports/nba/team/13"
+          python3 - <<'PY'
+          import json, glob
+          def load(f):
+              try: return json.load(open(f))
+              except Exception as e: print(f, "not json"); return None
+          d=load("nba_cdn.json")
+          if d:
+              gd=d["leagueSchedule"]["gameDates"]; gs=[g for x in gd for g in x["games"]]
+              print("nba cdn season", d["leagueSchedule"].get("seasonYear"), len(gs), "games; first", json.dumps(gs[0])[:400])
+          d=load("nhl_games.json");
+          if d: print("nhl games", len(d["data"]), json.dumps(d["data"][0])[:300])
+          for f in ["nfl_pass.json","nfl_rush.json","nfl_def.json","nfl_rec.json"]:
+              d=load(f)
+              if d: print(f, "athletes", len(d.get("athletes",[])), [(c["name"], c.get("names")) for c in d.get("categories",[])][:8]); 
+              if d and d.get("athletes"): a=d["athletes"][0]; print("  top", a["athlete"]["displayName"], [(c["name"], c["totals"][:6]) for c in a["categories"]][:6])
+          d=load("w_nbateam.json")
+          if d: print("worker team keys", list(d)[:20], json.dumps(d.get("schedule") or d.get("games") or "")[:500])
+          PY
+          find . -name '*.json' -size +200k -delete
+      - run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag && git commit -q -m "Probe results" && git push
