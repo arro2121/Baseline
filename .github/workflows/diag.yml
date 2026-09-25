@@ -1,0 +1,22 @@
+# Temporary: what DNS says about cosmosports.app. Safe to delete.
+name: Probes
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+permissions:
+  contents: write
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p .github/diag; o=.github/diag/dns.txt
+          for n in cosmosports.app www.cosmosports.app; do for t in A AAAA CNAME NS; do echo "$n $t: $(dig +short $t $n @1.1.1.1 | tr '\n' ' ')" >> $o; done; done
+          echo "google A: $(dig +short A cosmosports.app @8.8.8.8 | tr '\n' ' ')" >> $o
+          curl -sS -m 20 -o /dev/null -w "http root: %{http_code} -> %{redirect_url} (server %{remote_ip})\n" http://cosmosports.app >> $o 2>&1 || true
+          curl -sSI -m 20 https://cosmosports.app 2>&1 | head -8 >> $o || true
+      - run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add .github/diag && git commit -q -m "DNS probe" && git push
