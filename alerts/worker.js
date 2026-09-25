@@ -1616,7 +1616,7 @@ export async function czTx(st, a) {
     const free = !!a.free && u.freePack && pk.id === "comet";
     if (a.free && !free) return { error: "Your welcome pack has already been opened." };
     if (!free && u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
-    const order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
+    const ser = {}, order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     const left = t => a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id));
     for (let c = 0; c < pk.cards; c++) {
       let r = rnd() * 100, tier = order[order.length - 1];
@@ -1626,7 +1626,12 @@ export async function czTx(st, a) {
       for (let k = ti - 1; !cands.length && k >= 0; k--) cands = left(order[k]);
       if (!cands.length) break;
       const it = cands[Math.floor(rnd() * cands.length)], back = ret[it.id] || [];
-      let n; if (back.length) { back.sort((x, y) => x - y); n = back.shift(); ret[it.id] = back; } else { n = (mint[it.id] || 0) + 1; mint[it.id] = n; }
+      // every copy gets a random serial that isn't in anyone's collection: 1/25 to 25/25 each exist exactly once
+      const sk = "cz:ser:" + it.id, iss = ser[it.id] || (ser[it.id] = await get(sk, null) || Array.from({ length: mint[it.id] || 0 }, (_, k) => k + 1));
+      const taken = new Set(iss), open = [...back]; for (let k = 1; k <= it.supply; k++) if (!taken.has(k)) open.push(k);
+      if (!open.length) continue;
+      const n = open[Math.floor(rnd() * open.length)];
+      if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
@@ -1635,6 +1640,7 @@ export async function czTx(st, a) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
     }
+    for (const id in ser) await st.put("cz:ser:" + id, ser[id]);
     await st.put("cz:mint", mint); await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), cards: pulled };
   }
