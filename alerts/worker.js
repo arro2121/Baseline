@@ -1439,12 +1439,14 @@ export async function trackAll(db) {
 /* ---------------- Cosmic: social betting with Cosmic Coins, and limited-edition collectibles ----------------
    Play money only: Cosmic Coins can't be bought, sold, cashed out or sent to anyone. Everyone starts with 1,000 and can claim
    more every day; coins are won or lost betting on real games at real sportsbook prices (the model's fair price, with a small
-   margin, where no book has a line). Coins buy numbered, limited-edition team and player cards (1 of 1 down to 1 of 250) whose
+   margin, where no book has a line). Coins buy numbered, limited-edition team and player cards (1 of 1 up to 1 of 1,000) whose
    supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
    no cash value either.
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
 const CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
-export const CZ_TIERS = [["singularity", "Singularity", 1, 25000], ["supernova", "Supernova", 10, 5000], ["nebula", "Nebula", 50, 1500], ["stardust", "Stardust", 250, 400]];
+// supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
+export const CZ_TIERS = [["singularity", "Singularity", 1, 25000], ["supernova", "Supernova", 10, 5000], ["quasar", "Quasar", 25, 2800], ["nebula", "Nebula", 50, 1500],
+  ["pulsar", "Pulsar", 100, 800], ["stardust", "Stardust", 250, 400], ["comet", "Comet", 1000, 150]];
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -1554,7 +1556,7 @@ async function czMarkets(env, lg, day, fetchImpl = fetch) {
   CZ_BOARD.set(k, { at: Date.now(), v }); if (CZ_BOARD.size > 40) CZ_BOARD.clear();
   return v;
 }
-// the collectibles: every team in the five leagues and the top 24 players on each tennis tour, in four tiers.
+// the collectibles: every team in the five leagues and the top 24 players on each tennis tour, in seven tiers, 1 of 1 up to 1 of 1,000.
 // Better teams (by the model's rating) and higher-ranked players cost more.
 let CZ_CAT = null;
 async function czCatalog(env, fetchImpl = fetch) {

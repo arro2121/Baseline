@@ -1268,6 +1268,9 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .czcard.t-supernova{box-shadow:0 0 0 1.5px #fb923c,0 0 22px -6px rgba(251,146,60,.7)}.czcard.t-supernova .czc-top span{background:linear-gradient(90deg,#fb923c,#e879f9);border:0}
 .czcard.t-nebula{box-shadow:0 0 0 1.5px #a78bfa,0 0 20px -8px rgba(167,139,250,.8)}.czcard.t-nebula .czc-top span{background:linear-gradient(90deg,#7c3aed,#22d3ee);border:0}
 .czcard.t-stardust .czc-top span{background:rgba(203,213,225,.18)}
+.czcard.t-quasar{box-shadow:0 0 0 1.5px #38bdf8,0 0 22px -6px rgba(56,189,248,.7)}.czcard.t-quasar .czc-top span{background:linear-gradient(90deg,#0ea5e9,#e879f9);border:0}
+.czcard.t-pulsar{box-shadow:0 0 0 1px #34d399,0 0 16px -8px rgba(52,211,153,.8)}.czcard.t-pulsar .czc-top span{background:linear-gradient(90deg,#059669,#6366f1);border:0}
+.czcard.t-comet .czc-top span{background:rgba(148,163,184,.14)}.czcard.t-comet .czc-foil{opacity:.18}
 .czcard.big{max-width:260px;margin:0 auto}.czreveal{text-align:center}.czreveal .czcard{animation:czpop .7s cubic-bezier(.2,1.4,.4,1)}
 @keyframes czpop{from{transform:scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
 .czown-list{display:grid;gap:4px;max-height:220px;overflow:auto;margin:12px 0}.czown-list div{display:grid;grid-template-columns:52px 1fr auto;gap:8px;font-size:.85rem;padding:5px 0;border-bottom:1px solid var(--line-2)}.czown-list small{color:var(--muted)}
@@ -1646,7 +1649,7 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
   <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Cosmic: bet free coins, collect one-of-a-kind cards.</p></div></div>
   <ul class="newlist">
-    <li><i>🪐</i><span><b>Cosmic.</b> Bet free Cosmic Coins on real games at real sportsbook prices, climb the leaderboards, and spend your winnings on limited-edition team and player cards, from 1 of 250 down to the one-and-only 1 of 1. Coins have no cash value.</span></li>
+    <li><i>🪐</i><span><b>Cosmic.</b> Bet free Cosmic Coins on real games at real sportsbook prices, climb the leaderboards, and spend your winnings on limited-edition team and player cards, from 1 of 1,000 all the way to the one-and-only 1 of 1. Coins have no cash value.</span></li>
     <li><i>🎲</i><span><b>Season odds.</b> The rest of every season is played out 10,000 times each night: playoff, division and title chances for every team, charted over time, plus what each team's next game is worth. In the new Odds tab of every league.</span></li>
     <li><i>🔥</i><span><b>Most at stake.</b> The games that swing the playoff races most, on Today and in each Odds tab, with luck (wins above what the scoring says) and the toughest schedules left.</span></li>
     <li><i>🏈</i><span><b>NFL leaders for 2026,</b> now with rushing, sacks, tackles and interceptions.</span></li>
@@ -4263,7 +4266,7 @@ function czCard(it, ed, big){
     <div class="czc-mid">${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials)}'}))">` : `<b>${esc(initials)}</b>`}</div>
     <div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
 }
-const CZ_TIER_NAME = { singularity: "Singularity", supernova: "Supernova", nebula: "Nebula", stardust: "Stardust" };
+const CZ_TIER_NAME = { singularity: "Singularity", supernova: "Supernova", quasar: "Quasar", nebula: "Nebula", pulsar: "Pulsar", stardust: "Stardust", comet: "Comet" };
 function czHeader(){
   const me = CZ.me, day = (() => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); })();
   return `<div class="lghead czhead"><div><h1>🪐 Cosmic</h1><p>Bet Cosmic Coins on real games, climb the leaderboard, and spend your winnings on limited-edition team and player cards. Free and just for fun: coins have no cash value and can't be bought or cashed out.</p></div>
@@ -4285,7 +4288,7 @@ function czJoinHtml(){
   return `<section class="card czjoin"><h2>Join Cosmic</h2><p class="sub">Pick a name for the leaderboard. You start with ${czAmt(1000)} and can claim more every day.</p>
     <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button></form>
     <p class="sub" style="margin:10px 0 0">Already playing on another device? <button type="button" class="linkbtn" data-cz="usekey">Use your Cosmic key</button></p></section>
-    ${ones.length ? `<section class="card"><h2>In the vault</h2><p class="sub">Every team and the top tennis players, in four tiers. Only one Singularity card of each will ever exist.</p><div class="czgrid">${ones.map(i => czCard(i)).join("")}</div></section>` : ""}`;
+    ${ones.length ? `<section class="card"><h2>In the vault</h2><p class="sub">Every team and the top tennis players, in seven tiers, from 1 of 1,000 to 1 of 1. Only one Singularity card of each will ever exist.</p><div class="czgrid">${ones.map(i => czCard(i)).join("")}</div></section>` : ""}`;
 }
 // ---- Bet
 function czPrice(dec){ return fmtOdds(dec); }
@@ -4343,7 +4346,7 @@ function czVaultHtml(){
   return `<div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Tier">${["all", ...V.tiers.map(t => t.id)].map(t => `<button type="button" data-czvt="${t}" aria-pressed="${CZ.vtier === t}">${t === "all" ? "Every tier" : `${CZ_TIER_NAME[t]} 1/${V.tiers.find(x => x.id === t).supply}`}</button>`).join("")}</div>
     <input class="field czq" type="search" placeholder="Find a team or player" value="${esc(CZ.vq)}" data-czq></div>
-    <p class="sub">${V.tiers.map(t => `<b>${esc(t.label)}</b> 1 of ${t.supply}`).join(" · ")}. Better teams and higher-ranked players cost more. One of each card per collector.</p>
+    <p class="sub">${V.tiers.map(t => `<b>${esc(t.label)}</b> 1 of ${t.supply}`).join(" · ")}. Supply is for the whole game, not per person: when a card sells out, it's gone for everyone. Better teams and higher-ranked players cost more. One of each card per collector.</p>
     ${list.length ? `<div class="czgrid">${list.slice(0, CZ.vshow).map(tile).join("")}</div>${list.length > CZ.vshow ? `<button class="btn" type="button" data-cz="vmore" style="margin-top:14px">Show more</button>` : ""}` : `<div class="teamnote">No cards match.</div>`}`;
 }
 async function czBuy(id){

@@ -151,8 +151,8 @@ No model is certain. Bet only what you can afford to lose.
 **More › Cosmic** (or `?sport=cosmic`). Everyone starts with 1,000 Cosmic Coins and can claim more daily (a streak adds up to
 +300). Coins are bet on real NFL, NBA, MLB, NHL and Premier League games at the sportsbook's moneyline (or the model's fair price
 with a 4.5% margin where there's no line), and bets settle automatically after the final. Coins buy numbered cards for every team
-and the top 24 players on each tennis tour, in four tiers: Singularity (1 of 1), Supernova (1 of 10), Nebula (1 of 50) and
-Stardust (1 of 250). Supply is shared by everyone and enforced by the alerts service's Durable Object, so there is only ever one
+and the top 24 players on each tennis tour, in seven tiers: Singularity (1 of 1), Supernova (1 of 10), Quasar (1 of 25),
+Nebula (1 of 50), Pulsar (1 of 100), Stardust (1 of 250) and Comet (1 of 1,000). Supply is shared by everyone and enforced by the alerts service's Durable Object, so there is only ever one
 1/1 of each. Coins and cards have no cash value: they can't be bought, sold, cashed out or transferred, and the cards are not
 blockchain NFTs.
 
