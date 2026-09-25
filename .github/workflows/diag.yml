@@ -1,4 +1,4 @@
-# Temporary: check that player photos load for the live site. Safe to delete.
+# Temporary: find a source for Premier League player photos. Safe to delete.
 name: Probes
 on:
   push:
@@ -10,11 +10,13 @@ jobs:
   photos:
     runs-on: ubuntu-latest
     steps:
-      - name: Photos and the live card list
+      - name: Premier League photo sources
         run: |
-          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
-          for lg in nfl nba mlb nhl epl; do echo "== $lg vault"; curl -s --max-time 20 "$W/cosmic/vault?kind=player&limit=2&lg=$lg" | head -c 700; echo; done
-          for u in https://a.espncdn.com/i/headshots/nfl/players/full/5084939.png https://a.espncdn.com/i/headshots/nba/players/full/4278039.png https://a.espncdn.com/i/headshots/soccer/players/full/93193.png https://assets.nhle.com/mugs/nhl/20262027/COL/8481550.png "https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/675961/headshot/67/current"; do
-            for ref in "" "https://arro2121.github.io/" "https://cosmosports.app/"; do
-              echo "$(curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}' --max-time 15 ${ref:+-H "Referer: $ref"} "$u") ref=${ref:-none} $u"; done; done
-          echo "== site"; for s in https://cosmosports.app/ http://cosmosports.app/ https://arro2121.github.io/Baseline/; do curl -s -o /dev/null -w "%{http_code} -> %{redirect_url} $s\n" --max-time 15 "$s"; done
+          H='-H Origin:https://www.premierleague.com -H Referer:https://www.premierleague.com/'
+          echo "== compseasons"; curl -s --max-time 20 $H "https://footballapi.pulselive.com/football/compseasons?page=0&pageSize=3&comps=1" | head -c 600; echo
+          echo "== players"; curl -s --max-time 20 $H "https://footballapi.pulselive.com/football/players?pageSize=3&compSeasons=777&altIds=true&page=0&type=player" | head -c 1200; echo
+          echo "== photo"; for u in "https://resources.premierleague.com/premierleague/photos/players/250x250/p118748.png" "https://resources.premierleague.com/premierleague25/photos/players/110x140/118748.png"; do curl -s -o /dev/null -w "%{http_code} %{content_type} %{size_download} $u\n" --max-time 15 "$u"; done
+          echo "== espn soccer roster"; curl -s --max-time 20 "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/359/roster" | python3 -c "import sys,json; d=json.load(sys.stdin); a=d.get('athletes',[]); print(len(a)); [print(x.get('displayName'), x.get('headshot',{}).get('href'), x.get('id')) for x in a[:6]]"
+          echo "== espn combiner"; curl -s -o /dev/null -w "%{http_code} %{content_type} %{size_download}\n" --max-time 15 "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/5084939.png&w=240&h=175&scale=crop&cquality=80&location=origin"
+          echo "== nhl latest"; curl -s -o /dev/null -w "%{http_code} %{content_type}\n" --max-time 15 "https://assets.nhle.com/mugs/nhl/latest/8481550.png"
+          echo "== fotmob search"; curl -s --max-time 15 "https://www.fotmob.com/api/search/suggest?term=Bukayo%20Saka" | head -c 400; echo
