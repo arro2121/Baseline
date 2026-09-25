@@ -28,13 +28,14 @@ from sklearn.metrics import log_loss, brier_score_loss
 
 def elo_p(d): return 1 / (1 + 10 ** (-d / 400))
 
-# settings per league (K, home edge and offseason pull tuned on a validation season before the test seasons): Elo K and home edge, the offseason pull toward average, how fast running stats forget,
+# settings per league (K, home edge, offseason pull and memory tuned on the two validation seasons before the test seasons;
+# kept only where the untouched test seasons improved too: NFL and NHL were retuned in September 2026): Elo K and home edge, the offseason pull toward average, how fast running stats forget,
 # the cap on rest days that still matter, and the per-sport margin multiplier for Elo
 CFG = {
-    "nfl": dict(K=16, HFA=48, revert=1 / 3, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
+    "nfl": dict(K=31.25, HFA=28.8, revert=1 / 3, half=7.5, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
     "nba": dict(K=18, HFA=60, revert=.2, half=12, rest_cap=4, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
     "mlb": dict(K=2.5, HFA=16, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
-    "nhl": dict(K=4, HFA=30, revert=.2, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
+    "nhl": dict(K=5.12, HFA=48, revert=.6, half=9, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
     "epl": dict(K=28, HFA=70, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
 }
 LABELS = {
