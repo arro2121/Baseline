@@ -16,7 +16,7 @@ id,name,season,ip,so,bb,hr,er,gs
 571510,Matthew Boyd,2026,126.67,96,39,15,55,22
 571578,Patrick Corbin,2026,80.0,63,25,12,49,15
 571882,Derek Law,2026,9.0,5,2,0,1,1
-571927,Steven Matz,2026,78.0,58,25,14,47,11
+571927,Steven Matz,2026,79.33,60,25,15,49,11
 571945,Miles Mikolas,2026,116.0,58,23,27,75,11
 572143,Burch Smith,2026,17.0,20,7,2,6,1
 579328,Yusei Kikuchi,2026,62.67,60,29,7,34,13
@@ -143,7 +143,7 @@ id,name,season,ip,so,bb,hr,er,gs
 660761,José Suarez,2026,43.0,37,13,6,27,1
 660761,José Suarez,2026,2.0,3,2,0,1,0
 660761,José Suarez,2026,16.33,21,12,0,12,1
-661563,Luis Gil,2026,27.0,17,16,6,14,4
+661563,Luis Gil,2026,27.33,17,18,6,14,4
 663362,Matt Waldron,2026,42.67,33,11,7,31,4
 663362,Matt Waldron,2026,5.67,2,1,0,0,1
 663362,Matt Waldron,2026,32.67,28,8,7,26,3
@@ -162,7 +162,7 @@ id,name,season,ip,so,bb,hr,er,gs
 663559,Bailey Falter,2026,13.0,8,6,4,15,2
 663559,Bailey Falter,2026,9.67,6,6,4,15,2
 663559,Bailey Falter,2026,3.33,2,0,0,0,0
-663567,Peter Lambert,2026,151.0,147,57,15,62,27
+663567,Peter Lambert,2026,152.0,148,57,15,62,28
 663568,Stephen Kolek,2026,54.0,34,12,8,27,10
 663623,Jake Irvin,2026,101.67,104,46,18,61,20
 663738,Daniel Lynch IV,2026,80.67,54,26,9,37,9
@@ -299,7 +299,7 @@ id,name,season,ip,so,bb,hr,er,gs
 678906,Kai-Wei Teng,2026,73.67,73,33,10,39,10
 679775,Kyle Backhus,2026,20.0,20,6,3,11,1
 679883,Luinder Avila,2026,70.0,61,42,7,43,12
-680570,Grayson Rodriguez,2026,93.67,83,38,15,62,19
+680570,Grayson Rodriguez,2026,94.67,83,38,15,62,20
 680573,Simeon Woods Richardson,2026,66.0,40,37,11,49,10
 680573,Simeon Woods Richardson,2026,18.33,14,12,2,8,0
 680573,Simeon Woods Richardson,2026,47.67,26,25,9,41,10
@@ -346,7 +346,7 @@ id,name,season,ip,so,bb,hr,er,gs
 686613,Hunter Brown,2026,102.0,120,51,11,37,19
 686790,Trevor McDonald,2026,70.33,57,23,7,40,14
 686799,Jack Kochanowicz,2026,64.0,47,36,7,44,13
-686930,Mason Barnett,2026,44.0,42,28,12,35,5
+686930,Mason Barnett,2026,45.67,44,29,13,38,6
 687064,Brandon Young,2026,151.67,127,58,22,61,27
 687075,Brandon Sproat,2026,97.0,101,52,17,60,19
 687223,Carson Palmquist,2026,16.33,15,8,1,14,6
@@ -379,7 +379,7 @@ id,name,season,ip,so,bb,hr,er,gs
 691799,Grant Taylor,2026,82.0,103,30,7,21,4
 691946,George Klassen,2026,27.0,24,21,2,11,6
 691951,Sam Aldegheri,2026,33.67,22,17,5,19,6
-693433,Bryan Woo,2026,167.67,167,36,18,73,29
+693433,Bryan Woo,2026,169.33,170,37,18,73,30
 693645,Cam Schlittler,2026,193.67,239,49,16,42,33
 693686,Spencer Miles,2026,94.67,91,24,5,27,8
 693821,Bryce Elder,2026,149.0,121,49,24,68,26
@@ -417,7 +417,7 @@ id,name,season,ip,so,bb,hr,er,gs
 699151,Jedixson Paez,2026,3.0,0,3,2,6,0
 700241,Michael McGreevy,2026,164.0,113,46,21,70,30
 700249,Cade Povich,2026,37.0,28,15,6,18,7
-700363,AJ Smith-Shawver,2026,28.33,24,16,6,22,5
+700363,AJ Smith-Shawver,2026,30.0,24,16,6,22,5
 700669,Gordon Graceffo,2026,79.0,60,35,5,24,1
 700712,Walbert Ureña,2026,148.33,142,68,10,49,27
 700842,Eduardo Rivera,2026,10.0,10,6,1,7,3
