@@ -1,0 +1,8 @@
+name: espn-probe
+on: { push: { branches: [claude/dreamy-davinci-hedx5u] } }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/probe/espn_college.py
