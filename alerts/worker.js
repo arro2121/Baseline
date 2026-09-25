@@ -155,6 +155,7 @@ export class Store {
     if (d.op === "get") v = (await st.get(d.k)) ?? null;
     else if (d.op === "put") { await st.put(d.k, d.v); v = true; }
     else if (d.op === "many") v = Object.fromEntries(await st.get((d.ks || []).slice(0, 128)));
+    else if (d.op === "cz") v = d.a.act === "settle" ? await czSettleTx(st, d.a) : await czTx(st, d.a);
     else if (d.op === "subs") v = [...(await st.list({ prefix: "sub:" })).values()];
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
@@ -1435,6 +1436,224 @@ export async function trackAll(db) {
   return { since: TRACK_SINCE, asof: new Date().toISOString(), picks };
 }
 
+/* ---------------- Cosmic: social betting with Cosmic Coins, and limited-edition collectibles ----------------
+   Play money only: Cosmic Coins can't be bought, sold, cashed out or sent to anyone. Everyone starts with 1,000 and can claim
+   more every day; coins are won or lost betting on real games at real sportsbook prices (the model's fair price, with a small
+   margin, where no book has a line). Coins buy numbered, limited-edition team and player cards (1 of 1 down to 1 of 250) whose
+   supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
+   no cash value either.
+   Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
+const CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
+export const CZ_TIERS = [["singularity", "Singularity", 1, 25000], ["supernova", "Supernova", 10, 5000], ["nebula", "Nebula", 50, 1500], ["stardust", "Stardust", 250, 400]];
+const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
+const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
+const czPublic = u => u && ({ uid: u.uid, name: u.name, bal: u.bal, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
+const czLbRow = u => ({ uid: u.uid, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+  best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
+// every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
+export async function czTx(st, a) {
+  const get = async (k, d) => (await st.get(k)) ?? d;
+  const feed = async ev => { const f = await get("cz:feed", []); f.unshift({ ...ev, at: a.now }); await st.put("cz:feed", f.slice(0, 60)); };
+  const lb = async u => { const L = await get("cz:lb", {}); L[u.uid] = czLbRow(u); await st.put("cz:lb", L); };
+  if (a.act === "join") {
+    const names = await get("cz:names", {}), key = a.name.toLowerCase();
+    if (names[key]) return { error: "That name is taken. Try another." };
+    const u = { uid: a.uid, name: a.name, tok: a.tok, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0 };
+    names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:u:" + a.uid, u); await lb(u);
+    await feed({ kind: "join", name: a.name });
+    return { user: czPublic(u) };
+  }
+  const u = await st.get("cz:u:" + a.uid);
+  if (!u) return { error: "Account not found." };
+  if (a.act === "daily") {
+    if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
+    u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
+    const amt = CZ_DAILY + (u.streak - 1) * 50; u.bal += amt; u.lastDaily = a.day;
+    await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), amount: amt };
+  }
+  if (a.act === "bet") {
+    const b = a.bet, stake = Math.floor(+b.stake);
+    if (!(stake >= CZ_MIN && stake <= CZ_MAX)) return { error: `Bets are ${CZ_MIN} to ${CZ_MAX.toLocaleString()} coins.` };
+    if (stake > u.bal) return { error: "Not enough Cosmic Coins." };
+    const open = (u.bets || []).filter(x => !x.res);
+    if (open.length >= CZ_OPEN_MAX) return { error: `You can have ${CZ_OPEN_MAX} open bets at once.` };
+    if (open.some(x => x.lg === b.lg && x.gid === b.gid && x.side !== b.side)) return { error: "You already have the other side of this game." };
+    const bet = { ...b, stake, placed: a.now, res: null };
+    u.bal -= stake; u.bets = [...(u.bets || []), bet].slice(-150);
+    const O = await get("cz:open", []); O.push({ uid: u.uid, bid: bet.bid, lg: b.lg, gid: b.gid, day: b.day, start: b.start });
+    await st.put("cz:open", O); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), bet };
+  }
+  if (a.act === "buy") {
+    const it = a.item, mint = await get("cz:mint", {}), n = (mint[it.id] || 0);
+    if (n >= it.supply) return { error: "Sold out. Every copy has been claimed." };
+    if ((u.items || []).some(x => x.id === it.id)) return { error: "You already own one of these. Collect a different card." };
+    if (u.bal < it.price) return { error: "Not enough Cosmic Coins." };
+    u.bal -= it.price; mint[it.id] = n + 1;
+    const own = { id: it.id, n: n + 1, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, price: it.price, at: a.now };
+    u.items = [...(u.items || []), own];
+    const owners = await get("cz:own:" + it.id, []); owners.push({ n: n + 1, uid: u.uid, name: u.name, at: a.now });
+    await st.put("cz:mint", mint); await st.put("cz:own:" + it.id, owners); await st.put("cz:u:" + a.uid, u); await lb(u);
+    if (it.supply <= 10 || n + 1 === it.supply) await feed({ kind: "mint", name: u.name, item: it.id, label: it.name, tier: it.tier, n: n + 1, supply: it.supply });
+    return { user: czPublic(u), card: own };
+  }
+  return { error: "Unknown action." };
+}
+// results for finished games: pay out, refund, or settle as lost (one step for everyone at once)
+export async function czSettleTx(st, a) {
+  const O = (await st.get("cz:open")) ?? [], done = new Map(a.results.map(r => [r.uid + "/" + r.bid, r.res]));
+  const users = {}, L = (await st.get("cz:lb")) ?? {}, F = (await st.get("cz:feed")) ?? [];
+  for (const o of O) {
+    const res = done.get(o.uid + "/" + o.bid); if (!res) continue;
+    const u = users[o.uid] ??= await st.get("cz:u:" + o.uid); if (!u) continue;
+    const b = (u.bets || []).find(x => x.bid === o.bid); if (!b || b.res) continue;
+    b.res = res; b.settled = a.now;
+    if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake;
+      if (b.paid - b.stake >= 1000) F.unshift({ kind: "win", name: u.name, label: b.label, paid: b.paid, dec: b.dec, at: a.now }); }
+    else if (res === "loss") { b.paid = 0; u.lost = (u.lost || 0) + 1; u.profit = (u.profit || 0) - b.stake; }
+    else { b.paid = b.stake; u.bal += b.stake; }
+  }
+  for (const u of Object.values(users)) if (u) { await st.put("cz:u:" + u.uid, u); L[u.uid] = czLbRow(u); }
+  await st.put("cz:open", O.filter(o => !done.has(o.uid + "/" + o.bid)));
+  await st.put("cz:lb", L); await st.put("cz:feed", F.slice(0, 60));
+  return { settled: done.size };
+}
+function czKv(env) {                                                         // KV stand-in for setups without the Durable Object (not atomic)
+  return { get: async k => { const v = await env.KV.get(k); return v == null ? undefined : JSON.parse(v); }, put: (k, v) => env.KV.put(k, JSON.stringify(v)) };
+}
+async function cz(env, a) {
+  if (env.STORE) { const stub = env.STORE.get(env.STORE.idFromName("main")); const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "cz", a }) }); return (await r.json()).v; }
+  return a.act === "settle" ? czSettleTx(czKv(env), a) : czTx(czKv(env), a);
+}
+const czRead = async (env, k, d) => { const v = await store(env).get(k); return v == null ? d : typeof v === "string" ? JSON.parse(v) : v; };
+// the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
+const czDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
+function czOffer(lg, g, models, espnMlb) {
+  let o = g.odds;
+  if (lg === "mlb" && espnMlb) { const gs = Date.parse(g.date), m = espnMlb.filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
+      .sort((a, b) => Math.abs(Date.parse(a.date) - gs) - Math.abs(Date.parse(b.date) - gs))[0]; o = m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m.odds : null; }
+  const book = trackOdds(o, lg === "epl"), p = modelProbs(models, lg, g);
+  const sides = lg === "epl" ? ["home", "draw", "away"] : ["home", "away"];
+  const r2 = v => Math.round(v * 100) / 100;
+  if (book) return { src: book.book || "Sportsbook", dec: Object.fromEntries(sides.map(s => [s, r2(czDec(book[s[0]]))])), model: p ? Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) : null };
+  if (p) return { src: "Cosmo model", dec: Object.fromEntries(sides.map(s => [s, r2(Math.min(30, Math.max(1.02, 1 / (p[s] * CZ_MARGIN))))])), model: Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) };
+  return null;
+}
+const CZ_BOARD = new Map();
+async function czMarkets(env, lg, day, fetchImpl = fetch) {
+  const k = lg + day, hit = CZ_BOARD.get(k); if (hit && Date.now() - hit.at < 60e3) return hit.v;
+  let models = null; try { models = await trackModels(env, fetchImpl); } catch {}
+  const board = await espnScoreboard(lg, fetchImpl, day), now = Date.now();
+  const games = (board.games || []).filter(g => g.status?.state === "pre" && Date.parse(g.date) > now + 60e3 && !(lg !== "epl" && g.stype === 1));
+  let espnMlb = null; if (lg === "mlb" && games.length) { try { espnMlb = (await espnBoard("mlb", fetchImpl, day)).games || []; } catch { espnMlb = []; } }
+  const v = games.map(g => { const o = czOffer(lg, g, models, espnMlb); return o && { lg, gid: g.id, day, start: g.date, home: { name: g.home.name, abbr: g.home.abbr, logo: g.home.logo, color: g.home.color },
+    away: { name: g.away.name, abbr: g.away.abbr, logo: g.away.logo, color: g.away.color }, ...o }; }).filter(Boolean);
+  CZ_BOARD.set(k, { at: Date.now(), v }); if (CZ_BOARD.size > 40) CZ_BOARD.clear();
+  return v;
+}
+// the collectibles: every team in the five leagues and the top 24 players on each tennis tour, in four tiers.
+// Better teams (by the model's rating) and higher-ranked players cost more.
+let CZ_CAT = null;
+async function czCatalog(env, fetchImpl = fetch) {
+  if (CZ_CAT && Date.now() - CZ_CAT.at < 6 * 3600e3) return CZ_CAT.v;
+  const models = await trackModels(env, fetchImpl), groups = [];
+  for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}; groups.push([lg, Object.keys(st).sort((a, b) => st[b].elo - st[a].elo)]); }
+  try { const r = await fetchImpl(`${env.SITE_URL.replace(/\/$/, "")}/players.json`); const P = r.ok ? await r.json() : [];
+    for (const tour of ["atp", "wta"]) groups.push([tour, P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name)]); } catch {}
+  const items = [];
+  for (const [lg, names] of groups) names.forEach((name, i) => {
+    const mult = 1.5 - .9 * (names.length > 1 ? i / (names.length - 1) : 0);
+    for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${czSlug(name)}.${tier}`, lg, name, tier, label, supply, price: Math.round(base * mult / 10) * 10, rank: i + 1 });
+  });
+  CZ_CAT = { at: Date.now(), v: items }; return items;
+}
+async function czAuth(req, env) {
+  const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
+  const u = await czRead(env, "cz:u:" + m[1], null); if (!u) return null;
+  return u.tok === await czHash(m[2]) ? u : null;
+}
+const CZ_JOIN = new Map();
+const etDayStr = t => etDay(t);
+export async function cosmicRoute(req, env, ctx, url) {
+  const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
+  const today = etDayStr(now), tomorrow = etDayStr(now + 864e5);
+  if (p === "/board" && req.method === "GET") return cached(req, ctx, 60, async () => {
+    const out = [];
+    for (const lg of TRACK_LEAGUES) for (const d of [today, tomorrow]) { try { out.push(...await czMarkets(env, lg, d)); } catch {} }
+    const seen = new Set(), uniq = out.filter(m => !seen.has(m.lg + m.gid) && seen.add(m.lg + m.gid));
+    return { asof: new Date().toISOString(), markets: uniq.sort((a, b) => a.start.localeCompare(b.start)) };
+  });
+  if (p === "/vault" && req.method === "GET") {
+    const [items, mint] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {})]);
+    const ones = items.filter(i => i.supply === 1 && mint[i.id]).map(i => i.id), owners = {};
+    for (const id of ones.slice(0, 60)) { const o = await czRead(env, "cz:own:" + id, []); if (o[0]) owners[id] = o[0].name; }
+    return json({ tiers: CZ_TIERS.map(([id, label, supply, price]) => ({ id, label, supply, price })), items: items.map(i => ({ ...i, minted: mint[i.id] || 0, owner: owners[i.id] || undefined })) }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p.startsWith("/card/") && req.method === "GET") return json({ owners: await czRead(env, "cz:own:" + p.slice(6), []) });
+  if (p === "/leaders" && req.method === "GET") {
+    const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
+    const rows = Object.values(L);
+    return json({ rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25),
+      collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/join" && req.method === "POST") {
+    const l = (CZ_JOIN.get(ip) || []).filter(t => now - t < 3600e3); if (l.length >= 5) return json({ error: "Too many new accounts from here. Try again later." }, 429);
+    const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
+    if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+    const uid = czRand(12), token = czRand(32);
+    const r = await cz(env, { act: "join", uid, tok: await czHash(token), name, now });
+    if (r.error) return json(r, 409);
+    l.push(now); CZ_JOIN.set(ip, l); if (CZ_JOIN.size > 5000) CZ_JOIN.clear();
+    return json({ ...r, auth: `${uid}.${token}` });
+  }
+  const u = await czAuth(req, env);
+  if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
+  if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
+  if (p === "/bet" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");
+    if (!TRACK_LEAGUES.includes(lg) || !["home", "away", "draw"].includes(side)) return json({ error: "That bet isn't available." }, 400);
+    let m = null;
+    for (const day of [today, tomorrow]) { try { m = (await czMarkets(env, lg, day)).find(x => x.gid === gid); } catch {} if (m) break; }
+    if (!m || Date.parse(m.start) <= now + 60e3) return json({ error: "Betting on this game has closed." }, 409);
+    const dec = m.dec[side]; if (!dec) return json({ error: "That bet isn't available." }, 400);
+    if (d.dec && Math.abs(d.dec - dec) > .005) return json({ error: "The price moved.", dec, moved: true }, 409);
+    const label = side === "draw" ? `Draw: ${m.away.name} at ${m.home.name}` : `${m[side].name} to beat ${m[side === "home" ? "away" : "home"].name}`;
+    const r = await cz(env, { act: "bet", uid: u.uid, now, bet: { bid: czRand(6), lg, gid, day: m.day, start: m.start, side, dec, stake: d.stake, label, home: m.home.name, away: m.away.name, src: m.src } });
+    return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/buy" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), it = (await czCatalog(env)).find(i => i.id === String(d.item || ""));
+    if (!it) return json({ error: "That card isn't in the vault." }, 404);
+    const r = await cz(env, { act: "buy", uid: u.uid, now, item: it });
+    return json(r, r.error ? 409 : 200);
+  }
+  return json({ error: "not found" }, 404);
+}
+// every 10 minutes: settle bets on finished games
+export async function czSettle(env, fetchImpl = fetch, now = new Date(), force = false) {
+  if (!force && now.getUTCMinutes() % 10 !== 8) return "not time";
+  const t = now.getTime(), O = await czRead(env, "cz:open", []);
+  const due = O.filter(o => t > Date.parse(o.start) + GAME_H[o.lg] * 3600e3); if (!due.length) return { open: O.length, settled: 0 };
+  const results = [], boards = {};
+  for (const k of [...new Set(due.map(o => o.lg + "|" + o.day))]) { const [lg, day] = k.split("|"); try { boards[k] = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch {} }
+  for (const o of due) {
+    const g = (boards[o.lg + "|" + o.day] || []).find(x => x.id === o.gid);
+    if (!g) { if (t - Date.parse(o.start) > 72 * 3600e3) results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
+    if (g.status?.state !== "post") { if (t - Date.parse(o.start) > 72 * 3600e3) results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
+    const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
+    const bad = !g.status.completed || /postpon|cancel|suspend|forfeit|abandon/i.test(`${g.status.detail || ""} ${g.status.short || ""}`) || !isFinite(h) || !isFinite(a);
+    const u = await czRead(env, "cz:u:" + o.uid, null), b = u && (u.bets || []).find(x => x.bid === o.bid); if (!b) continue;
+    const win = h > a ? "home" : a > h ? "away" : "draw";
+    results.push({ uid: o.uid, bid: o.bid, res: bad ? "void" : win === b.side ? "win" : win === "draw" && o.lg !== "epl" ? "push" : "loss" });
+  }
+  if (!results.length) return { open: O.length, settled: 0 };
+  return cz(env, { act: "settle", results, now: now.toISOString() });
+}
+
 export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
@@ -1467,6 +1686,7 @@ export default {
     if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
+    if (url.pathname.startsWith("/cosmic/")) { try { return await cosmicRoute(req, env, ctx, url); } catch (e) { return json({ error: "Cosmic isn't available right now." }, 503); } }
     if (url.pathname === "/track") return await cached(req, ctx, 120, () => trackAll(db)).catch(e => json({ error: String(e.message || e) }, 503));
     if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
     if (url.pathname === "/ask" && req.method === "POST") {
@@ -1527,6 +1747,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
