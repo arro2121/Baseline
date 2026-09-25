@@ -34,7 +34,7 @@ export const b64u = {
 };
 const concat = (...a) => { const out = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let o = 0; for (const x of a) { out.set(x, o); o += x.length; } return out; };
 export const norm = s => String(s || "").normalize("NFKD").replace(/[^A-Za-z ]/g, " ").toLowerCase().split(/\s+/).filter(Boolean);
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization, X-No-Passkeys" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization, X-No-Passkeys, X-Owner-Key" };
 const json = (d, status = 200, extra = {}) => new Response(JSON.stringify(d), { status, headers: { "Content-Type": "application/json", ...cors, ...extra } });
 
 /* ---------------- Web Push: VAPID signature (RFC 8292) ---------------- */
@@ -1468,9 +1468,9 @@ const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
-const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
-const czLbRow = u => ({ uid: u.uid, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 export async function czTx(st, a) {
@@ -1490,6 +1490,10 @@ export async function czTx(st, a) {
     names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:u:" + a.uid, u); await st.put("cz:id:" + a.sub, a.uid); await lb(u);
     await feed({ kind: "join", name: a.name });
     return { user: czPublic(u), uid: a.uid, created: true };
+  }
+  if (a.act === "tester") {                                          // the site owner's testing switch: unlimited coins, off the leaderboards
+    const u = await st.get("cz:u:" + a.uid); if (!u) return { error: "Account not found." };
+    u.tester = !!a.on; await st.put("cz:u:" + u.uid, u); await lb(u); return { user: czPublic(u) };
   }
   if (a.act === "join") {
     const names = await get("cz:names", {}), key = a.name.toLowerCase();
@@ -1511,12 +1515,12 @@ export async function czTx(st, a) {
   if (a.act === "bet") {
     const b = a.bet, stake = Math.floor(+b.stake);
     if (!(stake >= CZ_MIN && stake <= CZ_MAX)) return { error: `Bets are ${CZ_MIN} to ${CZ_MAX.toLocaleString()} coins.` };
-    if (stake > u.bal) return { error: "Not enough Cosmic Coins." };
+    if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
     const open = (u.bets || []).filter(x => !x.res);
     if (open.length >= CZ_OPEN_MAX) return { error: `You can have ${CZ_OPEN_MAX} open bets at once.` };
     if (open.some(x => x.lg === b.lg && x.gid === b.gid && x.side !== b.side)) return { error: "You already have the other side of this game." };
     const bet = { ...b, stake, placed: a.now, res: null };
-    u.bal -= stake; u.bets = [...(u.bets || []), bet].slice(-150);
+    if (!u.tester) u.bal -= stake; u.bets = [...(u.bets || []), bet].slice(-150);
     const O = await get("cz:open", []); O.push({ uid: u.uid, bid: bet.bid, lg: b.lg, gid: b.gid, day: b.day, start: b.start });
     await st.put("cz:open", O); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), bet };
@@ -1526,7 +1530,7 @@ export async function czTx(st, a) {
     // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
     const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
     const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
-    if (u.bal < pk.price) return { error: "Not enough Cosmic Coins." };
+    if (u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     const left = t => a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id));
     for (let c = 0; c < pk.cards; c++) {
@@ -1541,7 +1545,7 @@ export async function czTx(st, a) {
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
-    u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    if (!u.tester) u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
@@ -1581,11 +1585,11 @@ export async function czTx(st, a) {
     const M = await get("cz:mkt", []), l = M.find(x => x.lid === a.lid); if (!l) return { error: "Someone else got there first. That card is no longer for sale." };
     if (l.uid === u.uid) return { error: "That's your own listing." };
     if (card(l.id)) return { error: "You already own a copy of this card." };
-    if (u.bal < l.price) return { error: "Not enough Cosmic Coins." };
+    if (u.bal < l.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const s = await st.get("cz:u:" + l.uid); if (!s) return { error: "The seller's account is gone." };
     const c = (s.items || []).find(x => x.id === l.id && x.listed === l.lid); if (!c) { await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); return { error: "That card is no longer for sale." }; }
     const fee = Math.ceil(l.price * CZ_FEE);
-    u.bal -= l.price; s.bal += l.price - fee; s.items = s.items.filter(x => x.id !== l.id); s.sold = (s.sold || 0) + 1;
+    if (!u.tester) u.bal -= l.price; s.bal += l.price - fee; s.items = s.items.filter(x => x.id !== l.id); s.sold = (s.sold || 0) + 1;
     delete c.listed; u.items = [...(u.items || []), { ...c, at: a.now, bought: l.price, from: s.name }];
     const o = await get("cz:own:" + l.id, []); await st.put("cz:own:" + l.id, [...o.filter(x => x.uid !== s.uid), { n: c.n, uid: u.uid, name: u.name, at: a.now, price: l.price }]);
     await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); await st.put("cz:u:" + s.uid, s); await st.put("cz:u:" + a.uid, u); await lb(u); await lb(s);
@@ -1764,7 +1768,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: it.price, shop: Math.max(1, Math.floor(it.price * CZ_SHOP)) } }); }
   if (p === "/leaders" && req.method === "GET") {
     const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
-    const rows = Object.values(L);
+    const rows = Object.values(L).filter(r => !r.tester);
     return json({ rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25),
       collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
   }
@@ -1826,6 +1830,15 @@ export async function cosmicRoute(req, env, ctx, url) {
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
   if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  if (p === "/owner/unlimited" && req.method === "POST") {
+    const key = env.COMETS_KEY, got = req.headers.get("X-Owner-Key") || "";
+    if (!key) return json({ error: "The owner key (COMETS_KEY) isn't set up on the live service." }, 503);
+    if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
+    const [x, y] = await Promise.all([czHash(key), czHash(got)]); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
+    if (diff) { cometsFail(ip); return json({ error: "That isn't the owner key." }, 403); }
+    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "tester", uid: u.uid, on: d.on !== false, now });
+    return json(r, r.error ? 409 : 200);
+  }
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
   if (p === "/data" && req.method === "PUT") {
