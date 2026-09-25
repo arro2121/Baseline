@@ -1575,7 +1575,7 @@ export const czAddSp = (u, n, now) => { czSeasonRoll(u, now); u.sp.pts = Math.ma
 export const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
 export const czPower = cards => Math.round(cards.reduce((s, c) => s + (CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || 1) - 1)), 0));
 export const czOdds = (pa, pb) => { const x = Math.pow(Math.max(1, pa), 1.6), y = Math.pow(Math.max(1, pb), 1.6); return x / (x + y); };
-const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 10;
+const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
@@ -1712,10 +1712,10 @@ export async function czTx(st, a) {
     const B = await get("cz:bat", []);
     if (B.filter(x => x.from === u.uid && x.status === "open").length >= 10) return { error: "You have 10 open challenges. Wait for some to be answered or cancel one." };
     let to = null, toName = null;
-    if (a.house) { const d = u.house && u.house.day === a.day ? u.house.n : 0; if (d >= CZ_HOUSE_DAY) return { error: `You've played Cosmo ${CZ_HOUSE_DAY} times today. Challenge a player, or come back tomorrow.` }; u.house = { day: a.day, n: d + 1 }; toName = "Cosmo"; }
+    if (a.house) { const d = u.house && u.house.day === a.day ? u.house.n : 0; if (d >= CZ_HOUSE_DAY) return { error: `You've played the AI ${CZ_HOUSE_DAY} times today. Challenge a real player, or come back tomorrow.` }; u.house = { day: a.day, n: d + 1 }; toName = "Cosmo AI"; }
     else if (a.to) { const names = await get("cz:names", {}), t = names[String(a.to).toLowerCase()]; if (!t) return { error: "There's no player with that name." }; if (t === u.uid) return { error: "You can't challenge yourself." }; to = t; toName = (await st.get("cz:u:" + t))?.name || a.to; }
     const bt = { id: a.id, from: u.uid, fromName: u.name, to, toName, house: !!a.house, stake, a: sc.cards, at: a.now, status: a.house ? "judging" : "open" };
-    if (a.house) { bt.b = a.houseCards; bt.byName = "Cosmo"; bt.jat = a.now; }
+    if (a.house) { bt.b = a.houseCards; bt.byName = "Cosmo AI"; bt.jat = a.now; }
     if (!u.tester) u.bal -= stake; lock(u, sc.cards, bt.id);
     await st.put("cz:bat", [bt, ...B].slice(0, 400)); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), battle: bt };
@@ -2209,7 +2209,7 @@ const CZ_JUDGE_SCHEMA = { type: "object", additionalProperties: false, required:
   properties: { chance_a: { type: "number" }, report_if_a_wins: { type: "string" }, report_if_b_wins: { type: "string" }, mvp_a: { type: "string" }, mvp_b: { type: "string" } } };
 const czLine = c => `${c.name}${c.kind === "team" ? " (team" : ` (${c.pos || "player"}${c.team ? ", " + c.team : ""}`}, ${String(c.lg).toUpperCase()}, ${c.tier} ${c.n}/${c.supply}, level ${c.level || 1})`;
 export async function czJudge(env, bt, fetchImpl = fetch) {
-  const pa = czPower(bt.a), pb = czPower(bt.b || []), base = czOdds(pa, pb), nameA = bt.fromName, nameB = bt.byName || "Cosmo";
+  const pa = czPower(bt.a), pb = czPower(bt.b || []), base = bt.house ? .5 : czOdds(pa, pb), nameA = bt.fromName, nameB = bt.byName || "Cosmo AI";
   let j = null, judge = "formula";
   const prompt = `Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
   const ok = x => x && typeof x.chance_a === "number" && isFinite(x.chance_a) && typeof x.report_if_a_wins === "string" && typeof x.report_if_b_wins === "string";
@@ -2228,8 +2228,9 @@ export async function czJudge(env, bt, fetchImpl = fetch) {
     } catch (e) { console.log("judge (workers ai):", e.message); }
   }
   // the AI's call counts, kept within reach of what the cards' power says so a lineup of commons can't be talked into a lock
-  const reach = bt.house ? .1 : .25;                         // against Cosmo the call stays closer to the cards, so its coins can't be farmed
-  const chance = j ? Math.min(.92, Math.max(.08, Math.min(base + reach, Math.max(base - reach, j.chance_a)))) : base;
+  // playing the AI is a straight coin flip: it wins half the time and loses half the time, whatever the lineups.
+  // Between two players the AI's call counts, kept within reach of what the cards' power says.
+  const chance = bt.house ? .5 : j ? Math.min(.92, Math.max(.08, Math.min(base + .25, Math.max(base - .25, j.chance_a)))) : base;
   const winner = czRoll() < chance ? "a" : "b";
   const best = cs => (cs || []).slice().sort((x, y) => (CZ_POW[y.tier] || 0) - (CZ_POW[x.tier] || 0))[0];
   const W = winner === "a" ? bt.a : bt.b, Lz = winner === "a" ? bt.b : bt.a, wn = winner === "a" ? nameA : nameB;
