@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -1324,6 +1324,58 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 @media (prefers-reduced-motion:reduce){.czflip{transition:none}}
 .czsell{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}.czsell>div{background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;display:grid;gap:6px}
 .czsell small{color:var(--muted);font-size:.78rem}.czlistf{display:flex;gap:8px}.czlistf .field{flex:1;min-width:0}
+/* tier scenes */
+.czfx{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}.czfx i,.czfx b{position:absolute;display:block}
+/* Singularity: a black hole with a tilted, spinning accretion disk and a lensing ring */
+.bh-glow{left:50%;top:44%;width:130%;aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(252,211,77,.35),rgba(168,85,247,.25) 35%,transparent 62%)}
+.bh-disk{left:50%;top:44%;width:112%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(72deg);border-radius:50%;
+  background:conic-gradient(from 0deg,#fde68a,#f59e0b,#be185d,#7c3aed,#fde68a,#fb923c,#f472b6,#fde68a);-webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 70%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 70%);animation:bhspin 6s linear infinite;filter:saturate(1.3)}
+@keyframes bhspin{to{transform:translate(-50%,-50%) rotateX(72deg) rotate(1turn)}}
+.bh-hole{left:50%;top:44%;width:38%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#000 58%,#1a0526 70%,transparent 72%);box-shadow:0 0 22px 6px rgba(0,0,0,.9)}
+.bh-ring{left:50%;top:44%;width:44%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(253,230,138,.85);box-shadow:0 0 14px rgba(252,211,77,.9),inset 0 0 10px rgba(252,211,77,.6);animation:bhpulse 3s ease-in-out infinite}
+@keyframes bhpulse{50%{opacity:.6;transform:translate(-50%,-50%) scale(1.05)}}
+.czcard.t-singularity .czc-mid img{filter:drop-shadow(0 0 10px rgba(0,0,0,.95)) drop-shadow(0 0 18px rgba(252,211,77,.7))}
+/* Supernova: burst rays, expanding shockwaves and a white-hot core */
+.sn-rays{left:50%;top:44%;width:170%;aspect-ratio:1;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg,rgba(254,215,170,.55) 0 2deg,transparent 2deg 11deg,rgba(244,114,182,.35) 11deg 12.5deg,transparent 12.5deg 20deg);
+  -webkit-mask:radial-gradient(circle,#000 8%,transparent 55%);mask:radial-gradient(circle,#000 8%,transparent 55%);animation:snspin 30s linear infinite}
+@keyframes snspin{to{transform:translate(-50%,-50%) rotate(1turn)}}
+.sn-core{left:50%;top:44%;width:34%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#fed7aa 32%,#fb923c 52%,rgba(219,39,119,.6) 68%,transparent 72%);animation:sncore 2.4s ease-in-out infinite}
+@keyframes sncore{50%{transform:translate(-50%,-50%) scale(1.12);filter:brightness(1.25)}}
+.sn-wave{left:50%;top:44%;width:30%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(251,146,60,.9);box-shadow:0 0 12px rgba(244,114,182,.8);animation:snwave 3.2s ease-out infinite}
+.sn-wave.w2{animation-delay:1.6s;border-color:rgba(244,114,182,.9)}
+@keyframes snwave{from{width:30%;opacity:.95}to{width:150%;opacity:0}}
+/* Quasar: a blazing core with twin relativistic jets */
+.qs-jet{left:50%;top:-10%;width:14%;height:120%;transform:translateX(-50%);background:linear-gradient(180deg,transparent,rgba(56,189,248,.15) 8%,rgba(125,211,252,.9) 40%,#fff 44%,#fff 46%,rgba(125,211,252,.9) 50%,rgba(56,189,248,.15) 86%,transparent);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 35%,#000 65%,transparent);mask:linear-gradient(90deg,transparent,#000 35%,#000 65%,transparent);filter:blur(1px);animation:qsjet 1.8s ease-in-out infinite}
+@keyframes qsjet{50%{opacity:.65;transform:translateX(-50%) scaleX(1.35)}}
+.qs-disk{left:50%;top:44%;width:80%;height:12%;transform:translate(-50%,-50%) rotate(-8deg);border-radius:50%;background:radial-gradient(closest-side,#fff,rgba(56,189,248,.9) 30%,rgba(232,121,249,.55) 65%,transparent)}
+.qs-core{left:50%;top:44%;width:22%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 20%,#bae6fd 45%,transparent 72%);box-shadow:0 0 26px 8px rgba(56,189,248,.7)}
+/* Nebula: soft clouds of gas drifting past each other */
+.nb{border-radius:50%;opacity:.8;mix-blend-mode:screen}
+.nb-a{left:-25%;top:-10%;width:110%;height:75%;background:radial-gradient(closest-side,rgba(236,72,153,.75),transparent);animation:nbdrift 14s ease-in-out infinite alternate}
+.nb-b{right:-35%;top:25%;width:115%;height:80%;background:radial-gradient(closest-side,rgba(20,184,166,.65),transparent);animation:nbdrift 18s ease-in-out infinite alternate-reverse}
+.nb-c{left:5%;bottom:-25%;width:100%;height:70%;background:radial-gradient(closest-side,rgba(139,92,246,.8),transparent);animation:nbdrift 16s ease-in-out infinite alternate}
+.nb-d{left:25%;top:20%;width:55%;height:40%;background:radial-gradient(closest-side,rgba(253,186,116,.45),transparent);animation:nbdrift 11s ease-in-out infinite alternate-reverse}
+@keyframes nbdrift{to{transform:translate(12%,8%) scale(1.15) rotate(12deg)}}
+/* Pulsar: two sweeping lighthouse beams and radio rings pulsing out */
+.ps-beam{left:50%;top:44%;width:190%;aspect-ratio:1;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,transparent 0 80deg,rgba(52,211,153,.55) 86deg,rgba(236,253,245,.9) 90deg,rgba(52,211,153,.55) 94deg,transparent 100deg 260deg,rgba(99,102,241,.55) 266deg,rgba(224,231,255,.9) 270deg,rgba(99,102,241,.55) 274deg,transparent 280deg);
+  -webkit-mask:radial-gradient(circle,#000 10%,transparent 60%);mask:radial-gradient(circle,#000 10%,transparent 60%);animation:psspin 2.6s linear infinite}
+@keyframes psspin{to{transform:translate(-50%,-50%) rotate(1turn)}}
+.ps-ring{left:50%;top:44%;width:20%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid rgba(52,211,153,.8);animation:psring 2.6s linear infinite}
+.ps-ring.r2{animation-delay:.87s}.ps-ring.r3{animation-delay:1.73s;border-color:rgba(129,140,248,.8)}
+@keyframes psring{from{width:20%;opacity:1}to{width:120%;opacity:0}}
+.ps-core{left:50%;top:44%;width:16%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 25%,#a7f3d0 50%,transparent 72%);box-shadow:0 0 18px 4px rgba(52,211,153,.8);animation:sncore 1.3s ease-in-out infinite}
+/* Stardust: a Milky Way band and glittering specks */
+.sd-band{left:-30%;top:30%;width:160%;height:36%;transform:rotate(-28deg);background:radial-gradient(1px 1px at 18% 40%,#fff,transparent),radial-gradient(1px 1px at 27% 62%,#e0e7ff,transparent),radial-gradient(1.2px 1.2px at 36% 35%,#fff,transparent),radial-gradient(1px 1px at 44% 58%,#fff,transparent),radial-gradient(1px 1px at 52% 44%,#c7d2fe,transparent),radial-gradient(1.2px 1.2px at 61% 66%,#fff,transparent),radial-gradient(1px 1px at 69% 38%,#fff,transparent),radial-gradient(1px 1px at 77% 55%,#e0e7ff,transparent),radial-gradient(1px 1px at 84% 47%,#fff,transparent),radial-gradient(closest-side,rgba(226,232,240,.5),rgba(165,180,252,.22) 55%,transparent)}
+.czfx b{left:var(--x);top:var(--y);width:calc(7px * var(--s));aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff 0 18%,transparent 22%),linear-gradient(90deg,transparent 45%,#fff 50%,transparent 55%),linear-gradient(0deg,transparent 45%,#fff 50%,transparent 55%);
+  filter:drop-shadow(0 0 3px #c7d2fe);animation:sdtw 3s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes sdtw{0%,100%{opacity:.25;transform:translate(-50%,-50%) scale(.6)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+/* Comet: an icy head streaking across with a long glowing tail */
+.cm-tail{right:31%;top:13.5%;width:120%;height:7%;transform:rotate(-26deg);transform-origin:right center;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(148,163,184,.15) 30%,rgba(186,230,253,.6) 80%,rgba(255,255,255,.95));filter:blur(1.5px);animation:cmfly 7s ease-in-out infinite}
+.cm-tail.t2{top:15.5%;height:3%;background:linear-gradient(90deg,transparent,rgba(125,211,252,.35) 60%,rgba(224,242,254,.8));filter:blur(.6px);animation-delay:.05s}
+.cm-head{left:64.5%;top:13.5%;width:9%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 30%,#e0f2fe 55%,transparent 72%);box-shadow:0 0 14px 5px rgba(186,230,253,.8);animation:cmhead 7s ease-in-out infinite}
+@keyframes cmfly{0%,100%{translate:-6% 3%}50%{translate:6% -3%}}@keyframes cmhead{0%,100%{translate:-6% 3%}50%{translate:6% -3%}}
+@media (prefers-reduced-motion:reduce){.czfx i,.czfx b{animation:none!important}}
 .trlink{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 18px;box-shadow:var(--shadow);cursor:pointer;font:inherit;color:inherit}
 .trlink span{grid-column:1;font-size:.8rem;color:var(--muted)}.trlink i{grid-row:1/3;grid-column:2;font-style:normal;font-size:1.2rem;color:var(--muted)}
 .trseg{margin:0 0 16px;flex-wrap:wrap;max-width:100%}.trseg button{padding:7px 13px}
@@ -5060,10 +5112,22 @@ function czCard(it, ed, big){
   const T = czTeam(it.lg, it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
   return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
-    <div class="czc-sky"></div><div class="czc-foil"></div>
+    <div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
     <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed != null ? `#${ed}/${it.supply}` : `1/${it.supply}`}</em></div>
     <div class="czc-mid">${logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials)}'}))">` : `<b>${esc(initials)}</b>`}</div>
     <div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
+}
+// each tier's scene, drawn behind the logo: a black hole, an exploding star, a quasar's jets, drifting gas, a pulsar's beams,
+// glittering stardust and a streaking comet
+function czFx(t){
+  if (t === "singularity") return `<i class="bh-glow"></i><i class="bh-disk"></i><i class="bh-hole"></i><i class="bh-ring"></i>`;
+  if (t === "supernova") return `<i class="sn-rays"></i><i class="sn-wave"></i><i class="sn-wave w2"></i><i class="sn-core"></i>`;
+  if (t === "quasar") return `<i class="qs-jet"></i><i class="qs-disk"></i><i class="qs-core"></i>`;
+  if (t === "nebula") return `<i class="nb nb-a"></i><i class="nb nb-b"></i><i class="nb nb-c"></i><i class="nb nb-d"></i>`;
+  if (t === "pulsar") return `<i class="ps-beam"></i><i class="ps-ring"></i><i class="ps-ring r2"></i><i class="ps-ring r3"></i><i class="ps-core"></i>`;
+  if (t === "stardust") return `<i class="sd-band"></i>` + Array.from({ length: 16 }, (_, i) => `<b style="--x:${(i * 37 + 11) % 94 + 3}%;--y:${(i * 53 + 7) % 90 + 4}%;--d:${(i * .37) % 3}s;--s:${.6 + (i % 4) * .25}"></b>`).join("");
+  if (t === "comet") return `<i class="cm-tail"></i><i class="cm-tail t2"></i><i class="cm-head"></i>`;
+  return "";
 }
 const CZ_TIER_NAME = { singularity: "Singularity", supernova: "Supernova", quasar: "Quasar", nebula: "Nebula", pulsar: "Pulsar", stardust: "Stardust", comet: "Comet" };
 function czHeader(){
