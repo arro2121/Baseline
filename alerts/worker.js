@@ -1561,6 +1561,23 @@ export async function czTx(st, a) {
   }
   const card = id => (u.items || []).find(x => x.id === id);
   const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
+  if (a.act === "report") {
+    // reports are kept for the owner; a name reported by three different players is replaced right away
+    const names = await get("cz:names", {}), tid = names[String(a.name).toLowerCase()];
+    if (!tid) return { error: "That player isn't in Cosmic any more." };
+    if (tid === u.uid) return { error: "That's you." };
+    const R = await get("cz:reports", []); R.unshift({ at: a.now, from: u.uid, fromName: u.name, uid: tid, name: a.name, reason: a.reason }); await st.put("cz:reports", R.slice(0, 500));
+    const by = await get("cz:rep:" + tid, []); if (!by.includes(u.uid)) by.push(u.uid); await st.put("cz:rep:" + tid, by);
+    if (by.length >= 3) {
+      const t = await st.get("cz:u:" + tid);
+      if (t) { const old = t.name; let nn; do nn = "Player " + czRand(2).toUpperCase(); while (names[nn.toLowerCase()]);
+        delete names[old.toLowerCase()]; names[nn.toLowerCase()] = tid; t.name = nn; t.renamed = a.now;
+        await st.put("cz:names", names); await st.put("cz:u:" + tid, t); await lb(t); await st.put("cz:rep:" + tid, []);
+        await st.put("cz:feed", (await get("cz:feed", [])).map(f => ({ ...f, name: f.name === old ? nn : f.name, seller: f.seller === old ? nn : f.seller })));
+        await st.put("cz:mkt", (await get("cz:mkt", [])).map(l => l.uid === tid ? { ...l, seller: nn } : l)); }
+    }
+    return { ok: true };
+  }
   if (a.act === "delete") {
     // delete an account for good: its cards go back into packs, its listings and open bets are dropped,
     // its name is freed and it leaves the leaderboards, the feed and the saved teams and settings
@@ -1700,6 +1717,15 @@ async function czItem(env, id) {
   await czCatalog(env); const it = CZ_CAT.byId.get(id); if (it) return it;
   const tier = CZ_TIERS.find(t => id.endsWith("." + t[0])); if (!tier) return null;
   return { id, tier: tier[0], label: tier[1], supply: tier[2], price: Math.round(tier[3] * .55 / 10) * 10, lg: id.split(".")[0], name: "", kind: "player" };
+}
+// the site owner's key (the COMETS_KEY secret), compared in constant time, with a lockout after repeated misses
+async function czOwnerCheck(req, env, ip) {
+  const key = env.COMETS_KEY, got = req.headers.get("X-Owner-Key") || "";
+  if (!key) return json({ error: "The owner key (COMETS_KEY) isn't set up on the live service." }, 503);
+  if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
+  const [x, y] = await Promise.all([czHash(key), czHash(got)]); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
+  if (diff) { cometsFail(ip); return json({ error: "That isn't the owner key." }, 403); }
+  return null;
 }
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
@@ -1851,17 +1877,30 @@ export async function cosmicRoute(req, env, ctx, url) {
     l.push(now); CZ_JOIN.set(ip, l); if (CZ_JOIN.size > 5000) CZ_JOIN.clear();
     return json({ ...r, auth: `${uid}.${token}` });
   }
+  if (p === "/support" && req.method === "POST") {                           // the contact form on the Support page
+    if (!czAllowed("sup:" + ip, 5, 3600e3)) return json({ error: "Too many messages. Try again later." }, 429);
+    const d = await req.json().catch(() => ({})), message = String(d.message || "").trim().slice(0, 3000), contact = String(d.contact || "").trim().slice(0, 200);
+    if (message.length < 5) return json({ error: "Write a message first." }, 400);
+    const who = await czAuth(req, env), L = await czRead(env, "cz:support", []);
+    L.unshift({ at: now, message, contact, uid: who ? who.uid : null, name: who ? who.name : null }); await store(env).put("cz:support", JSON.stringify(L.slice(0, 300)));
+    return json({ ok: true });
+  }
+  if (p === "/owner/inbox" && req.method === "GET") {                        // reports and support messages, for the site's owner
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    return json({ reports: await czRead(env, "cz:reports", []), support: await czRead(env, "cz:support", []) }, 200, { "Cache-Control": "no-store" });
+  }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
   if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
   if (p === "/owner/unlimited" && req.method === "POST") {
-    const key = env.COMETS_KEY, got = req.headers.get("X-Owner-Key") || "";
-    if (!key) return json({ error: "The owner key (COMETS_KEY) isn't set up on the live service." }, 503);
-    if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
-    const [x, y] = await Promise.all([czHash(key), czHash(got)]); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
-    if (diff) { cometsFail(ip); return json({ error: "That isn't the owner key." }, 403); }
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
     const d = await req.json().catch(() => ({})), r = await cz(env, { act: "tester", uid: u.uid, on: d.on !== false, now });
     return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/report" && req.method === "POST") {                            // report a player's name; three reports rename it automatically
+    if (!czAllowed("rep:" + u.uid, 20, 86400e3)) return json({ error: "You've sent a lot of reports today. Thanks, we'll look at them." }, 429);
+    const d = await req.json().catch(() => ({})), name = String(d.name || "").slice(0, 40), reason = String(d.reason || "").slice(0, 300);
+    const r = await cz(env, { act: "report", uid: u.uid, name, reason, now }); return json(r, r.error ? 409 : 200);
   }
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
   if (p === "/delete" && req.method === "POST") {                            // delete your account and everything saved with it

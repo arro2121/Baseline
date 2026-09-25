@@ -28,13 +28,14 @@ from sklearn.metrics import log_loss, brier_score_loss
 
 def elo_p(d): return 1 / (1 + 10 ** (-d / 400))
 
-# settings per league (K, home edge and offseason pull tuned on a validation season before the test seasons): Elo K and home edge, the offseason pull toward average, how fast running stats forget,
+# settings per league (K, home edge, offseason pull and memory tuned on the two validation seasons before the test seasons;
+# kept only where the untouched test seasons improved too: NFL and NHL were retuned in September 2026): Elo K and home edge, the offseason pull toward average, how fast running stats forget,
 # the cap on rest days that still matter, and the per-sport margin multiplier for Elo
 CFG = {
-    "nfl": dict(K=16, HFA=48, revert=1 / 3, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
+    "nfl": dict(K=31.25, HFA=28.8, revert=1 / 3, half=7.5, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
     "nba": dict(K=18, HFA=60, revert=.2, half=12, rest_cap=4, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
     "mlb": dict(K=2.5, HFA=16, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
-    "nhl": dict(K=4, HFA=30, revert=.2, half=18, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
+    "nhl": dict(K=5.12, HFA=48, revert=.6, half=9, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
     "epl": dict(K=28, HFA=70, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
 }
 LABELS = {
@@ -170,6 +171,7 @@ def fit_binary(lg, F, feats, test_seasons, market=None):
         if v < cur - 5e-5: feats.append(k); cur = v
     cols = ["home"] + feats
     model, p = fit(feats)
+    val = cur                                                          # the chosen factors' validation log loss (for tuning settings)
     base_elo = LogisticRegression(fit_intercept=False, max_iter=2000).fit(np.column_stack([D.home[train], D.elo_d[train] / 100]), D.y[train])
     p_elo = base_elo.predict_proba(np.column_stack([D.home[test], D.elo_d[test] / 100]))[:, 1]
     full = log_loss(D.y[test], p)
@@ -185,7 +187,7 @@ def fit_binary(lg, F, feats, test_seasons, market=None):
     coef = dict(zip(cols, [round(float(c), 5) for c in model.coef_[0]]))
     return dict(kind="logistic", feats=feats, coef=coef, mean={k: round(float(mu[k]), 5) for k in feats}, sd={k: round(float(sd[k]), 5) for k in feats},
                 backtest=bt, calibration=calib(D.y[test], p), ablation=ablation, tried=tried, dropped=[k for k in cand if k not in feats], train_games=int(train.sum()), test_games=int(test.sum()),
-                test_seasons=[int(s) for s in test_seasons]), (D[test], p)
+                test_seasons=[int(s) for s in test_seasons], _val=val), (D[test], p)
 
 def fit_scores(F, test_seasons):
     """Projected score for each side from both teams' offense and defense, plus the spread of outcomes."""
@@ -227,6 +229,7 @@ def fit_poisson(F, feats, test_seasons, market=None):
     for k in sorted(cand[1:], key=lambda k: vll(["elo_d", k])):
         v = vll(feats + [k]); tried[k] = round(float(cur - v), 5)
         if v < cur - 5e-5: feats.append(k); cur = v
+    val = cur
     mh, ma, lh, la = fit(feats)
     actual = np.where(D.hs[te] > D.as_[te], 0, np.where(D.hs[te] == D.as_[te], 1, 2))
     # the low-score adjustment, fitted on the training seasons
@@ -255,7 +258,7 @@ def fit_poisson(F, feats, test_seasons, market=None):
         if m.sum() >= 30: cal.append(dict(bucket=f"{int(round(lo * 100))}–{int(round(lo * 100)) + 5}%", predicted=round(float(fav[m].mean()), 3), actual=round(float(won[m].mean()), 3), n=int(m.sum())))
     pack = lambda m: dict(intercept=round(float(m.intercept_), 5), coef=[round(float(c), 5) for c in m.coef_])
     return dict(kind="poisson", feats=feats, home_goals=pack(mh), away_goals=pack(ma), rho=rho, mean={k: round(float(mu[k]), 5) for k in feats}, sd={k: round(float(sd[k]), 5) for k in feats},
-                backtest=bt, calibration=cal, ablation=ablation, tried=tried, dropped=[k for k in cand if k not in feats], train_games=int(tr.sum()), test_games=int(te.sum()), test_seasons=[int(s) for s in test_seasons])
+                backtest=bt, calibration=cal, ablation=ablation, tried=tried, dropped=[k for k in cand if k not in feats], train_games=int(tr.sum()), test_games=int(te.sum()), test_seasons=[int(s) for s in test_seasons], _val=val)
 
 # ------------------------------------------------------------------ loading each league's history
 NFL_NAMES = dict(ARI="Arizona Cardinals", ATL="Atlanta Falcons", BAL="Baltimore Ravens", BUF="Buffalo Bills", CAR="Carolina Panthers", CHI="Chicago Bears",

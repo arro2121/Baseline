@@ -36,3 +36,6 @@ cosmosports.app must be live on HTTPS (GitHub → Settings → Pages → Custom 
 
 ## Later updates
 Web changes need nothing: the app loads the live site. For a new app build, change something in `app/` (or run the workflow by hand). Each run gets a new build number automatically. To change the version shown in the store (1.0 → 1.1), edit `MARKETING_VERSION` in `app/ios/App/App.xcodeproj/project.pbxproj`.
+
+## Reading reports and support messages
+Open `https://<alerts service>/cosmic/owner/inbox` with the header `X-Owner-Key: <your COMETS_KEY>`. It lists player reports and messages from the Support page.

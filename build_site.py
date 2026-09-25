@@ -197,6 +197,9 @@ def main(hosted=True, out="docs/index.html"):
         html = html.replace("<!--PWA-->", PWA_HEAD.replace("__SITE__", site))
         write_pwa(os.path.dirname(out), stamp)
         write_aasa(os.path.dirname(out))
+        # the Support page's contact form posts to the alerts service
+        open(os.path.join(os.path.dirname(out), "support.html"), "w", encoding="utf-8").write(
+            open("pages/support.html", encoding="utf-8").read().replace("__ALERTS__", alerts_url()))
         # names the alerts service uses to match API names like "J. Sinner"
         json.dump([{"name": p["name"], "tour": t} for t in ("atp", "wta") for p in snap[t]["players"]],
                   open(os.path.join(os.path.dirname(out), "players.json"), "w"), separators=(",", ":"))

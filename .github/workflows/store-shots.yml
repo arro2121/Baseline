@@ -1,0 +1,28 @@
+# App Store screenshots from the live site (real games, logos and player photos), saved to app/store/screenshots.
+# Run it from Actions > App Store screenshots > Run workflow, once the site is live.
+name: App Store screenshots
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install a browser
+        run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium
+      - name: Take the screenshots
+        env:
+          COMETS_KEY: ${{ secrets.COMETS_KEY }}
+          SITE: ${{ vars.SITE_URL || 'https://arro2121.github.io/Baseline/' }}
+        run: node app/store/shots.mjs
+      - uses: actions/upload-artifact@v4
+        with: { name: app-store-screenshots, path: app/store/screenshots }
+      - name: Save them to the repository
+        run: |
+          git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
+          git add app/store/screenshots && git commit -q -m "App Store screenshots from the live site" && git push || echo "No changes"
