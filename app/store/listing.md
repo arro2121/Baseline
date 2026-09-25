@@ -11,7 +11,7 @@ Everything to paste into App Store Connect (My Apps > Cosmo Sports). Character l
 - **Secondary category**: Entertainment
 - **Content rights**: Doesn't contain, show or access third-party content that needs rights. (Scores and stats are facts from public sports data; team logos are shown only to identify teams.)
 - **Privacy policy URL**: https://cosmosports.app/privacy.html
-- **Support URL**: https://cosmosports.app/
+- **Support URL**: https://cosmosports.app/support.html (FAQ and a contact form)
 - **Marketing URL**: https://cosmosports.app/
 - **Copyright**: 2026 <your legal name, as enrolled with Apple>
 - **Price**: Free. No in-app purchases.
@@ -55,6 +55,9 @@ scores,nfl,nba,mlb,nhl,premier league,predictions,picks,odds,stats,fantasy,cards
 ## What's new (version 1.0)
 First release.
 
+## Terms of use (EULA)
+Use Apple's standard EULA. Our own terms are at https://cosmosports.app/terms.html and are linked on the sign-in screen.
+
 ## Age rating questionnaire
 - Simulated Gambling: **Frequent/Intense** (play-money bets and card packs)
 - Everything else (violence, sexual content, profanity, drugs, horror, medical, contests): **None**
@@ -77,8 +80,8 @@ Cosmo Sports needs an account. Anyone can create one in about ten seconds, and n
 
 - Cosmic uses play money only. Cosmic Coins can't be bought with real money or exchanged for anything outside the app, and cards have no cash value. The odds for every card pack are shown on the Packs tab before opening.
 - Account deletion: Settings (gear icon, top right) > Account > Delete account, or the Delete account link at the bottom of the Cosmic page.
-- Leaderboard names are public. Offensive names are refused when the account is created.
-- Native features: passkey sign-in, haptic feedback, the native share sheet, and an offline screen.
+- Leaderboard names are public (user-generated content). Offensive names are refused at sign-up. Any player's name can be tapped to **Report name** or **Block** (on the leaderboard, Market and live feed). Reports go to the developer's inbox, and a name reported by three players is replaced automatically. The Terms of Use (linked on the sign-in screen) prohibit objectionable content and abusive users.
+- Native features: passkey sign-in (Associated Domains), game reminders and a daily coins reminder scheduled as local notifications (Settings), haptic feedback, the native share sheet, links to cosmosports.app opening in the app, the App Store rating prompt, and an offline screen.
 
 Contact: <your email and phone, which App Store Connect asks for separately>
 

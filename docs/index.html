@@ -1259,6 +1259,7 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .gate-perks{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:6px;color:var(--muted);font-size:.9rem}.gate-perks li{display:flex;gap:8px}
 body.gated{overflow:hidden}body.gated .askfab,body.gated .bottombar{display:none}
 html.native .webonly,html.native #installBtn{display:none!important}
+.czwho{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted currentColor}.czwho.in{font-weight:600}.czwho:focus-visible{outline:2px solid var(--accent,#a78bfa);outline-offset:2px}.czwhoacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .setbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn.danger{color:#fca5a5;border-color:#7f1d1d}
 .czjf{display:flex;gap:10px;flex-wrap:wrap}.czjf .field{flex:1;min-width:180px}
 .czmkts{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
@@ -1850,6 +1851,7 @@ dialog.onb p{margin:0 0 12px}
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
     <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
+    <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about a player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
@@ -1874,7 +1876,7 @@ dialog.onb p{margin:0 0 12px}
     <h3>Ask Cosmo</h3>
     <p>Answers are written by an AI model from live data and can be wrong; check anything important. Your questions are sent to the AI provider to answer them and aren't stored by us.</p>
     <h3>Your privacy</h3>
-    <p>No account, no ads, no tracking. The teams you follow, your picks and your settings stay on this device; alerts and Ask Cosmo send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a></p>
+    <p>No ads and no tracking. Your account keeps your teams, picks, settings and Cosmic cards so they follow you to any device, and you can delete it any time in Settings. Alerts and Ask Cosmo send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
     <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" onclick="this.closest('dialog').close()">Done</button></div>
   </div>
 </dialog>
@@ -3909,6 +3911,7 @@ function toggleFav(lg, name, quiet){
   const k = tkey(name), a = FAV[lg] = FAV[lg] || []; const i = a.indexOf(k); i >= 0 ? a.splice(i, 1) : a.push(k);
   try { localStorage.setItem("fav-teams", JSON.stringify(FAV)); } catch {}
   if (typeof ntfSync === "function") ntfSync();
+  if (NATIVE && typeof remSchedule === "function"){ clearTimeout(toggleFav.rt); toggleFav.rt = setTimeout(remSchedule, 3000); }
   if (!quiet) toast(i >= 0 ? `Stopped following ${name}` : `Following ${name}`);
   if (SPORT === lg && !$("#tt-games").hidden) drawGames();
   if (SPORT === "following") renderFollowing();
@@ -4969,7 +4972,7 @@ function bellBtn(lg, g, cls = "ghost bell"){
   return `<button type="button" class="${cls}" data-bell="${esc(g.id)}" aria-pressed="${on}" aria-label="${on ? "Turn off" : "Turn on"} alerts for this game" title="${on ? "Alerts on" : "Get alerts for this game"}">${BELL(on)}</button>`;
 }
 function renderNtf(){
-  const box = $("#ntfBox"); if (!box) return; if (NATIVE){ box.innerHTML = ""; return; }
+  const box = $("#ntfBox"); if (!box) return; if (NATIVE){ renderRem(box); return; }
   const nTeams = Object.values(FAV).reduce((n, a) => n + a.length, 0), nGames = NTF.games.length;
   const P = [["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"], ["comets", "Comets articles", "when a new article is published"]];
   box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on && "Notification" in window && Notification.permission !== "granted" ? `<span style="color:var(--bad,#FF7D8E)">Blocked in your phone's settings. Allow notifications for Cosmo Sports, then turn this off and on.</span> · ` : ""}${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
@@ -5172,7 +5175,7 @@ async function czLoad(what = ["me", "board", "vault", "lb"]){
     if (w === "lb") CZ.lb = await czApi("/leaders");
     if (w === "market") CZ.market = await czApi("/market");
   } catch (e) { if (w === "me" && e.status === 401){ lsSet("cz-auth", ""); CZ.me = null; } else CZ.err = e.message; } }));
-  CZ.loaded = true; if (SPORT === "cosmic") drawCosmic(); if (what.includes("me")) drawGate();
+  czHideBlocked(); CZ.loaded = true; if (SPORT === "cosmic") drawCosmic(); if (what.includes("me")) drawGate();
 }
 function czTeam(lg, name){ return ["atp", "wta"].includes(lg) ? null : simTeam(lg, name); }
 // a collectible: galaxy card in the team's colours, with the tier's foil and the edition number
@@ -5247,7 +5250,7 @@ function czHomeHtml(){
   const games = (CZ.board || []).length, cheapest = CZ.packs ? CZ.packs.packs.filter(p => p.price <= me.bal).sort((a, b) => b.price - a.price)[0] : null, listings = CZ.market ? CZ.market.listings.filter(l => l.uid !== me.uid).length : null;
   const tile = (go, icon, title, sub, hot) => `<button type="button" class="czact ${hot ? "hot" : ""}" ${go}><span class="czact-i" aria-hidden="true">${icon}</span><b>${title}</b><small>${sub}</small></button>`;
   const edges = czEdges().slice(0, 3), L = CZ.lb, rk = czRank();
-  const feedTxt = f => f.kind === "sale" ? `<b>${esc(f.name)}</b> bought ${esc(f.label)} #${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `<b>${esc(f.name)}</b> pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `<b>${esc(f.name)}</b> collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `<b>${esc(f.name)}</b> won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : `<b>${esc(f.name)}</b> joined Cosmic`;
+  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} #${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : `${czWhoBtn(f.name)} joined Cosmic`;
   return `<div class="czacts">
       ${claimed ? tile('data-cztab="bet"', "🎯", "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', "🪙", "Claim daily coins", "Free coins every day, more for a streak", true)}
       ${tile('data-cztab="packs"', "🎴", "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 250 coins", false)}
@@ -5312,6 +5315,64 @@ function czPkBind(el){
   el.querySelectorAll("[data-czpk=add]").forEach(b => b.onclick = async () => { try { await czPkCreate("", true); toast("Passkey added on this device"); } catch (e) { toast(czPkErr(e)); } });
   const f = el.querySelector("form[data-czpk=new]"); if (f) f.onsubmit = e => { e.preventDefault(); P.name = f.name.value.trim(); run(f.querySelector("button"), () => czPkCreate(P.name, false)); };
 }
+// ---- report and block: tap any player's name on the leaderboard, the Market or the feed
+const czBlocked = () => lsGet("cz-blocked", []);
+function czWhoBtn(name, cls = ""){ if (!name) return ""; return CZ.me && name === CZ.me.name ? `<b>${esc(name)}</b>` : `<button type="button" class="czwho ${cls}" data-czwho="${esc(name)}">${esc(name)}</button>`; }
+function czHideBlocked(){
+  const B = new Set(czBlocked().map(n => n.toLowerCase())); if (!B.size) return; const ok = n => !n || !B.has(String(n).toLowerCase());
+  if (CZ.lb){ for (const k of ["rich", "sharp", "collectors"]) if (CZ.lb[k]) CZ.lb[k] = CZ.lb[k].filter(r => ok(r.name)); CZ.lb.feed = (CZ.lb.feed || []).filter(f => ok(f.name) && ok(f.seller)); }
+  if (CZ.market && CZ.market.listings) CZ.market.listings = CZ.market.listings.filter(l => ok(l.seller));
+}
+function czWho(name){
+  const blocked = czBlocked().includes(name);
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">${esc(name)}</h2><p class="sub">A Cosmic player. Report a name that's offensive, hateful or impersonating someone. Block hides this player from your leaderboards, Market and feed.</p>
+    <div class="czwhoacts"><button class="btn" type="button" data-whoact="report">Report name</button><button class="btn" type="button" data-whoact="block">${blocked ? "Unblock" : "Block"}</button><button class="btn" type="button" data-whoact="close">Close</button></div>`;
+  $("#infoBody").querySelectorAll("[data-whoact]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.whoact;
+    if (a === "block"){ const L = czBlocked().filter(n => n !== name); if (!blocked) L.push(name); lsSet("cz-blocked", L); $("#infoDlg").close(); toast(blocked ? `${name} unblocked` : `${name} blocked. You won't see them in Cosmic.`); await czLoad(["lb", "market"]); drawCosmic(); return; }
+    if (a === "report"){ const why = prompt(`Why are you reporting "${name}"? (optional)`, ""); if (why === null) return;
+      try { await czApi("/report", { name, reason: why }); toast("Thanks. We'll review it, and the name is replaced if several players report it."); } catch (e) { toast(e.message); } }
+    $("#infoDlg").close();
+  });
+  $("#infoDlg").showModal();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-czwho]"); if (b && CZ.me){ e.preventDefault(); czWho(b.dataset.czwho); } });
+// ---- iPhone app: game reminders scheduled on the phone itself, and Apple's rating prompt after a good moment
+const REM = { games: lsGet("rem-games", false), coins: lsGet("rem-coins", false) };
+function renderRem(box){
+  const row = (k, title, sub) => `<div class="setrow"><div><b>${title}</b><small>${sub}</small></div><div class="seg" role="group" aria-label="${title}"><button type="button" data-rem="${k}:0" aria-pressed="${!REM[k]}">Off</button><button type="button" data-rem="${k}:1" aria-pressed="${!!REM[k]}">On</button></div></div>`;
+  box.innerHTML = row("games", "Game reminders", "15 minutes before each game of the teams you follow (tap ☆ on a team to follow it)") + row("coins", "Daily coins reminder", "At 10 AM when your free Cosmic Coins are waiting");
+  box.querySelectorAll("[data-rem]").forEach(b => b.onclick = async () => {
+    const [k, v] = b.dataset.rem.split(":"), on = v === "1";
+    if (on){ const p = await nat("LocalNotifications", "requestPermissions").catch(() => null);
+      if (!p || p.display !== "granted"){ toast("Allow notifications for Cosmo Sports in your iPhone's Settings, then try again."); return; } }
+    REM[k] = on; lsSet("rem-" + k, on); renderRem(box); await remSchedule();
+    if (on) toast(k === "games" ? (Object.values(FAV).some(l => l.length) ? "Game reminders are on" : "Game reminders are on. Follow a team with ☆ to get them.") : "You'll get a reminder when your coins are waiting");
+  });
+}
+const remId = s => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 800000; return h + 1000; };
+async function remSchedule(){
+  if (!NATIVE) return;
+  const old = lsGet("rem-ids", []); if (old.length) await nat("LocalNotifications", "cancel", { notifications: old.map(id => ({ id })) }).catch(() => {});
+  const list = [], now = Date.now();
+  if (REM.games){
+    for (const lg of Object.keys(FAV)){ if (!(FAV[lg] || []).length || !LEAGUE_LABEL[lg]) continue;
+      for (let d = 0; d < 3; d++){ let b; try { b = await fetchBoard(lg, ymd(new Date(now + d * 864e5))); } catch { continue; }
+        for (const g of (b && b.games) || []){ const at = Date.parse(g.date) - 15 * 60e3;
+          if (!(g.status && g.status.state === "pre") || !(at > now + 60e3) || ![g.home, g.away].some(t => t && isFav(lg, t.name))) continue;
+          list.push({ id: remId(lg + g.id), title: `${g.away.name} at ${g.home.name}`, body: `Starts in 15 minutes · ${LEAGUE_LABEL[lg]}`, schedule: { at: new Date(at).toISOString() } }); } } } }
+  if (REM.coins) for (let d = 0; d < 7; d++){
+    const t = new Date(now + d * 864e5); t.setHours(10, 0, 0, 0); if (t.getTime() < now + 60e3 || (d === 0 && CZ.me && CZ.me.lastDaily === czToday())) continue;
+    list.push({ id: 900 + d, title: "Your Cosmic Coins are ready", body: "Claim today's free coins and keep your streak going.", schedule: { at: t.toISOString() } }); }
+  const L = [...new Map(list.map(n => [n.id, n])).values()].sort((a, b) => a.schedule.at.localeCompare(b.schedule.at)).slice(0, 60);
+  if (L.length) await nat("LocalNotifications", "schedule", { notifications: L }).catch(() => {});
+  lsSet("rem-ids", L.map(n => n.id));
+}
+function askReview(delay = 1500){
+  if (!NATIVE) return; const n = lsGet("rv-n", 0) + 1; lsSet("rv-n", n);
+  if (n < 2 || Date.now() - lsGet("rv-at", 0) < 120 * 864e5) return;           // at most every four months, never on the first good moment
+  lsSet("rv-at", Date.now()); lsSet("rv-n", 0); setTimeout(() => nat("InAppReview", "requestReview").catch(() => {}), delay);
+}
 // ---- one account for all of Cosmo Sports: the app opens behind a sign-in screen until you're signed in with a passkey
 const GATE_ON = HOSTED && !!ALERTS_URL, GATE = { sig: "", open: false, after: null };
 function gateNeeded(){
@@ -5327,7 +5388,7 @@ function drawGate(){
   g.hidden = false; GATE.open = true; if (sig === GATE.sig) return; GATE.sig = sig;
   $("#gateBody").innerHTML = `<div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to open the app."}</p></div>
     ${link ? "" : `<ul class="gate-perks"><li>📈 Live scores, predictions and the model's track record for every league</li><li>🪐 Cosmic: free play coins, bets and limited-edition cards, down to 1 of 1</li><li>☁️ Your teams, cards and settings saved to your account on every device</li></ul>`}
-    ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free, no password, no email. <a href="privacy.html">Privacy</a></p>`;
+    ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free, no password, no email. By creating an account you agree to the <a href="terms.html">Terms of Use</a>. <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>`;
   czBind($("#gateBody")); czPkBind($("#gateBody"));
 }
 function gateStart(){
@@ -5457,7 +5518,7 @@ async function czOpen(id){
   const pk = CZ.packs.packs.find(p => p.id === id); if (!pk) return;
   if (czBal() < pk.price){ toast(`You need ${(pk.price - CZ.me.bal).toLocaleString()} more coins for this pack`); return; }
   if (!confirm(`Open a ${pk.label} (${pk.cards} cards) for ${pk.price.toLocaleString()} Cosmic Coins?`)) return;
-  try { const r = await czApi("/pack", { pack: id, scope: CZ.scope, kind: CZ.kind }); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); }
+  try { const r = await czApi("/pack", { pack: id, scope: CZ.scope, kind: CZ.kind }); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); if (r.cards.some(c => c.supply <= 50)) askReview(6000); }
   catch (e) { toast(e.message); czLoad(["vault", "me"]); }
 }
 // the reveal: cards face down, flipped one by one, the rarest last
@@ -5511,7 +5572,7 @@ function czMarketHtml(){
   const mine = new Set((CZ.me.items || []).map(i => i.id)), q = tkey(CZ.mq || ""), mlg = CZ.mlg || "all";
   const all = M.listings.filter(l => (mlg === "all" || (mlg === "tennis" ? ["atp", "wta"].includes(l.lg) : l.lg === mlg)) && (!q || tkey(`${l.name} ${l.team || ""}`).includes(q)));
   const own = all.filter(l => l.uid === CZ.me.uid), rest = all.filter(l => l.uid !== CZ.me.uid).sort(CZ.msort === "cheap" ? (a, b) => a.price - b.price : CZ.msort === "rare" ? (a, b) => a.supply - b.supply || a.price - b.price : (a, b) => b.at - a.at);
-  const tile = (l, you) => `<div class="czitem">${czCard({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n)}<div class="czinfo"><span class="czleft">${you ? "Your listing" : `Sold by ${esc(l.seller)}`}</span>
+  const tile = (l, you) => `<div class="czitem">${czCard({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n)}<div class="czinfo"><span class="czleft">${you ? "Your listing" : `Sold by ${czWhoBtn(l.seller, "in")}`}</span>
     ${you ? `<button type="button" class="btn czbuy" data-czunl="${esc(l.lid)}">Remove · ${czAmt(l.price)}</button>` : `<button type="button" class="btn ${mine.has(l.id) || czBal() < l.price ? "" : "primary"} czbuy" data-czbl="${esc(l.lid)}" ${mine.has(l.id) ? "disabled" : ""}>${mine.has(l.id) ? "You own one" : czAmt(l.price)}</button>`}</div></div>`;
   return `<p class="sub">Cards other collectors are selling, for Cosmic Coins. Sellers set the price; ${Math.round(M.fee * 100)}% of each sale goes to the cosmos as a market fee. To sell a card, open it in your Collection.</p>
     <div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czmlg="${l}" aria-pressed="${mlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
@@ -5522,8 +5583,8 @@ function czMarketHtml(){
 }
 function czLbHtml(){
   const L = CZ.lb; if (!L) return `<div class="teamnote">${cosmoLoad("Loading the leaderboard…")}</div>`;
-  const me = CZ.me.uid, row = (r, i, v) => `<div class="czlbr ${r.uid === me ? "me" : ""}"><span class="ldn">${i + 1}</span><b>${esc(r.name)}</b><span>${v(r)}</span></div>`;
-  const feedTxt = f => f.kind === "sale" ? `<b>${esc(f.name)}</b> bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} #${f.n}/${f.supply} from <b>${esc(f.seller)}</b> for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `<b>${esc(f.name)}</b> pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `<b>${esc(f.name)}</b> collected ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `<b>${esc(f.name)}</b> won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : `<b>${esc(f.name)}</b> joined Cosmic`;
+  const me = CZ.me.uid, row = (r, i, v) => `<div class="czlbr ${r.uid === me ? "me" : ""}"><span class="ldn">${i + 1}</span>${czWhoBtn(r.name)}<span>${v(r)}</span></div>`;
+  const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} #${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : `${czWhoBtn(f.name)} joined Cosmic`;
   return `<div class="grid" style="margin-top:0">
     <section class="card"><h2>Most coins</h2><p class="sub">${L.players.toLocaleString()} player${L.players === 1 ? "" : "s"}.</p>${L.rich.slice(0, 25).map((r, i) => row(r, i, r => czAmt(r.bal))).join("")}</section>
     <section class="card"><h2>Sharpest bettors</h2><p class="sub">Coins won from betting, at least 5 settled bets.</p>${L.sharp.length ? L.sharp.map((r, i) => row(r, i, r => `<span class="${r.profit >= 0 ? "pos" : "neg"}">${r.profit > 0 ? "+" : ""}${Math.round(r.profit).toLocaleString()}</span> <small class="muted">${r.won}–${r.lost}</small>`)).join("") : `<p class="sub">Nobody has 5 settled bets yet.</p>`}</section>
@@ -5557,7 +5618,7 @@ function czBind(el){
     catch (err) { toast(err.message); btn.disabled = false; } };
   el.querySelectorAll("[data-cz]").forEach(b => b.onclick = async () => {
     const k = b.dataset.cz;
-    if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); czLoad(["lb"]); } catch (e) { toast(e.message); } }
+    if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); czLoad(["lb"]); remSchedule(); if (r.user.streak >= 3) askReview(1500); } catch (e) { toast(e.message); } }
     if (k === "signout"){ if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSignOut(); return; }
     if (k === "owner"){                                               // the site owner's testing switch, unlocked with the Comets writer key
       let key = cmKey();
@@ -6465,7 +6526,7 @@ renderFeed();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play", "comets", "record", "cosmic"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
-  GATE.after = () => { maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); }; gateStart(); loadModels(); loadComets();
+  GATE.after = () => { maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); if (NATIVE) setTimeout(remSchedule, 4000); }; gateStart(); loadModels(); loadComets();
   if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut
