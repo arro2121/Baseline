@@ -17,6 +17,13 @@ const TYPES = { "Atp Singles": ["atp", true], "Wta Singles": ["wta", true],
   "Challenger Men Singles": ["atp", false], "Challenger Women Singles": ["wta", false] };
 
 /* ---------------- small helpers ---------------- */
+// one of the site's own files (players, models). A new custom domain can take a while to get its HTTPS certificate,
+// so if the secure address fails, try the same address over plain http.
+async function siteGet(env, path, fetchImpl = fetch) {
+  const base = String(env.SITE_URL || "").replace(/\/$/, "");
+  try { const r = await fetchImpl(base + path); if (r.ok || !/^https:/.test(base)) return r; } catch (e) { if (!/^https:/.test(base)) throw e; }
+  return fetchImpl(base.replace(/^https:/, "http:") + path);
+}
 const enc = new TextEncoder();
 export const b64u = {
   enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
@@ -259,7 +266,7 @@ export async function tick(env, fetchImpl = fetch) {
     return Array.isArray(d.result) ? d.result : Object.values(d.result || {});
   };
   let players = [];
-  try { const r = await fetchImpl(`${env.SITE_URL.replace(/\/$/, "")}/players.json`); if (r.ok) players = await r.json(); } catch {}
+  try { const r = await siteGet(env, "/players.json", fetchImpl); if (r.ok) players = await r.json(); } catch {}
   const today = new Date(Date.now() - 4 * 3600e3).toISOString().slice(0, 10);
   const events = [...await call("get_livescore"), ...await call("get_fixtures", { date_start: today, date_stop: today })];
   const matches = toLive(events, resolver(players));
@@ -1365,7 +1372,7 @@ export function trackOdds(o, soccer) {
 let TRK_MODELS = null;
 async function trackModels(env, fetchImpl) {
   if (TRK_MODELS && Date.now() - TRK_MODELS.at < 3600e3) return TRK_MODELS.m;
-  const r = await fetchImpl(`${env.SITE_URL.replace(/\/$/, "")}/models.json?t=${Math.floor(Date.now() / 36e5)}`);
+  const r = await siteGet(env, `/models.json?t=${Math.floor(Date.now() / 36e5)}`, fetchImpl);
   if (!r.ok) throw new Error("models " + r.status);
   TRK_MODELS = { at: Date.now(), m: await r.json() }; return TRK_MODELS.m;
 }
@@ -1629,7 +1636,7 @@ async function czCatalog(env, fetchImpl = fetch) {
   if (CZ_CAT && Date.now() - CZ_CAT.at < 6 * 3600e3) return CZ_CAT.v;
   const models = await trackModels(env, fetchImpl), groups = [];
   for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}; groups.push([lg, Object.keys(st).sort((a, b) => st[b].elo - st[a].elo)]); }
-  try { const r = await fetchImpl(`${env.SITE_URL.replace(/\/$/, "")}/players.json`); const P = r.ok ? await r.json() : [];
+  try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
     for (const tour of ["atp", "wta"]) groups.push([tour, P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name)]); } catch {}
   const items = [];
   for (const [lg, names] of groups) names.forEach((name, i) => {
@@ -1757,7 +1764,7 @@ export default {
           if (!e) { const q2 = new URLSearchParams({ method: "get_fixtures", APIkey: env.API_TENNIS_KEY, match_key: m[1] });
             d = await (await fetch(`${API}?${q2}`)).json(); e = (d.result || []).find(x => String(x.event_key) === m[1]); }
           if (!e) return { error: "not found", plays: [] };
-          let players = []; try { const r = await fetch(`${env.SITE_URL.replace(/\/$/, "")}/players.json`); if (r.ok) players = await r.json(); } catch {}
+          let players = []; try { const r = await siteGet(env, "/players.json"); if (r.ok) players = await r.json(); } catch {}
           const t = TYPES[e.event_type_type]?.[0] || "atp";
           return normTennis(e, n => resolver(players)(n, t));
         });
