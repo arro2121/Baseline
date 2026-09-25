@@ -43,7 +43,9 @@ const builders = {
     const list = await espnLeague("epl");
     try { const photos = await plPhotos(), miss = [];
       for (const p of list) { const k = normName(p.name), id = photos.get(k) || photos.get(lastFirst(p.name)); if (id) p.img = `https://resources.premierleague.com/premierleague25/photos/players/110x140/${id}.png`; else if (!p.img) miss.push(p.name); }
-      console.log("epl photos matched", list.length - miss.length, "of", list.length); }
+      // not every player has a photo on the league's site: keep only the ones that exist
+      await pool(list.filter(p => p.img.includes("premierleague.com")), 12, async p => { try { const r = await fetch(p.img, { method: "HEAD", headers: H }); if (!r.ok) p.img = ""; } catch { p.img = ""; } });
+      console.log("epl photos matched", list.length - miss.length, "of", list.length, "; available", list.filter(p => p.img).length); }
     catch (e) { console.log("epl photos skipped:", e.message); }
     return list;
   },
