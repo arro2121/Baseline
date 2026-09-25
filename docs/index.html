@@ -1308,7 +1308,48 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czkey{width:100%;min-height:80px;font-family:ui-monospace,monospace;font-size:.8rem;word-break:break-all}
 @media (prefers-reduced-motion:reduce){.czc-foil,.czcard.t-singularity .czc-foil,.czreveal .czcard{animation:none}}
 @media (max-width:560px){.czgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.czmkts{grid-template-columns:1fr}.czc-name{font-size:.8rem}.czbal{justify-items:start}}
-.czpacks{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.czpacks{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.czlead{margin-top:0}.czfilters{display:grid;gap:2px;margin-bottom:6px}
+.czpk-body{display:grid;gap:10px}
+.czpk-hl{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.czpk-hl b{font-size:1.35rem;font-weight:850;background:linear-gradient(90deg,#fcd34d,#f0abfc,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}.czpk-hl span{color:var(--muted);font-size:.8rem}
+.czobar{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;background:rgba(255,255,255,.04)}.czobar i{display:block;min-width:3px}
+.czobar .t-singularity,.czolist .t-singularity{background:linear-gradient(90deg,#fde68a,#f59e0b);box-shadow:0 0 8px #fcd34d}.czobar .t-supernova{background:#fb923c}.czobar .t-quasar{background:#38bdf8}.czobar .t-nebula{background:#a78bfa}.czobar .t-pulsar{background:#34d399}.czobar .t-stardust{background:#cbd5e1}.czobar .t-comet{background:#64748b}
+.czolist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:.8rem}.czolist li{display:flex;align-items:center;gap:0;white-space:nowrap}.czolist small{color:var(--faint);font-size:.68rem;margin-left:4px}.czolist b{margin-left:auto;font-weight:750;font-variant-numeric:tabular-nums}
+@media (max-width:440px){.czolist small{display:none}.czolist{gap:4px 18px}}
+.czpod.p1{grid-column:2}.czpod.p2{grid-column:1;grid-row:1}.czpod.p3{grid-column:3;grid-row:1}.czpod.p1{grid-row:1}
+.czpack{transition:transform .25s cubic-bezier(.2,.9,.3,1.3),box-shadow .25s}.czpk:hover .czpack{transform:translateY(-4px) rotate(-1.5deg) scale(1.02)}
+.czpk-shine{position:absolute;inset:-40%;z-index:1;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.28) 48%,transparent 56%);transform:translateX(-60%);animation:czshine 4.5s ease-in-out infinite}
+@keyframes czshine{0%,55%{transform:translateX(-60%)}85%,100%{transform:translateX(60%)}}
+.czpk.pk-singularity{border-color:rgba(252,211,77,.55);box-shadow:0 0 0 1px rgba(252,211,77,.25),0 18px 40px -20px rgba(252,211,77,.55)}.czpk.pk-supernova{border-color:rgba(251,146,60,.45)}
+.czopen{justify-content:center}.czhow{margin-top:14px;color:var(--muted);font-size:.86rem}.czhow summary{cursor:pointer;font-weight:700;color:var(--ink)}
+.czlbseg{margin-bottom:10px}
+.czpodium{display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:8px;margin:10px 0 14px;text-align:center}
+.czpod{display:grid;justify-items:center;gap:3px;min-width:0}.czpod .czwho,.czpod b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.86rem}.czpod small{font-size:.74rem;color:var(--muted)}
+.czpod-av{position:relative;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;font-weight:850;font-size:1.3rem;color:#fff;background:radial-gradient(circle at 35% 30%,#c4b5fd,#7c3aed 55%,#3b0764);box-shadow:0 0 0 2px rgba(255,255,255,.15),0 8px 20px -8px #7c3aed}
+.czpod.p1 .czpod-av{width:64px;height:64px;font-size:1.6rem;background:radial-gradient(circle at 35% 30%,#fef3c7,#f59e0b 55%,#78350f);box-shadow:0 0 0 2px #fcd34d,0 0 26px -4px rgba(252,211,77,.8)}
+.czpod-av i{position:absolute;bottom:-6px;right:-6px;font-style:normal;font-size:1.1rem}
+.czpod-step{width:100%;margin-top:6px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,rgba(167,139,250,.35),rgba(124,58,237,.08));font-weight:850;font-size:1.1rem;color:#fff;display:grid;place-items:center}
+.czpod.p1 .czpod-step{height:64px;background:linear-gradient(180deg,rgba(252,211,77,.45),rgba(252,211,77,.06))}.czpod.p2 .czpod-step{height:46px}.czpod.p3 .czpod-step{height:34px}
+.czpod.me .czpod-av{outline:2px solid #f0abfc;outline-offset:3px}.czlbme{margin:10px 0 0}
+.cztiers{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 10px}.cztiers::-webkit-scrollbar{display:none}
+.cztiers button{flex:none;display:grid;justify-items:center;gap:0;min-width:74px;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;font-size:.72rem;font-weight:700;cursor:pointer}
+.cztiers button b{font-size:1.15rem;color:var(--ink)}.cztiers button[aria-pressed="true"]{color:#fff;border-color:transparent;background:linear-gradient(150deg,#7c3aed,#db2777)}
+.cztiers .t-singularity b{color:#fcd34d}.cztiers .t-supernova b{color:#fb923c}.cztiers .t-quasar b{color:#38bdf8}.cztiers .t-nebula b{color:#a78bfa}.cztiers .t-pulsar b{color:#34d399}
+.czsets{display:grid;gap:6px;margin:4px 0 10px}.czset{display:grid;grid-template-columns:130px 1fr 52px;gap:10px;align-items:center;font-size:.8rem}.czset small{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.czset-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.czset-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7c3aed,#22d3ee)}
+.czempty{text-align:center;display:grid;justify-items:center;gap:8px;padding:30px 16px}.czempty-orb{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8ff3ff,#4c8dff 22%,#7a3df5 52%,#c2338f 80%,#3a0f4f);box-shadow:0 12px 40px -8px #7c3aed;animation:czfloat 5s ease-in-out infinite}
+@keyframes czfloat{50%{transform:translateY(-8px)}}
+.czfoot-links{line-height:2}.cmfoot details{margin-top:8px}.cmfoot summary{cursor:pointer;color:var(--muted)}.cmfoot details p{max-width:560px;margin:8px auto 0}
+/* Cosmic's own sky: a slow nebula behind the page, and cards that tilt with a holographic sheen */
+#cosmicView{position:relative;isolation:isolate}
+#cosmicView::before{content:"";position:absolute;inset:-40px 0 0;z-index:-1;pointer-events:none;border-radius:40px;opacity:.55;
+  background:radial-gradient(40% 30% at 15% 10%,rgba(124,58,237,.35),transparent 70%),radial-gradient(35% 28% at 90% 25%,rgba(219,39,119,.22),transparent 70%),radial-gradient(45% 30% at 50% 70%,rgba(34,211,238,.14),transparent 70%);
+  animation:cznebula 26s ease-in-out infinite alternate}
+@keyframes cznebula{to{transform:translate3d(0,-20px,0) scale(1.04);filter:hue-rotate(25deg)}}
+.czcard.tilt{transition:transform .08s linear;transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+.czcard.tilt .czc-foil{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.35),transparent 45%),linear-gradient(115deg,transparent 20%,rgba(255,0,200,.12) 35%,rgba(0,255,255,.12) 50%,rgba(255,255,0,.12) 65%,transparent 80%);mix-blend-mode:screen;opacity:1}
+.czact-i{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(150deg,rgba(124,58,237,.45),rgba(34,211,238,.25));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);font-size:1.2rem}
+@media (prefers-reduced-motion:reduce){#cosmicView::before,.czpk-shine,.czempty-orb{animation:none}}
 .czpk{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:12px;box-shadow:var(--shadow)}
 .czpack{position:relative;overflow:hidden;isolation:isolate;border-radius:12px;height:170px;display:grid;place-content:center;justify-items:center;gap:4px;color:#fff;text-align:center;
   background:linear-gradient(160deg,#334155,#0f172a);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),0 12px 28px -14px rgba(88,28,135,.9);transition:transform .15s}
@@ -5237,7 +5278,8 @@ function drawCosmic(){
   const tabs = [["home", "🏠", "Home"], ["bet", "🎯", "Bet"], ["mine", "🧾", "My bets"], ["packs", "🎴", "Packs"], ["market", "🛒", "Market"], ["coll", "🗂️", "Collection"], ["check", "✅", "Checklist"], ["lb", "🏆", "Leaders"]];
   el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}"><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>`
     + ({ home: czHomeHtml, bet: czBetHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)()
-    + `<p class="cmfoot">Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed. ${CZ.me.passkey ? `Signed in with a passkey: your account and your followed teams, settings and picks are saved and follow you to any device where you sign in. <button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button></p>`;
+    + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button></div>
+      <details><summary>About Cosmic Coins</summary><p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed.${CZ.me.passkey ? " Your account, cards, followed teams, settings and picks are saved and follow you to any device where you sign in." : ""}</p></details></footer>`;
   czBind(el); czAnimBal();
   const t = el.querySelector('.cztabs [aria-pressed="true"]'); if (t && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center" });
 }
@@ -5505,14 +5547,20 @@ const czOddsPct = v => v === 0 ? "—" : v < .1 ? v.toFixed(2) + "%" : v < 1 ? v
 function czPacksHtml(){
   const P = CZ.packs; if (!P) return `<div class="teamnote">${CZ.err ? `<b>Couldn't load the packs</b>${esc(CZ.err)}` : cosmoLoad("Stocking the packs…")}</div>`;
   const scopeName = { all: "Every league", nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League", tennis: "Tennis" };
-  return `<p class="sub">Every card's tier is rolled with the odds below, then a card of that tier you don't have yet is drawn from the copies still out there. Better packs have better odds. Pick a league and teams or players to chase what you want.</p>
-    <div class="seg trseg" role="group" aria-label="League">${P.scopes.map(k => `<button type="button" data-czscope="${k}" aria-pressed="${CZ.scope === k}">${esc(scopeName[k] || k)}</button>`).join("")}</div>
-    <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams only"], ["player", "Players only"]].map(([k, l]) => `<button type="button" data-czkind="${k}" aria-pressed="${CZ.kind === k}">${l}</button>`).join("")}</div>
-    <div class="czpacks">${P.packs.map(pk => `<div class="czpk">
-      <div class="czpack p-${esc(pk.id)}"><div class="czpk-crimp"></div><div class="czpk-sky"></div>${czCoin("pk")}<b>${esc(pk.label)}</b><small>${pk.cards} cards · ${esc(scopeName[CZ.scope])}${CZ.kind === "team" ? " teams" : CZ.kind === "player" ? " players" : ""}</small><div class="czpk-crimp b"></div></div>
-      <table class="czodds"><tbody>${CZ_ORDER.map((t, i) => pk.odds[i] ? `<tr><td><i class="czdot t-${t}"></i>${esc(CZ_TIER_NAME[t])} <small>1/${P.tiers[i].supply}</small></td><td>${czOddsPct(pk.odds[i])}</td></tr>` : "").join("")}</tbody></table>
-      <button type="button" class="btn primary czopen" data-czpack="${esc(pk.id)}" ${czBal() < pk.price ? "disabled" : ""}>Open for ${czAmt(pk.price)}</button></div>`).join("")}</div>
-    <p class="sub" style="margin-top:12px">Odds are per card. If every copy of a tier is gone, that card comes from the next more common tier. You've opened ${CZ.me.packs || 0} pack${CZ.me.packs === 1 ? "" : "s"}.</p>`;
+  const bar = pk => { const w = pk.odds.map(o => o ? Math.max(2.5, Math.sqrt(o) * 10) : 0), tot = w.reduce((a, b) => a + b, 0);       // square-root widths so the rare tiers are still visible
+    return `<div class="czobar" aria-hidden="true">${CZ_ORDER.map((t, i) => w[i] ? `<i class="t-${t}" style="flex-basis:${(w[i] / tot * 100).toFixed(2)}%"></i>` : "").join("")}</div>`; };
+  const rareOdds = pk => pk.odds.slice(0, 3).reduce((a, b) => a + b, 0), perPack = pk => 1 - Math.pow(1 - rareOdds(pk) / 100, pk.cards);
+  return `<p class="sub czlead">Choose where your cards come from, then rip a pack. Every card is numbered, and supply is shared by every player.</p>
+    <div class="czfilters"><div class="seg trseg" role="group" aria-label="League">${P.scopes.map(k => `<button type="button" data-czscope="${k}" aria-pressed="${CZ.scope === k}">${esc(scopeName[k] || k)}</button>`).join("")}</div>
+    <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams only"], ["player", "Players only"]].map(([k, l]) => `<button type="button" data-czkind="${k}" aria-pressed="${CZ.kind === k}">${l}</button>`).join("")}</div></div>
+    <div class="czpacks">${P.packs.map(pk => { const can = czBal() >= pk.price;
+      return `<article class="czpk pk-${esc(pk.id)}">
+      <div class="czpack p-${esc(pk.id)}"><div class="czpk-crimp"></div><div class="czpk-sky"></div><div class="czpk-shine"></div>${czCoin("pk")}<b>${esc(pk.label)}</b><small>${pk.cards} cards · ${esc(scopeName[CZ.scope])}${CZ.kind === "team" ? " teams" : CZ.kind === "player" ? " players" : ""}</small><div class="czpk-crimp b"></div></div>
+      <div class="czpk-body"><div class="czpk-hl"><b>${czOddsPct(perPack(pk) * 100)}</b><span>chance of a Quasar or rarer in this pack</span></div>
+        ${bar(pk)}
+        <ul class="czolist">${CZ_ORDER.map((t, i) => pk.odds[i] ? `<li><i class="czdot t-${t}"></i>${esc(CZ_TIER_NAME[t])} <small>1/${P.tiers[i].supply}</small><b>${czOddsPct(pk.odds[i])}</b></li>` : "").join("")}</ul>
+        <button type="button" class="btn primary czopen" data-czpack="${esc(pk.id)}" ${can ? "" : "disabled"}>${can ? `Open for ${czAmt(pk.price)}` : `Need ${czAmt(pk.price)}`}</button></div></article>`; }).join("")}</div>
+    <details class="czhow"><summary>How packs work</summary><p>Each card's tier is rolled with the odds shown (they're per card). Then a card of that tier you don't own yet is drawn from the copies still out there. If every copy of a tier is gone, that card comes from the next more common tier. Cards you sell to the shop go back into packs. You've opened ${CZ.me.packs || 0} pack${CZ.me.packs === 1 ? "" : "s"}.</p></details>`;
 }
 async function czOpen(id){
   const pk = CZ.packs.packs.find(p => p.id === id); if (!pk) return;
@@ -5542,9 +5590,13 @@ function czReveal(it, n){
 }
 // ---- Collection and leaders
 function czCollHtml(){
-  const items = (CZ.me.items || []).slice().sort((a, b) => a.supply - b.supply || b.price - a.price);
-  if (!items.length) return `<div class="teamnote"><b>Your collection is empty</b>Win coins betting, then open packs. Rarer cards are worth chasing: only one Singularity of each team will ever exist.</div>`;
-  return `<p class="sub">${items.length} card${items.length === 1 ? "" : "s"}, rarest first. Tap a card to sell it to the shop, list it for other players, or see who owns the other copies.</p><div class="czgrid">${items.map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<small>Minted ${esc(new Date(i.at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }))}</small></button>`).join("")}</div>`;
+  const all = (CZ.me.items || []).slice().sort((a, b) => a.supply - b.supply || b.price - a.price);
+  if (!all.length) return `<div class="czempty"><div class="czempty-orb" aria-hidden="true"></div><b>Your collection is empty</b><p class="sub">Claim your daily coins, then open a pack. Only one Singularity of each team and player will ever exist.</p><button type="button" class="btn primary" data-cztab="packs">Open a pack</button></div>`;
+  const ct = CZ.ctier || "all", items = ct === "all" ? all : all.filter(i => i.tier === ct), n = t => all.filter(i => i.tier === t).length;
+  const sets = Object.keys(LEAGUE_LABEL).map(lg => { const total = LG_TEAMS(lg).length, have = new Set(all.filter(i => i.lg === lg && i.kind !== "player").map(i => i.name)).size; return { lg, total, have }; }).filter(x => x.total && x.have);
+  return `<div class="cztiers" role="group" aria-label="Filter by tier"><button type="button" data-czct="all" aria-pressed="${ct === "all"}"><b>${all.length}</b>All</button>${CZ_ORDER.filter(t => n(t)).map(t => `<button type="button" class="t-${t}" data-czct="${t}" aria-pressed="${ct === t}"><b>${n(t)}</b>${esc(CZ_TIER_NAME[t])}</button>`).join("")}</div>
+    ${sets.length ? `<div class="czsets">${sets.map(x => `<div class="czset"><span>${esc(LEAGUE_LABEL[x.lg])} teams</span><div class="czset-bar"><i style="width:${Math.max(3, x.have / x.total * 100).toFixed(1)}%"></i></div><small>${x.have}/${x.total}</small></div>`).join("")}</div>` : ""}
+    <p class="sub">Tap a card to sell it to the shop, list it for other players, or see who owns the other copies.</p><div class="czgrid">${items.map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<small>Minted ${esc(new Date(i.at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }))}</small></button>`).join("")}</div>`;
 }
 async function czHistory(id, n){
   const it = (CZ.me.items || []).find(i => i.id === id) || {}; let owners = [], V = null;
@@ -5583,17 +5635,37 @@ function czMarketHtml(){
 }
 function czLbHtml(){
   const L = CZ.lb; if (!L) return `<div class="teamnote">${cosmoLoad("Loading the leaderboard…")}</div>`;
-  const me = CZ.me.uid, row = (r, i, v) => `<div class="czlbr ${r.uid === me ? "me" : ""}"><span class="ldn">${i + 1}</span>${czWhoBtn(r.name)}<span>${v(r)}</span></div>`;
+  const me = CZ.me.uid, board = CZ.lbv || "rich";
   const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} #${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : `${czWhoBtn(f.name)} joined Cosmic`;
-  return `<div class="grid" style="margin-top:0">
-    <section class="card"><h2>Most coins</h2><p class="sub">${L.players.toLocaleString()} player${L.players === 1 ? "" : "s"}.</p>${L.rich.slice(0, 25).map((r, i) => row(r, i, r => czAmt(r.bal))).join("")}</section>
-    <section class="card"><h2>Sharpest bettors</h2><p class="sub">Coins won from betting, at least 5 settled bets.</p>${L.sharp.length ? L.sharp.map((r, i) => row(r, i, r => `<span class="${r.profit >= 0 ? "pos" : "neg"}">${r.profit > 0 ? "+" : ""}${Math.round(r.profit).toLocaleString()}</span> <small class="muted">${r.won}–${r.lost}</small>`)).join("") : `<p class="sub">Nobody has 5 settled bets yet.</p>`}</section>
-    <section class="card"><h2>Top collectors</h2><p class="sub">Rarest card first.</p>${L.collectors.length ? L.collectors.map((r, i) => row(r, i, r => `${r.cards} card${r.cards === 1 ? "" : "s"}${r.best <= 10 ? ` · rarest 1/${r.best}` : ""}`)).join("") : `<p class="sub">No cards collected yet.</p>`}</section>
-    <section class="card"><h2>Live from the cosmos</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section></div>`;
+  const boards = { rich: ["Most coins", L.rich.slice(0, 50), r => czAmt(r.bal), `${L.players.toLocaleString()} player${L.players === 1 ? "" : "s"}`],
+    sharp: ["Sharpest bettors", L.sharp, r => `<span class="${r.profit >= 0 ? "pos" : "neg"}">${r.profit > 0 ? "+" : ""}${Math.round(r.profit).toLocaleString()}</span> <small class="muted">${r.won}–${r.lost}</small>`, "Coins won from betting, at least 5 settled bets"],
+    coll: ["Top collectors", L.collectors, r => `${r.cards} card${r.cards === 1 ? "" : "s"}${r.best <= 10 ? ` · 1/${r.best}` : ""}`, "Rarest card first"] };
+  const seg = `<div class="seg trseg czlbseg" role="group" aria-label="Leaderboard">${[["rich", "💰 Coins"], ["sharp", "🎯 Bettors"], ["coll", "🗂️ Collectors"], ["feed", "📡 Live"]].map(([k, l]) => `<button type="button" data-czlbv="${k}" aria-pressed="${board === k}">${l}</button>`).join("")}</div>`;
+  if (board === "feed") return seg + `<section class="card"><h2>Live from the cosmos</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section>`;
+  const [title, rows, val, sub] = boards[board] || boards.rich;
+  if (!rows.length) return seg + `<section class="card"><h2>${title}</h2><p class="sub">${board === "sharp" ? "Nobody has 5 settled bets yet." : "No cards collected yet."}</p></section>`;
+  const pod = rows.slice(0, 3), podOrder = [pod[1], pod[0], pod[2]].filter(Boolean), mine = rows.findIndex(r => r.uid === me);
+  return seg + `<section class="card czlbcard"><h2>${title}</h2><p class="sub">${sub}</p>
+    <div class="czpodium">${podOrder.map(r => { const i = rows.indexOf(r); return `<div class="czpod p${i + 1} ${r.uid === me ? "me" : ""}"><span class="czpod-av">${esc((r.name || "?").slice(0, 1).toUpperCase())}<i>${["🥇", "🥈", "🥉"][i]}</i></span>${czWhoBtn(r.name)}<small>${val(r)}</small><div class="czpod-step">${i + 1}</div></div>`; }).join("")}</div>
+    ${rows.slice(3).map((r, k) => `<div class="czlbr ${r.uid === me ? "me" : ""}"><span class="ldn">${k + 4}</span>${czWhoBtn(r.name)}<span>${val(r)}</span></div>`).join("")}
+    ${mine > 2 ? `<p class="sub czlbme">You're #${mine + 1}.</p>` : mine < 0 && board === "rich" && !CZ.me.tester ? "" : ""}</section>`;
 }
+// cards tilt toward the pointer (or finger) with a holographic sheen
+function czTilt(root){
+  if (RM()) return;
+  root.querySelectorAll(".czcard").forEach(c => { if (c.dataset.tilt) return; c.dataset.tilt = 1;
+    const move = e => { const b = c.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+      c.classList.add("tilt"); c.style.setProperty("--ry", ((x - .5) * 16).toFixed(1) + "deg"); c.style.setProperty("--rx", ((.5 - y) * 16).toFixed(1) + "deg");
+      c.style.setProperty("--mx", (x * 100).toFixed(0) + "%"); c.style.setProperty("--my", (y * 100).toFixed(0) + "%"); };
+    c.addEventListener("pointermove", move); c.addEventListener("pointerleave", () => { c.style.setProperty("--rx", "0deg"); c.style.setProperty("--ry", "0deg"); setTimeout(() => c.classList.remove("tilt"), 120); }); });
+}
+try { new MutationObserver(() => czTilt($("#infoBody"))).observe($("#infoBody"), { childList: true, subtree: true }); } catch {}
 function czBind(el){
+  czTilt(el);
   el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "home" ? ["me", "board", "lb", "market"] : CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : ["check", "packs", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
   el.querySelectorAll("[data-czlg]").forEach(b => b.onclick = () => { CZ.lg = b.dataset.czlg; drawCosmic(); });
+  el.querySelectorAll("[data-czlbv]").forEach(b => b.onclick = () => { CZ.lbv = b.dataset.czlbv; drawCosmic(); });
+  el.querySelectorAll("[data-czct]").forEach(b => b.onclick = () => { CZ.ctier = b.dataset.czct; drawCosmic(); });
   const vReload = async () => { if (CZ.tab === "check"){ try { await czVault(); } catch (e) { toast(e.message); } } drawCosmic(); };
   el.querySelectorAll("[data-czvlg]").forEach(b => b.onclick = () => { CZ.vlg = b.dataset.czvlg; vReload(); });
   el.querySelectorAll("[data-czvt]").forEach(b => b.onclick = () => { CZ.vtier = b.dataset.czvt; vReload(); });
