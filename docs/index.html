@@ -1473,6 +1473,13 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czjudge{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;color:var(--muted)}.czjudge-orb{width:22px;height:22px;border-radius:50%;background:conic-gradient(#c084fc,#38bdf8,#fde68a,#c084fc);animation:czspin 1s linear infinite}@keyframes czspin{to{transform:rotate(360deg)}}
 .czverdict{text-align:center;padding:10px 6px}.czverdict h2{font-size:1.8rem;margin:4px 0}.czverdict.won h2{color:#fde68a;text-shadow:0 0 18px rgba(253,230,138,.6)}.czverdict.lost h2{color:#f87171}.czverdict p{font-size:1rem;line-height:1.5}.czverdict small{color:var(--muted)}
 @media (max-width:520px){.czshow-bt{grid-template-columns:1fr}.czsb-vs{justify-self:center}.czbt-vs{grid-template-columns:1fr}}
+.czbsports{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:0 0 10px}
+@media (max-width:520px){.czbsports{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.czbsports button{display:grid;justify-items:center;gap:1px;padding:8px 4px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:58px}
+.czbsports button span{font-size:1.25rem}.czbsports button b{font-size:.8rem}.czbsports button small{font-size:.68rem;color:var(--muted)}
+.czbsports button[aria-pressed="true"]{border-color:#c084fc;background:linear-gradient(160deg,rgba(124,58,237,.35),rgba(15,8,40,.4));box-shadow:0 0 0 1px #c084fc inset}
+.czbsh{margin:6px 0 10px}.czbsh small{font-weight:500;color:var(--muted);margin-left:6px}
+.czbstag{display:inline-block;margin-right:6px;padding:1px 7px;border-radius:99px;font-size:.72rem;font-weight:700;background:rgba(192,132,252,.18);color:#e9d5ff;vertical-align:1px}
 .czbchoice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
 @media (max-width:420px){.czbchoice{grid-template-columns:1fr}}
 .czbc{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(192,132,252,.35);background:linear-gradient(160deg,rgba(124,58,237,.22),rgba(15,8,40,.4));color:var(--ink);cursor:pointer;min-height:64px}
@@ -1957,7 +1964,7 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
   <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Cosmic: bet free coins, rip packs, pull one-of-a-kind cards.</p></div></div>
   <ul class="newlist">
-    <li><i>⚔️</i><span><b>Card battles.</b> Build a lineup of up to five of your cards and play a real person or the AI. An AI judge sizes up both sides and calls the winner, who takes both stakes.</span></li>
+    <li><i>⚔️</i><span><b>Card battles, one for each sport.</b> Pick NFL, NBA, MLB, NHL, Premier League or tennis, build a lineup of up to five of your cards from it, and play a real person or the AI. An AI judge sizes up both sides and calls the winner, who takes both stakes.</span></li>
     <li><i>🎡</i><span><b>Daily spin and parlays.</b> Spin the wheel once a day for coins or a free pack, and combine 2 to 5 picks into one parlay for a bigger payout.</span></li>
     <li><i>💎</i><span><b>Seasons and suspenseful packs.</b> Climb from Bronze to Cosmic each month for coin rewards. Pack cards now glow brighter the rarer they are before they flip.</span></li>
     <li><i>📱</i><span><b>Easier to get around.</b> One bar at the bottom (Today, Scores, Cosmic, Following, More), a league strip at the top, swipe between tabs and pull down to refresh.</span></li>
@@ -6226,6 +6233,10 @@ function czParlaySlip(){
   if (!dlg.open) dlg.showModal();
 }
 /* ---- Card battles: build a lineup of up to five of your cards, stake coins, and the AI judge calls who wins ---- */
+const CZ_BSP = { nfl: ["NFL", "🏈", ["nfl"], "an"], nba: ["NBA", "🏀", ["nba"], "an"], mlb: ["MLB", "⚾", ["mlb"], "an"], nhl: ["NHL", "🏒", ["nhl"], "an"], epl: ["Premier League", "⚽", ["epl"], "a"], tennis: ["Tennis", "🎾", ["atp", "wta"], "a"] };
+CZ.bsport = CZ_BSP[lsGet("cz-bsport", "nfl")] ? lsGet("cz-bsport", "nfl") : "nfl";
+const czBsTag = sp => CZ_BSP[sp] ? `<span class="czbstag">${CZ_BSP[sp][1]} ${esc(CZ_BSP[sp][0])}</span>` : "";
+const czInSport = (c, sp) => !sp || !CZ_BSP[sp] || CZ_BSP[sp][2].includes(c.lg);
 const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
 const czCardPow = c => Math.round((CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || czLevel(c)) - 1)));
 const czLinePow = cs => cs.reduce((s, c) => s + czCardPow(c), 0);
@@ -6233,34 +6244,39 @@ const czBOdds = (a, b) => { const x = Math.pow(Math.max(1, a), 1.6), y = Math.po
 const czLineup = (cs, mvp) => `<div class="czline">${(cs || []).map(c => `<span class="czlc t-${esc(c.tier)} ${mvp && mvp === c.name ? "mvp" : ""}"><i class="czdot t-${esc(c.tier)}"></i><b>${esc(c.name)}</b><small>${esc(CZ_TIER_NAME[c.tier] || c.tier)} ${c.n}/${c.supply}${(c.level || 1) > 1 ? ` · Lv ${c.level}` : ""}</small>${mvp && mvp === c.name ? `<em>MVP</em>` : ""}</span>`).join("")}</div>`;
 function czBattleHtml(){
   const B = CZ.bat, me = CZ.me.uid; if (!B) return `<div class="teamnote">${cosmoLoad("Loading battles…")}</div>`;
+  const sp = CZ.bsport, S = CZ_BSP[sp], rec = (CZ.me.bsp || {})[sp] || [0, 0], haveN = (CZ.me.items || []).filter(i => czInSport(i, sp)).length;
+  const openHere = B.open.filter(b => !b.sport || b.sport === sp);
   const inc = B.mine.filter(b => b.status === "open" && b.to === me), sent = B.mine.filter(b => b.status === "open" && b.from === me), res = B.mine.filter(b => b.status === "done").slice(0, 12);
   const opp = b => b.from === me ? (b.byName || b.toName || "anyone") : b.fromName;
   const row = (b, mode) => { const pw = czLinePow(b.a);
-    return `<div class="czbt"><div class="czbt-h"><span>${mode === "sent" ? `You challenged <b>${esc(b.to ? b.toName : "anyone")}</b>` : `${czWhoBtn(b.fromName)} challenges ${mode === "inc" ? "you" : "anyone"}`}</span><em>${b.stake ? czAmt(b.stake) + " each" : "Friendly (no coins)"}</em></div>
+    return `<div class="czbt"><div class="czbt-h"><span>${czBsTag(b.sport)}${mode === "sent" ? `You challenged <b>${esc(b.to ? b.toName : "anyone")}</b>` : `${czWhoBtn(b.fromName)} challenges ${mode === "inc" ? "you" : "anyone"}`}</span><em>${b.stake ? czAmt(b.stake) + " each" : "Friendly (no coins)"}</em></div>
       ${czLineup(b.a)}<div class="czbt-f"><small>Lineup power ${pw} · expires in ${czLeft(b.at + 48 * 3600e3 - Date.now())}</small>
       ${mode === "sent" ? `<button type="button" class="btn" data-czbx="cancel|${esc(b.id)}">Cancel</button>${b.to ? "" : `<button type="button" class="btn primary" data-czbx="ai|${esc(b.id)}">Play AI instead</button>`}` : `${mode === "inc" ? `<button type="button" class="btn" data-czbx="decline|${esc(b.id)}">Decline</button>` : ""}<button type="button" class="btn primary" data-czbx="accept|${esc(b.id)}">Accept</button>`}</div></div>`; };
   const result = b => { const mine = b.from === me ? "a" : "b", won = b.winner === mine, myC = mine === "a" ? b.a : b.b, thC = mine === "a" ? b.b : b.a, mv = b.mvp || [];
-    return `<details class="czbt res ${won ? "won" : "lost"}"><summary><span class="czres ${won ? "win" : "loss"}">${won ? "Won" : "Lost"}</span><b>vs ${esc(mine === "a" ? (b.byName || "?") : b.fromName)}</b><em>${b.stake ? (won ? "+" : "−") + b.stake.toLocaleString() : "Friendly"}</em><small>${esc(new Date(b.done || b.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></summary>
+    return `<details class="czbt res ${won ? "won" : "lost"}"><summary><span class="czres ${won ? "win" : "loss"}">${won ? "Won" : "Lost"}</span>${CZ_BSP[b.sport] ? `<span aria-label="${esc(CZ_BSP[b.sport][0])}">${CZ_BSP[b.sport][1]}</span>` : ""}<b>vs ${esc(mine === "a" ? (b.byName || "?") : b.fromName)}</b><em>${b.stake ? (won ? "+" : "−") + b.stake.toLocaleString() : "Friendly"}</em><small>${esc(new Date(b.done || b.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></summary>
       <p class="czbt-rep">${esc(b.report || "")}</p><div class="czbt-vs"><div><h4>You · ${czLinePow(myC)}</h4>${czLineup(myC, mv[mine === "a" ? 0 : 1])}</div><div><h4>${esc(mine === "a" ? (b.byName || "") : b.fromName)} · ${czLinePow(thC || [])}</h4>${czLineup(thC, mv[mine === "a" ? 1 : 0])}</div></div>
       <small class="muted">The judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}% going in.</small></details>`; };
-  return `<section class="czbhero"><div><h2>Card battles</h2><p>Pick up to five of your cards, put coins on it, and battle. The AI judge sizes up both lineups, writes up the matchup and calls the winner, who takes both stakes.</p>
-      <div class="czbrec"><span><b>${CZ.me.bw || 0}</b> won</span><span><b>${CZ.me.bl || 0}</b> lost</span></div></div></section>
-    <div class="czbchoice"><button type="button" class="czbc" data-czbnew="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI</b><small>Starts right away. A true 50/50: the AI wins half the time and loses half the time.</small></button>
-      <button type="button" class="czbc" data-czreal><span class="czbc-i" aria-hidden="true">👥</span><b>Play a real person</b><small>${B.open.length ? `${B.open.length} player${B.open.length === 1 ? " is" : "s are"} looking for a battle now` : "Challenge a friend by name or post an open challenge"}</small></button></div>
+  return `<section class="czbhero"><div><h2>Card battles</h2><p>One sport at a time: pick a sport, build a lineup of up to five of your cards from it, put coins on it, and battle. The AI judge pictures a real game between the two lineups and calls the winner, who takes both stakes.</p>
+      <div class="czbrec"><span><b>${CZ.me.bw || 0}</b> won</span><span><b>${CZ.me.bl || 0}</b> lost</span><span class="muted">all sports</span></div></div></section>
+    <div class="czbsports" role="group" aria-label="Sport">${Object.entries(CZ_BSP).map(([k, v]) => { const r = (CZ.me.bsp || {})[k]; return `<button type="button" data-czbs="${k}" aria-pressed="${k === sp}"><span aria-hidden="true">${v[1]}</span><b>${esc(v[0] === "Premier League" ? "EPL" : v[0])}</b><small>${r ? `${r[0]}–${r[1]}` : "—"}</small></button>`; }).join("")}</div>
+    <h3 class="subh czbsh">${S[1]} ${esc(S[0])} battles <small>your record ${rec[0]}–${rec[1]} · ${haveN} ${esc(S[0])} card${haveN === 1 ? "" : "s"}</small></h3>
+    ${haveN ? `<div class="czbchoice"><button type="button" class="czbc" data-czbnew="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI</b><small>${S[3] === "an" ? "An" : "A"} ${esc(S[0])} game against the AI, right now. A true 50/50: it wins half the time and loses half the time.</small></button>
+      <button type="button" class="czbc" data-czreal><span class="czbc-i" aria-hidden="true">👥</span><b>Play a real person</b><small>${openHere.length ? `${openHere.length} player${openHere.length === 1 ? " is" : "s are"} looking for ${S[3]} ${esc(S[0])} battle now` : `Challenge a friend by name or post an open ${esc(S[0])} challenge`}</small></button></div>`
+      : `<div class="teamnote"><b>You don't have any ${esc(S[0])} cards yet</b>Only ${esc(S[0])} cards can play in ${S[3]} ${esc(S[0])} battle. Open ${S[3]} ${esc(S[0])} pack, or pick another sport above.<button type="button" class="btn primary" data-czbpack="${sp}">Open ${S[3]} ${esc(S[0])} pack</button></div>`}
     ${(CZ.me.items || []).length ? "" : `<div class="teamnote"><b>You need cards to battle</b>Open a pack first, then come back.<button type="button" class="btn primary" data-cztab="packs">Open a pack</button></div>`}
     ${inc.length ? `<section class="card"><h2>Challenges for you</h2>${inc.map(b => row(b, "inc")).join("")}</section>` : ""}
-    ${B.open.length ? `<section class="card"><h2>Open challenges</h2><p class="sub">Anyone can take these on.</p>${B.open.map(b => row(b, "open")).join("")}</section>` : ""}
+    ${openHere.length ? `<section class="card"><h2>Open ${esc(S[0])} challenges</h2><p class="sub">Anyone with ${esc(S[0])} cards can take these on.</p>${openHere.map(b => row(b, "open")).join("")}</section>` : ""}
     ${sent.length ? `<section class="card"><h2>Waiting for an answer</h2>${sent.map(b => row(b, "sent")).join("")}</section>` : ""}
     <section class="card"><h2>Results</h2>${res.length ? res.map(result).join("") : `<p class="sub">No battles yet. The AI is always ready.</p>`}</section>
-    <details class="czhow"><summary>How battles work</summary><p>Each card brings power from its tier (a Singularity is worth five Comets) and its level. The AI judge sees both lineups, their power and who the athletes and teams really are, and gives each side a chance; the result is drawn from that chance, so the stronger lineup usually wins but upsets happen. Against the AI it's a straight coin flip: you win half the time, whatever the lineups. The winner takes both stakes. Cards stay yours either way, but they can't be sold or listed while they're in a battle that hasn't been answered. Challenges expire after 48 hours and the stake comes back. You can play the AI up to 20 times a day.</p></details>`;
+    <details class="czhow"><summary>How battles work</summary><p>Every battle is in one sport (NFL, NBA, MLB, NHL, Premier League or tennis), and both lineups use only that sport's cards, so the judge can picture a real game. Each card brings power from its tier (a Singularity is worth five Comets) and its level. The AI judge sees both lineups, their power and who the athletes and teams really are, and gives each side a chance; the result is drawn from that chance, so the stronger lineup usually wins but upsets happen. Against the AI it's a straight coin flip: you win half the time, whatever the lineups. The winner takes both stakes. Cards stay yours either way, but they can't be sold or listed while they're in a battle that hasn't been answered. Challenges expire after 48 hours and the stake comes back. You can play the AI up to 20 times a day.</p></details>`;
 }
 function czBattleBuild(mode, bt){
-  const mine = (CZ.me.items || []).filter(i => !i.listed && !i.auction && !i.battle).map(i => ({ ...i, level: czLevel(i) })).sort((a, b) => czCardPow(b) - czCardPow(a)), pick = [];
-  if (!mine.length){ toast("You need cards to battle. Open a pack first."); return; }
-  const accept = mode === "accept", house = mode === "house";
-  $("#infoBody").innerHTML = `<h2 id="infoTitle">${accept ? `Take on ${esc(bt.fromName)}` : house ? "Play AI" : "Challenge a real person"}</h2>
+  const accept = mode === "accept", house = mode === "house", sp = accept ? bt.sport : CZ.bsport, S = CZ_BSP[sp];
+  const mine = (CZ.me.items || []).filter(i => !i.listed && !i.auction && !i.battle && czInSport(i, sp)).map(i => ({ ...i, level: czLevel(i) })).sort((a, b) => czCardPow(b) - czCardPow(a)), pick = [];
+  if (!mine.length){ toast(S ? `You need ${S[0]} cards for ${S[3]} ${S[0]} battle. Open ${S[3]} ${S[0]} pack first.` : "You need cards to battle. Open a pack first."); return; }
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">${S ? S[1] + " " : ""}${accept ? `Take on ${esc(bt.fromName)}` : house ? `${esc(S[0])}: play AI` : `${esc(S[0])}: challenge a real person`}</h2>
     ${accept ? `<p class="sub">Their lineup (power ${czLinePow(bt.a)}), for ${bt.stake ? czAmt(bt.stake) + " each" : "no coins"}:</p>${czLineup(bt.a)}` : `<p class="sub">${house ? "The AI deals a lineup of the same tiers as yours and matches your stake. It's a true 50/50: you win half the time and lose half the time." : "Send a challenge by name, or leave it open for anyone."}</p>`}
-    <h3 class="subh">Your lineup <small id="czBPow"></small></h3><p class="sub">Tap up to five cards.</p>
+    <h3 class="subh">Your lineup <small id="czBPow"></small></h3><p class="sub">Tap up to five of your ${S ? esc(S[0]) + " " : ""}cards.</p>
     <div class="cztrpick czbpick">${mine.slice(0, 80).map(i => `<button type="button" class="czpickc" data-bk="${esc(i.id)}" aria-pressed="false">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<span class="czpw">⚡ ${czCardPow(i)}</span></button>`).join("")}</div>
     ${accept ? "" : `${house ? "" : `<div class="seg trseg" role="group" aria-label="Who"><button type="button" data-bwho="name" aria-pressed="true">A player</button><button type="button" data-bwho="open" aria-pressed="false">Open to anyone</button></div>
       <label class="czstake" id="czBNameL">Their name<input class="field" id="czBName" type="text" autocomplete="off" maxlength="30" placeholder="Leaderboard name"></label>`}
@@ -6281,22 +6297,22 @@ function czBattleBuild(mode, bt){
     try {
       if (accept || house){ const stake = accept ? bt.stake : Math.floor(+$("#czBStake").value || 0), lineup = mine.filter(i => pick.includes(i.id));
         czBattleShow({ judging: true, a: accept ? bt.a : lineup, b: accept ? lineup : null, fromName: accept ? bt.fromName : CZ.me.name, byName: accept ? CZ.me.name : "Cosmo AI", stake });
-        const r = await czApi(accept ? "/battle/accept" : "/battle/house", accept ? { id: bt.id, cards: pick } : { cards: pick, stake });
+        const r = await czApi(accept ? "/battle/accept" : "/battle/house", accept ? { id: bt.id, cards: pick } : { cards: pick, stake, sport: sp });
         if (r.user) CZ.me = r.user; czBattleShow(r.battle); czLoad(["bat", "me"]);
       } else {
         const open = body.querySelector('[data-bwho="open"]').getAttribute("aria-pressed") === "true", to = open ? "" : $("#czBName").value.trim();
         if (!open && !to){ $("#czErr").textContent = "Type their leaderboard name, or pick Open to anyone."; btn.disabled = false; return; }
-        const r = await czApi("/battle/new", { cards: pick, stake: Math.floor(+$("#czBStake").value || 0), to }); CZ.me = r.user; $("#infoDlg").close(); toast(open ? "Open challenge posted" : `Challenge sent to ${to}`); czLoad(["bat"]); drawCosmic();
+        const r = await czApi("/battle/new", { cards: pick, stake: Math.floor(+$("#czBStake").value || 0), to, sport: sp }); CZ.me = r.user; $("#infoDlg").close(); toast(open ? "Open challenge posted" : `Challenge sent to ${to}`); czLoad(["bat"]); drawCosmic();
       }
     } catch (e) { if (accept || house){ czBattleBuild(mode, bt); } else btn.disabled = false; if ($("#czErr")) $("#czErr").textContent = e.message; else toast(e.message); }
   };
   const d = $("#infoDlg"); if (!d.open) d.showModal();
 }
 function czBattleReal(){
-  const B = CZ.bat || { open: [] }, open = B.open || [];
-  $("#infoBody").innerHTML = `<h2 id="infoTitle">Play a real person</h2>
+  const B = CZ.bat || { open: [] }, sp = CZ.bsport, S = CZ_BSP[sp], open = (B.open || []).filter(b => !b.sport || b.sport === sp);
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">Play a real person</h2><p class="sub">${S[1]} ${esc(S[0])} battles</p>
     ${open.length ? `<p class="sub">These players are waiting for someone to take them on:</p>${open.slice(0, 8).map(b => `<div class="czbt"><div class="czbt-h"><span>${czWhoBtn(b.fromName)}</span><em>${b.stake ? czAmt(b.stake) + " each" : "Friendly"}</em></div>${czLineup(b.a)}<div class="czbt-f"><small>Lineup power ${czLinePow(b.a)}</small><button type="button" class="btn primary" data-czrx="${esc(b.id)}">Accept</button></div></div>`).join("")}`
-      : `<div class="teamnote"><b>Nobody is looking for a battle right now</b>Challenge a friend by name, post an open challenge that anyone can take, or play the AI instead.</div>`}
+      : `<div class="teamnote"><b>Nobody is looking for ${S[3]} ${esc(S[0])} battle right now</b>Challenge a friend by name, post an open challenge that anyone can take, or play the AI instead.</div>`}
     <div class="czbchoice"><button type="button" class="czbc" data-czrgo="player"><span class="czbc-i" aria-hidden="true">✉️</span><b>Challenge someone</b><small>By their leaderboard name, or open to anyone</small></button>
       <button type="button" class="czbc" data-czrgo="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI instead</b><small>Right now, 50/50</small></button></div>
     <div class="pkfoot"><button class="btn" type="button" data-info="close">Close</button></div>`;
@@ -6304,14 +6320,14 @@ function czBattleReal(){
   body.querySelectorAll("[data-czrx]").forEach(b => b.onclick = () => { const bt = open.find(x => x.id === b.dataset.czrx); if (bt) czBattleBuild("accept", bt); });
   body.querySelectorAll("[data-czrgo]").forEach(b => b.onclick = () => czBattleBuild(b.dataset.czrgo));
   const d = $("#infoDlg"); if (!d.open) d.showModal();
-  czLoad(["bat"]).then(() => { if ($("#infoDlg").open && $("#infoTitle") && $("#infoTitle").textContent === "Play a real person" && (CZ.bat.open || []).length !== open.length) czBattleReal(); });
+  czLoad(["bat"]).then(() => { if ($("#infoDlg").open && $("#infoTitle") && $("#infoTitle").textContent === "Play a real person" && (CZ.bat.open || []).filter(b => !b.sport || b.sport === sp).length !== open.length) czBattleReal(); });
 }
 // your open challenge got no takers: call it off and play the AI with the same cards and stake
 async function czAiInstead(bt){
   try { const r = await czApi("/battle/cancel", { id: bt.id }); CZ.me = r.user; } catch (e) { toast(e.message); return; }
   const lineup = bt.a;
   czBattleShow({ judging: true, a: lineup, b: null, fromName: CZ.me.name, byName: "Cosmo AI", stake: bt.stake });
-  try { const r = await czApi("/battle/house", { cards: lineup.map(c => c.id), stake: bt.stake }); if (r.user) CZ.me = r.user; czBattleShow(r.battle); czLoad(["bat", "me"]); }
+  try { const r = await czApi("/battle/house", { cards: lineup.map(c => c.id), stake: bt.stake, sport: bt.sport || CZ.bsport }); if (r.user) CZ.me = r.user; czBattleShow(r.battle); czLoad(["bat", "me"]); }
   catch (e) { $("#infoDlg").close(); toast(e.message); czLoad(["bat", "me"]); }
 }
 // the showdown: both lineups, the judge thinking, then the call
@@ -6324,7 +6340,7 @@ function czBattleShow(b){
   }
   const won = b.winner === mine, mv = b.mvp || [];
   const reveal = () => { $("#infoBody").innerHTML = `<div class="czshow-bt ${won ? "won" : "lost"}"><div class="czsb-side ${b.winner === "a" ? "win" : ""}">${czLineup(b.a, mv[0])}<b>${esc(b.fromName)}</b><small>⚡ ${(b.pow || [])[0] ?? czLinePow(b.a)}</small></div><div class="czsb-vs"><span>VS</span></div><div class="czsb-side ${b.winner === "b" ? "win" : ""}">${czLineup(b.b, mv[1])}<b>${esc(b.byName || "Cosmo AI")}</b><small>⚡ ${(b.pow || [])[1] ?? czLinePow(b.b || [])}</small></div></div>
-    <div class="czverdict ${won ? "won" : "lost"}"><h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p><small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · the judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}%</small></div>
+    <div class="czverdict ${won ? "won" : "lost"}">${czBsTag(b.sport)}<h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p><small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · the judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}%</small></div>
     <div class="pkfoot"><button class="btn" type="button" data-info="close">Done</button>${b.house ? `<button class="btn primary" type="button" id="czBAgain">Play AI again</button>` : ""}</div>`;
     const ag = $("#czBAgain"); if (ag) ag.onclick = () => czBattleBuild("house");
     sfx(won ? "win" : "lose"); if (won) czConfetti(b.stake >= 500 ? 90 : 50); drawCosmic(); };
@@ -6385,6 +6401,8 @@ function czBind(el){
   el.querySelectorAll("[data-czfreepk]").forEach(b => b.onclick = () => { b.disabled = true; czOpen(b.dataset.czfreepk, true); });
   el.querySelectorAll("[data-czbnew]").forEach(b => b.onclick = () => czBattleBuild(b.dataset.czbnew));
   el.querySelectorAll("[data-czreal]").forEach(b => b.onclick = () => czBattleReal());
+  el.querySelectorAll("[data-czbs]").forEach(b => b.onclick = () => { CZ.bsport = b.dataset.czbs; lsSet("cz-bsport", CZ.bsport); sfx("tap"); drawCosmic(); });
+  el.querySelectorAll("[data-czbpack]").forEach(b => b.onclick = () => { CZ.scope = b.dataset.czbpack; lsSet("cz-scope", CZ.scope); CZ.tab = "packs"; lsSet("cz-tab", "packs"); drawCosmic(); czLoad(["vault", "me"]); });
   el.querySelectorAll("[data-czbx]").forEach(b => b.onclick = async () => { const [act, id] = b.dataset.czbx.split("|"), bt = CZ.bat && [...CZ.bat.mine, ...CZ.bat.open].find(x => x.id === id); if (!bt) return;
     if (act === "accept"){ czBattleBuild("accept", bt); return; }
     if (act === "ai"){ czAiInstead(bt); return; }
