@@ -1467,6 +1467,12 @@ export const CZ_PACKS = [
 const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"] }, CZ_KINDS = ["all", "team", "player"];
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
+// leaderboard names are public, so offensive ones are refused (look-alike letters are folded, so "b1tch" or "F.U.C.K" don't get through)
+const CZ_BAD = ["fuck", "shit", "bitch", "nigg", "faggot", "whore", "porn", "hitler", "asshole", "pussy", "retard", "rapist", "motherf"],
+  CZ_BAD_WORD = ["fag", "sex", "dick", "cock", "cunt", "rape", "kkk", "nazi", "slut", "twat", "spic", "kike", "chink", "coon", "penis", "vagina", "tranny", "wank", "bastard", "cum", "tits", "anal", "nigga", "nigger"];
+const czFold = t => t.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[0@4]/g, m => ({ 0: "o", "@": "a", 4: "a" })[m]).replace(/[1!|]/g, "i").replace(/3/g, "e").replace(/[5$]/g, "s").replace(/7/g, "t");
+export const czNameOk = name => { const n = czFold(String(name)), all = n.replace(/[^a-z]/g, ""), words = n.split(/[\s_-]+/).map(w => w.replace(/[^a-z]/g, ""));
+  return !CZ_BAD.some(w => all.includes(w)) && !words.some(w => CZ_BAD_WORD.includes(w)) && !CZ_BAD_WORD.includes(all); };
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
@@ -1555,6 +1561,21 @@ export async function czTx(st, a) {
   }
   const card = id => (u.items || []).find(x => x.id === id);
   const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
+  if (a.act === "delete") {
+    // delete an account for good: its cards go back into packs, its listings and open bets are dropped,
+    // its name is freed and it leaves the leaderboards, the feed and the saved teams and settings
+    const del = k => st.delete ? st.delete(k) : st.put(k, null), ret = await get("cz:ret", {});
+    for (const c of u.items || []) { ret[c.id] = [...(ret[c.id] || []), c.n]; await dropOwner(c.id, u.uid); }
+    await st.put("cz:ret", ret);
+    await st.put("cz:mkt", (await get("cz:mkt", [])).filter(x => x.uid !== u.uid));
+    await st.put("cz:open", (await get("cz:open", [])).filter(x => x.uid !== u.uid));
+    await st.put("cz:feed", (await get("cz:feed", [])).filter(x => x.name !== u.name && x.seller !== u.name));
+    const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
+    const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
+    if (u.ident) await del("cz:id:" + u.ident);
+    await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
+    return { deleted: true };
+  }
   if (a.act === "sell") {                                            // sell back to the shop: coins now, and the copy goes back into packs
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
     if (c.listed) return { error: "Take it off the market first." };
@@ -1618,7 +1639,7 @@ export async function czSettleTx(st, a) {
   return { settled: done.size };
 }
 function czKv(env) {                                                         // KV stand-in for setups without the Durable Object (not atomic)
-  return { get: async k => { const v = await env.KV.get(k); return v == null ? undefined : JSON.parse(v); }, put: (k, v) => env.KV.put(k, JSON.stringify(v)) };
+  return { get: async k => { const v = await env.KV.get(k); return v == null ? undefined : JSON.parse(v); }, put: (k, v) => env.KV.put(k, JSON.stringify(v)), delete: k => env.KV.delete ? env.KV.delete(k) : env.KV.put(k, "null") };
 }
 async function cz(env, a) {
   if (env.STORE) { const stub = env.STORE.get(env.STORE.idFromName("main")); const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "cz", a }) }); return (await r.json()).v; }
@@ -1779,6 +1800,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (kind === "reg") {
       const linker = d.link ? await czAuth(req, env) : null;
       if (!linker) { if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+      if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
         if ((await czRead(env, "cz:names", {}))[name.toLowerCase()]) return json({ error: "That name is taken. Try another." }, 409); }
       const handle = linker ? (linker.handle || b64u.enc(crypto.getRandomValues(new Uint8Array(16)))) : b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
       return json({ challenge: await pkChallenge(env, "reg", { name, handle, link: linker ? linker.uid : null }), user: { id: handle, name: linker ? linker.name : name } });
@@ -1812,7 +1834,8 @@ export async function cosmicRoute(req, env, ctx, url) {
       if (cred.count && ad.count && ad.count <= cred.count) throw new Error("copied passkey");
       if (ad.count) await store(env).put("cz:pk:" + d.id, JSON.stringify({ ...cred, count: ad.count }));
       const token = czRand(32), r = await cz(env, { act: "ident", sub: cred.sub, uid: czRand(12), tok: await czHash(token), name: "", now });
-      if (r.error || r.needName) return json({ error: r.error || "Account not found." }, 409);
+      if (r.needName) { await store(env).put("cz:pk:" + d.id, null); return json({ error: "That account was deleted. Create a new one." }, 409); }
+      if (r.error) return json({ error: r.error }, 409);
       return json({ ...r, auth: `${r.uid}.${token}` });
     } catch (e) { return json({ error: e.message === "unknown passkey" ? "That passkey isn't linked to a Cosmic account. Create an account first." : "Sign-in didn't go through (" + e.message + "). Try again." }, 401); }
   }
@@ -1821,6 +1844,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const l = (CZ_JOIN.get(ip) || []).filter(t => now - t < 3600e3); if (l.length >= 5) return json({ error: "Too many new accounts from here. Try again later." }, 429);
     const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+    if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
     const uid = czRand(12), token = czRand(32);
     const r = await cz(env, { act: "join", uid, tok: await czHash(token), name, now });
     if (r.error) return json(r, 409);
@@ -1840,6 +1864,10 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json(r, r.error ? 409 : 200);
   }
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
+  if (p === "/delete" && req.method === "POST") {                            // delete your account and everything saved with it
+    const d = await req.json().catch(() => ({})); if (d.confirm !== "DELETE") return json({ error: "Confirm by sending DELETE." }, 400);
+    const r = await cz(env, { act: "delete", uid: u.uid, now }); return json(r, r.error ? 409 : 200);
+  }
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
   if (p === "/data" && req.method === "PUT") {
     const raw = await req.text(); if (raw.length > 100000) return json({ error: "Too much data." }, 413);

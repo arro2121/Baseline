@@ -3,7 +3,7 @@ name: Baseline
 on:
   push:
     branches: [main]
-    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "team_models.py", "team_history.py", "season_sim.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json", "custom_domain.txt"]
+    paths: ["baseline*.zip", ".github/workflows/baseline.yml", "template.html", "build_site.py", "engine.py", "sports_engine.py", "team_models.py", "team_history.py", "season_sim.py", "updater.py", "team_colors.json", "requirements.txt", "alerts/*.js", "alerts/*.sh", "alerts/wrangler.toml", "alerts/package.json", "custom_domain.txt", "app/apple_team_id.txt"]
   schedule:
     - cron: "*/5 * * * *"    # live: a backup copy of the scores on the site itself (plus tennis when there is no alerts service)
     - cron: "15 7 * * *"     # nightly: new results, rankings, ratings, model
