@@ -52,20 +52,39 @@ const builders = {
     return { season: d.season - 1 + "-" + String(d.season).slice(2), players };
   },
   async nfl() {
-    const season = month < 9 ? year - 1 : year - 1;                 // the last full season: early-season numbers are too thin
-    const q = sort => get(`https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&sort=${sort}:desc&season=${season}&seasontype=2`);
-    const [pa, re, ki] = await Promise.all([q("passing.passingYards"), q("receiving.receivingYards"), q("kicking.fieldGoalsMade")]);
+    // this season once it has started (September on); January to August, the season that just ended. A new season's first
+    // week or so is too thin for qualified leaders, so fall back to the last full season until it fills in.
+    const cur = month >= 9 ? year : year - 1;
+    const q = (sort, season) => get(`https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&sort=${sort}:desc&season=${season}&seasontype=2`);
+    let season = cur, pa = await q("passing.passingYards", cur).catch(() => null);
+    if (!pa || (pa.athletes || []).length < 12) { season = cur - 1; pa = await q("passing.passingYards", season); }
+    const [ru, re, ki, sk, tk, it] = await Promise.all([q("rushing.rushingYards", season), q("receiving.receivingYards", season), q("kicking.fieldGoalsMade", season).catch(() => ({ athletes: [], categories: [] })),
+      q("defensive.sacks", season).catch(() => null), q("defensive.totalTackles", season).catch(() => null), q("defensiveInterceptions.interceptions", season).catch(() => null)]);
     const base = a => ({ id: "f" + a.athlete.id, name: a.athlete.displayName, team: a.athlete.teamShortName || "", pos: a.athlete.position?.abbreviation || "", img: a.athlete.headshot?.href || "", r: {} });
-    const qbs = pa.athletes.slice(0, 26).map(a => { const s = (c, n) => espnStat(a, c, n, pa.categories); return { ...base(a), st: { cmp: s("passing", "completionPct"), ypa: s("passing", "yardsPerPassAttempt"), td: s("passing", "passingTouchdowns"), int: s("passing", "interceptions"), rtg: s("passing", "QBRating"), yds: s("passing", "passingYards") } }; });
-    qbs.forEach(p => { p.line = `${p.st.yds} YDS · ${p.st.td} TD · ${p.st.int} INT`; p.s = { yds: p.st.yds, td: p.st.td, int: p.st.int, rtg: p.st.rtg, cmp: p.st.cmp }; });
+    const gp = (a, cats) => espnStat(a, "general", "gamesPlayed", cats);
+    const qbs = pa.athletes.slice(0, 32).map(a => { const s = (c, n) => espnStat(a, c, n, pa.categories); return { ...base(a), st: { cmp: s("passing", "completionPct"), ypa: s("passing", "yardsPerPassAttempt"), td: s("passing", "passingTouchdowns"), int: s("passing", "interceptions"), rtg: s("passing", "QBRating"), yds: s("passing", "passingYards"), gp: gp(a, pa.categories) } }; });
+    qbs.forEach(p => { p.line = `${p.st.yds} YDS · ${p.st.td} TD · ${p.st.int} INT`; p.s = { yds: p.st.yds, td: p.st.td, int: p.st.int, rtg: p.st.rtg, cmp: p.st.cmp, ypa: p.st.ypa, gp: p.st.gp }; });
     rate(qbs, "acc", p => p.st.cmp); rate(qbs, "arm", p => p.st.ypa); rate(qbs, "iq", p => p.st.td / Math.max(1, p.st.int)); qbs.forEach(p => { ovr(p, { acc: 1, arm: .8, iq: .8 }); delete p.st; });
-    const wrs = re.athletes.slice(0, 44).map(a => { const s = (c, n) => espnStat(a, c, n, re.categories); return { ...base(a), st: { rec: s("receiving", "receptions"), tgt: s("receiving", "receivingTargets"), yds: s("receiving", "receivingYards"), ypr: s("receiving", "yardsPerReception"), td: s("receiving", "receivingTouchdowns"), yac: s("receiving", "receivingYardsAfterCatch") } }; });
-    wrs.forEach(p => { p.line = `${p.st.rec} REC · ${p.st.yds} YDS · ${p.st.td} TD`; p.s = { rec: p.st.rec, yds: p.st.yds, td: p.st.td, ypr: p.st.ypr }; });
+    const rbs = ru.athletes.slice(0, 40).map(a => { const s = (c, n) => espnStat(a, c, n, ru.categories); return { ...base(a), st: { att: s("rushing", "rushingAttempts"), yds: s("rushing", "rushingYards"), ypc: s("rushing", "yardsPerRushAttempt"), td: s("rushing", "rushingTouchdowns"), rec: s("receiving", "receptions"), gp: gp(a, ru.categories) } }; });
+    rbs.forEach(p => { p.line = `${p.st.yds} YDS · ${p.st.ypc} YPC · ${p.st.td} TD`; p.s = { yds: p.st.yds, td: p.st.td, ypc: p.st.ypc, att: p.st.att, rec: p.st.rec, gp: p.st.gp }; });
+    rate(rbs, "vol", p => p.st.yds); rate(rbs, "eff", p => p.st.ypc); rate(rbs, "score", p => p.st.td); rbs.forEach(p => { ovr(p, { vol: 1, eff: .9, score: .7 }); delete p.st; });
+    const wrs = re.athletes.slice(0, 44).map(a => { const s = (c, n) => espnStat(a, c, n, re.categories); return { ...base(a), st: { rec: s("receiving", "receptions"), tgt: s("receiving", "receivingTargets"), yds: s("receiving", "receivingYards"), ypr: s("receiving", "yardsPerReception"), td: s("receiving", "receivingTouchdowns"), gp: gp(a, re.categories) } }; });
+    wrs.forEach(p => { p.line = `${p.st.rec} REC · ${p.st.yds} YDS · ${p.st.td} TD`; p.s = { rec: p.st.rec, yds: p.st.yds, td: p.st.td, ypr: p.st.ypr, tgt: p.st.tgt, gp: p.st.gp }; });
     rate(wrs, "hands", p => p.st.rec / Math.max(1, p.st.tgt)); rate(wrs, "speed", p => p.st.ypr); rate(wrs, "route", p => p.st.yds); wrs.forEach(p => { ovr(p, { hands: 1, speed: .9, route: 1 }); delete p.st; });
-    const ks = ki.athletes.slice(0, 24).map(a => { const s = (c, n) => espnStat(a, c, n, ki.categories); return { ...base(a), st: { pct: s("kicking", "fieldGoalPct"), lng: s("kicking", "longFieldGoalMade"), m50: s("kicking", "fieldGoalsMade50") } }; });
+    const ks = (ki.athletes || []).slice(0, 24).map(a => { const s = (c, n) => espnStat(a, c, n, ki.categories); return { ...base(a), st: { pct: s("kicking", "fieldGoalPct"), lng: s("kicking", "longFieldGoalMade"), m50: s("kicking", "fieldGoalsMade50") } }; });
     ks.forEach(p => { p.line = `${p.st.pct}% FG · long ${p.st.lng}`; p.s = { pct: p.st.pct, lng: p.st.lng }; });
     rate(ks, "acc", p => p.st.pct); rate(ks, "leg", p => p.st.lng + (p.st.m50 || 0) * 2); ks.forEach(p => { ovr(p, { acc: 1, leg: .8 }); delete p.st; });
-    return { season: String(season), qbs, wrs, ks };
+    // defenders: the sack, tackle and interception leaders together
+    const seen = new Map();
+    for (const d of [sk, tk, it].filter(Boolean)) for (const a of (d.athletes || []).slice(0, 40)) {
+      if (seen.has(a.athlete.id)) continue; const s = (c, n) => espnStat(a, c, n, d.categories);
+      seen.set(a.athlete.id, { ...base(a), st: { sacks: s("defensive", "sacks"), tkl: s("defensive", "totalTackles"), tfl: s("defensive", "tacklesForLoss"), pd: s("defensive", "passesDefended"), int: s("defensiveInterceptions", "interceptions") ?? s("defensiveinterceptions", "interceptions"), gp: gp(a, d.categories) } });
+    }
+    const def = [...seen.values()];
+    def.forEach(p => { p.line = `${p.st.sacks ?? 0} SACKS · ${p.st.tkl ?? 0} TKL · ${p.st.int ?? 0} INT`; p.s = { sacks: p.st.sacks, tkl: p.st.tkl, int: p.st.int, tfl: p.st.tfl, pd: p.st.pd, gp: p.st.gp }; });
+    rate(def, "rush", p => p.st.sacks); rate(def, "tkl", p => p.st.tkl); rate(def, "cover", p => (p.st.int || 0) * 3 + (p.st.pd || 0)); def.forEach(p => { ovr(p, { rush: 1, tkl: 1, cover: 1 }); delete p.st; });
+    const games = Math.max(0, ...qbs.map(p => p.s.gp || 0));
+    return { season: String(season), games, current: season === cur, qbs, rbs, wrs, def, ks };
   },
   async nhl() {
     const s = month < 10 ? `${year - 1}${year}` : `${year}${year + 1}`;

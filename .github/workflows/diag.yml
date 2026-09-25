@@ -1,4 +1,4 @@
-# Temporary: data probes for season simulations and NFL leaders. Safe to delete.
+# Temporary: runs the season simulations and the NFL leaders against live data. Safe to delete.
 name: Probes
 on:
   push:
@@ -11,39 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -q -r requirements.txt
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
       - run: |
-          mkdir -p .github/diag/p; cd .github/diag/p
-          c() { curl -sS -m 60 -A "Mozilla/5.0" "$2" -o "$1" -w "$1 %{http_code} %{size_download}\n" || echo "$1 failed"; }
-          c nba_cdn.json "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
-          c nhl_games.json "https://api.nhle.com/stats/rest/en/game?cayenneExp=season=20262027%20and%20gameType=2"
-          c nhl_sched.json "https://api-web.nhle.com/v1/schedule/2026-10-10"
-          c mlb_sched.json "https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=2026&gameType=R&startDate=2026-09-24&endDate=2026-10-05&fields=dates,date,games,gamePk,gameDate,status,abstractGameState,teams,home,away,team,name,score"
-          B="https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/statistics/byathlete?region=us&lang=en&contentorigin=espn&isqualified=true&page=1&limit=50&seasontype=2&season=2026"
-          c nfl_pass.json "$B&sort=passing.passingYards:desc"
-          c nfl_rush.json "$B&sort=rushing.rushingYards:desc"
-          c nfl_def.json "$B&sort=defensive.sacks:desc"
-          c nfl_rec.json "$B&sort=receiving.receivingYards:desc"
-          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
-          c w_nbateam.json "$W/sports/nba/team/13"
-          python3 - <<'PY'
-          import json, glob
-          def load(f):
-              try: return json.load(open(f))
-              except Exception as e: print(f, "not json"); return None
-          d=load("nba_cdn.json")
-          if d:
-              gd=d["leagueSchedule"]["gameDates"]; gs=[g for x in gd for g in x["games"]]
-              print("nba cdn season", d["leagueSchedule"].get("seasonYear"), len(gs), "games; first", json.dumps(gs[0])[:400])
-          d=load("nhl_games.json");
-          if d: print("nhl games", len(d["data"]), json.dumps(d["data"][0])[:300])
-          for f in ["nfl_pass.json","nfl_rush.json","nfl_def.json","nfl_rec.json"]:
-              d=load(f)
-              if d: print(f, "athletes", len(d.get("athletes",[])), [(c["name"], c.get("names")) for c in d.get("categories",[])][:8]); 
-              if d and d.get("athletes"): a=d["athletes"][0]; print("  top", a["athlete"]["displayName"], [(c["name"], c["totals"][:6]) for c in a["categories"]][:6])
-          d=load("w_nbateam.json")
-          if d: print("worker team keys", list(d)[:20], json.dumps(d.get("schedule") or d.get("games") or "")[:500])
-          PY
-          find . -name '*.json' -size +200k -delete
+          mkdir -p .github/diag
+          (python season_sim.py mlb nhl nba nfl epl 2>&1; python -c "
+          import json;d=json.load(open('docs/sim.json'))
+          for lg,L in d['leagues'].items():
+              print(lg, L.get('played'), L.get('left'), 'big', len(L.get('big',[])))
+              for t in sorted(L['teams'], key=lambda t:-t['title'])[:4]: print('   ', t['name'], t['w'], t['l'], 'playoff', t.get('playoff', t.get('top4')), 'title', t['title'], 'luck', t.get('luck'), 'next', t.get('next'))
+              for b in L.get('big',[])[:3]: print('    big', b)
+          ") > .github/diag/sim.log
+          node alerts/allstars.mjs > .github/diag/allstars.log 2>&1 || true
+          python -c "
+          import json;d=json.load(open('docs/allstars.json'))['sports']['nfl']
+          print('season', d['season'], 'games', d.get('games'), 'current', d.get('current'))
+          for k in ('qbs','rbs','wrs','def','ks'):
+              L=d.get(k,[]); print(k, len(L), [ (p['name'], p['line']) for p in L[:3]])
+          top=lambda k,s: sorted([p for p in d['def'] if p['s'].get(s) is not None], key=lambda p:-p['s'][s])[:3]
+          print('sacks', [(p['name'],p['s']['sacks']) for p in top('def','sacks')]); print('tkl', [(p['name'],p['s']['tkl']) for p in top('def','tkl')]); print('int', [(p['name'],p['s']['int']) for p in top('def','int')])
+          " >> .github/diag/allstars.log 2>&1
+          cp docs/sim.json .github/diag/sim.json
       - run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
           git add .github/diag && git commit -q -m "Probe results" && git push

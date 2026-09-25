@@ -762,12 +762,12 @@ async function firstOf(tries) {                     // the first source that ans
   throw err || new Error("ESPN unavailable");
 }
 export async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
-  if (lg === "mlb") try { return await mlbScoreboard(dates, fetchImpl); } catch {}          // MLB's own API first
+  if (lg === "mlb" && !/-/.test(dates || "")) try { return await mlbScoreboard(dates, fetchImpl); } catch {}          // MLB's own API first
   try { return await espnBoard(lg, fetchImpl, dates); }
   catch (e) { if (lg === "nhl") return nhlScoreboard(dates, fetchImpl); throw e; }          // the NHL's API if ESPN is down
 }
 async function espnBoard(lg, fetchImpl, dates) {
-  const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : "";   // YYYYMMDD, or today
+  const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : /^\d{8}-\d{8}$/.test(dates || "") ? `?dates=${dates}&limit=1000` : "";   // YYYYMMDD, a range (the season simulations), or today
   return normScoreboard(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
     async () => { const sb = (await getJSON(cdnUrl(lg, "scoreboard", q.replace("?", "&")), fetchImpl)).content?.sbData; return Array.isArray(sb?.events) ? sb : null; },
