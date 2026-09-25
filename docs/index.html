@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -1260,6 +1260,7 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 body.gated{overflow:hidden}body.gated .askfab,body.gated .bottombar{display:none}
 html.native .webonly,html.native #installBtn{display:none!important}
 .czwho{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted currentColor}.czwho.in{font-weight:600}.czwho:focus-visible{outline:2px solid var(--accent,#a78bfa);outline-offset:2px}.czwhoacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.trgate{margin:4px 0 16px;padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--surface)}.trgate b{display:block;font-size:1.05rem;color:var(--ink)}.trgate p{margin:6px 0 14px;color:var(--muted);font-size:.9rem}.trgbar{height:8px;border-radius:99px;background:rgba(127,127,127,.2);overflow:hidden}.trgbar i{display:block;height:100%;border-radius:inherit;background:var(--accent,#7c9cff)}.trgate small{display:block;margin-top:8px;color:var(--muted)}
 .trearly{margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(252,211,77,.35);background:rgba(252,211,77,.08);font-size:.86rem;color:var(--muted)}.trearly b{color:var(--ink)}
 .wifpick{display:flex;align-items:center;gap:10px;margin:6px 0 10px;font-weight:700}.wifpick select{max-width:260px}.wifgames{display:grid;gap:6px;margin-bottom:10px}.wifg{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}.wifg .seg{margin:0}.wiftab td i{font-style:normal;font-size:.76rem;font-weight:800;margin-left:4px}.wiftab tr.me td{background:rgba(167,139,250,.12)}
 .czlv{position:absolute;top:34px;right:10px;z-index:4;font-size:.62rem;font-weight:900;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.55);color:#FDE68A;border:1px solid rgba(253,230,138,.6)}
@@ -6151,6 +6152,7 @@ function trRow(r, pending){
     <div class="trd muted">${esc(when.toLocaleDateString([], { month: "short", day: "numeric" }))}${score ? " · " + esc(score) : ""}</div></div>
     <div class="trpl ${pl == null ? "" : trCls(pl)}">${pl == null ? "" : trMoney(pl)}</div></div>`;
 }
+const TR_MIN = 50;                                                  // finished games before the record is shown
 function drawTrack(){
   const el = $("#recordView"); if (!el) return;
   const since = new Date((TR.data && TR.data.since || "2026-09-24") + "T12:00:00Z").toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
@@ -6160,6 +6162,14 @@ function drawTrack(){
   const all = TR.data.picks.filter(k => TR_LEAGUES.includes(k.lg) && Array.isArray(k.p)).map(trGrade), rows = TR.lg === "all" ? all : all.filter(r => r.k.lg === TR.lg);
   const S = trSum(rows), pend = rows.filter(r => !r.k.res).sort((a, b) => a.k.start.localeCompare(b.k.start)), done = rows.filter(r => r.k.res).sort((a, b) => b.k.start.localeCompare(a.k.start));
   const lgName = TR.lg === "all" ? "all five leagues" : LEAGUE_LABEL[TR.lg];
+  const graded = all.filter(r => r.k.res).length;
+  if (graded < TR_MIN){
+    // the record stays hidden until the model has 50 finished games: a handful of results says nothing about it
+    el.innerHTML = head.replace(/<button class="btn" type="button" data-tr="share">Share<\/button>/, "") + `<div class="trgate"><b>The track record opens after ${TR_MIN} games</b><p>A handful of results says almost nothing about a model, so the record stays hidden until it has ${TR_MIN} finished games across all leagues. Every pick is still locked in before the game and graded after it.</p>
+      <div class="trgbar" role="progressbar" aria-valuemin="0" aria-valuemax="${TR_MIN}" aria-valuenow="${graded}"><i style="width:${graded / TR_MIN * 100}%"></i></div><small>${graded} of ${TR_MIN} games graded</small></div>`
+      + (pend.length ? `<section class="card"><h2>Locked in</h2><p class="sub">Picks already saved for games that haven't finished. They can't change once the game starts.</p><div class="trlist">${pend.map(r => trRow(r, true)).join("")}</div></section>` : "");
+    trBind(el); return;
+  }
   let h = head + segs;
   if (!S.n) h += `<div class="teamnote"><b>No finished games yet${TR.lg === "all" ? "" : " in " + esc(lgName)}</b>Picks lock in 90 minutes before each game. The record starts filling in as soon as the first ones finish.${pend.length ? "" : " Preseason games aren't counted."}</div>`;
   else {
