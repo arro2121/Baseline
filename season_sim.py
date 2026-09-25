@@ -362,7 +362,17 @@ def simulate(lg, M, played, left, today, rng):
                         h_if_win=round(float(acc[f"g{i}_{mk}_h"][gh[i]] / nh), 3), h_if_loss=round(float(acc[f"g{i}_{mk}_a"][gh[i]] / na), 3),
                         a_if_win=round(float(acc[f"g{i}_{mk}_a"][ga[i]] / na), 3), a_if_loss=round(float(acc[f"g{i}_{mk}_h"][ga[i]] / nh), 3)))
     big.sort(key=lambda b: -b["swing"])
-    return dict(teams=out_teams, big=big[:8], played=len(played), left=G, sims=N, sigma=round(sd, 3))
+    # for the app's "what if" simulator: standings so far and every game left with its chances, so the browser can rerun the
+    # season with some results fixed (it compares against its own unfixed run, so only the change it shows matters)
+    def g3(i):
+        if not soccer: return [round(float(sig(base[i])), 3), None]
+        lh = float(np.exp(LN[gh[i], ga[i]] / 2)) if neutral[i] else float(LH[gh[i], ga[i]]); la = float(np.exp(-LN[gh[i], ga[i]] / 2)) if neutral[i] else float(LA[gh[i], ga[i]])
+        f = lambda l: [math.exp(-l) * l ** k / math.factorial(k) for k in range(11)]; fh, fa = f(lh), f(la)
+        ph = sum(fh[x] * fa[y] for x in range(11) for y in range(11) if x > y); pd_ = sum(fh[x] * fa[x] for x in range(11)); tot = ph + pd_ + sum(fh[x] * fa[y] for x in range(11) for y in range(11) if y > x)
+        return [round(ph / tot, 3), round(pd_ / tot, 3)]
+    wif = dict(t=[[names[t], conf_of[names[t]], div_of[names[t]], int(W[t]), int(Lo[t]), int(D[t]), int(OTL[t]), int(PF[t] - PA[t])] for t in range(T)],
+               g=[[int(gh[i]), int(ga[i]), *g3(i), left[i]["date"]] for i in range(G)], sd=round(sd, 3))
+    return dict(teams=out_teams, big=big[:8], played=len(played), left=G, sims=N, sigma=round(sd, 3), wif=wif)
 
 def playoffs(lg, score, eps, L, cm, dm, confs, divs, n, T, rng):
     """Play out the postseason in every simulated season. Returns boolean [n, T] arrays."""
