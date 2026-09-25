@@ -1213,6 +1213,19 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .cmcard:hover{transform:translateY(-2px);border-color:#B98BFF}.cmcard.lead{grid-column:1/-1}.cmcard.lead b{font-size:1.35rem}
 .cmimg{display:block;aspect-ratio:16/8;overflow:hidden;background:var(--surface-2)}.cmimg img{width:100%;height:100%;object-fit:cover;display:block}
 .cmtext{display:flex;flex-direction:column;gap:4px;padding:14px 16px 16px}.cmtext em{font-style:normal;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#FF7AC8}.cmtext b{font-size:1.05rem;line-height:1.25}.cmtext small{color:var(--muted);font-size:.84rem;line-height:1.45}.cmtext i{font-style:normal;color:var(--faint);font-size:.74rem;margin-top:2px}
+.trlink{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 18px;box-shadow:var(--shadow);cursor:pointer;font:inherit;color:inherit}
+.trlink span{grid-column:1;font-size:.8rem;color:var(--muted)}.trlink i{grid-row:1/3;grid-column:2;font-style:normal;font-size:1.2rem;color:var(--muted)}
+.trseg{margin:0 0 16px;flex-wrap:wrap;max-width:100%}.trseg button{padding:7px 13px}
+.trbanks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}.trbank{background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px}
+.trbank h3{margin:0 0 4px;font-size:.95rem}.trbank .sub{font-size:.78rem;margin:0 0 8px}.trbank .kv{grid-template-columns:1fr 1fr}
+.trchart{width:100%;height:auto;display:block;margin-top:6px}.trchart text{font-size:17px;fill:var(--muted)}.trchart .ax{stroke:var(--line)}.trchart .zero{stroke:var(--muted);stroke-dasharray:3 4;opacity:.6}
+.trchart path{fill:none;stroke-width:2.4;stroke-linejoin:round}.trchart .le,.tlegend i.le{stroke:#6FA8DC;background:#6FA8DC}.trchart .lv,.tlegend i.lv{stroke:#E8B04B;background:#E8B04B}
+.trlist{display:grid;gap:8px}.trpick{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px}
+.trres{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.9rem;background:var(--surface);border:1px solid var(--line)}
+.trres.w{color:var(--pos);border-color:currentColor}.trres.l{color:var(--neg);border-color:currentColor}.trres.wait,.trres.void{color:var(--muted)}
+.trm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.9rem}.trm em{font-style:normal;font-size:.68rem;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;margin-left:2px}
+.trd{font-size:.8rem;margin-top:3px}.trvb{color:#C98A1A;font-weight:650}.trpl{font-weight:800;font-size:.95rem;white-space:nowrap}.trtab tr[data-trlg]{cursor:pointer}.trtab td,.trtab th{white-space:nowrap;padding-left:8px;padding-right:8px}.trtab td small{display:block;font-size:.72rem;color:var(--muted);font-weight:500}.trtab tr.trall td{font-weight:800}
+@media (max-width:560px){.trtab td:nth-child(3),.trtab th:nth-child(3){display:none}.trtab td,.trtab th{padding-left:5px;padding-right:5px}.trbanks{grid-template-columns:1fr}.trpick{padding:9px 10px;gap:8px}}
 .cmfoot{margin:22px 0 0;color:var(--faint);font-size:.8rem;text-align:center}.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer;padding:0}
 .cmsign{display:flex;gap:8px;align-items:flex-end;justify-content:center;flex-wrap:wrap}.cmsign label{display:flex;flex-direction:column;gap:4px;text-align:left}.cmsign small{flex-basis:100%;color:var(--bad,#FF7D8E)}
 .cmin{width:100%;text-align:left;font-size:.95rem}
@@ -1351,6 +1364,7 @@ dialog.onb p{margin:0 0 12px}
     <button data-sport="universe" aria-pressed="false"><span aria-hidden="true">◎</span>Today</button>
     <button data-sport="following" aria-pressed="false"><span aria-hidden="true">★</span>Following</button>
     <button data-sport="play" aria-pressed="false"><span aria-hidden="true">🎯</span>Picks</button>
+    <button data-sport="record" aria-pressed="false"><span aria-hidden="true">📈</span>Record</button>
     <button data-sport="comets" aria-pressed="false"><span aria-hidden="true">☄️</span>Comets</button>
     <button data-sport="tennis" aria-pressed="true"><span aria-hidden="true">🎾</span>Tennis</button>
     <button data-sport="nfl" aria-pressed="false"><span aria-hidden="true">🏈</span>NFL</button>
@@ -1479,6 +1493,7 @@ dialog.onb p{margin:0 0 12px}
   <div id="uniView" hidden></div>
   <div id="playView" hidden></div>
   <div id="cometsView" hidden></div>
+  <div id="recordView" hidden></div>
   <div id="teamView" hidden>
     <div class="lghead"><div><h1 id="lgTitle"></h1><p id="lgSub"></p></div>
       <div class="seg" role="group" aria-label="Section" id="ttSeg"><button data-tt="games" aria-pressed="true">Games</button><button data-tt="stand" aria-pressed="false">Standings</button><button data-tt="news" aria-pressed="false">News</button><button data-tt="lead" aria-pressed="false">Leaders</button><button data-tt="rank" aria-pressed="false">Ratings</button><button data-tt="model" aria-pressed="false">Model</button><button data-tt="predict" aria-pressed="false">Predict</button></div></div>
@@ -1563,15 +1578,16 @@ dialog.onb p{margin:0 0 12px}
   </div>
 </dialog>
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
-  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>The games are gone. The predictions got serious.</p></div></div>
+  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>The model now keeps score in public.</p></div></div>
   <ul class="newlist">
+    <li><i>📈</i><span><b>Track record.</b> Every pick the model makes is now locked in before the game and graded after it, with its record in each league, how it compares with the betting favorites, and what $100 bets would have made. In the Record tab.</span></li>
     <li><i>🧠</i><span><b>A real model for every league.</b> The NFL, NBA, MLB, NHL and Premier League now get the tennis treatment: Elo, opponent-adjusted margin, offense and defense, form, rest and a factor for each sport (starting pitchers, quarterbacks, shots).</span></li>
     <li><i>📊</i><span><b>A Model tab in every league.</b> Accuracy on seasons it never saw, against Elo and the betting market, a calibration chart and what each factor is worth.</span></li>
     <li><i>🔎</i><span><b>Why the model leans that way.</b> Every matchup and game page shows each factor's push, a projected score, fair spread and total, form, rating trends and the last meetings.</span></li>
     <li><i>☄️</i><span><b>Comets.</b> Articles and takes from Cosmo Sports, right in the app. The newest one shows on Today.</span></li>
     <li><i>⚽</i><span><b>Likeliest scores</b> for Premier League matches, plus over 2.5 goals and both teams to score.</span></li>
   </ul>
-  <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">See a Model tab</button></div>
+  <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">See the track record</button></div>
 </div></dialog>
 <div class="offbar" id="offBar" role="status" hidden>📡 Offline · showing the last saved scores</div>
 <dialog id="infoDlg" class="modal packd" aria-labelledby="infoTitle"><div class="dlg" id="infoBody"></div></dialog>
@@ -1589,6 +1605,7 @@ dialog.onb p{margin:0 0 12px}
   <div class="sheetin">
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
+    <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and what betting them would have made</span></button>
     <button class="sheetrow" data-go="comets"><b>☄️ Comets</b><span>Articles and takes from Cosmo Sports</span></button>
     <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
@@ -1615,7 +1632,7 @@ dialog.onb p{margin:0 0 12px}
     <div class="setrow wrapr" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
-      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
+      <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Where I left off</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option></select></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
@@ -2527,11 +2544,12 @@ const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l
 function setSport(sp){
   SPORT = sp; lsSet("sport", sp); document.body.dataset.sport = sp; if (sp === "tennis") lsSet("lastLeague", "tennis"); setTimeout(navMark, 0);
   document.querySelectorAll("[data-sport]").forEach(b => b.setAttribute("aria-pressed", b.dataset.sport === sp));
-  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play", comets = sp === "comets";
-  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play || comets; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#cometsView").hidden = !comets; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
+  const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play", comets = sp === "comets", record = sp === "record";
+  $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play || comets || record; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#cometsView").hidden = !comets; $("#recordView").hidden = !record; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
   clearInterval(sbTimer); sbTimer = null;
   if (tennis){ document.body.dataset.surface = st.surface; return; }
-  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : comets ? $("#cometsView") : $("#teamView"));
+  materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : comets ? $("#cometsView") : record ? $("#recordView") : $("#teamView"));
+  if (record){ document.body.dataset.surface = "Hard"; drawTrack(); loadTrack(); if (HOSTED) sbTimer = setInterval(() => loadTrack(), 180000); return; }
   if (comets){ document.body.dataset.surface = "Hard"; drawComets(); loadComets(); return; }
   if (follow){ document.body.dataset.surface = "Hard"; renderFollowing(); return; }
   if (uni){ document.body.dataset.surface = "Hard"; drawUniverse(); loadUniverse(); if (HOSTED) sbTimer = setInterval(loadUniverse, 30000); return; }
@@ -2685,6 +2703,7 @@ function renderModelTab(){
   const imp = Object.entries(m.ablation).sort((a, b) => b[1] - a[1]), mx = Math.max(1e-5, ...imp.map(x => Math.abs(x[1])));
   const tested = (m.dropped || []).filter(k => k !== "elo_d");
   el.innerHTML = `<div class="metrics">${metrics.map(([n, l]) => `<div class="metric"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
+    <button type="button" class="trlink" onclick="TR.lg='${lg}';setSport('record');window.scrollTo({top:0})"><b>📈 Live track record</b><span>Every ${LEAGUE_LABEL[lg]} pick since launch, locked in before the game, and what $100 bets would have made</span><i>→</i></button>
     <div class="grid" style="margin-top:0">
       <section class="card"><h2>Backtest on unseen seasons</h2><p class="sub">Fitted on ${m.seasons.split("–")[0]}–${m.test_seasons[0] - 1} (${m.train_games.toLocaleString()} ${soccer ? "matches" : "games"}), then tested on ${m.test_seasons.join(", ")} (${m.test_games.toLocaleString()}). Every rating and stat was built only from games played before each one.</p>
         <div class="scroll"><table class="cmp"><thead><tr><th>Method</th><th>Accuracy</th><th>Log-loss</th><th>Brier</th></tr></thead><tbody>${Object.entries(bt).map(([k, v]) => `<tr class="${k === "Full model (all factors)" ? "best" : ""}"><td>${esc(names[k] || k)}${k.includes("same games") || k.startsWith("Betting") ? ` <small>(${v.n})</small>` : ""}</td><td>${pct1(v.acc)}</td><td>${v.logloss.toFixed(3)}</td><td>${v.brier.toFixed(3)}</td></tr>`).join("")}</tbody></table></div>
@@ -4110,6 +4129,144 @@ function cmMd(src){
 }
 const cmDate = s => { try { return new Date(s).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }); } catch { return ""; } };
 const cmMins = w => Math.max(1, Math.round((w || 0) / 220));
+/* ---------- Track record: every pick the model made since launch, locked in before the game and graded after it ----------
+   The alerts service saves the model's win chances and the bookmaker's moneyline for each game shortly before it starts, and
+   the result when it ends (alerts/worker.js, trackTick). Here the app works out the record and what $100 bets would have made. */
+const TR = { data: null, at: 0, err: false, loading: false, lg: "all", show: 15 };
+const TR_LEAGUES = ["nfl", "nba", "mlb", "nhl", "epl"];
+async function loadTrack(force){
+  if (TR.loading || (TR.data && !force && Date.now() - TR.at < 120e3)) return;
+  TR.loading = true;
+  const tries = [ALERTS_URL && `${ALERTS_URL}/track?t=${Math.floor(Date.now() / 120e3)}`, `track.json?t=${Math.floor(Date.now() / 36e5)}`].filter(Boolean);
+  let got = null;
+  for (const u of tries){ try { const r = await fetch(u); if (r.ok){ const d = await r.json(); if (d && Array.isArray(d.picks)){ got = d; break; } } } catch {} }
+  TR.loading = false;
+  if (got){ TR.data = got; TR.at = Date.now(); TR.err = false; } else if (!TR.data) TR.err = true;
+  if (SPORT === "record") drawTrack();
+}
+const trDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
+const trMl = ml => ml == null ? "" : ml > 0 ? "+" + ml : "−" + Math.abs(ml);
+// one pick, graded: the model's side, the market's favourite, and the $100 bets it would have placed
+function trGrade(k){
+  const outs = k.p.length === 3 ? ["home", "draw", "away"] : ["home", "away"], two = outs.length === 2;
+  const pi = k.p.indexOf(Math.max(...k.p)), side = outs[pi];
+  const r = { k, side, conf: k.p[pi], done: !!k.res && k.res !== "void", void: k.res === "void", bets: [], soccer: !two };
+  if (r.done) r.hit = k.res === side ? 1 : two && k.res === "draw" ? null : 0;          // a tie in a two-way market counts for nobody
+  const o = k.odds;
+  if (o && outs.every(s => o[s[0]] != null)){
+    const ml = outs.map(s => o[s[0]]), dec = ml.map(trDec), imp = dec.map(d => 1 / d), sum = imp.reduce((a, b) => a + b, 0), fair = imp.map(v => v / sum);
+    r.mkt = outs[fair.indexOf(Math.max(...fair))]; r.fair = fair;
+    r.every = { side, ml: ml[pi], dec: dec[pi] };
+    // a value bet: the same rule as the Predict tab, the model's chance at least 3 points above the market's and a positive expected return
+    outs.forEach((s, i) => { const edge = k.p[i] - fair[i]; if (edge >= .03 && k.p[i] * dec[i] > 1) r.bets.push({ side: s, ml: ml[i], dec: dec[i], edge }); });
+    if (r.done){
+      const pl = b => k.res === b.side ? 100 * (b.dec - 1) : two && k.res === "draw" ? 0 : -100;
+      r.every.pl = pl(r.every); r.bets.forEach(b => b.pl = pl(b));
+      r.mhit = k.res === r.mkt ? 1 : two && k.res === "draw" ? null : 0;
+    }
+  }
+  return r;
+}
+function trBank(list){ const n = list.length, won = list.filter(b => b.pl > 0).length, push = list.filter(b => b.pl === 0).length, pl = list.reduce((a, b) => a + b.pl, 0);
+  return { n, won, lost: n - won - push, push, pl, roi: n ? pl / (n * 100) : null }; }
+function trSum(rows){
+  const g = rows.filter(r => r.done && r.hit != null), w = g.filter(r => r.hit).length, m = g.filter(r => r.mhit != null);
+  return { n: g.length, w, l: g.length - w, acc: g.length ? w / g.length : null, conf: g.length ? g.reduce((a, r) => a + r.conf, 0) / g.length : null,
+    mn: m.length, macc: m.length ? m.filter(r => r.mhit).length / m.length : null, mboth: m.length ? m.filter(r => r.hit).length / m.length : null,
+    every: trBank(rows.filter(r => r.done && r.every && r.every.pl != null).map(r => r.every)), value: trBank(rows.flatMap(r => r.done ? r.bets.filter(b => b.pl != null) : [])) };
+}
+const trMoney = v => (v > 0 ? "+" : v < 0 ? "−" : "") + "$" + Math.abs(Math.round(v)).toLocaleString();
+const trCls = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+function trTeam(lg, T){ return LG_TEAMS(lg).find(t => tkey(t.name) === tkey(T.name)) || { name: T.name, abbr: T.abbr }; }
+const TR_TWO = /(Red Sox|White Sox|Blue Jays|Trail Blazers|Maple Leafs|Red Wings|Blue Jackets|Golden Knights)$/;
+const trShort = (lg, T) => { const n = String((T && T.name) || (T && T.abbr) || "?"); return lg === "epl" ? n.replace(/^AFC /, "") : (n.match(TR_TWO) || [])[1] || n.split(" ").slice(-1)[0]; };
+const trSideName = (r, s) => s === "draw" ? "Draw" : trShort(r.k.lg, r.k[s]);
+// running profit of both ways of betting, game by game in the order they were played
+function trChart(rows){
+  const done = rows.filter(r => r.done && r.every && r.every.pl != null).sort((a, b) => a.k.start.localeCompare(b.k.start));
+  if (done.length < 2) return "";
+  const W = 640, H = 230, L = 78, R = 12, T = 14, B = 30;
+  let e = 0, v = 0; const pe = [[0, 0]], pv = [[0, 0]];
+  done.forEach((r, i) => { e += r.every.pl; pe.push([i + 1, e]); const s = r.bets.reduce((a, b) => a + b.pl, 0); if (r.bets.length){ v += s; } pv.push([i + 1, v]); });
+  const ys = [...pe, ...pv].map(p => p[1]), y0 = Math.min(0, ...ys), y1 = Math.max(0, ...ys), span = Math.max(100, y1 - y0);
+  const X = i => L + i / done.length * (W - L - R), Y = y => T + (y1 + span * .08 - y) / (span * 1.16) * (H - T - B);
+  const path = pts => pts.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  const ticks = [y0, 0, y1].filter((t, i, a) => a.indexOf(t) === i);
+  const day = s => new Date(s).toLocaleDateString([], { month: "short", day: "numeric" });
+  return `<svg class="trchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Running profit">
+    ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" class="${t === 0 ? "zero" : "ax"}"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${trMoney(t)}</text>`).join("")}
+    <path d="${path(pe)}" class="le"/><path d="${path(pv)}" class="lv"/>
+    <text x="${L}" y="${H - 6}">${esc(day(done[0].k.start))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(done[done.length - 1].k.start))}</text></svg>
+    <div class="tlegend"><span><i class="le"></i>$100 on every pick</span><span><i class="lv"></i>$100 on each value bet</span></div>`;
+}
+function trBuckets(rows){
+  const g = rows.filter(r => r.done && r.hit != null); if (g.length < 10) return "";
+  const band = r => r.soccer ? (r.conf < .45 ? 0 : r.conf < .6 ? 1 : 2) : (r.conf < .6 ? 0 : r.conf < .7 ? 1 : 2);
+  const names = [["Toss-ups", "under 60% (soccer: under 45%)"], ["Leans", "60–70% (soccer: 45–60%)"], ["Strong picks", "70% and up (soccer: 60% and up)"]];
+  return `<section class="card"><h2>When it's confident</h2><p class="sub">Picks grouped by the model's chance for its side. A well-calibrated model wins about as often as it says.</p>
+    <div class="scroll"><table class="cmp"><thead><tr><th>Picks</th><th>Games</th><th>Said</th><th>Won</th></tr></thead><tbody>${names.map(([n, d], i) => { const b = g.filter(r => band(r) === i); if (!b.length) return "";
+      const said = b.reduce((a, r) => a + r.conf, 0) / b.length, won = b.filter(r => r.hit).length / b.length;
+      return `<tr><td>${n}<br><small>${d}</small></td><td>${b.length}</td><td>${pct1(said)}</td><td class="${won >= said - .02 ? "pos" : "neg"}">${pct1(won)}</td></tr>`; }).join("")}</tbody></table></div></section>`;
+}
+function trRow(r, pending){
+  const k = r.k, lg = k.lg, A = trTeam(lg, k.away), H = trTeam(lg, k.home), when = new Date(k.start);
+  const pickT = r.side === "draw" ? null : r.side === "home" ? H : A, odds = r.every ? trMl(r.every.ml) : "";
+  const vb = r.bets.length ? r.bets.map(b => `${trSideName(r, b.side)} ${trMl(b.ml)}`).join(", ") : "";
+  const res = pending ? `<span class="trres wait" title="Waiting on the result">…</span>` : r.void ? `<span class="trres void" title="Postponed or no result">–</span>`
+    : r.hit == null ? `<span class="trres void" title="Tie">T</span>` : `<span class="trres ${r.hit ? "w" : "l"}" title="${r.hit ? "Right" : "Wrong"}">${r.hit ? "✓" : "✗"}</span>`;
+  const score = k.score ? `${trShort(lg, k.away)} ${k.score[1]}, ${trShort(lg, k.home)} ${k.score[0]}` : pending ? when.toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : r.void ? "Postponed" : "";
+  const pl = !pending && r.done && r.every && r.every.pl != null ? r.every.pl : null;
+  return `<div class="trpick">${res}<div class="trmid"><div class="trm">${logoChip(A, "sm", lg)}<b>${esc(trShort(lg, k.away))}</b><span class="muted">at</span>${logoChip(H, "sm", lg)}<b>${esc(trShort(lg, k.home))}</b><em>${LEAGUE_LABEL[lg] === "Premier League" ? "EPL" : LEAGUE_LABEL[lg]}</em></div>
+    <div class="trd">Pick: <b>${pickT ? esc(trShort(lg, pickT)) : "Draw"}</b> ${pct1(r.conf)}${odds ? ` · ${odds}` : " · no line"}${vb ? ` · <span class="trvb">Value bet: ${esc(vb)}</span>` : ""}</div>
+    <div class="trd muted">${esc(when.toLocaleDateString([], { month: "short", day: "numeric" }))}${score ? " · " + esc(score) : ""}</div></div>
+    <div class="trpl ${pl == null ? "" : trCls(pl)}">${pl == null ? "" : trMoney(pl)}</div></div>`;
+}
+function drawTrack(){
+  const el = $("#recordView"); if (!el) return;
+  const since = new Date((TR.data && TR.data.since || "2026-09-24") + "T12:00:00Z").toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+  const head = `<div class="lghead"><div><h1>📈 Track record</h1><p>Every pick the model makes is locked in shortly before the game starts and graded when it ends. Nothing is added afterwards, and nothing is edited. Tracking since ${esc(since)}.</p></div><button class="btn" type="button" data-tr="share">Share</button></div>`;
+  const segs = `<div class="seg trseg" role="group" aria-label="League">${["all", ...TR_LEAGUES].map(l => `<button type="button" data-trlg="${l}" aria-pressed="${TR.lg === l}">${l === "all" ? "All" : l === "epl" ? "EPL" : LEAGUE_LABEL[l]}</button>`).join("")}</div>`;
+  if (!TR.data){ el.innerHTML = head + `<div class="teamnote">${TR.err ? `<b>Couldn't load the track record</b>${ALERTS_URL ? "Check your connection and try again." : "It's kept by the live service, which this copy of the app isn't connected to."}` : cosmoLoad("Loading the track record…")}</div>`; trBind(el); return; }
+  const all = TR.data.picks.filter(k => TR_LEAGUES.includes(k.lg) && Array.isArray(k.p)).map(trGrade), rows = TR.lg === "all" ? all : all.filter(r => r.k.lg === TR.lg);
+  const S = trSum(rows), pend = rows.filter(r => !r.k.res).sort((a, b) => a.k.start.localeCompare(b.k.start)), done = rows.filter(r => r.k.res).sort((a, b) => b.k.start.localeCompare(a.k.start));
+  const lgName = TR.lg === "all" ? "all five leagues" : LEAGUE_LABEL[TR.lg];
+  let h = head + segs;
+  if (!S.n) h += `<div class="teamnote"><b>No finished games yet${TR.lg === "all" ? "" : " in " + esc(lgName)}</b>Picks lock in 90 minutes before each game. The record starts filling in as soon as the first ones finish.${pend.length ? "" : " Preseason games aren't counted."}</div>`;
+  else {
+    h += `<div class="metrics">
+      <div class="metric"><div class="n">${S.w}–${S.l}</div><div class="l">Record, ${esc(lgName)}</div></div>
+      <div class="metric"><div class="n">${pct1(S.acc)}</div><div class="l">Winners picked${S.macc != null ? ` · betting favorites: ${pct1(S.macc)}` : ""}</div></div>
+      <div class="metric"><div class="n ${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</div><div class="l">$100 on every pick${S.every.n ? ` · ROI ${sgn(S.every.roi * 100)}%` : ""}</div></div>
+      <div class="metric"><div class="n ${trCls(S.value.pl)}">${S.value.n ? trMoney(S.value.pl) : "—"}</div><div class="l">Value bets only${S.value.n ? ` · ROI ${sgn(S.value.roi * 100)}%` : " · none yet"}</div></div></div>`;
+    const bank = (t, B, note) => `<div class="trbank"><h3>${t}</h3><p class="sub">${note}</p><div class="kv"><div>Profit<b class="${trCls(B.pl)}">${B.n ? trMoney(B.pl) : "—"}</b></div><div>Staked<b>$${(B.n * 100).toLocaleString()}</b></div><div>ROI<b class="${trCls(B.pl)}">${B.n ? sgn(B.roi * 100) + "%" : "—"}</b></div><div>Bets won<b>${B.won}–${B.lost}${B.push ? "–" + B.push : ""}</b></div></div></div>`;
+    h += `<div class="grid" style="margin-top:0"><section class="card"><h2>If you'd bet it</h2><p class="sub">Flat $100 bets on the moneyline, at the price the bookmaker offered when the pick locked. A tie in a two-way market is a push: the stake comes back.</p>
+      <div class="trbanks">${bank("Every pick", S.every, "$100 on the model's side in every game with a betting line.")}${bank("Value bets", S.value, "$100 only where the model's chance beats the market's by 3+ points, once the bookmaker's cut is removed. The same rule as the Predict tab.")}</div>
+      ${trChart(rows)}</section>
+      <section class="card"><h2>Model vs the betting market</h2><p class="sub">The betting favorite is the side the bookmaker's prices make most likely. Beating it over a season is hard: the market knows about injuries and lineups.</p>
+      <div class="kv"><div>Model<b>${pct1(S.acc)}</b></div><div>Favorites<b>${S.macc != null ? pct1(S.macc) : "—"}</b></div><div>Games with a line<b>${S.mn}</b></div><div>Avg confidence<b>${pct1(S.conf)}</b></div></div>
+      ${S.mn ? `<p class="sub" style="margin:12px 0 0">On the ${S.mn} games with a line, the model agreed with the favorite ${pct1(rows.filter(r => r.done && r.mhit != null && r.hit != null && r.side === r.mkt).length / S.mn)} of the time.</p>` : ""}</section></div>`;
+    if (TR.lg === "all"){
+      h += `<section class="card"><h2>By league</h2><div class="scroll"><table class="cmp trtab"><thead><tr><th>League</th><th>Record</th><th>Won</th><th>Every pick</th><th>Value bets</th></tr></thead><tbody>${TR_LEAGUES.map(lg => { const s = trSum(all.filter(r => r.k.lg === lg));
+        return `<tr data-trlg="${lg}"><td>${lg === "epl" ? "EPL" : esc(LEAGUE_LABEL[lg])}</td><td>${s.n ? `${s.w}–${s.l}` : "—"}</td><td>${s.n ? pct1(s.acc) : "—"}</td><td class="${trCls(s.every.pl)}">${s.every.n ? trMoney(s.every.pl) : "—"}</td><td class="${trCls(s.value.pl)}">${s.value.n ? `${trMoney(s.value.pl)}<small>${s.value.n} bets</small>` : "—"}</td></tr>`; }).join("")}
+        <tr class="trall"><td>All</td><td>${S.w}–${S.l}</td><td>${pct1(S.acc)}</td><td class="${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</td><td class="${trCls(S.value.pl)}">${S.value.n ? `${trMoney(S.value.pl)}<small>${S.value.n} bets</small>` : "—"}</td></tr></tbody></table></div></section>`;
+    }
+    h += trBuckets(rows);
+  }
+  if (pend.length) h += `<section class="card"><h2>Locked in</h2><p class="sub">Picks already saved for games that haven't finished. They can't change once the game starts.</p><div class="trlist">${pend.map(r => trRow(r, true)).join("")}</div></section>`;
+  if (done.length) h += `<section class="card"><h2>Results</h2><p class="sub">Newest first. The amount on the right is the $100 bet on the model's pick.</p><div class="trlist">${done.slice(0, TR.show).map(r => trRow(r, false)).join("")}</div>${done.length > TR.show ? `<button class="btn" type="button" data-tr="more" style="margin-top:12px">Show more</button>` : ""}</section>`;
+  h += `<p class="cmfoot">Odds come from ESPN's betting feed (DraftKings for most games), taken at the last check before the start. Preseason games aren't counted. Past results don't promise future ones. For entertainment: if you bet, bet responsibly.</p>`;
+  el.innerHTML = h; trBind(el);
+}
+function trBind(el){
+  el.querySelectorAll("[data-trlg]").forEach(b => b.addEventListener("click", () => { TR.lg = b.dataset.trlg; TR.show = 15; drawTrack(); }));
+  el.querySelectorAll("[data-tr]").forEach(b => b.addEventListener("click", async () => {
+    if (b.dataset.tr === "more"){ TR.show += 30; drawTrack(); return; }
+    const url = APP_URL() + "?sport=record", S = TR.data ? trSum(TR.data.picks.filter(k => Array.isArray(k.p)).map(trGrade)) : null;
+    const text = S && S.n ? `Cosmo Sports model: ${S.w}–${S.l} (${pct1(S.acc)}) since launch, every pick locked in before the game.` : "Every Cosmo Sports pick, locked in before the game and graded after it.";
+    try { if (navigator.share){ await navigator.share({ title: "Cosmo Sports track record", text, url }); return; } } catch { return; }
+    try { await navigator.clipboard.writeText(text + " " + url); toast("Link copied"); } catch { toast(url); }
+  }));
+}
 function drawComets(){
   const el = $("#cometsView"); if (!el) return; const writer = !!cmKey();
   const head = `<div class="lghead"><div><h1>☄️ Comets</h1><p>Articles and takes from Cosmo Sports.</p></div>${writer && !CM.edit ? `<button class="btn primary" type="button" data-cm="new">New article</button>` : ""}</div>`;
@@ -4342,12 +4499,12 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-models";
+const NEW_V = "2026-09-track";
 function maybeWhatsNew(){
   if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
 }
-$("#newDlg").addEventListener("click", e => { const b = e.target.closest("[data-new]"); if (e.target.id === "newDlg" || b) $("#newDlg").close(); if (b && b.dataset.new === "play"){ setSport(lsGet("lastLeague", "nfl") === "tennis" ? "nfl" : lsGet("lastLeague", "nfl")); setTimeout(() => setTT("model"), 200); } });
+$("#newDlg").addEventListener("click", e => { const b = e.target.closest("[data-new]"); if (e.target.id === "newDlg" || b) $("#newDlg").close(); if (b && b.dataset.new === "play") setSport("record"); });
 // offline: say so, and quietly refresh when the connection comes back
 (() => { const bar = $("#offBar"), set = () => { bar.hidden = navigator.onLine !== false; document.body.classList.toggle("offline", !bar.hidden); };
   addEventListener("offline", set); addEventListener("online", () => { set(); toast("Back online"); try { if (SPORT === "universe" || SPORT === "play") loadUniverse(); else if (SPORT !== "tennis" && SPORT !== "following") loadScoreboard(true); } catch {} }); set(); })();
@@ -4757,17 +4914,17 @@ function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTime
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
   const n = b.dataset.nav; sfx("tap");
   if (n === "more"){ $("#moreDlg").showModal(); return; }
-  if (n === "scores"){ const lg = ["universe", "following", "play", "comets"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
+  if (n === "scores"){ const lg = ["universe", "following", "play", "comets", "record"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
     if (lg === "tennis"){ setSport("tennis"); goTab("live"); } else { if (SPORT !== lg) setSport(lg); setTT("games"); } }
   else if (SPORT !== n) setSport(n);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }));
-function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT) ? SPORT : SPORT === "comets" ? "more" : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
+function navMark(){ const cur = ["universe", "play", "following"].includes(SPORT) ? SPORT : SPORT === "comets" || SPORT === "record" ? "more" : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
   if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
-  else if (g === "following" || g === "universe" || g === "play" || g === "comets"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
+  else if (g === "following" || g === "universe" || g === "play" || g === "comets" || g === "record"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
 }));
 $("#helpBtn").addEventListener("click", () => $("#helpDlg").showModal());
@@ -4811,7 +4968,7 @@ renderFeed();
   update();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
-  if (["following", "universe", "play", "comets"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
+  if (["following", "universe", "play", "comets", "record"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
   maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); loadModels(); loadComets();
   if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
