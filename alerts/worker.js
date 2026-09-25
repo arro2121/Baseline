@@ -154,6 +154,7 @@ export class Store {
     await this.migrate();
     if (d.op === "get") v = (await st.get(d.k)) ?? null;
     else if (d.op === "put") { await st.put(d.k, d.v); v = true; }
+    else if (d.op === "many") v = Object.fromEntries(await st.get((d.ks || []).slice(0, 128)));
     else if (d.op === "subs") v = [...(await st.list({ prefix: "sub:" })).values()];
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
@@ -165,10 +166,11 @@ export function store(env) {
   if (env.STORE) {
     const stub = env.STORE.get(env.STORE.idFromName("main"));
     const call = async (op, a = {}) => { const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op, ...a }) }); if (!r.ok) throw new Error("store " + r.status); return (await r.json()).v; };
-    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }) };
+    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), many: ks => call("many", { ks }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }) };
   }
   const all = async () => JSON.parse(await env.KV.get("subs") || "[]");
   return { durable: false, get: k => env.KV.get(k), put: (k, v) => env.KV.put(k, v), subs: all,
+    many: async ks => Object.fromEntries(await Promise.all(ks.map(async k => [k, await env.KV.get(k)]))),
     subGet: async e => (await all()).find(s => s.sub.endpoint === e) || null,
     subPut: async rec => env.KV.put("subs", JSON.stringify([...(await all()).filter(s => s.sub.endpoint !== rec.sub.endpoint), rec].slice(-2000))),
     subDel: async e => env.KV.put("subs", JSON.stringify((await all()).filter(s => s.sub.endpoint !== e))) };
@@ -442,8 +444,9 @@ export function normScoreboard(d, lg) {
     return { id: String(e.id), date: e.date, name: e.shortName || e.name, status: status(e.status || c.status), home: team(home), away: team(away),
       neutral: !!c.neutralSite, venue: c.venue?.fullName || null, tv: (c.broadcasts || []).flatMap(b => b.names || []).slice(0, 2),
       odds: o ? { details: o.details || null, overUnder: o.overUnder ?? null, homeML: o.homeTeamOdds?.moneyLine ?? o.moneyline?.home?.close?.odds ?? null,
-                  awayML: o.awayTeamOdds?.moneyLine ?? o.moneyline?.away?.close?.odds ?? null } : null,
-      situation: situation(c.situation, lg) };
+                  awayML: o.awayTeamOdds?.moneyLine ?? o.moneyline?.away?.close?.odds ?? null, drawML: o.drawOdds?.moneyLine ?? o.moneyline?.draw?.close?.odds ?? null,
+                  provider: o.provider?.name || null } : null,
+      situation: situation(c.situation, lg), stype: e.season?.type ?? null };
   });
   const order = { in: 0, pre: 1, post: 2 };
   games.sort((a, b) => (order[a.status.state] ?? 3) - (order[b.status.state] ?? 3) || String(a.date).localeCompare(String(b.date)));
@@ -819,7 +822,8 @@ export function normMlbSchedule(d) {
       home: mlbTeamObj(H.team, pre ? null : H.score ?? 0, H.leagueRecord, H.isWinner), away: mlbTeamObj(A.team, pre ? null : A.score ?? 0, A.leagueRecord, A.isWinner),
       neutral: false, venue: g.venue?.name || null, tv: [...new Set((nat.length ? nat : tv).map(b => b.name))].slice(0, 2), odds: null,
       situation: st.state === "in" ? mlbSit(ls) : null,
-      probables: (H.probablePitcher || A.probablePitcher) ? [A.probablePitcher?.fullName || null, H.probablePitcher?.fullName || null] : null };
+      probables: (H.probablePitcher || A.probablePitcher) ? [A.probablePitcher?.fullName || null, H.probablePitcher?.fullName || null] : null,
+      stype: g.gameType === "R" ? 2 : /^[FDLW]$/.test(g.gameType || "") ? 3 : 1 };
   });
   return { league: "mlb", asof: new Date().toISOString(), games };
 }
@@ -939,7 +943,7 @@ export function normNhlScore(d) {
   const games = (d.games || []).map(g => { const st = nhlStatus(g), pre = st.state === "pre", post = st.state === "post";
     return { id: "h" + g.id, date: g.startTimeUTC, name: `${g.awayTeam.abbrev} @ ${g.homeTeam.abbrev}`, status: st,
       home: nhlTeamObj(g.homeTeam, pre, post && g.homeTeam.score > g.awayTeam.score), away: nhlTeamObj(g.awayTeam, pre, post && g.awayTeam.score > g.homeTeam.score),
-      neutral: !!g.neutralSite, venue: nm(g.venue) || null, tv: (g.tvBroadcasts || []).map(b => b.network).slice(0, 2), odds: null, situation: null }; });
+      neutral: !!g.neutralSite, venue: nm(g.venue) || null, tv: (g.tvBroadcasts || []).map(b => b.network).slice(0, 2), odds: null, situation: null, stype: g.gameType ?? null }; });
   return { league: "nhl", asof: new Date().toISOString(), games };
 }
 const NHL_KIND = { goal: "goal", "shot-on-goal": "shot", "missed-shot": "miss", "blocked-shot": "miss", hit: "play", giveaway: "play", takeaway: "play", faceoff: "break",
@@ -1301,6 +1305,136 @@ export async function askCosmo(env, body, fetchImpl = fetch) {
   }));
 }
 
+/* ---------------- Track record: every model pick is locked in before the game starts, then graded when it ends ----------------
+   Every 10 minutes, games starting in the next 90 minutes get the model's pick and the bookmaker's moneyline. The latest pre-game
+   snapshot wins, and nothing changes once the game has started. Finished games get their result. Storage: one record per day
+   ("trk:d:YYYYMMDD", US Eastern), the list of days ("trk:days"), and today's start times plus games awaiting a result ("trk:state").
+   The model is the same one the app runs (models.json); these functions mirror the app's mTeam/mFeatures/mCore exactly. */
+export const TRACK_SINCE = "2026-09-24";
+const TRACK_LEAGUES = ["nfl", "nba", "mlb", "nhl", "epl"];
+const LOCK_MS = 90 * 60e3, GAME_H = { nfl: 3.2, nba: 2.3, mlb: 2.7, nhl: 2.4, epl: 1.9 };
+const etDay = d => { const p = etParts(new Date(d)); return `${p.year}${p.month}${p.day}`; };
+const ymdMs = s => Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
+const gapDays = (last, when) => last ? Math.round((ymdMs(etDay(when)) - ymdMs(last)) / 864e5) : null;
+const mkey = n => String(n || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/\b(fc|afc)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+function modelTeam(M, name) {
+  if (!M._keys) { M._keys = {}; for (const n of Object.keys(M.state)) M._keys[mkey(n)] = n; }
+  const k = mkey(name), alt = Object.keys(M._keys).find(x => x.endsWith(" " + k) || k.endsWith(" " + x)), n = M._keys[k] || (alt && M._keys[alt]);
+  return n ? M.state[n] : null;
+}
+function pois3(lh, la, rho) {
+  const N = 10, f = l => { const o = []; let p = Math.exp(-l); for (let i = 0; i <= N; i++) { o.push(p); p *= l / (i + 1); } return o; }, fh = f(lh), fa = f(la);
+  const G = fh.map(x => fa.map(y => x * y));
+  if (rho) { G[0][0] *= 1 - lh * la * rho; G[0][1] *= 1 + lh * rho; G[1][0] *= 1 + la * rho; G[1][1] *= 1 - rho; }
+  let s = 0, h = 0, d = 0, a = 0; G.forEach(r => r.forEach(v => s += v));
+  G.forEach((r, i) => r.forEach((v, j) => { v /= s; if (i > j) h += v; else if (i === j) d += v; else a += v; }));
+  return { home: h, draw: d, away: a };
+}
+// the model's win chances and projected score for one scoreboard game (null when the model doesn't know a team)
+export function modelProbs(models, lg, g) {
+  const M = models && models[lg]; if (!M) return null;
+  const H = modelTeam(M, g.home.name), A = modelTeam(M, g.away.name); if (!H || !A) return null;
+  const m = M.model, cap = m.rest_cap, avg = m.lg_avg, when = g.date;
+  const restOf = s => { const d = gapDays(s.last, when); return d == null ? cap : Math.max(0, Math.min(cap, d)); };
+  const mean = a => a && a.length ? a.reduce((x, y) => x + y, 0) / a.length : .5;
+  const share = (s, k) => s.x && s.x[k] != null ? s.x[k] : .5;
+  const spRa = name => { const p = name && M.pitchers && M.pitchers[name]; if (!p) return 4.45; const [prior, roll, n] = p; return roll == null ? prior : (prior * 8 + roll * n) / (8 + n); };
+  const pr = g.probables, dH = gapDays(H.last, when), dA = gapDays(A.last, when);
+  const x = { home: g.neutral ? 0 : 1, elo_d: H.elo - A.elo, mov_d: H.mov - A.mov, form_d: mean(H.form) - mean(A.form), rest_d: restOf(H) - restOf(A),
+    b2b_h: dH != null && dH <= 1 ? 1 : 0, b2b_a: dA != null && dA <= 1 ? 1 : 0, sp_d: lg === "mlb" ? spRa(pr && pr[0]) - spRa(pr && pr[1]) : 0, qb_d: 0,
+    shots_d: share(H, "shots_share") - share(A, "shots_share"), sot_d: share(H, "sot_share") - share(A, "sot_share"), fg_d: share(H, "fg_share") - share(A, "fg_share"),
+    pf_h: H.pf ?? avg, pa_h: H.pa ?? avg, pf_a: A.pf ?? avg, pa_a: A.pa ?? avg };
+  const z = k => (x[k] - m.mean[k]) / m.sd[k];
+  if (m.kind === "poisson") {
+    const lam = (side, sign) => { const P = side === "h" ? m.home_goals : m.away_goals, v = m.feats.map(k => z(k) * sign).concat([Math.log(Math.max(.14, side === "h" ? x.pf_h : x.pf_a)), Math.log(Math.max(.14, side === "h" ? x.pa_a : x.pa_h))]);
+      return Math.exp(P.intercept + v.reduce((s, vi, i) => s + vi * P.coef[i], 0)); };
+    const lh = lam("h", 1), la = lam("a", -1);
+    return { ...pois3(lh, la, m.rho), proj: [lh, la] };
+  }
+  let s = m.coef.home * x.home; for (const k of m.feats) s += m.coef[k] * z(k);
+  const p = 1 / (1 + Math.exp(-s)), S = m.scores;
+  return { home: p, away: 1 - p, proj: [S.home[0] + S.home[1] * x.pf_h + S.home[2] * x.pa_a + S.home[3] * x.home, S.away[0] + S.away[1] * x.pf_a + S.away[2] * x.pa_h + S.away[3] * x.home] };
+}
+const mlNum = v => { if (v == null || v === "") return null; if (/^\s*even\s*$/i.test(String(v))) return 100; const x = parseFloat(String(v).replace("−", "-")); return isFinite(x) && Math.abs(x) >= 100 ? x : null; };
+export function trackOdds(o, soccer) {
+  if (!o) return null; const h = mlNum(o.homeML), a = mlNum(o.awayML), d = mlNum(o.drawML);
+  if (h == null || a == null || (soccer && d == null)) return null;
+  return soccer ? { h, d, a, book: o.provider || null } : { h, a, book: o.provider || null };
+}
+let TRK_MODELS = null;
+async function trackModels(env, fetchImpl) {
+  if (TRK_MODELS && Date.now() - TRK_MODELS.at < 3600e3) return TRK_MODELS.m;
+  const r = await fetchImpl(`${env.SITE_URL.replace(/\/$/, "")}/models.json?t=${Math.floor(Date.now() / 36e5)}`);
+  if (!r.ok) throw new Error("models " + r.status);
+  TRK_MODELS = { at: Date.now(), m: await r.json() }; return TRK_MODELS.m;
+}
+export async function trackTick(env, fetchImpl = fetch, now = new Date(), force = false) {
+  if (!force && now.getUTCMinutes() % 10 !== 4) return "not time";
+  const db = store(env), t = now.getTime(), today = etDay(t);
+  const st = JSON.parse(await db.get("trk:state") || "{}"); st.sched = st.sched || {}; st.open = st.open || [];
+  const need = new Set();
+  for (const lg of TRACK_LEAGUES) {
+    const s = st.sched[lg];
+    if (!s || s.day !== today || t - s.at >= 3600e3 || s.starts.some(x => x > t && x - t <= LOCK_MS + 10 * 60e3)) need.add(`${lg}|${today}`);
+  }
+  for (const o of st.open) if (t > o.start + GAME_H[o.lg] * 3600e3 || (o.start > t && o.start - t <= LOCK_MS)) need.add(`${o.lg}|${o.day}`);
+  if (!need.size) return { boards: 0 };
+  let models = null; try { models = await trackModels(env, fetchImpl); } catch {}
+  const dayList = [...new Set([...need].map(k => k.split("|")[1]))], raw = await db.many(dayList.map(d => "trk:d:" + d)), days = {};
+  for (const d of dayList) { const v = raw["trk:d:" + d]; days[d] = (typeof v === "string" ? JSON.parse(v) : v) || {}; }
+  const dirty = new Set(); let locked = 0, graded = 0;
+  for (const k of need) {
+    const [lg, day] = k.split("|");
+    let board; try { board = await espnScoreboard(lg, fetchImpl, day); } catch { continue; }
+    const games = board.games || [], rec = days[day];
+    const pre = g => lg !== "epl" && g.stype === 1;                                      // preseason: not tracked
+    if (day === today) st.sched[lg] = { day, at: t, starts: games.filter(g => g.status?.state === "pre" && !pre(g)).map(g => Date.parse(g.date)).filter(x => x > t) };
+    const inWin = g => { const s = Date.parse(g.date); return g.status?.state === "pre" && !pre(g) && s > t && s - t <= LOCK_MS; };
+    let espnMlb = null;                                                                    // MLB's own feed has no odds: take ESPN's for the same game
+    if (lg === "mlb" && games.some(inWin)) { try { espnMlb = (await espnBoard("mlb", fetchImpl, day)).games || []; } catch { espnMlb = []; } }
+    for (const g of games) {
+      const key = `${lg}/${g.id}`, cur = rec[key];
+      if (inWin(g) && models && (!cur || cur.res == null)) {
+        const p = modelProbs(models, lg, g); if (!p) continue;
+        let o = g.odds;
+        if (lg === "mlb") { const gs = Date.parse(g.date), m = (espnMlb || []).filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
+            .sort((a, b) => Math.abs(Date.parse(a.date) - gs) - Math.abs(Date.parse(b.date) - gs))[0];
+          o = m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m.odds : null; }
+        const r4 = v => Math.round(v * 1e4) / 1e4;
+        const pick = { lg, id: g.id, day, start: g.date, home: { name: g.home.name, abbr: g.home.abbr || "" }, away: { name: g.away.name, abbr: g.away.abbr || "" },
+          p: lg === "epl" ? [r4(p.home), r4(p.draw), r4(p.away)] : [r4(p.home), r4(p.away)], proj: p.proj.map(v => Math.round(v * 100) / 100),
+          odds: trackOdds(o, lg === "epl") || cur?.odds || null, ...(lg === "mlb" && g.probables ? { sp: g.probables } : {}), locked: now.toISOString(), res: null };
+        if (!cur || JSON.stringify(cur.p) !== JSON.stringify(pick.p) || JSON.stringify(cur.odds) !== JSON.stringify(pick.odds)) {
+          rec[key] = pick; dirty.add(day); locked++;
+          if (!st.open.some(x => x.k === key)) st.open.push({ k: key, lg, day, start: Date.parse(g.date) });
+        }
+      } else if (cur && cur.res == null && g.status?.state === "post") {
+        const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
+        const bad = !g.status.completed || /postpon|cancel|suspend|forfeit|abandon|delay/i.test(`${g.status.detail || ""} ${g.status.short || ""}`) || !isFinite(h) || !isFinite(a);
+        cur.res = bad ? "void" : h > a ? "home" : a > h ? "away" : "draw";
+        if (!bad) cur.score = [h, a];
+        cur.graded = now.toISOString(); dirty.add(day); graded++;
+        st.open = st.open.filter(x => x.k !== key);
+      }
+    }
+  }
+  // a game that never reported a result within three days (moved, abandoned, missing from the feed): void it
+  for (const o of st.open.filter(o => t - o.start > 72 * 3600e3)) { const r = days[o.day]?.[o.k]; if (r && r.res == null) { r.res = "void"; r.graded = now.toISOString(); dirty.add(o.day); } }
+  st.open = st.open.filter(o => t - o.start <= 72 * 3600e3 || !days[o.day]).slice(-500);
+  for (const d of dirty) await db.put("trk:d:" + d, JSON.stringify(days[d]));
+  if (dirty.size) { const list = JSON.parse(await db.get("trk:days") || "[]"), add = [...dirty].filter(d => !list.includes(d)); if (add.length) await db.put("trk:days", JSON.stringify([...list, ...add].sort())); }
+  await db.put("trk:state", JSON.stringify(st));
+  return { boards: need.size, locked, graded, open: st.open.length };
+}
+export async function trackAll(db) {
+  const days = JSON.parse(await db.get("trk:days") || "[]"), picks = [];
+  for (let i = 0; i < days.length; i += 100) {
+    const part = days.slice(i, i + 100), m = await db.many(part.map(d => "trk:d:" + d));
+    for (const d of part) { const v = m["trk:d:" + d]; picks.push(...Object.values((typeof v === "string" ? JSON.parse(v) : v) || {})); }
+  }
+  return { since: TRACK_SINCE, asof: new Date().toISOString(), picks };
+}
+
 export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
@@ -1333,6 +1467,7 @@ export default {
     if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
+    if (url.pathname === "/track") return await cached(req, ctx, 120, () => trackAll(db)).catch(e => json({ error: String(e.message || e) }, 503));
     if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
     if (url.pathname === "/ask" && req.method === "POST") {
       if (!askAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
@@ -1392,6 +1527,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };

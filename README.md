@@ -146,12 +146,23 @@ market knows injuries and lineups the models don't, which is why it stays ahead 
 
 No model is certain. Bet only what you can afford to lose.
 
+### The live track record
+
+Backtests can flatter a model, so the app also keeps score in public (**More › Track record**, or `?sport=record`).
+Starting September 24, 2026, the alerts service locks in the model's pick and the bookmaker's moneyline
+(from ESPN's betting feed) for every regular-season and playoff NFL, NBA, MLB, NHL and Premier League game, in the
+90 minutes before it starts, and grades it when it ends. A pick can't change once the game has started. The page shows the
+record in each league and overall, how often the betting favorite won the same games, and what flat $100 bets would have
+made: on every pick, and on value bets only (the model's chance at least 3 points above the market's). A copy is saved to
+`docs/track.json` every night.
+
 ## What runs automatically
 
 | When | What happens |
 | --- | --- |
 | While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
 | Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
+| Every 10 minutes | The alerts service locks in picks for games about to start and grades finished ones (the track record) |
 | Every night | New results and rankings download, every league's game history updates and its model is refitted and retested, every rating recalculates, player stats for League Leaders update from real stats, and the site republishes |
 
 Run anything by hand: **Actions** > **Baseline** > **Run workflow**.
