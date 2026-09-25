@@ -147,6 +147,20 @@ def local_logos(sports, folder, refresh_days=30):
                 t["logo_local"] = f"logos/{lg}/{name}"
 
 
+def write_aasa(root):
+    """Links cosmosports.app to the iPhone app, so passkeys made on the site work in the app and links open it.
+    Needs the Apple Developer Team ID in app/apple_team_id.txt (it's public, not a secret)."""
+    team = open("app/apple_team_id.txt").read().strip() if os.path.exists("app/apple_team_id.txt") else ""
+    if not re.fullmatch(r"[A-Z0-9]{10}", team):
+        return
+    app_id = f"{team}.app.cosmosports"
+    body = {"webcredentials": {"apps": [app_id]},
+            "applinks": {"details": [{"appIDs": [app_id], "components": [{"/": "/*"}]}]}}
+    os.makedirs(os.path.join(root, ".well-known"), exist_ok=True)
+    for path in (os.path.join(root, ".well-known", "apple-app-site-association"), os.path.join(root, "apple-app-site-association")):
+        json.dump(body, open(path, "w"), indent=2)
+
+
 def main(hosted=True, out="docs/index.html"):
     snap = json.load(open("snapshot.json"))
     if os.path.exists("data/rankings_live.json"):
@@ -182,6 +196,7 @@ def main(hosted=True, out="docs/index.html"):
         site = f"https://{repo.split('/')[0].lower()}.github.io/{repo.split('/')[1]}/" if "/" in repo else ""
         html = html.replace("<!--PWA-->", PWA_HEAD.replace("__SITE__", site))
         write_pwa(os.path.dirname(out), stamp)
+        write_aasa(os.path.dirname(out))
         # names the alerts service uses to match API names like "J. Sinner"
         json.dump([{"name": p["name"], "tour": t} for t in ("atp", "wta") for p in snap[t]["players"]],
                   open(os.path.join(os.path.dirname(out), "players.json"), "w"), separators=(",", ":"))

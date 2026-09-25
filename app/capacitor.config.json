@@ -1,0 +1,21 @@
+{
+  "appId": "app.cosmosports",
+  "appName": "Cosmo Sports",
+  "webDir": "www",
+  "server": {
+    "url": "https://cosmosports.app",
+    "errorPath": "offline.html",
+    "allowNavigation": ["cosmosports.app", "www.cosmosports.app"]
+  },
+  "ios": {
+    "scheme": "Cosmo Sports",
+    "contentInset": "never",
+    "backgroundColor": "#0B0826",
+    "appendUserAgent": "CosmoSportsApp/1",
+    "allowsLinkPreview": false
+  },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 700, "launchAutoHide": true, "backgroundColor": "#0B0826", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "overlaysWebView": true }
+  }
+}

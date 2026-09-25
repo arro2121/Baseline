@@ -1,0 +1,83 @@
+# The Cosmo Sports iPhone app: builds on GitHub's Macs, so no Mac is needed.
+#  - Every run checks that the app compiles (for the iPhone simulator, unsigned).
+#  - When the App Store Connect key is set up (secrets ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, and the
+#    Team ID in app/apple_team_id.txt), it also signs the app and uploads it to TestFlight / App Store Connect.
+name: iPhone app
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with: { xcode-version: latest-stable }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install and copy the web shell into the app
+        working-directory: app
+        run: npm ci && npx cap sync ios
+      - name: Check it compiles (simulator, unsigned)
+        working-directory: app/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -40
+
+      - name: Is App Store Connect set up?
+        id: keys
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          team=$(tr -d '[:space:]' < app/apple_team_id.txt 2>/dev/null || true)
+          if [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_ISSUER_ID" ] && [ -n "$ASC_KEY_P8" ] && echo "$team" | grep -Eq '^[A-Z0-9]{10}$'; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"; echo "team=$team" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Built and checked, not uploaded. To upload to TestFlight, add the secrets ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8, and your Team ID in app/apple_team_id.txt."
+          fi
+
+      - name: Sign and upload to App Store Connect
+        if: steps.keys.outputs.ready == 'true'
+        working-directory: app/ios/App
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          TEAM: ${{ steps.keys.outputs.team }}
+          BUILD: ${{ github.run_number }}
+        run: |
+          set -o pipefail
+          KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"; printf '%s\n' "$ASC_KEY_P8" > "$KEY"
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD" \
+            "${AUTH[@]}" archive | tail -40
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}" | tail -40
+          rm -f "$KEY"
+          echo "::notice::Build $BUILD uploaded. It shows up in App Store Connect > TestFlight after Apple finishes processing (usually 10-30 minutes)."
