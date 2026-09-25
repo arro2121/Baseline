@@ -90,7 +90,7 @@ jobs:
           python updater.py live
       - name: Recalculate ratings and retrain the model
         run: python engine.py
-      - name: Update NFL, NBA, MLB, NHL and Premier League ratings
+      - name: Update NFL, NBA, MLB, NHL, Premier League and college ratings
         run: python sports_engine.py --download --espn
       - name: Simulate the rest of every season (playoff and title odds)
         run: python season_sim.py || echo "Kept the previous simulations"

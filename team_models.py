@@ -37,6 +37,11 @@ CFG = {
     "mlb": dict(K=2.5, HFA=16, revert=1 / 3, half=25, rest_cap=3, unit="runs", mov=lambda m, d: math.log(abs(m) + 1) * 1.1),
     "nhl": dict(K=5.12, HFA=48, revert=.6, half=9, rest_cap=4, unit="goals", mov=lambda m, d: math.log(abs(m) + 1) * 1.5),
     "epl": dict(K=28, HFA=70, revert=.2, half=10, rest_cap=10, unit="goals", mov=lambda m, d: 1 if abs(m) <= 1 else 1.5 if abs(m) == 2 else (11 + abs(m)) / 8),
+    # college: rosters turn over, so the offseason pull is larger, and it goes partly toward the program's own long-run level
+    # (a blue blood reloads; an average team drifts back to average). Teams that only show up once or twice a season
+    # (FCS and non-Division I opponents) start and settle lower, so beating them doesn't inflate anyone.
+    "cfb": dict(K=34, HFA=45, revert=.45, prog=.4, minor=1180, half=6, rest_cap=14, unit="points", mov=lambda m, d: math.log(abs(m) + 1) * 2.2 / (d * .001 + 2.2)),
+    "cbb": dict(K=42, HFA=40, revert=.6, prog=.7, minor=1150, half=10, rest_cap=7, unit="points", mov=lambda m, d: ((abs(m) + 3) ** .8) / (7.5 + .006 * d)),
 }
 LABELS = {
     "home": "Home advantage", "elo_d": "Elo rating", "mov_d": "Scoring margin (opponent-adjusted)", "form_d": "Form (last 10)",
@@ -45,16 +50,17 @@ LABELS = {
 }
 
 class Team:
-    __slots__ = ("elo", "mov", "pf", "pa", "res", "last", "n", "sn", "x", "hist", "log", "hw", "hl", "aw", "al", "streak")
+    __slots__ = ("elo", "mov", "pf", "pa", "res", "last", "n", "sn", "x", "hist", "log", "hw", "hl", "aw", "al", "streak", "lt", "minor")
     def __init__(self, elo=1500.0):
         self.elo, self.mov, self.pf, self.pa = elo, 0.0, None, None
+        self.lt, self.minor = None, False                   # college: the program's long-run level; a lower-division opponent
         self.res, self.last, self.n, self.sn = deque(maxlen=10), None, 0, 0
         self.x = {}; self.hist = []; self.log = deque(maxlen=12); self.hw = self.hl = self.aw = self.al = 0; self.streak = 0
 
 def season_of(lg, d):
     """the season a date belongs to (the year it started)"""
     if lg == "mlb": return d.year
-    if lg == "nfl": return d.year if d.month >= 8 else d.year - 1
+    if lg in ("nfl", "cfb"): return d.year if d.month >= 8 else d.year - 1
     return d.year if d.month >= (7 if lg == "epl" else 9) else d.year - 1
 
 def walk(lg, games, extras=()):
@@ -76,14 +82,18 @@ def walk(lg, games, extras=()):
             if cur is not None:
                 SP.clear()
                 for t in T.values():
-                    t.elo = t.elo * (1 - C["revert"]) + 1505 * C["revert"]; t.mov *= .5; t.sn = 0; t.res.clear(); t.hw = t.hl = t.aw = t.al = 0; t.streak = 0
+                    t.elo = t.elo * (1 - C["revert"]) + pull_to(t, C) * C["revert"]; t.mov *= .5; t.sn = 0; t.res.clear(); t.hw = t.hl = t.aw = t.al = 0; t.streak = 0
                     for k in t.x:
                         if t.x[k] is not None: t.x[k] = .5 * t.x[k] + .25          # shares drift halfway back to 50%
             cur = s
         H, A = T[r.home], T[r.away]
+        if "minor" in C:                                    # college: a lower-division team starts (and settles) lower
+            for t, mn in ((H, getattr(r, "hminor", 0)), (A, getattr(r, "aminor", 0))):
+                if not t.n and mn: t.elo = C["minor"]
+                t.minor = bool(mn)
         played = not (pd.isna(r.hs) or pd.isna(r.as_))
         rest = lambda t: min(C["rest_cap"], (d - t.last).days) if t.last is not None else C["rest_cap"]
-        avg = lg_pts[0] if lg_pts[0] is not None else (4.4 if lg == "mlb" else 1.4 if lg == "epl" else 3.0 if lg == "nhl" else 110 if lg == "nba" else 22)
+        avg = lg_pts[0] if lg_pts[0] is not None else {"mlb": 4.4, "epl": 1.4, "nhl": 3.0, "nba": 110, "cbb": 71, "cfb": 28}.get(lg, 22)
         pf = lambda t: t.pf if t.pf is not None else avg
         pa = lambda t: t.pa if t.pa is not None else avg
         f = dict(date=d, season=s, home_team=r.home, away_team=r.away, home=0 if getattr(r, "neutral", 0) else 1,
@@ -95,9 +105,9 @@ def walk(lg, games, extras=()):
         if lg == "mlb":
             hp, ap = getattr(r, "hsp", None), getattr(r, "asp", None)
             f["sp_d"] = sp_val(ap, s) - sp_val(hp, s); f["hsp"] = hp; f["asp"] = ap
-        if lg in ("nhl", "epl", "nba"):
-            key = {"nhl": "shots_share", "epl": "sot_share", "nba": "fg_share"}[lg]
-            f[{"nhl": "shots_d", "epl": "sot_d", "nba": "fg_d"}[lg]] = (H.x.get(key) if H.x.get(key) is not None else .5) - (A.x.get(key) if A.x.get(key) is not None else .5)
+        if lg in ("nhl", "epl", "nba", "cbb"):
+            key = {"nhl": "shots_share", "epl": "sot_share", "nba": "fg_share", "cbb": "fg_share"}[lg]
+            f[{"nhl": "shots_d", "epl": "sot_d", "nba": "fg_d", "cbb": "fg_d"}[lg]] = (H.x.get(key) if H.x.get(key) is not None else .5) - (A.x.get(key) if A.x.get(key) is not None else .5)
             if lg == "epl": f["shots_d"] = (H.x.get("shots_share") or .5) - (A.x.get("shots_share") or .5)
         for c in extras: f[c] = getattr(r, c, None)
         if not played: continue
@@ -110,7 +120,7 @@ def walk(lg, games, extras=()):
         d_ = (H.elo + home_elo - A.elo) if res == 1 else (A.elo - H.elo - home_elo)
         mult = C["mov"](m, d_) if m else 1.0
         k = C["K"] * mult * (res - E); H.elo += k; A.elo -= k
-        hadv = 0 if getattr(r, "neutral", 0) else {"nfl": 1.8, "nba": 2.5, "mlb": .15, "nhl": .15, "epl": .3}[lg]
+        hadv = 0 if getattr(r, "neutral", 0) else {"nfl": 1.8, "nba": 2.5, "mlb": .15, "nhl": .15, "epl": .3, "cfb": 2.5, "cbb": 3.0}[lg]
         adj_h, adj_a = (m - hadv) + A.mov, (-m + hadv) + H.mov                    # margin against an average opponent
         H.mov = a * H.mov + (1 - a) * adj_h; A.mov = a * A.mov + (1 - a) * adj_a
         H.pf = hs if H.pf is None else a * H.pf + (1 - a) * hs; H.pa = as_ if H.pa is None else a * H.pa + (1 - a) * as_
@@ -136,8 +146,15 @@ def walk(lg, games, extras=()):
         if lg == "epl":
             share(H, "sot_share", r.hst, r.ast); share(A, "sot_share", r.ast, r.hst)
             share(H, "shots_share", r.hsh, r.ash); share(A, "shots_share", r.ash, r.hsh)
-        if lg == "nba": share(H, "fg_share", r.hfg, r.afg); share(A, "fg_share", r.afg, r.hfg)
+        if lg in ("nba", "cbb"): share(H, "fg_share", r.hfg, r.afg); share(A, "fg_share", r.afg, r.hfg)
     return pd.DataFrame(rows), T, (SP, FIP, cur), h2h
+
+def pull_to(t, C):
+    """where a team's rating drifts over the offseason: average, or for college partly the program's long-run level"""
+    if "prog" not in C: return 1505
+    if t.minor: return C["minor"]
+    t.lt = t.elo if t.lt is None else .5 * t.lt + .5 * t.elo            # end-of-season ratings, recent seasons counting most
+    return C["prog"] * t.lt + (1 - C["prog"]) * 1505
 
 # ------------------------------------------------------------------ fitting and testing
 def rep(y, p):
@@ -324,6 +341,22 @@ def load(lg, paths=None, nfl_csv=None):
     elif lg == "nba":
         d = d.rename(columns={"as": "as_"}); d["neutral"] = 0
         for c in ("hfg", "afg"): d[c] = pd.to_numeric(d[c], errors="coerce")
+    elif lg in ("cfb", "cbb"):
+        d = d.rename(columns={"as": "as_"}); d["neutral"] = d.neutral.fillna(0).astype(int)
+        for c in ("hfg", "afg"): d[c] = pd.to_numeric(d[c], errors="coerce")
+        # lower-division opponents: teams that play only a handful of the season's games in this data (an FBS team plays 12+,
+        # a Division I basketball team 28+; their FCS and non-Division I opponents one or two). A season still under way
+        # goes by last season for the teams it knows.
+        d["season"] = [season_of(lg, x) for x in d.date]
+        n = pd.concat([d[["season", "home"]].rename(columns={"home": "t"}), d[["season", "away"]].rename(columns={"away": "t"})]).value_counts()
+        minor, p90 = {}, {}
+        for s_ in sorted(d.season.unique()):
+            c = n[s_] if s_ in n.index.get_level_values(0) else pd.Series(dtype=int); p90[s_] = float(c.quantile(.9)) if len(c) else 0
+            partial = s_ - 1 in p90 and p90[s_] < .6 * p90[s_ - 1]
+            for t_, k in c.items():
+                minor[(s_, t_)] = minor[(s_ - 1, t_)] if partial and (s_ - 1, t_) in minor else k < .45 * p90[s_]
+        d["hminor"] = [int(minor.get((s_, t_), True)) for s_, t_ in zip(d.season, d.home)]; d["aminor"] = [int(minor.get((s_, t_), True)) for s_, t_ in zip(d.season, d.away)]
+        d = d.drop(columns=["season"])
     elif lg == "epl":
         d = d.rename(columns={"hg": "hs", "ag": "as_", "hs": "hsh", "as_": "ash"}) if "hg" in d.columns else d
         d["home"] = d.home.map(lambda n: EPL_NAMES.get(n, n)); d["away"] = d.away.map(lambda n: EPL_NAMES.get(n, n)); d["neutral"] = 0
@@ -332,15 +365,16 @@ def load(lg, paths=None, nfl_csv=None):
 
 FEATS = {"nfl": ["elo_d", "mov_d", "form_d", "rest_d", "qb_d"], "nba": ["elo_d", "mov_d", "form_d", "rest_d", "b2b_h", "b2b_a", "fg_d"],
          "mlb": ["elo_d", "mov_d", "form_d", "rest_d", "sp_d"], "nhl": ["elo_d", "mov_d", "form_d", "rest_d", "b2b_h", "b2b_a", "shots_d"],
-         "epl": ["elo_d", "mov_d", "form_d", "rest_d", "sot_d", "shots_d"]}
+         "epl": ["elo_d", "mov_d", "form_d", "rest_d", "sot_d", "shots_d"],
+         "cfb": ["elo_d", "mov_d", "form_d", "rest_d"], "cbb": ["elo_d", "mov_d", "form_d", "rest_d", "fg_d"]}
 
 def build_league(lg, G, today=None):
     """fit, test and export one league: the model, its report card, and every team's state today"""
     today = today or dt.date.today()
     extras = {"nfl": ("p_mkt", "qb_d"), "epl": ("odds_h", "odds_d", "odds_a")}.get(lg, ())
     F, T, (SP, FIP, last_season), H2 = walk(lg, G, extras)
-    seasons = sorted(F.season.unique()); test = [s for s in seasons if s >= seasons[-1] - (1 if lg in ("nfl", "epl") else 1)]
-    if lg in ("nfl", "epl"): test = seasons[-3:] if len(seasons) > 4 else seasons[-2:]
+    seasons = sorted(F.season.unique()); test = [s for s in seasons if s >= seasons[-1] - 1]
+    if lg in ("nfl", "epl", "cfb"): test = seasons[-3:] if len(seasons) > 4 else seasons[-2:]
     if lg == "epl":
         m = fit_poisson(F, FEATS[lg], test, market=["odds_h", "odds_d", "odds_a"])
     else:
@@ -356,7 +390,8 @@ def build_league(lg, G, today=None):
     playing = {n for n, t in T.items() if t.last is not None and season_of(lg, t.last) == F.season.max()}     # this season's teams (relegated clubs drop out)
     for name, t in T.items():
         if not t.n or name not in playing: continue
-        elo = t.elo * (1 - C["revert"]) + 1505 * C["revert"] if stale else t.elo
+        if t.minor: continue                                                # college: lower-division opponents aren't listed
+        elo = t.elo * (1 - C["revert"]) + pull_to(t, C) * C["revert"] if stale else t.elo
         hist = t.hist[-60:]; step = max(1, len(hist) // 24)
         state[name] = dict(elo=round(elo, 1), mov=round(t.mov * (.5 if stale else 1), 3), pf=round(t.pf, 3) if t.pf is not None else None, pa=round(t.pa, 3) if t.pa is not None else None,
                            form=[] if stale else list(t.res), last=t.last.strftime("%Y%m%d") if t.last is not None else None,
@@ -364,9 +399,17 @@ def build_league(lg, G, today=None):
                            x={k: round(v, 4) for k, v in t.x.items() if v is not None})
     names = NFL_NAMES if lg == "nfl" else {}
     if names: state = {names.get(k, k): v for k, v in state.items() if k in names}
+    top = None
+    if lg in ("cfb", "cbb"):
+        # the app covers the best 100 programs; everyone else keeps just enough to predict a game against one of them
+        top = sorted(state, key=lambda n: -state[n]["elo"])[:100]; keep = set(top)
+        for n, v in state.items():
+            if n not in keep: v.pop("hist", None); v.pop("log", None)
+        H2 = {k: v for k, v in H2.items() if all(x in keep for x in k)}
     out = dict(model=m, state=state, h2h={"|".join(names.get(x, x) for x in k): [list(r) for r in v][-4:] for k, v in H2.items()
                                            if all(names.get(x, x) in state for x in k) and v and pd.Timestamp(v[-1][0]) >= pd.Timestamp(today) - pd.Timedelta(days=800)})
     if names: out["h2h"] = {k: [[r[0], names.get(r[1], r[1]), names.get(r[2], r[2]), r[3], r[4]] for r in v] for k, v in out["h2h"].items()}
+    if top: out["top"] = top
     if lg == "mlb":                                   # starting pitchers who pitched this season or last
         cut = pd.Timestamp(today) - pd.Timedelta(days=420); recent = set(G[G.date >= cut].hsp.dropna()) | set(G[G.date >= cut].asp.dropna())
         season_now = season_of(lg, pd.Timestamp(today)); roll = SP if last_season == season_now else {}

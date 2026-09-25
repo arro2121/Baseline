@@ -1,5 +1,5 @@
 """
-Ratings and prediction settings for the NFL, NBA, MLB, NHL and Premier League.
+Ratings and prediction settings for the NFL, NBA, MLB, NHL, Premier League, college football and men's college basketball.
 Every league ends up on the same Elo-style scale (1500 = average), so the app predicts any matchup with
     P(home wins) = 1 / (1 + 10 ** (-(home + HFA - away) / 400))
 * NFL: game-by-game Elo from every result since 1999 (nflverse), with margin of victory and a 1/3
@@ -8,6 +8,7 @@ Every league ends up on the same Elo-style scale (1500 = average), so the app pr
   draws are predicted from how evenly matched the teams are (fitted on the same data).
 * MLB, NBA, NHL: current records regressed toward .500 by an amount that reflects each sport's luck
   (preseason NBA and NHL use last season's final records, regressed harder).
+* College football and basketball: game-by-game Elo (team_models.py) for every Division I program; the app lists the best 100.
 """
 import json, math, re, unicodedata, datetime as dt
 import numpy as np, pandas as pd
@@ -154,34 +155,44 @@ def espn_standings(lg):
         stack += node.get("children", [])
     return rows
 
-ESPN_PATHS = {"nfl": "football/nfl", "nba": "basketball/nba", "mlb": "baseball/mlb", "nhl": "hockey/nhl", "epl": "soccer/eng.1"}
+ESPN_PATHS = {"nfl": "football/nfl", "nba": "basketball/nba", "mlb": "baseball/mlb", "nhl": "hockey/nhl", "epl": "soccer/eng.1",
+              "cfb": "football/college-football", "cbb": "basketball/mens-college-basketball"}
+COLLEGE = {"cfb": dict(name="College Football", sport="football", unit="points"), "cbb": dict(name="College Basketball", sport="basketball", unit="points")}
 
 def espn_logos(lg):
     """Team logos from ESPN's team list, keyed by the team's full name and then by its other names."""
     import urllib.request
-    d = json.load(urllib.request.urlopen(f"https://site.api.espn.com/apis/site/v2/sports/{ESPN_PATHS[lg]}/teams", timeout=30))
+    d = None
+    for host in ("site.web.api.espn.com", "site.api.espn.com"):          # the nightly build's computers get turned away by site.api
+        try:
+            req = urllib.request.Request(f"https://{host}/apis/site/v2/sports/{ESPN_PATHS[lg]}/teams?limit=1000", headers={"User-Agent": "Mozilla/5.0 (Cosmo Sports nightly build)"})
+            d = json.load(urllib.request.urlopen(req, timeout=30)); break
+        except Exception as e: err = e
+    if d is None: raise err
     teams = [t["team"] for t in d["sports"][0]["leagues"][0]["teams"]]
     out = {}
     for fields in (("displayName",), ("shortDisplayName", "location", "name", "nickname")):
         for t in teams:
             logos = t.get("logos") or []
             logo = next((l["href"] for l in logos if "default" in l.get("rel", [])), None) or (logos[0]["href"] if logos else None)
+            extra = {k: v for k, v in (("color", "#" + t["color"] if t.get("color") else None), ("alt", "#" + t["alternateColor"] if t.get("alternateColor") else None), ("abbr", t.get("abbreviation"))) if v}
             for f in fields:
-                if logo and t.get(f): out.setdefault(key(t[f]), (logo, str(t.get("id", ""))))
+                if logo and t.get(f): out.setdefault(key(t[f]), (logo, str(t.get("id", "")), extra))
     return out
 
 def add_logos(out, prev_lg, use_espn):
     """Give every team its logo, keeping the last known one when ESPN can't be reached."""
     for lg, L in out["leagues"].items():
-        old = {key(t["name"]): (t.get("logo"), t.get("espn_id")) for t in prev_lg.get(lg, {}).get("teams", [])}
+        old = {key(t["name"]): (t.get("logo"), t.get("espn_id"), {k: t[k] for k in ("color", "alt", "abbr") if t.get(k)}) for t in prev_lg.get(lg, {}).get("teams", [])}
         logos = {}
         if use_espn:
             try: logos = espn_logos(lg)
             except Exception as e: print(f"ESPN logos for {lg} unavailable ({e}); keeping the saved ones")
         for t in L["teams"]:
-            logo, espn_id = logos.get(key(t["name"])) or old.get(key(t["name"])) or (None, None)
+            logo, espn_id, extra = logos.get(key(t["name"])) or old.get(key(t["name"])) or (None, None, {})
             if logo: t["logo"] = logo
             if espn_id: t["espn_id"] = espn_id              # opens the team's page in the app
+            if L.get("college"): t.update(extra)            # college: ESPN's colors and abbreviation (the pro leagues have team_colors.json)
 
 def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), previous=None, use_espn=False):
     feed = json.load(open(feed_path))
@@ -214,6 +225,25 @@ def build(feed_path="standings_feed.json", nfl_csv="nfl.dat", epl_files=(), prev
         lg["teams"].sort(key=lambda x: -x["rating"])
     add_logos(out, prev_lg, use_espn)
     return out
+
+def college_leagues(s, models, hist, prev_lg, use_espn):
+    """College football and basketball: the best 100 programs by the model's rating, with this season's records."""
+    for lg, meta in COLLEGE.items():
+        M = models.get(lg)
+        if not M or not M.get("top"): continue
+        G = pd.concat([pd.read_csv(p) for p in hist.get(lg, [])[-2:]], ignore_index=True).rename(columns={"as": "as_"}) if hist.get(lg) else pd.DataFrame()
+        rec = {}
+        if len(G):
+            import team_models as tm
+            G["season"] = [tm.season_of(lg, pd.Timestamp(d)) for d in G.date]; cur = G[G.season == G.season.max()]
+            for r in cur.itertuples():
+                for me, us, them in ((r.home, r.hs, r.as_), (r.away, r.as_, r.hs)):
+                    w = rec.setdefault(me, [0, 0]); w[0 if us > them else 1] += us != them
+            season = f"{int(G.season.max())}" if lg == "cfb" else f"{int(G.season.max())}–{str(int(G.season.max()) + 1)[2:]}"
+        else: season = "current"
+        teams = [dict(name=n, rating=round(M["state"][n]["elo"], 1), w=rec.get(n, [0, 0])[0], l=rec.get(n, [0, 0])[1]) for n in M["top"]]
+        s["leagues"][lg] = dict(name=meta["name"], teams=teams, hfa=M["model"]["hfa_elo"], season=season, sport=meta["sport"], college=True)
+        add_logos({"leagues": {lg: s["leagues"][lg]}}, prev_lg, use_espn)
 
 def attach_models(s, models):
     """ratings from the models' game-by-game Elo (records stay from the standings), plus a summary for the app"""
@@ -264,15 +294,16 @@ if __name__ == "__main__":
     # the multi-factor models: game-by-game history for every league, fitted, tested and exported for the app
     try:
         import glob, team_history, team_models as tm
-        hist = team_history.update() if "--download" in sys.argv else {lg: sorted(p for p in glob.glob(os.path.join(here, "data", "history", f"{lg}_*.csv")) if re.search(r"_\d{4}\.csv$", p)) for lg in ("mlb", "nhl", "nba", "epl")}
+        hist = team_history.update() if "--download" in sys.argv else {lg: sorted(p for p in glob.glob(os.path.join(here, "data", "history", f"{lg}_*.csv")) if re.search(r"_\d{4}\.csv$", p)) for lg in ("mlb", "nhl", "nba", "epl", "cfb", "cbb")}
         models = {}
-        for lg in ("nfl", "nba", "mlb", "nhl", "epl"):
+        for lg in ("nfl", "nba", "mlb", "nhl", "epl", "cfb", "cbb"):
             try:
                 G = tm.load(lg, hist.get(lg), nfl_csv=files.get("nfl.csv"))
                 if len(G) < 600: print(f"{lg}: not enough history for the model ({len(G)} games)"); continue
                 models[lg] = tm.build_league(lg, G)
             except Exception as e:
                 import traceback; traceback.print_exc(); print(f"{lg}: model skipped ({e})")
+        college_leagues(s, models, hist, (prev or {}).get("leagues", {}), "--espn" in sys.argv)
         attach_models(s, models)
         os.makedirs(os.path.join(here, "docs"), exist_ok=True)
         with open(os.path.join(here, "docs", "models.json"), "w") as fh: json.dump(models, fh, separators=(",", ":"), default=lambda o: o.item() if hasattr(o, "item") else str(o))

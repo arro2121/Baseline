@@ -293,14 +293,15 @@ export async function tick(env, fetchImpl = fetch) {
 }
 
 /* ---------------- team-sport alerts: starts, scores, close finishes and finals for the teams and games people follow ---------------- */
-const START_WORD = { nfl: "Kickoff", nba: "Tip-off", mlb: "First pitch", nhl: "Puck drop", epl: "Kick-off" };
+const START_WORD = { nfl: "Kickoff", nba: "Tip-off", mlb: "First pitch", nhl: "Puck drop", epl: "Kick-off", cfb: "Kickoff", cbb: "Tip-off" };
 const tkey = n => norm(n).join(" ");
 const minsLeft = c => { const m = /^(\d+):(\d+)/.exec(String(c || "")); if (m) return +m[1] + m[2] / 60; const x = parseFloat(c); return isNaN(x) ? 99 : x / 60; };
 export function crunch(lg, g) {                     // late in the game and still close
   const s = g.status || {}, per = +s.period || 0, m = Math.abs((+g.home?.score || 0) - (+g.away?.score || 0));
   if (s.state !== "in") return false;
-  if (lg === "nfl") return per >= 4 && minsLeft(s.clock) <= 5 && m <= 8;
+  if (lg === "nfl" || lg === "cfb") return per >= 4 && minsLeft(s.clock) <= 5 && m <= 8;
   if (lg === "nba") return per >= 4 && minsLeft(s.clock) <= 3 && m <= 5;
+  if (lg === "cbb") return per >= 2 && minsLeft(s.clock) <= 3 && m <= 5;
   if (lg === "nhl") return per >= 3 && minsLeft(s.clock) <= 5 && m <= 1;
   if (lg === "mlb") return per >= 8 && m <= 1;
   if (lg === "epl") return (parseFloat(String(s.clock || "").replace(/[^\d.]/g, " ")) || 0) >= 80 && m <= 1;
@@ -308,6 +309,7 @@ export function crunch(lg, g) {                     // late in the game and stil
 }
 const scoreLine = g => `${g.away.short || g.away.name} ${g.away.score ?? 0}, ${g.home.short || g.home.name} ${g.home.score ?? 0}`;
 function scoredWhat(lg, pts) {
+  lg = kindLg(lg);
   if (lg === "nfl") return pts >= 6 ? "Touchdown" : pts === 3 ? "Field goal" : pts === 2 ? "Safety" : "Score";
   if (lg === "mlb") return pts > 1 ? `${pts} runs score` : "Run scores";
   return lg === "nba" ? "Score" : "Goal";
@@ -321,10 +323,12 @@ export function sportEvents(lg, prev, games) {
     const base = { lg, id: g.id, teams: [tkey(g.home.name), tkey(g.away.name)], url: `./#game=${lg}/${g.id}` };
     const vs = `${g.away.short} at ${g.home.short}`;
     if (p.s === "pre" && st === "in") out.push({ ...base, type: "start", tag: `start-${g.id}`, title: `${START_WORD[lg]}: ${g.away.short} at ${g.home.short}`, body: g.tv?.length ? `On ${g.tv[0]}` : "The game has started" });
-    if (st === "in" && p.a != null && (a !== p.a || h !== p.h) && lg !== "nba") {
+    if (st === "in" && p.a != null && (a !== p.a || h !== p.h) && kindLg(lg) !== "nba") {
       const side = h - p.h > a - p.a ? g.home : g.away, pts = Math.max(h - p.h, a - p.a);
       out.push({ ...base, type: "score", tag: `score-${g.id}`, title: `${scoredWhat(lg, pts)}, ${side.short}`, body: `${scoreLine(g)} · ${g.status.short || ""}`, safe: null });
     }
+    if (st === "in" && lg === "cbb" && p.p === 1 && +g.status.period > 1)
+      out.push({ ...base, type: "score", tag: `score-${g.id}`, title: "Halftime", body: scoreLine(g), safe: null });
     if (st === "in" && lg === "nba" && p.p && +g.status.period > p.p && p.p <= 4)
       out.push({ ...base, type: "score", tag: `score-${g.id}`, title: p.p === 2 ? "Halftime" : `End of the ${["", "1st", "2nd", "3rd", "4th"][p.p]} quarter`, body: scoreLine(g), safe: null });
     if (crunch(lg, g) && !p.c) out.push({ ...base, type: "close", tag: `close-${g.id}`, title: `Close finish: ${scoreLine(g)}`, body: `${g.status.short || ""} · tap to follow it live`,
@@ -335,13 +339,25 @@ export function sportEvents(lg, prev, games) {
   }
   return out;
 }
-const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, noSpoilers: false, comets: true };
+const DEFAULT_PREFS = { start: true, score: true, close: true, final: true, anyClose: false, daily: true, noSpoilers: false, comets: true, remind: true };
+// game day: about an hour before a followed team plays, once per game, with the model's pick
+const REMIND_MIN = 65;
+export function remindEvent(lg, g, p, now = Date.now()) {
+  const mins = (Date.parse(g.date) - now) / 60000;
+  if (g.status?.state !== "pre" || !(mins > 0 && mins <= REMIND_MIN)) return null;
+  const when = mins > 45 ? "in about an hour" : `in ${Math.max(1, Math.round(mins))} minutes`;
+  let pick = "";
+  if (p && p.home != null) { const fav = p.home >= p.away ? g.home : g.away, pc = Math.round(Math.max(p.home, p.away) * 100);
+    pick = p.draw != null && p.draw > Math.max(p.home, p.away) ? ` Cosmo leans to a draw (${Math.round(p.draw * 100)}%).` : ` Cosmo gives ${fav.short} a ${pc}% chance.`; }
+  return { lg, id: g.id, teams: [tkey(g.home.name), tkey(g.away.name)], url: `./#game=${lg}/${g.id}`, type: "remind", tag: `remind-${g.id}`,
+    title: `Game day: ${g.away.short} at ${g.home.short}`, body: `Starts ${when}${g.tv?.length ? ` on ${g.tv[0]}` : ""}.${pick}`, safe: undefined };
+}
 function wants(sub, e) {
   const pr = { ...DEFAULT_PREFS, ...(sub.prefs || {}) };
   const mine = (sub.games || []).includes(`${e.lg}/${e.id}`) || (sub.teams?.[e.lg] || []).some(t => e.teams.includes(t));
   if (pr.noSpoilers && e.safe === null) return false;              // scoring alerts would give the score away
   if (mine) return !!pr[e.type];
-  return e.type === "close" && pr.anyClose;
+  return e.type === "close" && pr.anyClose && !SPORT_OF[e.lg];      // "any game" means the pro leagues, not every college game
 }
 export async function sportsTick(env, fetchImpl = fetch) {
   const db = store(env);
@@ -349,9 +365,10 @@ export async function sportsTick(env, fetchImpl = fetch) {
   if (!subs.length) return { sports: 0 };
   const any = subs.some(s => s.prefs?.anyClose), want = new Set();
   for (const s of subs) { for (const [lg, list] of Object.entries(s.teams || {})) if (list.length) want.add(lg); for (const k of s.games || []) want.add(k.split("/")[0]); }
-  const leagues = Object.keys(LEAGUES).filter(lg => any || want.has(lg));
+  const leagues = Object.keys(LEAGUES).filter(lg => (any && !SPORT_OF[lg]) || want.has(lg));
   const followed = new Set(subs.flatMap(s => [...Object.entries(s.teams || {}).flatMap(([lg, l]) => l.map(t => lg + ":" + t)), ...(s.games || [])]));
   const prevAll = JSON.parse(await db.get("sports") || "{}"), next = {}, events = [];
+  let models; const modelsOnce = async () => models === undefined ? (models = await trackModels(env, fetchImpl).catch(() => null)) : models;
   for (const lg of leagues) {
     let d; try { d = await espnScoreboard(lg, fetchImpl); } catch { next[lg] = prevAll[lg] || {}; continue; }
     const games = d.games || [], prev = prevAll[lg] || {};
@@ -359,7 +376,12 @@ export async function sportsTick(env, fetchImpl = fetch) {
     next[lg] = {};
     for (const g of games) {
       const track = followed.has(`${lg}/${g.id}`) || followed.has(`${lg}:${tkey(g.home.name)}`) || followed.has(`${lg}:${tkey(g.away.name)}`);
-      next[lg][g.id] = { s: g.status.state, p: +g.status.period || 0, c: crunch(lg, g) || !!prev[g.id]?.c,
+      let r = !!prev[g.id]?.r;
+      if (track && !r && remindEvent(lg, g, null)) {                    // game day reminder, once per game
+        let p = null; try { p = modelProbs(await modelsOnce(), lg, g); } catch {}
+        const e = remindEvent(lg, g, p); if (e) { events.push(e); r = true; }
+      }
+      next[lg][g.id] = { s: g.status.state, p: +g.status.period || 0, c: crunch(lg, g) || !!prev[g.id]?.c, ...(r ? { r: 1 } : {}),
         ...(track ? { a: +g.away.score || 0, h: +g.home.score || 0 } : {}) };
       if (!track) next[lg][g.id].p = 0;               // only followed games need the period (NBA quarter alerts)
     }
@@ -394,7 +416,7 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
   if (!who.length) return "nobody";
   await db.put("brief", today);                      // at most once a day, even if a send below fails
   const y = etParts(new Date(now - 864e5)), yday = `${y.year}${y.month}${y.day}`;
-  const leagues = who.some(s => !hasTeams(s)) ? Object.keys(LEAGUES) : [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
+  const leagues = who.some(s => !hasTeams(s)) ? [...new Set([...Object.keys(LEAGUES).filter(l => !SPORT_OF[l]), ...who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length))])] : [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
   const boards = {};
   for (const lg of leagues) {
     boards[lg] = { y: [], t: [] };
@@ -403,7 +425,7 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
   }
   const time = iso => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
   // for people who don't follow a team yet: the day's headline games, national TV first
-  const headline = Object.entries(boards).flatMap(([lg, b]) => b.t.filter(g => g.status?.state === "pre").map(g => ({ lg, g })))
+  const headline = Object.entries(boards).filter(([lg]) => !SPORT_OF[lg]).flatMap(([lg, b]) => b.t.filter(g => g.status?.state === "pre").map(g => ({ lg, g })))
     .sort((a, b) => (b.g.tv?.length ? 1 : 0) - (a.g.tv?.length ? 1 : 0) || new Date(a.g.date) - new Date(b.g.date)).slice(0, 3)
     .map(({ lg, g }) => `${g.away.short} at ${g.home.short} ${time(g.date)} (${lg.toUpperCase()})`);
   let sent = 0;
@@ -425,11 +447,14 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
 }
 
 /* ---------------- live team sports from ESPN ---------------- */
-export const LEAGUES = { nfl: "football/nfl", nba: "basketball/nba", mlb: "baseball/mlb", nhl: "hockey/nhl", epl: "soccer/eng.1" };
+export const LEAGUES = { nfl: "football/nfl", nba: "basketball/nba", mlb: "baseball/mlb", nhl: "hockey/nhl", epl: "soccer/eng.1",
+  cfb: "football/college-football", cbb: "basketball/mens-college-basketball" };
+// college games read like the pro version of the sport (drives and downs, shots and rebounds); basketball plays two halves
+const SPORT_OF = { cfb: "nfl", cbb: "nba" }, kindLg = lg => SPORT_OF[lg] || lg;
 const ESPN = "https://site.api.espn.com/apis/site/v2/sports/";
 function team(c = {}) {
-  const t = c.team || {};
-  return { id: String(t.id || ""), name: t.displayName || t.name || "", short: t.shortDisplayName || t.name || "", abbr: t.abbreviation || "",
+  const t = c.team || {}, rk = c.curatedRank?.current;
+  return { id: String(t.id || ""), name: t.displayName || t.name || "", short: t.shortDisplayName || t.name || "", abbr: t.abbreviation || "", ...(rk >= 1 && rk <= 25 ? { rank: rk } : {}),
     color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null, logo: t.logo || t.logos?.[0]?.href || null, score: c.score != null ? String(c.score?.displayValue ?? c.score) : null,
     record: c.records?.[0]?.summary || c.record?.[0]?.displayValue || null, winner: c.winner === true };
 }
@@ -440,6 +465,7 @@ function status(s = {}) {
 }
 function situation(sit, lg) {
   if (!sit) return null;
+  lg = kindLg(lg);
   if (lg === "nfl") return { text: sit.downDistanceText || sit.shortDownDistanceText || null, possession: sit.possession ? String(sit.possession) : null,
     redzone: !!sit.isRedZone, last: sit.lastPlay?.text || null };
   if (lg === "mlb") return { balls: sit.balls ?? null, strikes: sit.strikes ?? null, outs: sit.outs ?? null,
@@ -471,11 +497,13 @@ function periodHead(p, lg) {
   if (lg === "mlb") return `${/^bot/i.test(p.period?.type || "") ? "Bottom" : "Top"} ${ORD(n)}`;
   if (lg === "epl") return ["First half", "Second half"][n - 1] || "Extra time";
   if (lg === "nhl") return n <= 3 ? `${ORD(n)} Period` : n === 4 ? "Overtime" : "Shootout";
+  if (lg === "cbb") return n <= 2 ? `${ORD(n)} Half` : n === 3 ? "Overtime" : `${ORD(n - 2)} Overtime`;
   return n <= 4 ? `${ORD(n)} Quarter` : n === 5 ? "Overtime" : `${ORD(n - 4)} Overtime`;
 }
 // what kind of moment a play is, for icons, the key-plays filter and the animations
 function kindOf(p, lg) {
   const t = (p.type?.text || "").toLowerCase(), x = (p.text || "").toLowerCase();
+  lg = kindLg(lg);
   if (lg === "nfl") {
     if (/touchdown/.test(t) || (p.scoringPlay && /touchdown/.test(x))) return "td";
     if (/field goal good/.test(t)) return "fg";
@@ -625,7 +653,7 @@ export function normGame(d, lg) {
   let situation = null;
   const sit = d.situation;
   if (lg === "mlb" && sit) situation = { balls: sit.balls ?? 0, strikes: sit.strikes ?? 0, outs: sit.outs ?? 0, bases: [!!sit.onFirst, !!sit.onSecond, !!sit.onThird] };
-  if (lg === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
+  if (kindLg(lg) === "nfl") { const last = plays.find(p => p.yards); if (last) situation = { team: last.yards.team, spot: last.yards.to ?? last.yards.from, down: last.yards.down, dist: last.yards.dist }; }
   return { league: lg, id: String(d.header?.id || ""), asof: new Date().toISOString(), status: status(c.status), home: H, away: A, teams: teamsOf(cs),
     homeWinProb: typeof wp === "number" ? wp : null, wpSeries: wpSeries(d), leaders: leadersOf(d, lg, H, A), box: boxOf(d, lg), info: infoOf(d, lg), lines: linesOf(c, H, A), date: c.date || null, neutral: !!c.neutralSite,
     tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null, situation, videos, plays: plays.slice(0, 300), count: plays.length,
@@ -691,7 +719,7 @@ function leadersOf(d, lg, H, A) {
   return out;
 }
 // every player ESPN lists for the game, with a photo, so plays can show who made them
-const HEADSHOT = { mlb: "mlb", nfl: "nfl", nba: "nba", nhl: "nhl", epl: "soccer" };
+const HEADSHOT = { mlb: "mlb", nfl: "nfl", nba: "nba", nhl: "nhl", epl: "soccer", cfb: "college-football", cbb: "mens-college-basketball" };
 function playersOf(d, lg) {
   const byId = {}, add = a => { if (!a || !a.id) return; const id = String(a.id);
     byId[id] = byId[id] || { id, name: a.displayName || a.fullName || "", short: a.shortName || "", photo: a.headshot?.href || `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${id}.png` }; };
@@ -704,7 +732,7 @@ function attachPlayers(plays, d, lg) {
   const byId = playersOf(d, lg), list = Object.values(byId), byName = {};
   for (const a of list) byName[nameKey(a.name)] = a;
   // football text names players like "M.Stafford" or "K.Williams"
-  const nfl = lg === "nfl" ? list.map(a => { const parts = a.name.split(" "); return { a, key: nameKey(`${parts[0][0]}.${parts.slice(1).join(" ")}`) }; }).filter(x => x.key.length > 3) : [];
+  const nfl = kindLg(lg) === "nfl" ? list.map(a => { const parts = a.name.split(" "); return { a, key: nameKey(`${parts[0][0]}.${parts.slice(1).join(" ")}`) }; }).filter(x => x.key.length > 3) : [];
   for (const p of plays) {
     let a = (p.whoId && byId[p.whoId]) || (p.whoName && byName[nameKey(p.whoName)]) || null;
     if (!a && p.whoId) a = { id: p.whoId, name: p.whoName || p.batter || "", photo: p.whoPhoto || `https://a.espncdn.com/i/headshots/${HEADSHOT[lg]}/players/full/${p.whoId}.png` };
@@ -757,7 +785,8 @@ function linkVideos(plays, videos, roster = []) {
    (site.web.api.espn.com), then the feed behind ESPN's pages (cdn.espn.com), then the old address. The page reuses this code. */
 const ESPN_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/", CDN = "https://cdn.espn.com/core/";
 const CDN_PAGE = { scoreboard: "scoreboard", game: "game", playbyplay: "playbyplay" }, CDN_SOCCER = { scoreboard: "scoreboard", game: "match", playbyplay: "commentary" };
-const cdnUrl = (lg, kind, q = "") => lg === "epl" ? `${CDN}soccer/${CDN_SOCCER[kind]}?xhr=1&league=eng.1${q}` : `${CDN}${lg}/${CDN_PAGE[kind]}?xhr=1${q}`;
+const CDN_LG = { cfb: "college-football", cbb: "mens-college-basketball" };
+const cdnUrl = (lg, kind, q = "") => lg === "epl" ? `${CDN}soccer/${CDN_SOCCER[kind]}?xhr=1&league=eng.1${q}` : `${CDN}${CDN_LG[lg] || lg}/${CDN_PAGE[kind]}?xhr=1${q}`;
 async function getJSON(url, fetchImpl, ms = 10000) {  // a source that hangs (a blocked or slow network) gives up so the next one gets a turn
   const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timer = ac && setTimeout(() => ac.abort(), ms);
@@ -777,8 +806,15 @@ export async function espnScoreboard(lg, fetchImpl = fetch, dates = null) {
   try { return await espnBoard(lg, fetchImpl, dates); }
   catch (e) { if (lg === "nhl") return nhlScoreboard(dates, fetchImpl); throw e; }          // the NHL's API if ESPN is down
 }
+// college: ESPN's plain scoreboard is only the ranked teams' games, and it won't take date ranges. Ask for one day
+// (today, US Eastern, unless a day is given) and, for basketball, all of Division I.
+const etYmd = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/-/g, "");
+function boardQuery(lg, dates) {
+  if (SPORT_OF[lg]) { const d = /^\d{8}$/.test(dates || "") ? dates : etYmd(); return `?dates=${d}${lg === "cbb" ? "&groups=50&limit=400" : "&limit=300"}`; }
+  return /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : /^\d{8}-\d{8}$/.test(dates || "") ? `?dates=${dates}&limit=1000` : "";   // YYYYMMDD, a range (the season simulations), or today
+}
 async function espnBoard(lg, fetchImpl, dates) {
-  const q = /^\d{8}$/.test(dates || "") ? `?dates=${dates}` : /^\d{8}-\d{8}$/.test(dates || "") ? `?dates=${dates}&limit=1000` : "";   // YYYYMMDD, a range (the season simulations), or today
+  const q = boardQuery(lg, dates);
   return normScoreboard(await firstOf([
     () => getJSON(`${ESPN_WEB}${LEAGUES[lg]}/scoreboard${q}`, fetchImpl),
     async () => { const sb = (await getJSON(cdnUrl(lg, "scoreboard", q.replace("?", "&")), fetchImpl)).content?.sbData; return Array.isArray(sb?.events) ? sb : null; },
@@ -1106,18 +1142,23 @@ const STAND_COLS = {
   mlb: [["wins", "W"], ["losses", "L"], ["winPercent", "PCT"], ["gamesBehind", "GB"], ["pointsFor", "RS"], ["pointsAgainst", "RA"], ["Last Ten Games", "L10"], ["streak", "STRK"]],
   nhl: [["gamesPlayed", "GP"], ["wins", "W"], ["losses", "L"], ["otLosses", "OTL"], ["points", "PTS"], ["pointsFor", "GF"], ["pointsAgainst", "GA"], ["streak", "STRK"]],
   epl: [["gamesPlayed", "GP"], ["wins", "W"], ["ties", "D"], ["losses", "L"], ["pointsFor", "GF"], ["pointsAgainst", "GA"], ["pointDifferential", "GD"], ["points", "PTS"]],
+  // college: ESPN repeats every stat for home, road, conference and ranked-opponent games; these go by the stat's type
+  cfb: [["vsconf", "CONF"], ["total", "OVR"], ["pointsfor", "PF"], ["pointsagainst", "PA"], ["streak", "STRK"]],
+  cbb: [["vsconf", "CONF"], ["total", "OVR"], ["avgpointsfor", "PPG"], ["avgpointsagainst", "OPP"], ["streak", "STRK"]],
 };
 export function normStandings(d, lg) {
   const cols = STAND_COLS[lg] || [], groups = [];
   const walk = (node, label) => {
     const entries = node.standings?.entries || [];
     if (entries.length) {
-      const rows = entries.map(e => { const m = {}; for (const s of e.stats || []) if (!(s.name in m)) m[s.name] = s.displayValue ?? s.summary ?? "";
+      const rows = entries.map(e => { const m = {}; for (const s of e.stats || []) { const k = SPORT_OF[lg] ? s.type : s.name; if (k && !(k in m)) m[k] = s.displayValue ?? s.summary ?? ""; }
         const logo = (e.team?.logos || [])[0]?.href || null;
         return { id: String(e.team?.id || ""), name: e.team?.displayName || "", short: e.team?.shortDisplayName || "", abbr: e.team?.abbreviation || "", logo,
           seed: +(m.playoffSeed || m.rank || 0) || null, note: e.note ? { color: e.note.color, text: e.note.description } : null, vals: cols.map(([k]) => m[k] ?? "") }; });
       const sortKey = lg === "epl" || lg === "nhl" ? "points" : "winPercent", i = cols.findIndex(c => c[0] === sortKey);
-      if (i >= 0) rows.sort((a, b) => (parseFloat(b.vals[i]) || 0) - (parseFloat(a.vals[i]) || 0) || (a.seed || 99) - (b.seed || 99));
+      const pct = r => { const [w, l] = String(r || "").split("-").map(Number); return w + l ? w / (w + l) : -1; };
+      if (SPORT_OF[lg]) rows.sort((a, b) => pct(b.vals[0]) - pct(a.vals[0]) || pct(b.vals[1]) - pct(a.vals[1]));
+      else if (i >= 0) rows.sort((a, b) => (parseFloat(b.vals[i]) || 0) - (parseFloat(a.vals[i]) || 0) || (a.seed || 99) - (b.seed || 99));
       groups.push({ name: label || node.name || "", rows });
     }
     for (const c of node.children || []) walk(c, c.name);

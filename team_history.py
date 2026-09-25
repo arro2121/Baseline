@@ -8,6 +8,7 @@ the current season is refreshed every night.
 * NBA: every game from ESPN's scoreboard, with each team's shooting and rebounding.
 * Premier League: every match from football-data.co.uk, with shots, shots on target, corners and closing odds.
 * NFL: nflverse's games file (scores, rest, divisions, quarterbacks, betting lines) is read directly by sports_engine.py.
+* College football and men's college basketball: every game from ESPN's scoreboard, a day at a time.
 """
 import csv, datetime as dt, json, os, sys, time, urllib.request, urllib.error
 
@@ -181,16 +182,61 @@ def epl(season):
     rows.sort()
     return rows
 
-LEAGUES = {"mlb": (mlb, MLB_HEAD), "nhl": (nhl, NHL_HEAD), "nba": (nba, NBA_HEAD), "epl": (epl, EPL_HEAD)}
+# ------------------------------------------------------------------ college football and men's college basketball
+# ESPN's scoreboard a day at a time (it won't take date ranges for college). site.web.api answers the nightly build's
+# computers, where site.api turns them away. Football: every FBS game (their FCS opponents included); basketball: all of Division I.
+ESPN_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/"
+COLLEGE = {"cfb": ("football/college-football", "", (8, 20), (1, 25)), "cbb": ("basketball/mens-college-basketball", "&groups=50&limit=1000", (11, 1), (4, 12))}
+COLLEGE_HEAD = ["date", "id", "home", "away", "hs", "as", "neutral", "type", "hid", "aid", "hfg", "afg"]
+def college(lg, season, folder=None):
+    from concurrent.futures import ThreadPoolExecutor
+    path, q, (m0, d0), (m1, d1) = COLLEGE[lg]
+    start, end = dt.date(season, m0, d0), min(dt.date(season + 1, m1, d1), dt.date.today() - dt.timedelta(days=1))
+    rows, seen = [], set()
+    old = os.path.join(folder or FOLDER, f"{lg}_{season}.csv")
+    if os.path.exists(old):                          # pick up where the saved season left off
+        prev = list(csv.reader(open(old)))[1:]
+        if prev:
+            start = max(start, dt.date.fromisoformat(max(r[0] for r in prev)) - dt.timedelta(days=3))
+            rows = [r for r in prev if r[0] < start.isoformat()]; seen = {r[1] for r in rows}
+    days = [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
+    def day(d):
+        for i in range(3):
+            try: return jget(f"{ESPN_WEB}{path}/scoreboard?dates={d:%Y%m%d}{q}").get("events", [])
+            except Exception as ex:
+                if i == 2: print(f"  {lg} {d}: {ex}"); return []
+                time.sleep(2 + 3 * i)
+    with ThreadPoolExecutor(6) as ex:
+        for evs in ex.map(day, days):
+            for ev in evs:
+                comp = (ev.get("competitions") or [{}])[0]
+                if ev["id"] in seen or not ((comp.get("status") or ev.get("status") or {}).get("type") or {}).get("completed"): continue
+                typ = (ev.get("season") or {}).get("type", 2)
+                if typ not in (2, 3): continue
+                side = {c.get("homeAway"): c for c in comp.get("competitors", [])}
+                if "home" not in side or "away" not in side: continue
+                h, a = side["home"], side["away"]
+                if h.get("score") in (None, "") or a.get("score") in (None, ""): continue
+                st = lambda c, k: next((s.get("displayValue") for s in c.get("statistics", []) if s.get("name") == k), "")
+                seen.add(ev["id"])
+                rows.append([ev["date"][:10], ev["id"], h["team"].get("displayName") or h["team"].get("name"), a["team"].get("displayName") or a["team"].get("name"),
+                             h["score"], a["score"], 1 if comp.get("neutralSite") else 0, typ, h["team"].get("id", ""), a["team"].get("id", ""), st(h, "fieldGoalPct"), st(a, "fieldGoalPct")])
+    rows.sort()
+    return rows
+
+LEAGUES = {"mlb": (mlb, MLB_HEAD), "nhl": (nhl, NHL_HEAD), "nba": (nba, NBA_HEAD), "epl": (epl, EPL_HEAD),
+           "cfb": (lambda s, f=None: college("cfb", s, f), COLLEGE_HEAD), "cbb": (lambda s, f=None: college("cbb", s, f), COLLEGE_HEAD)}
 
 def current_season(lg, today=None):
     t = today or dt.date.today()
     if lg == "mlb": return t.year
+    if lg == "cfb": return t.year if t.month >= 8 else t.year - 1
+    if lg == "cbb": return t.year if t.month >= 11 else t.year - 1
     return t.year if t.month >= (8 if lg == "epl" else 9) else t.year - 1        # the season that started most recently
 
-def update(leagues=("mlb", "nhl", "nba", "epl"), back=None, folder=FOLDER, today=None):
+def update(leagues=("mlb", "nhl", "nba", "epl", "cfb", "cbb"), back=None, folder=FOLDER, today=None):
     """Download missing seasons and refresh the current one. Returns {league: [csv paths]}."""
-    back = back or {"mlb": 5, "nhl": 5, "nba": 5, "epl": 9}
+    back = back or {"mlb": 5, "nhl": 5, "nba": 5, "epl": 9, "cfb": 8, "cbb": 6}
     out = {}
     for lg in leagues:
         fn, head = LEAGUES[lg]; cur = current_season(lg, today); paths = []
@@ -198,7 +244,7 @@ def update(leagues=("mlb", "nhl", "nba", "epl"), back=None, folder=FOLDER, today
             path = os.path.join(folder, f"{lg}_{season}.csv")
             if os.path.exists(path) and season < cur and os.path.getsize(path) > 2000: paths.append(path); continue
             try:
-                n = save(path, head, fn(season, folder) if lg == "nba" else fn(season)); print(f"  {lg} {season}: {n} games")
+                n = save(path, head, fn(season, folder) if lg in ("nba", "cfb", "cbb") else fn(season)); print(f"  {lg} {season}: {n} games")
                 if n: paths.append(path)
                 elif os.path.exists(path): os.remove(path)
             except Exception as e:
