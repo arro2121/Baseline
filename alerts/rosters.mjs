@@ -1,0 +1,48 @@
+// Builds docs/rosters.json: every player on every NFL, NBA, NHL, MLB and Premier League roster, for the Cosmic player cards.
+// Sources (free, no key): ESPN (NFL, NBA, Premier League; through our alerts service if ESPN turns this computer away), the NHL's API and
+// MLB's Stats API (40-man rosters). Keeps the previous list for any league that fails. Run from the repo root: node alerts/rosters.mjs
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+const H = { "User-Agent": "Mozilla/5.0 (compatible; CosmoSports/1.0)" };
+const get = async (u, tries = 3) => { for (let i = 0; ; i++) { try { const r = await fetch(u, { headers: H }); if (!r.ok) throw new Error(`${r.status} ${u}`); return await r.json(); } catch (e) { if (i >= tries - 1) throw e; await new Promise(r => setTimeout(r, 800 * (i + 1))); } } };
+const OUT = "docs/rosters.json", prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : { leagues: {} };
+let ALERTS = ""; try { ALERTS = JSON.parse(readFileSync("site_config.json", "utf8")).alerts_url || ""; } catch {}
+const ESPN = "https://site.web.api.espn.com/apis/site/v2/sports/", PATH = { nfl: "football/nfl", nba: "basketball/nba", epl: "soccer/eng.1" };
+async function pool(items, n, fn) { const out = []; let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } })); return out; }
+async function espnLeague(lg) {
+  const teams = (await get(`${ESPN}${PATH[lg]}/teams`)).sports[0].leagues[0].teams.map(t => t.team);
+  const rows = await pool(teams, 6, async t => {
+    let athletes = [];
+    try { const d = await get(`${ESPN}${PATH[lg]}/teams/${t.id}/roster`); athletes = (d.athletes || []).flatMap(g => g.items ? g.items : [g]); }
+    catch (e) { if (!ALERTS) throw e; const d = await get(`${ALERTS}/sports/${lg}/team/${t.id}`); athletes = (d.roster || []).map(p => ({ id: p.id, fullName: p.name, jersey: p.num, position: { abbreviation: p.pos }, headshot: { href: p.img } })); }
+    return athletes.map(a => ({ id: String(a.id), name: a.fullName || a.displayName, team: t.displayName, pos: a.position?.abbreviation || "", num: a.jersey || "", img: a.headshot?.href || "" }));
+  });
+  return rows.flat().filter(p => p.id && p.name);
+}
+const builders = {
+  nfl: () => espnLeague("nfl"),
+  nba: () => espnLeague("nba"),
+  epl: () => espnLeague("epl"),
+  async nhl() {
+    const st = (await get("https://api-web.nhle.com/v1/standings/now")).standings || [];
+    const teams = st.map(s => ({ abbr: s.teamAbbrev?.default, name: s.teamName?.default })).filter(t => t.abbr);
+    const rows = await pool(teams, 6, async t => { const d = await get(`https://api-web.nhle.com/v1/roster/${t.abbr}/current`);
+      return [...(d.forwards || []), ...(d.defensemen || []), ...(d.goalies || [])].map(p => ({ id: String(p.id), name: `${p.firstName?.default || ""} ${p.lastName?.default || ""}`.trim(), team: t.name, pos: p.positionCode || "", num: String(p.sweaterNumber ?? ""), img: p.headshot || "" })); });
+    return rows.flat();
+  },
+  async mlb() {
+    const teams = (await get("https://statsapi.mlb.com/api/v1/teams?sportId=1")).teams.filter(t => t.active !== false);
+    const rows = await pool(teams, 6, async t => { const d = await get(`https://statsapi.mlb.com/api/v1/teams/${t.id}/roster?rosterType=40Man`);
+      return (d.roster || []).map(r => ({ id: String(r.person.id), name: r.person.fullName, team: t.name, pos: r.position?.abbreviation || "", num: r.jerseyNumber || "",
+        img: `https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/${r.person.id}/headshot/67/current` })); });
+    return rows.flat();
+  },
+};
+const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues } };
+for (const [lg, fn] of Object.entries(builders)) {
+  try { const list = await fn(), seen = new Set(), uniq = list.filter(p => !seen.has(p.id) && seen.add(p.id));
+    if (uniq.length < (lg === "epl" ? 150 : 200)) throw new Error(`only ${uniq.length} players`);
+    out.leagues[lg] = uniq; console.log(lg, "ok", uniq.length, "players,", new Set(uniq.map(p => p.team)).size, "teams"); }
+  catch (e) { console.log(lg, "kept previous:", e.message); }
+}
+writeFileSync(OUT, JSON.stringify(out));
+console.log("wrote", OUT, Math.round(JSON.stringify(out).length / 1024), "KB");

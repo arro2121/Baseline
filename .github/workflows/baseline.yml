@@ -98,6 +98,8 @@ jobs:
         with: { node-version: "22" }
       - name: Update player stats for League Leaders
         run: node alerts/allstars.mjs || echo "Kept the previous players"
+      - name: Update every roster for the Cosmic player cards
+        run: node alerts/rosters.mjs || echo "Kept the previous rosters"
       - name: Keep a copy of the model's track record
         run: |
           U=$(python3 -c "import json;print(json.load(open('site_config.json')).get('alerts_url',''))" 2>/dev/null || true)
