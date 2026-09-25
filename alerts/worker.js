@@ -1866,6 +1866,8 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
   if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
+  // cards belong to accounts: only a signed-in account with a passkey can pull or buy them
+  if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !u.ident) return json({ error: "Create your Cosmo Sports account with a passkey to collect cards.", needPasskey: true }, 403);
   if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/pack" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), pk = CZ_PACKS.find(x => x.id === String(d.pack || "")), scope = Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
