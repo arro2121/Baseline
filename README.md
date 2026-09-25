@@ -177,6 +177,14 @@ record in each league and overall, how often the betting favorite won the same g
 made: on every pick, and on value bets only (the model's chance at least 3 points above the market's). A copy is saved to
 `docs/track.json` every night.
 
+## Cosmic sign-in (passkeys)
+
+Cosmic accounts sign in with passkeys (WebAuthn): Face ID, a fingerprint or the device passcode. It's free and needs no outside
+service; the alerts service checks each sign-in's signature itself. Signed-in players' followed teams, settings and picks are
+saved to their account (`/cosmic/data`) and restored on any device. Browsers without passkeys fall back to a device key.
+Passkeys belong to the address they were made on, so after moving to a new domain, players sign in there once with their
+**Account key** (Cosmic › footer) and add a passkey.
+
 ## Your own domain
 
 The site runs at **https://cosmosports.app**. To use a different domain: point its DNS at GitHub Pages (four A records for

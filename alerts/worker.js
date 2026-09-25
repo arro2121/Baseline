@@ -34,7 +34,7 @@ export const b64u = {
 };
 const concat = (...a) => { const out = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let o = 0; for (const x of a) { out.set(x, o); o += x.length; } return out; };
 export const norm = s => String(s || "").normalize("NFKD").replace(/[^A-Za-z ]/g, " ").toLowerCase().split(/\s+/).filter(Boolean);
-const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization" };
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization, X-No-Passkeys" };
 const json = (d, status = 200, extra = {}) => new Response(JSON.stringify(d), { status, headers: { "Content-Type": "application/json", ...cors, ...extra } });
 
 /* ---------------- Web Push: VAPID signature (RFC 8292) ---------------- */
@@ -1468,7 +1468,7 @@ const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
-const czPublic = u => u && ({ uid: u.uid, name: u.name, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
 const czLbRow = u => ({ uid: u.uid, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
@@ -1477,6 +1477,20 @@ export async function czTx(st, a) {
   const get = async (k, d) => (await st.get(k)) ?? d;
   const feed = async ev => { const f = await get("cz:feed", []); f.unshift({ ...ev, at: a.now }); await st.put("cz:feed", f.slice(0, 60)); };
   const lb = async u => { const L = await get("cz:lb", {}); L[u.uid] = czLbRow(u); await st.put("cz:lb", L); };
+  if (a.act === "ident") {
+    // passkey sign-in: the passkey's account id (stored only as a hash) finds the account, links an existing one, or starts a new one.
+    // Each device that signs in gets its own key (only its hash is stored), so signing in on a new phone doesn't sign out the old.
+    const map = await get("cz:id:" + a.sub, null), addTok = u => { u.toks = [...(u.toks || []), a.tok].slice(-10); };
+    if (map) { const u = await st.get("cz:u:" + map); if (u) { addTok(u); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), uid: u.uid }; } }
+    if (a.linkUid) { const u = await st.get("cz:u:" + a.linkUid); if (!u) return { error: "Account not found." }; u.ident = u.ident || a.sub; addTok(u); await st.put("cz:u:" + u.uid, u); await st.put("cz:id:" + a.sub, u.uid); return { user: czPublic(u), uid: u.uid, linked: true }; }
+    if (!a.name) return { needName: true };
+    const names = await get("cz:names", {}), key = a.name.toLowerCase();
+    if (names[key]) return { error: "That name is taken. Try another.", needName: true };
+    const u = { uid: a.uid, name: a.name, tok: a.tok, toks: [], ident: a.sub, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0 };
+    names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:u:" + a.uid, u); await st.put("cz:id:" + a.sub, a.uid); await lb(u);
+    await feed({ kind: "join", name: a.name });
+    return { user: czPublic(u), uid: a.uid, created: true };
+  }
   if (a.act === "join") {
     const names = await get("cz:names", {}), key = a.name.toLowerCase();
     if (names[key]) return { error: "That name is taken. Try another." };
@@ -1665,9 +1679,62 @@ async function czItem(env, id) {
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
   const u = await czRead(env, "cz:u:" + m[1], null); if (!u) return null;
-  return u.tok === await czHash(m[2]) ? u : null;
+  const h = await czHash(m[2]);
+  return u.tok === h || (u.toks || []).includes(h) ? u : null;
 }
 const CZ_JOIN = new Map();
+/* ---- passkeys (WebAuthn): sign in with Face ID, a fingerprint or the device's passcode. No passwords and no outside service:
+   the device makes a key pair, keeps the private half, and signs a one-time challenge from us; we check the signature with the
+   public half saved when the passkey was created. Stored: "cz:pk:<credential id>" {uid, jwk, alg, count}. */
+function cbor(buf) {                                     // just enough CBOR for WebAuthn (maps, arrays, byte and text strings, ints)
+  let i = 0; const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const len = ai => ai < 24 ? ai : ai === 24 ? u8[i++] : ai === 25 ? (i += 2, dv.getUint16(i - 2)) : ai === 26 ? (i += 4, dv.getUint32(i - 4)) : ai === 27 ? (i += 8, Number(dv.getBigUint64(i - 8))) : NaN;
+  const item = () => { const b = u8[i++], mt = b >> 5, ai = b & 31;
+    if (mt === 7) return ai === 20 ? false : ai === 21 ? true : ai === 22 ? null : ai === 25 ? (i += 2, null) : ai === 26 ? (i += 4, dv.getFloat32(i - 4)) : ai === 27 ? (i += 8, dv.getFloat64(i - 8)) : undefined;
+    const n = len(ai);
+    if (mt === 0) return n; if (mt === 1) return -1 - n;
+    if (mt === 2) { const v = u8.slice(i, i + n); i += n; return v; }
+    if (mt === 3) { const v = new TextDecoder().decode(u8.slice(i, i + n)); i += n; return v; }
+    if (mt === 4) return Array.from({ length: n }, item);
+    if (mt === 5) { const m = new Map(); for (let k = 0; k < n; k++) { const key = item(); m.set(key, item()); } return m; }
+    if (mt === 6) return item();
+    throw new Error("cbor");
+  };
+  const v = item(); return { v, end: i };
+}
+function authData(a) {
+  const d = a instanceof Uint8Array ? a : new Uint8Array(a), flags = d[32], out = { rpIdHash: d.slice(0, 32), flags, up: !!(flags & 1), uv: !!(flags & 4), count: new DataView(d.buffer, d.byteOffset + 33, 4).getUint32(0) };
+  if (flags & 64) { const n = (d[53] << 8) | d[54]; out.credId = d.slice(55, 55 + n); out.cose = cbor(d.slice(55 + n)).v; }
+  return out;
+}
+function coseJwk(m) {
+  const g = k => m.get(k), alg = g(3);
+  if (g(1) === 2 && g(-1) === 1) return { alg: -7, jwk: { kty: "EC", crv: "P-256", x: b64u.enc(g(-2)), y: b64u.enc(g(-3)), ext: true } };
+  if (g(1) === 3) return { alg: -257, jwk: { kty: "RSA", n: b64u.enc(g(-1)), e: b64u.enc(g(-2)), alg: "RS256", ext: true } };
+  throw new Error("unsupported key " + alg);
+}
+function derToRaw(sig) {                                  // ECDSA signatures come DER-encoded; WebCrypto wants r || s
+  let i = 2; const part = () => { i++; const n = sig[i++]; let v = sig.slice(i, i + n); i += n; while (v.length > 32 && v[0] === 0) v = v.slice(1); const o = new Uint8Array(32); o.set(v, 32 - v.length); return o; };
+  const r = part(), s = part(), out = new Uint8Array(64); out.set(r); out.set(s, 32); return out;
+}
+const CZ_RATE = new Map();
+function czAllowed(key, max, win) { const now = Date.now(), l = (CZ_RATE.get(key) || []).filter(t => now - t < win); if (l.length >= max) return false; l.push(now); CZ_RATE.set(key, l); if (CZ_RATE.size > 20000) CZ_RATE.clear(); return true; }
+const sha256 = async b => new Uint8Array(await crypto.subtle.digest("SHA-256", typeof b === "string" ? new TextEncoder().encode(b) : b));
+const eqBytes = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+function pkOrigins(env) { const o = new Set(); for (const u of [env.SITE_URL, env.SITE_FALLBACK, env.PK_EXTRA_ORIGIN]) { try { if (u) o.add(new URL(u).origin); } catch {} } return o; }
+async function pkChallenge(env, kind, extra = {}) {
+  const c = b64u.enc(crypto.getRandomValues(new Uint8Array(32)));
+  await store(env).put("cz:pkc:" + c, JSON.stringify({ kind, exp: Date.now() + 5 * 60e3, ...extra })); return c;
+}
+async function pkClient(env, clientDataJSON, kind) {       // the browser's signed-over summary: type, our challenge, the page's origin
+  const raw = b64u.dec(clientDataJSON), cd = JSON.parse(new TextDecoder().decode(raw));
+  if (cd.type !== (kind === "reg" ? "webauthn.create" : "webauthn.get")) throw new Error("wrong step");
+  if (!pkOrigins(env).has(cd.origin)) throw new Error("wrong site");
+  const ch = await czRead(env, "cz:pkc:" + cd.challenge, null);
+  if (!ch || ch.kind !== kind || ch.exp < Date.now()) throw new Error("expired");
+  await store(env).put("cz:pkc:" + cd.challenge, JSON.stringify({ exp: 0 }));  // one use only
+  return { raw, cd, ch, rpIdHash: await sha256(new URL(cd.origin).hostname) };
+}
 const etDayStr = t => etDay(t);
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
@@ -1701,7 +1768,52 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25),
       collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
   }
+  if (p === "/config" && req.method === "GET") return json({ passkeys: true });
+  if (p === "/pk/start" && req.method === "POST") {                          // a challenge to create or use a passkey
+    const d = await req.json().catch(() => ({})), kind = d.kind === "reg" ? "reg" : "auth", name = String(d.name || "").replace(/\s+/g, " ").trim();
+    if (!czAllowed("pk:" + ip, 30, 3600e3)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
+    if (kind === "reg") {
+      const linker = d.link ? await czAuth(req, env) : null;
+      if (!linker) { if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+        if ((await czRead(env, "cz:names", {}))[name.toLowerCase()]) return json({ error: "That name is taken. Try another." }, 409); }
+      const handle = linker ? (linker.handle || b64u.enc(crypto.getRandomValues(new Uint8Array(16)))) : b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
+      return json({ challenge: await pkChallenge(env, "reg", { name, handle, link: linker ? linker.uid : null }), user: { id: handle, name: linker ? linker.name : name } });
+    }
+    return json({ challenge: await pkChallenge(env, "auth") });
+  }
+  if (p === "/pk/register" && req.method === "POST") {                       // save a new passkey and sign in (or add it to your account)
+    const d = await req.json().catch(() => ({}));
+    try {
+      const { ch, rpIdHash } = await pkClient(env, d.clientDataJSON, "reg"), att = cbor(b64u.dec(d.attestationObject)).v, ad = authData(att.get("authData"));
+      if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up || !ad.credId) throw new Error("bad passkey");
+      const { alg, jwk } = coseJwk(ad.cose), credId = b64u.enc(ad.credId), token = czRand(32), sub = await czHash("pk:" + ch.handle);
+      if (await czRead(env, "cz:pk:" + credId, null)) throw new Error("already saved");
+      const r = await cz(env, { act: "ident", sub, uid: czRand(12), tok: await czHash(token), name: ch.link ? "" : ch.name, linkUid: ch.link, now });
+      if (r.error) return json(r, 409);
+      await store(env).put("cz:pk:" + credId, JSON.stringify({ uid: r.uid, sub, jwk, alg, count: ad.count, at: now }));
+      return json({ ...r, auth: `${r.uid}.${token}` });
+    } catch (e) { return json({ error: "The passkey couldn't be saved (" + e.message + "). Try again." }, 400); }
+  }
+  if (p === "/pk/login" && req.method === "POST") {                          // sign in: check the device's signature over our challenge
+    const d = await req.json().catch(() => ({}));
+    try {
+      const cred = await czRead(env, "cz:pk:" + String(d.id || ""), null); if (!cred) throw new Error("unknown passkey");
+      const { raw, rpIdHash } = await pkClient(env, d.clientDataJSON, "auth"), adRaw = b64u.dec(d.authenticatorData), ad = authData(adRaw);
+      if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up) throw new Error("bad passkey");
+      const signed = new Uint8Array([...adRaw, ...await sha256(raw)]), sig = b64u.dec(d.signature);
+      const ok = cred.alg === -7
+        ? await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, await crypto.subtle.importKey("jwk", cred.jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]), derToRaw(sig), signed)
+        : await crypto.subtle.verify("RSASSA-PKCS1-v1_5", await crypto.subtle.importKey("jwk", cred.jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]), sig, signed);
+      if (!ok) throw new Error("bad signature");
+      if (cred.count && ad.count && ad.count <= cred.count) throw new Error("copied passkey");
+      if (ad.count) await store(env).put("cz:pk:" + d.id, JSON.stringify({ ...cred, count: ad.count }));
+      const token = czRand(32), r = await cz(env, { act: "ident", sub: cred.sub, uid: czRand(12), tok: await czHash(token), name: "", now });
+      if (r.error || r.needName) return json({ error: r.error || "Account not found." }, 409);
+      return json({ ...r, auth: `${r.uid}.${token}` });
+    } catch (e) { return json({ error: e.message === "unknown passkey" ? "That passkey isn't linked to a Cosmic account. Create an account first." : "Sign-in didn't go through (" + e.message + "). Try again." }, 401); }
+  }
   if (p === "/join" && req.method === "POST") {
+    if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
     const l = (CZ_JOIN.get(ip) || []).filter(t => now - t < 3600e3); if (l.length >= 5) return json({ error: "Too many new accounts from here. Try again later." }, 429);
     const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
@@ -1714,6 +1826,13 @@ export async function cosmicRoute(req, env, ctx, url) {
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
   if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
+  if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
+  if (p === "/data" && req.method === "PUT") {
+    const raw = await req.text(); if (raw.length > 100000) return json({ error: "Too much data." }, 413);
+    let d; try { d = JSON.parse(raw); } catch { return json({ error: "bad data" }, 400); }
+    await store(env).put("cz:data:" + u.uid, JSON.stringify({ ...d, at: now })); return json({ ok: true, at: now });
+  }
   if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
   if (p === "/bet" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");

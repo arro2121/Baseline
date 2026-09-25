@@ -1303,6 +1303,7 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .czfront{transform:rotateY(180deg)}.czfront .czcard{height:100%}
 .czripmsg{text-align:center;min-height:1.4em;font-size:.95rem}
 @media (prefers-reduced-motion:reduce){.czflip{transition:none}}
+.czpkbtn{justify-content:center;width:100%;max-width:360px;padding:12px 16px;font-size:1rem;margin:4px 0}
 .czsell{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}.czsell>div{background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;display:grid;gap:6px}
 .czsell small{color:var(--muted);font-size:.78rem}.czlistf{display:flex;gap:8px}.czlistf .field{flex:1;min-width:0}
 /* tier scenes */
@@ -1730,6 +1731,7 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
   <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Cosmic: bet free coins, rip packs, pull one-of-a-kind cards.</p></div></div>
   <ul class="newlist">
+    <li><i>🔑</i><span><b>Sign in with a passkey.</b> Cosmic accounts now use passkeys: Face ID, your fingerprint or your device's passcode. Your coins, cards, followed teams and settings are saved to your account and follow you to any device.</span></li>
     <li><i>🃏</i><span><b>Every player has cards.</b> Every player on every NFL, NBA, MLB, NHL and Premier League roster now comes in all seven tiers, from 1 of 1,000 to the one-and-only 1 of 1, with their headshot. Open player packs to chase your favorites.</span></li>
     <li><i>🛒</i><span><b>Packs and the Market.</b> Rip Comet, Nebula, Supernova and Singularity packs (better packs, better odds), then keep your pulls, sell them back to the shop, or list them for other collectors.</span></li>
     <li><i>🪐</i><span><b>Cosmic.</b> Bet free Cosmic Coins on real games at real sportsbook prices, climb the leaderboards, and spend your winnings on packs of limited-edition team and player cards, from 1 of 1,000 all the way to the one-and-only 1 of 1. Better packs have better odds. Coins have no cash value.</span></li>
@@ -4324,8 +4326,8 @@ const czKey = () => lsGet("cz-auth", "");
 const CZ_LG = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "EPL", atp: "ATP", wta: "WTA" };
 const czCoin = (cls = "") => `<svg class="czcoin ${cls}" viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="czg" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#fbe8ff"/><stop offset=".3" stop-color="#c084fc"/><stop offset=".7" stop-color="#6d28d9"/><stop offset="1" stop-color="#2e1065"/></radialGradient></defs><circle cx="12" cy="12" r="11" fill="url(#czg)" stroke="#e9d5ff" stroke-width="1.1"/><circle cx="12" cy="12" r="7.8" fill="none" stroke="#f5d0fe" stroke-opacity=".5" stroke-width=".7"/><path d="M12 6.4l1.35 3.5 3.7.3-2.8 2.35.88 3.6L12 14.2l-3.13 1.95.88-3.6-2.8-2.35 3.7-.3z" fill="#fdf4ff"/><circle cx="6.6" cy="8.2" r=".55" fill="#fff"/><circle cx="17.3" cy="15.8" r=".45" fill="#fff"/><circle cx="16.4" cy="7" r=".35" fill="#fff"/></svg>`;
 const czAmt = (n, cls = "") => `<span class="czamt ${cls}">${czCoin()}<b>${Math.round(n).toLocaleString()}</b></span>`;
-async function czApi(path, body){
-  const r = await fetch(ALERTS_URL + "/cosmic" + path, { method: body ? "POST" : "GET", headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
+async function czApi(path, body, opt = {}){
+  const r = await fetch(ALERTS_URL + "/cosmic" + path, { method: opt.method || (body ? "POST" : "GET"), headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}), ...(opt.headers || {}) }, body: opt.body || (body ? JSON.stringify(body) : undefined), cache: "no-store" });
   const d = await r.json().catch(() => ({})); if (!r.ok){ const e = new Error(d.error || "Something went wrong (" + r.status + ")"); e.data = d; e.status = r.status; throw e; } return d;
 }
 // the Checklist, a page at a time (the vault has tens of thousands of cards)
@@ -4335,6 +4337,7 @@ async function czVault(more){
 }
 async function czLoad(what = ["me", "board", "vault", "lb"]){
   if (!ALERTS_URL){ CZ.loaded = true; drawCosmic(); return; }
+  if (!CZ.cfg){ try { CZ.cfg = await czApi("/config"); } catch { CZ.cfg = { passkeys: false }; } }
   await Promise.all(what.map(async w => { try {
     if (w === "me" && czKey()){ CZ.me = (await czApi("/me")).user; }
     if (w === "board") CZ.board = (await czApi("/board")).markets;
@@ -4378,11 +4381,14 @@ function drawCosmic(){
   const el = $("#cosmicView"); if (!el) return;
   if (!ALERTS_URL){ el.innerHTML = czHeader() + `<div class="teamnote"><b>Cosmic needs the live service</b>This copy of the app isn't connected to it.</div>`; return; }
   if (!CZ.loaded){ el.innerHTML = czHeader() + `<div class="teamnote">${cosmoLoad("Opening the Cosmic vault…")}</div>`; return; }
-  if (!CZ.me){ el.innerHTML = czHeader() + czJoinHtml(); czBind(el); return; }
+  const pkOn = CZ.cfg && CZ.cfg.passkeys && czPkSupported();
+  if (!CZ.me){ el.innerHTML = czHeader() + (pkOn ? czPkHtml(false) : czJoinHtml()); czBind(el); czPkBind(el); return; }
+  if (pkOn && !CZ.me.passkey){ el.innerHTML = czHeader() + czPkHtml(true); czBind(el); czPkBind(el); return; }
+  czSyncStart();
   const tabs = [["bet", "Bet"], ["mine", "My bets"], ["packs", "Packs"], ["market", "Market"], ["coll", "Collection"], ["check", "Checklist"], ["lb", "Leaders"]];
   el.innerHTML = czHeader() + `<div class="seg trseg" role="group" aria-label="Cosmic">${tabs.map(([k, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</div>`
     + ({ bet: czBetHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)()
-    + `<p class="cmfoot">Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed. <button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button></p>`;
+    + `<p class="cmfoot">Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed. ${CZ.me.passkey ? `Signed in with a passkey: your account and your followed teams, settings and picks are saved and follow you to any device where you sign in. <button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`}</p>`;
   czBind(el);
 }
 function czJoinHtml(){
@@ -4392,6 +4398,76 @@ function czJoinHtml(){
     <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button></form>
     <p class="sub" style="margin:10px 0 0">Already playing on another device? <button type="button" class="linkbtn" data-cz="usekey">Use your Cosmic key</button></p></section>
     ${ones.length ? `<section class="card"><h2>In the vault</h2><p class="sub">Every team and every player in the NFL, NBA, MLB, NHL and Premier League, plus the top tennis players, in seven tiers from 1 of 1,000 to 1 of 1. Only one Singularity card of each will ever exist.</p><div class="czgrid">${ones.map(i => czCard(i)).join("")}</div></section>` : ""}`;
+}
+// ---- passkeys: sign in with Face ID, a fingerprint or the device's passcode. Old device-key accounts add a passkey once.
+const czPkSupported = () => typeof window.PublicKeyCredential === "function" && !!(navigator.credentials && navigator.credentials.create);
+const b64uE = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const b64uD = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+function czPkHtml(link){
+  const P = CZ.pk || (CZ.pk = {});
+  if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmic accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets, followed teams and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
+    <button type="button" class="btn primary czpkbtn" data-czpk="link">${czPkIcon()}Create a passkey</button><p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p></section>`;
+  return `<section class="card czjoin"><h2>Sign in to Cosmic</h2><p class="sub">Cosmic uses passkeys: sign in with Face ID, your fingerprint or your device's passcode. No password, and your account, followed teams and settings follow you to any device.</p>
+    <button type="button" class="btn primary czpkbtn" data-czpk="login">${czPkIcon()}Sign in with a passkey</button>
+    <h3 class="plh">New to Cosmic?</h3><p class="sub">Pick a name for the leaderboard, then create your passkey. You start with ${czAmt(1000)}.</p>
+    <form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn" type="submit">Create account</button></form>
+    <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p><p class="sub" style="margin:10px 0 0">Played Cosmic before passkeys? <button type="button" class="linkbtn" data-cz="usekey">Use your old Cosmic key</button>, then add a passkey.</p></section>`;
+}
+const czPkIcon = () => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:6px"><circle cx="8" cy="8" r="4"/><path d="M11 11l8 8M16 16l2-2M18.5 18.5l2-2"/></svg>`;
+function czPkErr(e){
+  if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return "Cancelled. Try again when you're ready.";
+  if (e && e.name === "InvalidStateError") return "This device already has a Cosmic passkey. Use Sign in with a passkey.";
+  return (e && e.message) || "Something went wrong. Try again.";
+}
+async function czPkCreate(name, link){
+  const ch = await czApi("/pk/start", { kind: "reg", name, link });
+  const c = await navigator.credentials.create({ publicKey: { challenge: b64uD(ch.challenge), rp: { name: "Cosmo Sports" }, user: { id: b64uD(ch.user.id), name: ch.user.name, displayName: ch.user.name },
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { residentKey: "required", requireResidentKey: true, userVerification: "preferred" }, attestation: "none", timeout: 120000 } });
+  return czApi("/pk/register", { id: c.id, clientDataJSON: b64uE(c.response.clientDataJSON), attestationObject: b64uE(c.response.attestationObject) });
+}
+async function czPkLogin(){
+  const ch = await czApi("/pk/start", { kind: "auth" });
+  const a = await navigator.credentials.get({ publicKey: { challenge: b64uD(ch.challenge), userVerification: "preferred", timeout: 120000 } });
+  return czApi("/pk/login", { id: a.id, clientDataJSON: b64uE(a.response.clientDataJSON), authenticatorData: b64uE(a.response.authenticatorData), signature: b64uE(a.response.signature), userHandle: a.response.userHandle ? b64uE(a.response.userHandle) : null });
+}
+function czPkBind(el){
+  const P = CZ.pk || (CZ.pk = {}), redraw = () => drawCosmic();
+  const done = r => { lsSet("cz-auth", r.auth); CZ.me = r.user; CZ.pk = {}; toast(r.created ? `Welcome to Cosmic, ${r.user.name}. You have 1,000 coins.` : r.linked ? "Passkey saved. Your account is safe." : `Signed in as ${r.user.name}`); czSyncPull(true); czLoad(["board", "vault", "lb"]); redraw(); };
+  const run = async (btn, fn) => { if (btn) btn.disabled = true; P.err = ""; try { done(await fn()); } catch (e) { P.err = czPkErr(e); redraw(); } };
+  el.querySelectorAll("[data-czpk=login]").forEach(b => b.onclick = () => run(b, czPkLogin));
+  el.querySelectorAll("[data-czpk=link]").forEach(b => b.onclick = () => run(b, () => czPkCreate("", true)));
+  el.querySelectorAll("[data-czpk=add]").forEach(b => b.onclick = async () => { try { await czPkCreate("", true); toast("Passkey added on this device"); } catch (e) { toast(czPkErr(e)); } });
+  const f = el.querySelector("form[data-czpk=new]"); if (f) f.onsubmit = e => { e.preventDefault(); P.name = f.name.value.trim(); run(f.querySelector("button"), () => czPkCreate(P.name, false)); };
+}
+// ---- your data follows your account: followed teams, settings and picks
+const CZ_SYNC_LS = ["picks", "daily", "duels", "spoil", "sounds", "startSport", "voiceKind", "voiceRate", "rankView", "onboarded"];
+function czSyncCollect(){ const ls = {}; for (const k of CZ_SYNC_LS){ const v = lsGet(k, undefined); if (v !== undefined) ls[k] = v; }
+  let fav = {}, set = {}; try { fav = JSON.parse(localStorage.getItem("fav-teams") || "{}") || {}; } catch {} try { set = JSON.parse(localStorage.getItem("baseline:settings") || "{}") || {}; } catch {}
+  return { v: 1, ls, fav, settings: set }; }
+async function czSyncPull(first){
+  if (!CZ.me || !CZ.me.passkey) return;
+  try { const d = (await czApi("/data")).data;
+    if (d && d.v === 1){
+      const mine = czSyncCollect();
+      for (const [k, v] of Object.entries(d.ls || {})) lsSet(k, v);
+      const fav = { ...(d.fav || {}) }; for (const [lg, l] of Object.entries(mine.fav)) fav[lg] = [...new Set([...(fav[lg] || []), ...l])];   // followed teams from both
+      try { localStorage.setItem("fav-teams", JSON.stringify(fav)); localStorage.setItem("baseline:settings", JSON.stringify({ ...mine.settings, ...(d.settings || {}) })); } catch {}
+      lsSet("cz-synced", CZ.me.uid); CZ.syncLast = "";
+      if (first && JSON.stringify({ ...mine, ls: { ...mine.ls } }) !== JSON.stringify(czSyncCollect())){ toast("Your teams and settings are back. Reloading…"); setTimeout(() => location.reload(), 900); return; }
+    } else lsSet("cz-synced", CZ.me.uid);
+    await czSyncPush(true);
+  } catch {}
+}
+async function czSyncPush(force){
+  if (!CZ.me || !CZ.me.passkey || lsGet("cz-synced", "") !== CZ.me.uid) return;
+  const d = JSON.stringify(czSyncCollect()); if (!force && d === CZ.syncLast) return;
+  try { await czApi("/data", undefined, { method: "PUT", body: d }); CZ.syncLast = d; } catch {}
+}
+function czSyncStart(){
+  if (CZ.syncOn || !CZ.me || !CZ.me.passkey) return; CZ.syncOn = true;
+  if (lsGet("cz-synced", "") !== CZ.me.uid) czSyncPull(true);
+  setInterval(() => czSyncPush(false), 30000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") czSyncPush(false); });
 }
 // ---- Bet
 function czPrice(dec){ return fmtOdds(dec); }
@@ -4566,13 +4642,14 @@ function czBind(el){
   el.querySelectorAll("[data-czcard]").forEach(b => b.onclick = () => czHistory(b.dataset.czcard, +b.dataset.n));
   const f = el.querySelector("[data-czform=join]");
   if (f) f.onsubmit = async e => { e.preventDefault(); const name = f.name.value.trim(), btn = f.querySelector("button"); btn.disabled = true;
-    try { const r = await czApi("/join", { name }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmic, ${r.user.name}. You have 1,000 coins.`); drawCosmic(); czLoad(["board", "vault", "lb"]); }
+    try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmic, ${r.user.name}. You have 1,000 coins.`); drawCosmic(); czLoad(["board", "vault", "lb"]); }
     catch (err) { toast(err.message); btn.disabled = false; } };
   el.querySelectorAll("[data-cz]").forEach(b => b.onclick = async () => {
     const k = b.dataset.cz;
     if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); } catch (e) { toast(e.message); } }
+    if (k === "signout"){ if (!confirm("Sign out of Cosmic on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSyncPush(true); lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; drawCosmic(); return; }
     if (k === "vmore"){ b.disabled = true; try { await czVault(true); } catch (e) { toast(e.message); } drawCosmic(); }
-    if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your Cosmic key</h2><p class="sub">This key is your account. Paste it into Cosmic on another device to play there too. Keep it private: anyone with it can spend your coins.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
+    if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your Cosmic key</h2><p class="sub">This key is your account. Paste it into Cosmic on another device, or on the site's new address if it moves, to sign in there, then add a passkey. Keep it private: anyone with it can spend your coins.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
       $("#czCopy").onclick = async () => { try { await navigator.clipboard.writeText(czKey()); toast("Key copied"); } catch { $("#infoBody textarea").select(); } }; $("#infoDlg").showModal(); }
     if (k === "usekey"){ const v = (prompt("Paste your Cosmic key") || "").trim(); if (!/^[a-f0-9]{24}\.[a-f0-9]{64}$/i.test(v)) { if (v) toast("That doesn't look like a Cosmic key"); return; }
       lsSet("cz-auth", v); CZ.me = null; await czLoad(["me"]); toast(CZ.me ? `Signed in as ${CZ.me.name}` : "That key didn't work"); drawCosmic(); }
@@ -4988,7 +5065,7 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-players";
+const NEW_V = "2026-09-passkeys";
 function maybeWhatsNew(){
   if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
