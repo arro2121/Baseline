@@ -1232,6 +1232,8 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .cmcard:hover{transform:translateY(-2px);border-color:#B98BFF}.cmcard.lead{grid-column:1/-1}.cmcard.lead b{font-size:1.35rem}
 .cmimg{display:block;aspect-ratio:16/8;overflow:hidden;background:var(--surface-2)}.cmimg img{width:100%;height:100%;object-fit:cover;display:block}
 .cmtext{display:flex;flex-direction:column;gap:4px;padding:14px 16px 16px}.cmtext em{font-style:normal;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#FF7AC8}.cmtext b{font-size:1.05rem;line-height:1.25}.cmtext small{color:var(--muted);font-size:.84rem;line-height:1.45}.cmtext i{font-style:normal;color:var(--faint);font-size:.74rem;margin-top:2px}
+.stkrow{display:grid;gap:4px;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
+.stkt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.stkt em{margin-left:auto;font-style:normal;font-size:.72rem;color:var(--muted)}.stkrow small{color:var(--muted);font-size:.78rem}
 .simintro{margin:0 0 14px}.simcard{padding:6px 8px}.simtab td,.simtab th{white-space:nowrap}
 .simtab .odc{text-align:center;padding:4px 3px}.simtab .odc span{display:inline-block;min-width:48px;padding:6px 4px;border-radius:8px;font-weight:700;font-size:.84rem;
   background:color-mix(in srgb,var(--accent) calc(var(--v) * 85%),transparent);color:var(--ink)}
@@ -1244,7 +1246,7 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .simbig{padding:10px 0;border-top:1px solid var(--line-2)}.simbig:first-of-type{border-top:0}.simbh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.simbh em{margin-left:auto;font-style:normal;font-size:.75rem;color:var(--muted)}
 .simbs{display:grid;gap:2px;font-size:.8rem;margin:6px 0}.simbar{height:6px;border-radius:99px;background:var(--line-2);overflow:hidden;margin-bottom:4px}.simbar i{display:block;height:100%;background:var(--accent)}
 .simlks{display:grid;grid-template-columns:1fr 1fr;gap:14px}.simlk{display:flex;align-items:center;gap:7px;padding:5px 0;font-size:.88rem}.simlk span{margin-left:auto;font-weight:750}
-@media (max-width:560px){.simtab td:nth-child(2),.simtab th:nth-child(2){display:none}.simtab .odc span{min-width:40px;font-size:.78rem}.simtn small{display:none}}
+@media (max-width:560px){.simtab td:nth-child(2),.simtab th:nth-child(2){display:none}.simtab td,.simtab th{padding-left:3px;padding-right:3px}.simtab .odc span{min-width:38px;padding:5px 2px;font-size:.76rem}.simtn small{display:none}.simtn .tlogo{display:none}.simcard{padding:4px}}
 .trlink{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 18px;box-shadow:var(--shadow);cursor:pointer;font:inherit;color:inherit}
 .trlink span{grid-column:1;font-size:.8rem;color:var(--muted)}.trlink i{grid-row:1/3;grid-column:2;font-style:normal;font-size:1.2rem;color:var(--muted)}
 .trseg{margin:0 0 16px;flex-wrap:wrap;max-width:100%}.trseg button{padding:7px 13px}
@@ -1611,8 +1613,11 @@ dialog.onb p{margin:0 0 12px}
   </div>
 </dialog>
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
-  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>The model now keeps score in public.</p></div></div>
+  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Season odds, and the model keeps score in public.</p></div></div>
   <ul class="newlist">
+    <li><i>🎲</i><span><b>Season odds.</b> The rest of every season is played out 10,000 times each night: playoff, division and title chances for every team, charted over time, plus what each team's next game is worth. In the new Odds tab of every league.</span></li>
+    <li><i>🔥</i><span><b>Most at stake.</b> The games that swing the playoff races most, on Today and in each Odds tab, with luck (wins above what the scoring says) and the toughest schedules left.</span></li>
+    <li><i>🏈</i><span><b>NFL leaders for 2026,</b> now with rushing, sacks, tackles and interceptions.</span></li>
     <li><i>📈</i><span><b>Track record.</b> Every pick the model makes is now locked in before the game and graded after it, with its record in each league, how it compares with the betting favorites, and what $100 bets would have made. In the Record tab.</span></li>
     <li><i>🧠</i><span><b>A real model for every league.</b> The NFL, NBA, MLB, NHL and Premier League now get the tennis treatment: Elo, opponent-adjusted margin, offense and defense, form, rest and a factor for each sport (starting pitchers, quarterbacks, shots).</span></li>
     <li><i>📊</i><span><b>A Model tab in every league.</b> Accuracy on seasons it never saw, against Elo and the betting market, a calibration chart and what each factor is worth.</span></li>
@@ -3503,11 +3508,11 @@ async function renderSeasonOdds(){
   if (!L){ el.innerHTML = `<div class="teamnote"><b>${SIM.err ? "Couldn't load the season odds" : "No simulation yet"}</b>${SIM.err ? "Check your connection and try again." : "The season odds are worked out every night."}</div>`; return; }
   if (L.done || !L.teams.length){ el.innerHTML = `<div class="teamnote"><b>The regular season is over</b>Season odds come back when the next season's schedule is out.</div>`; return; }
   const soccer = lg === "epl", hockey = lg === "nhl";
-  const groups = [...new Set(L.teams.map(t => t.conf))], grp = groups.includes(SIM.grp[lg]) ? SIM.grp[lg] : groups[0];
+  const groups = [...new Set(L.teams.map(t => t.conf))].sort(), grp = groups.includes(SIM.grp[lg]) ? SIM.grp[lg] : groups[0];
   const rows = L.teams.filter(t => t.conf === grp).sort(soccer ? (a, b) => b.proj_pts - a.proj_pts : (a, b) => b.playoff - a.playoff || b.title - a.title);
   const rec = t => soccer ? `${t.w}-${t.d}-${t.l}` : hockey ? `${t.w}-${t.l}-${t.otl}` : `${t.w}-${t.l}${t.t ? "-" + t.t : ""}`;
-  const proj = t => soccer ? `${Math.round(t.proj_pts)} pts` : hockey ? `${Math.round(t.proj_pts)} pts` : `${Math.round(t.proj_w)}-${Math.round(t.proj_l)}`;
-  const cols = soccer ? [["title", "Title"], ["top4", "Top 4"], ["rel", "Relegated"]] : [["playoff", "Playoffs"], ["div_win", lg === "nba" ? "Division" : "Division"], ["title", { nfl: "Super Bowl", nba: "Title", mlb: "World Series", nhl: "Stanley Cup" }[lg]]];
+  const proj = t => soccer ? `${Math.round(t.proj_pts)} pts` : hockey ? `${Math.round(t.proj_pts)} pts` : (w => `${w}-${Math.round(t.proj_w + t.proj_l) - w}`)(Math.round(t.proj_w));
+  const cols = soccer ? [["title", "Title"], ["top4", "Top 4"], ["rel", "Down"]] : [["playoff", "Playoffs"], ["div_win", "Div."], ["title", "Title"]];
   const detail = t => {
     const key = soccer ? 2 : 1, nx = t.next, T = simTeam(lg, t.name), when = nx ? simDay(nx.date) : "";
     const metricName = nx ? { playoff: "make the playoffs", title: "win the title", top4: "finish top 4", rel: "go down" }[nx.metric] : "";
@@ -3519,7 +3524,7 @@ async function renderSeasonOdds(){
         ${t.luck != null ? `<span>Luck<b class="${t.luck > 0 ? "pos" : t.luck < 0 ? "neg" : ""}">${sgn(t.luck)} ${soccer ? "" : "wins"}</b></span>` : ""}${t.sos != null ? `<span>Schedule left<b>${t.sos > 15 ? "Hard" : t.sos < -15 ? "Easy" : "Average"}</b></span>` : ""}</div></div>
       </div></td></tr>`;
   };
-  const table = `<div class="scroll"><table class="cmp simtab"><thead><tr><th>Team</th><th>Now</th><th>Projected</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>
+  const table = `<div class="scroll"><table class="cmp simtab"><thead><tr><th>Team</th><th>Now</th><th>Proj.</th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>
     ${rows.map(t => { const T = simTeam(lg, t.name), o = SIM.open === lg + "/" + t.name;
       return `<tr class="simrow ${o ? "on" : ""}" data-simt="${esc(t.name)}" tabindex="0"><td><span class="simtn">${logoChip(T, "sm", lg)}<b>${esc(simShort(lg, t.name))}</b>${soccer ? "" : `<small>${esc(String(t.div).replace(/^(AL|NL|AFC|NFC) /, ""))}</small>`}</span></td><td>${rec(t)}</td><td>${proj(t)}</td>${cols.map(c => oddsCell(t[c[0]])).join("")}</tr>${o ? detail(t) : ""}`; }).join("")}</tbody></table></div>`;
   // the week's biggest games
@@ -3531,7 +3536,7 @@ async function renderSeasonOdds(){
   const luckRow = t => `<div class="simlk">${logoChip(simTeam(lg, t.name), "sm", lg)}<b>${esc(simShort(lg, t.name))}</b><span class="${t.luck > 0 ? "pos" : "neg"}">${sgn(t.luck)}</span></div>`;
   const sos = L.teams.filter(t => t.sos != null).sort((a, b) => b.sos - a.sos);
   const sosRow = t => `<div class="simlk">${logoChip(simTeam(lg, t.name), "sm", lg)}<b>${esc(simShort(lg, t.name))}</b><span>${sgn(t.sos, 0)}</span></div>`;
-  el.innerHTML = `<p class="sub simintro">The rest of the season played ${L.sims.toLocaleString()} times with the model: every game decided by its win chance, each team's true strength allowed to drift, and the real ${soccer ? "table" : "playoff format"} played out. ${L.played} ${soccer ? "matches" : "games"} played, ${L.left} to go. Updated ${esc(simDay(L.asof))}. Tap a team for its odds over time and what its next game is worth.</p>
+  el.innerHTML = `<p class="sub simintro">The rest of the season played ${L.sims.toLocaleString()} times with the model: every game decided by its win chance, each team's true strength allowed to drift, and the real ${soccer ? "table" : "playoff format"} played out${soccer ? "" : ` (Title means winning the ${{ nfl: "Super Bowl", nba: "NBA Finals", mlb: "World Series", nhl: "Stanley Cup" }[lg]})`}. ${L.played} ${soccer ? "matches" : "games"} played, ${L.left} to go. Updated ${esc(simDay(L.asof))}. Tap a team for its odds over time and what its next game is worth.</p>
     ${groups.length > 1 ? `<div class="seg trseg" role="group" aria-label="Conference">${groups.map(g => `<button type="button" data-simg="${esc(g)}" aria-pressed="${g === grp}">${esc(g)}</button>`).join("")}</div>` : ""}
     <section class="card simcard">${table}</section>
     <div class="grid">
@@ -5353,7 +5358,7 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-track";
+const NEW_V = "2026-09-odds";
 function maybeWhatsNew(){
   if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
@@ -5628,6 +5633,16 @@ function uniRow(g){
     <span class="ust">${esc(when)}${launch}${P ? `<small>Your pick: ${esc(P.pick === "draw" ? "Draw" : abbrOf(sideTeam(g, P.pick)))}</small>` : ""}</span>
     ${v != null ? `<span class="umeter" title="Excitement ${v}"><i style="width:${v}%"></i></span><b class="uval ${st === "post" && v >= 72 ? "hotv" : ""}">${st === "post" ? esc(pulseWord(v, st)) : v}</b>` : `<span class="umeter off"></span><b class="uval"></b>`}</button>`;
 }
+// Today: the games with the most riding on them, from every league's season simulation
+function stakesHtml(){
+  if (!SIM.data){ if (!SIM.err && !SIM.busy){ SIM.busy = true; loadSim().then(() => { SIM.busy = false; if (SIM.data && SPORT === "universe") drawUniverse(); }); } return ""; }
+  const d0 = new Date(), iso = x => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`, today = iso(d0), tmw = iso(new Date(d0.getTime() + 864e5));
+  const list = Object.entries(SIM.data.leagues || {}).flatMap(([lg, L]) => (L.big || []).filter(b => b.date === today || b.date === tmw).map(b => ({ lg, ...b }))).sort((a, b) => b.swing - a.swing).slice(0, 4);
+  if (!list.length) return "";
+  return `<section class="usec"><h3>Most at stake <small>playoff races, from 10,000 simulated seasons</small></h3><div class="ulist">${list.map(b => `<button type="button" class="stkrow" onclick="setSport('${b.lg}');setTT('odds');window.scrollTo({top:0})">
+    <span class="stkt">${logoChip(simTeam(b.lg, b.a), "sm", b.lg)}<b>${esc(simShort(b.lg, b.a))}</b><span class="muted">at</span>${logoChip(simTeam(b.lg, b.h), "sm", b.lg)}<b>${esc(simShort(b.lg, b.h))}</b><em>${esc(LEAGUE_LABEL[b.lg] === "Premier League" ? "EPL" : LEAGUE_LABEL[b.lg])}${b.date === tmw ? " · tomorrow" : ""}</em></span>
+    <small>${b.lg === "epl" ? "" : `${esc(simShort(b.lg, b.a))} ${oddsPct(b.a_if_win)} or ${oddsPct(b.a_if_loss)} · ${esc(simShort(b.lg, b.h))} ${oddsPct(b.h_if_win)} or ${oddsPct(b.h_if_loss)} to make the playoffs, win or lose`}</small></button>`).join("")}</div></section>`;
+}
 function drawUniverse(){
   const el = $("#uniView"); if (!el) return;
   const head = `<div class="lghead"><div><h1>Today</h1><p>Every game across the NFL, NBA, MLB, NHL and Premier League. The closest and latest games sit nearest the center.</p></div></div>`;
@@ -5653,6 +5668,7 @@ function drawUniverse(){
       ${dailyHtml(true)}
       <section class="usec"><h3>${live.length ? `Live now <small>${live.length} game${live.length === 1 ? "" : "s"}, hottest first</small>` : "Live now"}</h3>${live.length ? `<div class="ulist">${live.map(uniRow).join("")}</div>` : `<div class="teamnote">Nothing live right now. The next games are below.</div>`}</section>
       ${forecastHtml()}
+      ${stakesHtml()}
       ${soon.length ? `<section class="usec"><h3>Coming up</h3><div class="ulist">${soon.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
       ${done.length ? `<section class="usec"><h3>Final <small>best games first</small></h3><div class="ulist">${done.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
       ${!NTF.on && pushOK() ? `<section class="usec ntfnudge"><h3>Get alerts</h3><p>Starts, scores, close finishes and finals for the teams you follow, even with the app closed.</p><button class="btn primary" type="button" id="uniNtf">Turn on notifications</button></section>` : ""}

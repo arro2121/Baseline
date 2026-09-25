@@ -433,7 +433,7 @@ def main(leagues):
     models = json.load(open(os.path.join(HERE, "docs", "models.json")))
     out_path = os.path.join(HERE, "docs", "sim.json")
     prev = json.load(open(out_path)) if os.path.exists(out_path) else {}
-    out = {"asof": dt.datetime.utcnow().strftime("%Y-%m-%dT%H:%MZ"), "leagues": dict(prev.get("leagues", {}))}
+    out = {"asof": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ"), "leagues": dict(prev.get("leagues", {}))}
     hist_dir = os.path.join(HERE, "data", "sim_history"); os.makedirs(hist_dir, exist_ok=True)
     fetch = {"nfl": sched_nfl, "mlb": sched_mlb, "nhl": sched_nhl, "nba": sched_nba, "epl": sched_epl}
     rng = np.random.default_rng(int(today.strftime("%Y%m%d")))

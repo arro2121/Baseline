@@ -146,6 +146,15 @@ market knows injuries and lineups the models don't, which is why it stays ahead 
 
 No model is certain. Bet only what you can afford to lose.
 
+### Season odds
+
+Every night `season_sim.py` plays out the rest of each league's season 10,000 times with the same models: every game decided by its
+win chance, each team's true strength allowed to drift (more with more games left), and the real playoff formats (NFL 7 per
+conference with byes, MLB 6 per league with best-of-3/5/7 rounds, NHL divisions and wildcards, NBA play-in; for the Premier League
+the title, the top four and relegation). The app's **Odds** tab shows each team's playoff, division and title chances, charted over
+time, what its next game is worth, luck (wins above what points scored and allowed usually bring), the toughest schedules left, and
+the week's games that move the most playoff chances across the league (also on Today, as **Most at stake**).
+
 ### The live track record
 
 Backtests can flatter a model, so the app also keeps score in public (**More › Track record**, or `?sport=record`).
