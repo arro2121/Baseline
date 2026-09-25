@@ -13,7 +13,7 @@ binding = "KV"
 id = "e5a582bb18404b56b0f10b95045d4390"
 
 [vars]
-SITE_URL = "https://arro2121.github.io/Baseline"
+SITE_URL = "https://cosmosports.app"
 VAPID_SUBJECT = "mailto:arro2121@users.noreply.github.com"
 # The public key printed by: node make-keys.mjs
 VAPID_PUBLIC_KEY = "BAWuN8NN71xkl9gvznI6iIXS8E_uEbfP0t0zBlT8wxM2nZzN2BXqvImS7ZVqyXPkpToGJlBBcPJDFejTexmsrA0"

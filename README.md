@@ -177,6 +177,13 @@ record in each league and overall, how often the betting favorite won the same g
 made: on every pick, and on value bets only (the model's chance at least 3 points above the market's). A copy is saved to
 `docs/track.json` every night.
 
+## Your own domain
+
+The site runs at **https://cosmosports.app**. To use a different domain: point its DNS at GitHub Pages (four A records for
+`@` to 185.199.108.153, .109.153, .110.153 and .111.153, and a `www` CNAME to `<owner>.github.io`, DNS only if it's on
+Cloudflare), enter it under **Settings › Pages › Custom domain**, tick **Enforce HTTPS** once offered, and put the domain in
+`custom_domain.txt` so the alerts service fetches the site's files from the new address.
+
 ## What runs automatically
 
 | When | What happens |

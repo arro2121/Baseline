@@ -31,6 +31,8 @@ fi
 # 4. Settings
 OWNER=$(echo "${GITHUB_REPOSITORY_OWNER:-you}" | tr 'A-Z' 'a-z'); REPO="${GITHUB_REPOSITORY#*/}"
 SITE="https://$OWNER.github.io/$REPO"
+# a custom domain (custom_domain.txt at the top of the repository, e.g. "cosmosports.app") replaces the github.io address
+if [ -s ../custom_domain.txt ]; then SITE="https://$(tr -d ' \r\n' < ../custom_domain.txt | sed 's|^https\?://||; s|/$||')"; fi
 set_var() { sed -i "s|^$1 = .*|$1 = \"$2\"|" wrangler.toml; }
 sed -i "s|^id = .*|id = \"$KV\"|" wrangler.toml
 set_var SITE_URL "$SITE"
