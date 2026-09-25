@@ -20,11 +20,11 @@
 <meta property="og:site_name" content="Cosmo Sports">
 <meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
 <meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
-<meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<meta property="og:url" content="https://arro2121.github.io/Baseline/">
+<meta property="og:image" content="og-image.png">
+<meta property="og:url" content="">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://arro2121.github.io/Baseline/og-image.png">
-<link rel="canonical" href="https://arro2121.github.io/Baseline/">
+<meta name="twitter:image" content="og-image.png">
+<link rel="canonical" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
@@ -1380,6 +1380,34 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .czc-mid.pl{position:relative;display:flex;align-items:center;justify-content:center;min-width:0}.czc-mid .czhs{width:72%;max-width:170px;flex:none;aspect-ratio:1;object-fit:cover;object-position:top;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,.04));
   box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 22px color-mix(in srgb,var(--c1) 70%,transparent);filter:none}
 .czc-mid .czbadge{position:absolute;right:10%;bottom:4%;width:26%;max-width:44px;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
+/* Cosmic, signed in: profile hero, icon tabs, home */
+.czhero{position:relative;overflow:hidden;isolation:isolate;border-radius:20px;padding:16px 18px 14px;margin:6px 0 14px;color:#fff;
+  background:radial-gradient(120% 90% at 10% 0%,#7c3aed,transparent 60%),radial-gradient(90% 80% at 100% 100%,#0e7490,transparent 60%),linear-gradient(160deg,#1e0b3a,#07021a);box-shadow:0 14px 40px -18px rgba(124,58,237,.9),inset 0 0 0 1px rgba(233,213,255,.2)}
+.czhero-sky{position:absolute;inset:0;z-index:-1;opacity:.9;background-image:radial-gradient(1px 1px at 12% 30%,#fff,transparent),radial-gradient(1.4px 1.4px at 28% 70%,#f5d0fe,transparent),radial-gradient(1px 1px at 46% 20%,#fff,transparent),radial-gradient(1.2px 1.2px at 64% 58%,#e0e7ff,transparent),radial-gradient(1px 1px at 82% 26%,#fff,transparent),radial-gradient(1.4px 1.4px at 90% 80%,#fff,transparent),radial-gradient(40% 60% at 80% 20%,rgba(232,121,249,.25),transparent 70%);animation:czsky 30s linear infinite alternate}
+@keyframes czsky{to{background-position:30px -20px,-20px 10px,10px 20px,-10px -10px,20px 10px,-30px 0,0 0}}
+.czhero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.czavatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:1.3rem;background:radial-gradient(circle at 35% 30%,#f5d0fe,#a855f7 45%,#4c1d95);box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 20px rgba(192,132,252,.8)}
+.czwho{display:grid;flex:1;min-width:0}.czwho b{font-size:1.1rem}.czwho small{opacity:.8;font-size:.78rem}
+.czhero .czdaily.done{font-size:.78rem;opacity:.85}.czdaily.glow{animation:czglow 2.2s ease-in-out infinite;box-shadow:0 0 0 0 rgba(232,121,249,.7)}.czdaily.glow .czamt b{font-weight:800}
+@keyframes czglow{50%{box-shadow:0 0 0 8px rgba(232,121,249,0)}}
+.czhero-bal{margin:12px 0 10px;display:grid}.czhero-bal small{opacity:.75;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.czamt.xl{font-size:2.3rem;font-stretch:112%}.czamt.xl .czcoin{width:1.05em;height:1.05em}.czamt.up b{color:#86efac;transition:color .3s}.czamt.down b{color:#fda4af;transition:color .3s}
+.czstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.czstats div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 10px;display:grid}
+.czstats b{font-size:1.05rem}.czstats small{font-size:.68rem;opacity:.75}
+.cztabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 10px;margin:0 0 6px;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg,#07021a) 70%,transparent)}
+.cztabs::-webkit-scrollbar{display:none}
+.cztabs button{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700;font-size:.86rem;cursor:pointer}
+.cztabs button[aria-pressed="true"]{color:#fff;border-color:transparent;background:linear-gradient(90deg,#7c3aed,#db2777);box-shadow:0 6px 18px -8px rgba(219,39,119,.8)}
+.czacts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 16px}
+.czact{display:grid;gap:3px;justify-items:start;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:inherit;font:inherit;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
+.czact:hover{transform:translateY(-2px)}.czact-i{font-size:1.4rem}.czact small{color:var(--muted);font-size:.74rem}
+.czact.hot{border-color:transparent;background:linear-gradient(150deg,rgba(124,58,237,.35),rgba(219,39,119,.25));box-shadow:0 0 0 1px rgba(232,121,249,.5),0 10px 26px -12px rgba(219,39,119,.8)}
+.czshow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.czedge{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 12px;margin-top:8px;border-radius:12px;border:1px solid rgba(52,211,153,.35);background:linear-gradient(90deg,rgba(16,185,129,.12),transparent);color:inherit;font:inherit;cursor:pointer}
+.czedge span{display:grid;min-width:0}.czedge small{color:var(--muted);font-size:.74rem}.czedge em{font-style:normal;font-weight:800;display:grid;justify-items:end}.czedge em i{font-style:normal;font-size:.7rem;color:#34d399}
+.czpick.value{border-color:rgba(52,211,153,.6)}.czval{font-style:normal;font-size:.64rem;font-weight:800;color:#34d399;margin-top:1px}
+@media (max-width:560px){.czacts{grid-template-columns:1fr 1fr}.czstats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.czstats div{padding:7px 8px}.czamt.xl{font-size:2rem}.czshow{gap:8px}}
+@media (prefers-reduced-motion:reduce){.czhero-sky,.czdaily.glow{animation:none}}
 .trlink{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 18px;box-shadow:var(--shadow);cursor:pointer;font:inherit;color:inherit}
 .trlink span{grid-column:1;font-size:.8rem;color:var(--muted)}.trlink i{grid-row:1/3;grid-column:2;font-style:normal;font-size:1.2rem;color:var(--muted)}
 .trseg{margin:0 0 16px;flex-wrap:wrap;max-width:100%}.trseg button{padding:7px 13px}
@@ -5092,10 +5120,12 @@ document.addEventListener("click", e => { const r = e.target.closest(".ldrow[dat
 /* ================= Cosmic: social betting with Cosmic Coins, and limited-edition collectibles =================
    Play money only. Coins, bets and cards live on the alerts service (alerts/worker.js, cosmicRoute) so every card's supply is
    shared by everyone: one 1/1 of each, fifty 1/50s. This device keeps the account key ("cz-auth"). */
-const CZ = { kind: lsGet("cz-kind", "all"), tab: ({ vault: "check" })[lsGet("cz-tab", "bet")] || lsGet("cz-tab", "bet"), packs: null, scope: lsGet("cz-scope", "all"), me: null, board: null, vault: null, lb: null, lg: "all", vlg: "all", vtier: "all", vq: "", vshow: 48, busy: false, err: null, loaded: false };
+const CZ = { kind: lsGet("cz-kind", "all"), tab: ({ vault: "check" })[lsGet("cz-tab", "home")] || lsGet("cz-tab", "home"), packs: null, scope: lsGet("cz-scope", "all"), me: null, board: null, vault: null, lb: null, lg: "all", vlg: "all", vtier: "all", vq: "", vshow: 48, busy: false, err: null, loaded: false };
 const czKey = () => lsGet("cz-auth", "");
 const CZ_LG = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "EPL", atp: "ATP", wta: "WTA" };
 const czCoin = (cls = "") => `<svg class="czcoin ${cls}" viewBox="0 0 24 24" aria-hidden="true"><defs><radialGradient id="czg" cx="34%" cy="28%" r="78%"><stop offset="0" stop-color="#fbe8ff"/><stop offset=".3" stop-color="#c084fc"/><stop offset=".7" stop-color="#6d28d9"/><stop offset="1" stop-color="#2e1065"/></radialGradient></defs><circle cx="12" cy="12" r="11" fill="url(#czg)" stroke="#e9d5ff" stroke-width="1.1"/><circle cx="12" cy="12" r="7.8" fill="none" stroke="#f5d0fe" stroke-opacity=".5" stroke-width=".7"/><path d="M12 6.4l1.35 3.5 3.7.3-2.8 2.35.88 3.6L12 14.2l-3.13 1.95.88-3.6-2.8-2.35 3.7-.3z" fill="#fdf4ff"/><circle cx="6.6" cy="8.2" r=".55" fill="#fff"/><circle cx="17.3" cy="15.8" r=".45" fill="#fff"/><circle cx="16.4" cy="7" r=".35" fill="#fff"/></svg>`;
+const czBal = () => CZ.me ? (CZ.me.tester ? Infinity : CZ.me.bal) : 0;
+const czInf = (cls = "") => `<span class="czamt ${cls}">${czCoin()}<b>∞</b></span>`;
 const czAmt = (n, cls = "") => `<span class="czamt ${cls}">${czCoin()}<b>${Math.round(n).toLocaleString()}</b></span>`;
 async function czApi(path, body, opt = {}){
   const r = await fetch(ALERTS_URL + "/cosmic" + path, { method: opt.method || (body ? "POST" : "GET"), headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}), ...(opt.headers || {}) }, body: opt.body || (body ? JSON.stringify(body) : undefined), cache: "no-store" });
@@ -5113,6 +5143,7 @@ async function czLoad(what = ["me", "board", "vault", "lb"]){
     if (w === "me" && czKey()){ CZ.me = (await czApi("/me")).user; }
     if (w === "board") CZ.board = (await czApi("/board")).markets;
     if (w === "vault"){ await czVault(); if (!CZ.packs) CZ.packs = await czApi("/packs"); }
+    if (w === "board" && !CZ.packs) CZ.packs = await czApi("/packs");
     if (w === "lb") CZ.lb = await czApi("/leaders");
     if (w === "market") CZ.market = await czApi("/market");
   } catch (e) { if (w === "me" && e.status === 401){ lsSet("cz-auth", ""); CZ.me = null; } else CZ.err = e.message; } }));
@@ -5143,10 +5174,29 @@ function czFx(t){
   return "";
 }
 const CZ_TIER_NAME = { singularity: "Singularity", supernova: "Supernova", quasar: "Quasar", nebula: "Nebula", pulsar: "Pulsar", stardust: "Stardust", comet: "Comet" };
+const czToday = () => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); };
+function czRank(){ const L = CZ.lb && CZ.lb.rich; if (!L || !CZ.me) return null; const i = L.findIndex(r => r.uid === CZ.me.uid); return i < 0 ? null : { n: i + 1, of: CZ.lb.players }; }
 function czHeader(){
-  const me = CZ.me, day = (() => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); })();
-  return `<div class="lghead czhead"><div><h1>🪐 Cosmic</h1><p>Bet Cosmic Coins on real games, climb the leaderboard, and spend your winnings on packs of limited-edition team and player cards. Free and just for fun: coins have no cash value and can't be bought or cashed out.</p></div>
-    ${me ? `<div class="czbal"><small>${esc(me.name)}</small>${czAmt(me.bal, "lg")}${me.lastDaily === day ? `<span class="czdaily done">Daily coins claimed</span>` : `<button type="button" class="btn primary czdaily" data-cz="daily">Claim daily coins</button>`}</div>` : ""}</div>`;
+  const me = CZ.me;
+  if (!me) return `<div class="lghead czhead"><div><h1>🪐 Cosmic</h1><p>Bet free Cosmic Coins on real games, climb the leaderboards, and rip packs of limited-edition team and player cards, down to the one-and-only 1 of 1.</p></div></div>`;
+  const claimed = me.lastDaily === czToday(), rk = czRank(), items = me.items || [], rarest = items.reduce((m, i) => Math.min(m, i.supply || 1e9), 1e9), open = (me.bets || []).filter(b => !b.res).length;
+  const yday = (() => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(Date.now() - 864e5)); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); })();
+  const next = CZ_DAILY_BASE + (me.lastDaily === yday ? Math.min(6, me.streak || 0) : 0) * 50;           // the streak bonus only carries on from yesterday
+  return `<section class="czhero"><div class="czhero-sky" aria-hidden="true"></div>
+    <div class="czhero-top"><span class="czavatar" aria-hidden="true">${esc((me.name || "?").slice(0, 1).toUpperCase())}</span>
+      <div class="czwho"><b>${esc(me.name)}</b><small>${rk ? `Rank #${rk.n} of ${rk.of.toLocaleString()}` : "Cosmic player"}${me.streak > 1 ? ` · 🔥 ${me.streak}-day streak` : ""}</small></div>
+      ${claimed ? `<span class="czdaily done">✓ Daily coins claimed</span>` : `<button type="button" class="btn primary czdaily glow" data-cz="daily">Claim ${czAmt(next)}</button>`}</div>
+    <div class="czhero-bal"><small>${me.tester ? "Balance · unlimited while you test (owner)" : "Balance"}</small>${me.tester ? `<span class="czamt xl">${czCoin()}<b>∞</b></span>` : `<span class="czamt xl">${czCoin()}<b data-czbal="${Math.round(me.bal)}">${Math.round(CZ.shownBal ?? me.bal).toLocaleString()}</b></span>`}</div>
+    <div class="czstats"><div><b>${items.length}</b><small>Cards</small></div><div><b>${rarest < 1e9 ? "1/" + rarest : "—"}</b><small>Rarest</small></div><div><b>${me.won}–${me.lost}</b><small>Bets won</small></div><div><b>${open}</b><small>Open bets</small></div></div></section>`;
+}
+const CZ_DAILY_BASE = 250;
+// the balance counts up (or down) to its new value
+function czAnimBal(){
+  const b = document.querySelector("[data-czbal]"); if (!b) return; const to = +b.dataset.czbal, from = CZ.shownBal ?? to; CZ.shownBal = to;
+  if (from === to || RM()) { b.textContent = to.toLocaleString(); return; }
+  const t0 = performance.now(), dur = 900; b.parentElement.classList.add(to > from ? "up" : "down");
+  const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); b.textContent = Math.round(from + (to - from) * e).toLocaleString(); if (k < 1) requestAnimationFrame(step); else setTimeout(() => b.parentElement.classList.remove("up", "down"), 400); };
+  requestAnimationFrame(step);
 }
 function drawCosmic(){
   const el = $("#cosmicView"); if (!el) return;
@@ -5156,11 +5206,38 @@ function drawCosmic(){
   if (!CZ.me){ el.innerHTML = czHeader() + (pkOn ? czPkHtml(false) : czJoinHtml()); czBind(el); czPkBind(el); return; }
   if (pkOn && !CZ.me.passkey){ el.innerHTML = czHeader() + czPkHtml(true); czBind(el); czPkBind(el); return; }
   czSyncStart();
-  const tabs = [["bet", "Bet"], ["mine", "My bets"], ["packs", "Packs"], ["market", "Market"], ["coll", "Collection"], ["check", "Checklist"], ["lb", "Leaders"]];
-  el.innerHTML = czHeader() + `<div class="seg trseg" role="group" aria-label="Cosmic">${tabs.map(([k, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</div>`
-    + ({ bet: czBetHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)()
-    + `<p class="cmfoot">Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed. ${CZ.me.passkey ? `Signed in with a passkey: your account and your followed teams, settings and picks are saved and follow you to any device where you sign in. <button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`}</p>`;
-  czBind(el);
+  const tabs = [["home", "🏠", "Home"], ["bet", "🎯", "Bet"], ["mine", "🧾", "My bets"], ["packs", "🎴", "Packs"], ["market", "🛒", "Market"], ["coll", "🗂️", "Collection"], ["check", "✅", "Checklist"], ["lb", "🏆", "Leaders"]];
+  el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}"><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>`
+    + ({ home: czHomeHtml, bet: czBetHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)()
+    + `<p class="cmfoot">Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed. ${CZ.me.passkey ? `Signed in with a passkey: your account and your followed teams, settings and picks are saved and follow you to any device where you sign in. <button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button></p>`;
+  czBind(el); czAnimBal();
+  const t = el.querySelector('.cztabs [aria-pressed="true"]'); if (t && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center" });
+}
+// ---- Home: what to do next, your best cards, the best bets, and what everyone else is up to
+function czEdges(){
+  return (CZ.board || []).flatMap(m => m.model ? Object.keys(m.dec).map(side => ({ m, side, edge: m.model[side] - 1 / m.dec[side] })) : []).filter(x => x.edge >= .03 && Date.parse(x.m.start) > Date.now()).sort((a, b) => b.edge - a.edge);
+}
+function czHomeHtml(){
+  const me = CZ.me, claimed = me.lastDaily === czToday(), items = (me.items || []).slice().sort((a, b) => a.supply - b.supply || (b.price || 0) - (a.price || 0));
+  const games = (CZ.board || []).length, cheapest = CZ.packs ? CZ.packs.packs.filter(p => p.price <= me.bal).sort((a, b) => b.price - a.price)[0] : null, listings = CZ.market ? CZ.market.listings.filter(l => l.uid !== me.uid).length : null;
+  const tile = (go, icon, title, sub, hot) => `<button type="button" class="czact ${hot ? "hot" : ""}" ${go}><span class="czact-i" aria-hidden="true">${icon}</span><b>${title}</b><small>${sub}</small></button>`;
+  const edges = czEdges().slice(0, 3), L = CZ.lb, rk = czRank();
+  const feedTxt = f => f.kind === "sale" ? `<b>${esc(f.name)}</b> bought ${esc(f.label)} #${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `<b>${esc(f.name)}</b> pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `<b>${esc(f.name)}</b> collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `<b>${esc(f.name)}</b> won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : `<b>${esc(f.name)}</b> joined Cosmic`;
+  return `<div class="czacts">
+      ${claimed ? tile('data-cztab="bet"', "🎯", "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', "🪙", "Claim daily coins", "Free coins every day, more for a streak", true)}
+      ${tile('data-cztab="packs"', "🎴", "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 250 coins", false)}
+      ${tile('data-cztab="market"', "🛒", "Market", listings == null ? "Buy from other collectors" : `${listings} card${listings === 1 ? "" : "s"} for sale`, false)}
+      ${tile('data-cztab="lb"', "🏆", "Leaders", rk ? `You're #${rk.n}` : "See who's on top", false)}</div>
+    <div class="grid" style="margin-top:0">
+      <section class="card"><h2>Your showcase</h2>${items.length ? `<div class="czshow">${items.slice(0, 3).map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}</button>`).join("")}</div><p class="sub" style="margin:10px 0 0">Your rarest cards. <button type="button" class="linkbtn" data-cztab="coll">See all ${items.length}</button></p>`
+        : `<p class="sub">No cards yet. A Comet Pack is 250 coins and every card in it is numbered.</p><button type="button" class="btn primary" data-cztab="packs">Open your first pack</button>`}</section>
+      <section class="card"><h2>Cosmo's best bets today</h2><p class="sub">Where the model's chance beats what the price implies. Not a sure thing, just value.</p>
+        ${edges.length ? edges.map(({ m, side, edge }) => { const T = side === "draw" ? null : m[side], opp = side === "home" ? m.away : m.home;
+          return `<button type="button" class="czedge" data-czbet="${m.lg}|${esc(m.gid)}|${side}">${T ? logoChip(simTeam(m.lg, T.name), "sm", m.lg) : ""}<span><b>${side === "draw" ? `Draw: ${esc(simShort(m.lg, m.away.name))} at ${esc(simShort(m.lg, m.home.name))}` : `${esc(simShort(m.lg, T.name))} ${side === "home" ? "vs" : "at"} ${esc(simShort(m.lg, opp.name))}`}</b><small>${esc(CZ_LG[m.lg])} · ${esc(new Date(m.start).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }))} · Cosmo ${Math.round(m.model[side] * 100)}%</small></span><em>${czPrice(m.dec[side])}<i>+${Math.round(edge * 100)}% edge</i></em></button>`; }).join("")
+          : `<p class="sub">${CZ.board ? "No standout value right now. Check back closer to game time." : "Loading today's games…"}</p>`}</section>
+      <section class="card"><h2>Top of the cosmos</h2>${L ? L.rich.slice(0, 5).map((r, i) => `<div class="czlbr ${r.uid === me.uid ? "me" : ""}"><span class="ldn">${["🥇", "🥈", "🥉"][i] || i + 1}</span><b>${esc(r.name)}</b><span>${czAmt(r.bal)}</span></div>`).join("") + (rk && rk.n > 5 ? `<div class="czlbr me"><span class="ldn">${rk.n}</span><b>${esc(me.name)}</b><span>${czAmt(me.bal)}</span></div>` : "") : `<p class="sub">Loading…</p>`}</section>
+      <section class="card"><h2>Live from the cosmos</h2>${L && L.feed.length ? `<div class="czfeed">${L.feed.slice(0, 6).map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet. Be the first to pull a rare one.</p>`}</section>
+    </div>`;
 }
 function czJoinHtml(){
   if (!CZ.preview && !CZ.previewing){ CZ.previewing = true; czApi("/vault?tier=singularity&kind=team&limit=4").then(d => { CZ.preview = d.items; if (!CZ.me && SPORT === "cosmic") drawCosmic(); }).catch(() => {}); }
@@ -5246,7 +5323,8 @@ function czBetHtml(){
   const B = CZ.board; if (!B) return `<div class="teamnote">${CZ.err ? `<b>Couldn't load the games</b>${esc(CZ.err)}` : cosmoLoad("Loading today's games…")}</div>`;
   const lgs = [...new Set(B.map(m => m.lg))], list = B.filter(m => CZ.lg === "all" || m.lg === CZ.lg);
   const open = new Set((CZ.me.bets || []).filter(b => !b.res).map(b => b.lg + "/" + b.gid + "/" + b.side));
-  const btn = (m, side, T) => `<button type="button" class="czpick ${open.has(m.lg + "/" + m.gid + "/" + side) ? "on" : ""}" data-czbet="${m.lg}|${esc(m.gid)}|${side}"><span>${side === "draw" ? "Draw" : esc(T.abbr || simShort(m.lg, T.name))}</span><b>${czPrice(m.dec[side])}</b>${m.model ? `<small>Cosmo ${Math.round(m.model[side] * 100)}%</small>` : ""}</button>`;
+  const btn = (m, side, T) => { const edge = m.model ? m.model[side] - 1 / m.dec[side] : 0;
+    return `<button type="button" class="czpick ${open.has(m.lg + "/" + m.gid + "/" + side) ? "on" : ""} ${edge >= .03 ? "value" : ""}" data-czbet="${m.lg}|${esc(m.gid)}|${side}"><span>${side === "draw" ? "Draw" : esc(T.abbr || simShort(m.lg, T.name))}</span><b>${czPrice(m.dec[side])}</b>${m.model ? `<small>Cosmo ${Math.round(m.model[side] * 100)}%</small>` : ""}${edge >= .03 ? `<i class="czval">+${Math.round(edge * 100)}% edge</i>` : ""}</button>`; };
   return `${lgs.length > 1 ? `<div class="seg trseg" role="group" aria-label="League">${["all", ...lgs].map(l => `<button type="button" data-czlg="${l}" aria-pressed="${CZ.lg === l}">${l === "all" ? "All" : CZ_LG[l]}</button>`).join("")}</div>` : ""}
     ${list.length ? `<div class="czmkts">${list.map(m => { const A = simTeam(m.lg, m.away.name), H = simTeam(m.lg, m.home.name), when = new Date(m.start);
       return `<div class="czmkt"><div class="czmh"><span>${logoChip(A, "sm", m.lg)}<b>${esc(simShort(m.lg, m.away.name))}</b> <span class="muted">at</span> ${logoChip(H, "sm", m.lg)}<b>${esc(simShort(m.lg, m.home.name))}</b></span><em>${esc(CZ_LG[m.lg])} · ${esc(when.toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }))}</em></div>
@@ -5258,13 +5336,13 @@ function czSlip(lg, gid, side){
   const who = side === "draw" ? "Draw" : m[side].name, dec = m.dec[side], dlg = $("#infoDlg");
   const draw = () => { const st = Math.max(0, Math.floor(+$("#czStake").value || 0)); $("#czWin").innerHTML = czAmt(Math.round(st * dec)); };
   $("#infoBody").innerHTML = `<h2 id="infoTitle">${esc(who)}${side === "draw" ? "" : " to win"}</h2><p class="sub">${esc(m.away.name)} at ${esc(m.home.name)} · ${esc(new Date(m.start).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }))}</p>
-    <div class="czslip"><div><span>Price</span><b>${czPrice(dec)}</b>${m.model ? `<small>Cosmo gives it ${Math.round(m.model[side] * 100)}%</small>` : ""}</div><div><span>Your coins</span>${czAmt(CZ.me.bal)}</div></div>
-    <label class="czstake">Stake<input class="field" id="czStake" type="number" inputmode="numeric" min="10" max="5000" step="10" value="${Math.min(100, CZ.me.bal)}"></label>
+    <div class="czslip"><div><span>Price</span><b>${czPrice(dec)}</b>${m.model ? `<small>Cosmo gives it ${Math.round(m.model[side] * 100)}%</small>` : ""}</div><div><span>Your coins</span>${CZ.me.tester ? czInf() : czAmt(CZ.me.bal)}</div></div>
+    <label class="czstake">Stake<input class="field" id="czStake" type="number" inputmode="numeric" min="10" max="5000" step="10" value="${Math.min(100, czBal())}"></label>
     <div class="czchips">${[50, 100, 250, 500, 1000].map(v => `<button type="button" class="chip" data-czs="${v}">${v}</button>`).join("")}<button type="button" class="chip" data-czs="max">Max</button></div>
     <p class="czret">Returns if it wins: <span id="czWin"></span></p><p class="czerr" id="czErr" role="alert"></p>
     <div class="pkfoot"><small>Stakes 10 to 5,000 coins. Settled automatically after the final.</small><button class="btn" type="button" data-info="close">Cancel</button><button class="btn primary" type="button" id="czPlace">Place bet</button></div>`;
   $("#czStake").oninput = draw; draw();
-  $("#infoBody").querySelectorAll("[data-czs]").forEach(b => b.onclick = () => { $("#czStake").value = b.dataset.czs === "max" ? Math.min(5000, CZ.me.bal) : b.dataset.czs; draw(); });
+  $("#infoBody").querySelectorAll("[data-czs]").forEach(b => b.onclick = () => { $("#czStake").value = b.dataset.czs === "max" ? Math.min(5000, czBal()) : b.dataset.czs; draw(); });
   $("#czPlace").onclick = async () => {
     const stake = Math.floor(+$("#czStake").value || 0); $("#czPlace").disabled = true;
     try { const r = await czApi("/bet", { lg, gid, side, stake, dec }); CZ.me = r.user; dlg.close(); toast(`Bet placed: ${stake.toLocaleString()} coins on ${who}`); sfx("tap"); drawCosmic(); }
@@ -5310,12 +5388,12 @@ function czPacksHtml(){
     <div class="czpacks">${P.packs.map(pk => `<div class="czpk">
       <div class="czpack p-${esc(pk.id)}"><div class="czpk-crimp"></div><div class="czpk-sky"></div>${czCoin("pk")}<b>${esc(pk.label)}</b><small>${pk.cards} cards · ${esc(scopeName[CZ.scope])}${CZ.kind === "team" ? " teams" : CZ.kind === "player" ? " players" : ""}</small><div class="czpk-crimp b"></div></div>
       <table class="czodds"><tbody>${CZ_ORDER.map((t, i) => pk.odds[i] ? `<tr><td><i class="czdot t-${t}"></i>${esc(CZ_TIER_NAME[t])} <small>1/${P.tiers[i].supply}</small></td><td>${czOddsPct(pk.odds[i])}</td></tr>` : "").join("")}</tbody></table>
-      <button type="button" class="btn primary czopen" data-czpack="${esc(pk.id)}" ${CZ.me.bal < pk.price ? "disabled" : ""}>Open for ${czAmt(pk.price)}</button></div>`).join("")}</div>
+      <button type="button" class="btn primary czopen" data-czpack="${esc(pk.id)}" ${czBal() < pk.price ? "disabled" : ""}>Open for ${czAmt(pk.price)}</button></div>`).join("")}</div>
     <p class="sub" style="margin-top:12px">Odds are per card. If every copy of a tier is gone, that card comes from the next more common tier. You've opened ${CZ.me.packs || 0} pack${CZ.me.packs === 1 ? "" : "s"}.</p>`;
 }
 async function czOpen(id){
   const pk = CZ.packs.packs.find(p => p.id === id); if (!pk) return;
-  if (CZ.me.bal < pk.price){ toast(`You need ${(pk.price - CZ.me.bal).toLocaleString()} more coins for this pack`); return; }
+  if (czBal() < pk.price){ toast(`You need ${(pk.price - CZ.me.bal).toLocaleString()} more coins for this pack`); return; }
   if (!confirm(`Open a ${pk.label} (${pk.cards} cards) for ${pk.price.toLocaleString()} Cosmic Coins?`)) return;
   try { const r = await czApi("/pack", { pack: id, scope: CZ.scope, kind: CZ.kind }); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); }
   catch (e) { toast(e.message); czLoad(["vault", "me"]); }
@@ -5372,7 +5450,7 @@ function czMarketHtml(){
   const all = M.listings.filter(l => (mlg === "all" || (mlg === "tennis" ? ["atp", "wta"].includes(l.lg) : l.lg === mlg)) && (!q || tkey(`${l.name} ${l.team || ""}`).includes(q)));
   const own = all.filter(l => l.uid === CZ.me.uid), rest = all.filter(l => l.uid !== CZ.me.uid).sort(CZ.msort === "cheap" ? (a, b) => a.price - b.price : CZ.msort === "rare" ? (a, b) => a.supply - b.supply || a.price - b.price : (a, b) => b.at - a.at);
   const tile = (l, you) => `<div class="czitem">${czCard({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n)}<div class="czinfo"><span class="czleft">${you ? "Your listing" : `Sold by ${esc(l.seller)}`}</span>
-    ${you ? `<button type="button" class="btn czbuy" data-czunl="${esc(l.lid)}">Remove · ${czAmt(l.price)}</button>` : `<button type="button" class="btn ${mine.has(l.id) || CZ.me.bal < l.price ? "" : "primary"} czbuy" data-czbl="${esc(l.lid)}" ${mine.has(l.id) ? "disabled" : ""}>${mine.has(l.id) ? "You own one" : czAmt(l.price)}</button>`}</div></div>`;
+    ${you ? `<button type="button" class="btn czbuy" data-czunl="${esc(l.lid)}">Remove · ${czAmt(l.price)}</button>` : `<button type="button" class="btn ${mine.has(l.id) || czBal() < l.price ? "" : "primary"} czbuy" data-czbl="${esc(l.lid)}" ${mine.has(l.id) ? "disabled" : ""}>${mine.has(l.id) ? "You own one" : czAmt(l.price)}</button>`}</div></div>`;
   return `<p class="sub">Cards other collectors are selling, for Cosmic Coins. Sellers set the price; ${Math.round(M.fee * 100)}% of each sale goes to the cosmos as a market fee. To sell a card, open it in your Collection.</p>
     <div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czmlg="${l}" aria-pressed="${mlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <input class="field czq" type="search" placeholder="Find a team or player" value="${esc(CZ.mq || "")}" data-czmq>
@@ -5391,7 +5469,7 @@ function czLbHtml(){
     <section class="card"><h2>Live from the cosmos</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section></div>`;
 }
 function czBind(el){
-  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : ["check", "packs", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
+  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "home" ? ["me", "board", "lb", "market"] : CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : ["check", "packs", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
   el.querySelectorAll("[data-czlg]").forEach(b => b.onclick = () => { CZ.lg = b.dataset.czlg; drawCosmic(); });
   const vReload = async () => { if (CZ.tab === "check"){ try { await czVault(); } catch (e) { toast(e.message); } } drawCosmic(); };
   el.querySelectorAll("[data-czvlg]").forEach(b => b.onclick = () => { CZ.vlg = b.dataset.czvlg; vReload(); });
@@ -5406,7 +5484,7 @@ function czBind(el){
   const mq = el.querySelector("[data-czmq]"); if (mq) mq.oninput = () => { CZ.mq = mq.value; clearTimeout(CZ.mqt); CZ.mqt = setTimeout(() => { drawCosmic(); const n = $("#cosmicView [data-czmq]"); if (n){ n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); };
   el.querySelectorAll("[data-czunl]").forEach(b => b.onclick = async () => { try { const r = await czApi("/unlist", { lid: b.dataset.czunl }); CZ.me = r.user; toast("Taken off the market"); await czLoad(["market"]); } catch (e) { toast(e.message); } });
   el.querySelectorAll("[data-czbl]").forEach(b => b.onclick = async () => { const l = CZ.market.listings.find(x => x.lid === b.dataset.czbl); if (!l) return;
-    if (CZ.me.bal < l.price){ toast(`You need ${(l.price - CZ.me.bal).toLocaleString()} more coins`); return; }
+    if (czBal() < l.price){ toast(`You need ${(l.price - CZ.me.bal).toLocaleString()} more coins`); return; }
     if (!confirm(`Buy ${l.name} ${CZ_TIER_NAME[l.tier]} #${l.n}/${l.supply} from ${l.seller} for ${l.price.toLocaleString()} coins?`)) return;
     try { const r = await czApi("/buylisting", { lid: l.lid }); CZ.me = r.user; sfx("win"); czReveal({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n); czLoad(["market"]); drawCosmic(); } catch (e) { toast(e.message); czLoad(["market", "me"]); } });
   el.querySelectorAll("[data-czscope]").forEach(b => b.onclick = () => { CZ.scope = b.dataset.czscope; lsSet("cz-scope", CZ.scope); drawCosmic(); });
@@ -5417,8 +5495,15 @@ function czBind(el){
     catch (err) { toast(err.message); btn.disabled = false; } };
   el.querySelectorAll("[data-cz]").forEach(b => b.onclick = async () => {
     const k = b.dataset.cz;
-    if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); } catch (e) { toast(e.message); } }
+    if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); czLoad(["lb"]); } catch (e) { toast(e.message); } }
     if (k === "signout"){ if (!confirm("Sign out of Cosmic on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSyncPush(true); lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; drawCosmic(); return; }
+    if (k === "owner"){                                               // the site owner's testing switch, unlocked with the Comets writer key
+      let key = cmKey();
+      if (!key && !CZ.me.tester){ key = (prompt("Owner only: paste your owner key (the COMETS_KEY you set up for Comets) to give this account unlimited coins for testing.") || "").trim(); if (!key) return; }
+      try { const r = await czApi("/owner/unlimited", { on: !CZ.me.tester }, { headers: { "X-Owner-Key": key } }); CZ.me = r.user; if (!cmKey() && key) lsSet("comets-key", key);
+        toast(CZ.me.tester ? "Unlimited coins on. Your account is left off the leaderboards while it's on." : "Unlimited coins off"); drawCosmic(); } catch (e) { toast(e.message); }
+      return;
+    }
     if (k === "vmore"){ b.disabled = true; try { await czVault(true); } catch (e) { toast(e.message); } drawCosmic(); }
     if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your Cosmic key</h2><p class="sub">This key is your account. Paste it into Cosmic on another device, or on the site's new address if it moves, to sign in there, then add a passkey. Keep it private: anyone with it can spend your coins.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
       $("#czCopy").onclick = async () => { try { await navigator.clipboard.writeText(czKey()); toast("Key copied"); } catch { $("#infoBody textarea").select(); } }; $("#infoDlg").showModal(); }
