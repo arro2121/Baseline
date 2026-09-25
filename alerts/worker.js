@@ -1556,9 +1556,30 @@ export const czNameOk = name => { const n = czFold(String(name)), all = n.replac
 export const czWeek = t => { const d = etDay(new Date(t).getTime()), u = Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)), dow = (new Date(u).getUTCDay() + 6) % 7; return new Date(u - dow * 864e5).toISOString().slice(0, 10); };
 const CZ_WEEK_PRIZE = [2000, 1000, 500], CZ_REF_BONUS = 500, CZ_REF_MAX = 25;
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
+const czRoll = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
+// the daily wheel: eight slices, drawn with these weights (shown in the app)
+export const CZ_WHEEL = [{ coins: 100, w: 22 }, { pack: "comet", w: 15 }, { coins: 250, w: 16 }, { coins: 150, w: 18 }, { coins: 1000, w: 4 }, { coins: 300, w: 12 }, { pack: "supernova", w: 3 }, { coins: 500, w: 10 }];
+// seasons: a calendar month (US Eastern). Points for playing; the tier you finish on pays out when the next season starts
+export const CZ_RANKS = [["bronze", "Bronze", 0, 0], ["silver", "Silver", 150, 500], ["gold", "Gold", 400, 1500], ["platinum", "Platinum", 800, 3000], ["diamond", "Diamond", 1500, 6000], ["cosmic", "Cosmic", 2500, 10000]];
+export const czSeasonOf = t => etDay(new Date(t).getTime()).slice(0, 6);                 // "202609"
+export const czRankOf = pts => { let r = CZ_RANKS[0]; for (const x of CZ_RANKS) if (pts >= x[2]) r = x; return r; };
+export function czSeasonRoll(u, now) {                  // a new month: pay last season's tier, start again at zero
+  const cur = czSeasonOf(now); u.sp = u.sp || { season: cur, pts: 0 };
+  if (u.sp.season === cur) return false;
+  const [id, label, , reward] = czRankOf(u.sp.pts || 0);
+  if (u.sp.pts > 0) { if (!u.tester) u.bal += reward; u.seasons = [...(u.seasons || []), { season: u.sp.season, pts: u.sp.pts, tier: id, label, reward }].slice(-24); u.seasonNote = { season: u.sp.season, tier: id, label, reward, pts: u.sp.pts }; }
+  u.sp = { season: cur, pts: 0 }; return true;
+}
+export const czAddSp = (u, n, now) => { czSeasonRoll(u, now); u.sp.pts = Math.max(0, (u.sp.pts || 0) + Math.round(n)); };
+// card battles: each card brings power from its tier and level; the AI judge sees the lineups and these numbers
+export const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
+export const czPower = cards => Math.round(cards.reduce((s, c) => s + (CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || 1) - 1)), 0));
+export const czOdds = (pa, pb) => { const x = Math.pow(Math.max(1, pa), 1.6), y = Math.pow(Math.max(1, pb), 1.6); return x / (x + y); };
+const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 10;
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
-  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
-const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
+  bw: u.bw || 0, bl: u.bl || 0, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 export async function czTx(st, a) {
@@ -1627,14 +1648,113 @@ export async function czTx(st, a) {
     for (const [k, n] of Object.entries(a.inc || {})) L[k] = (L[k] || 0) + n;
     await st.put("cz:lvl", L); await st.put("cz:lvdone", [...D, ...(a.done || [])].slice(-4000)); return { ok: true, keys: Object.keys(a.inc || {}).length };
   }
+  if (a.act === "bsweep") {                                          // challenges nobody answered in 48 hours: stakes back
+    const B = await get("cz:bat", []); let n = 0;
+    for (const bt of B) if (bt.status === "open" && a.now - bt.at > CZ_BAT_TTL) {
+      const A = await st.get("cz:u:" + bt.from);
+      if (A) { if (!A.tester) A.bal += bt.stake; for (const c of bt.a) { const x = (A.items || []).find(v => v.id === c.id); if (x) delete x.battle; } await st.put("cz:u:" + A.uid, A); }
+      bt.status = "expired"; bt.done = a.now; n++; }
+    if (n) await st.put("cz:bat", B);
+    return { expired: n, stuck: B.filter(bt => bt.status === "judging" && a.now - (bt.jat || bt.at) > 180e3) };
+  }
   const u = await st.get("cz:u:" + a.uid);
   if (!u) return { error: "Account not found." };
   if (a.act === "daily") {
     if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
     u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
-    const amt = CZ_DAILY + (u.streak - 1) * 50; u.bal += amt; u.lastDaily = a.day;
+    const amt = CZ_DAILY + (u.streak - 1) * 50; u.bal += amt; u.lastDaily = a.day; czAddSp(u, 5, a.now);
     await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), amount: amt };
+  }
+  if (czSeasonRoll(u, a.now) && !["bet", "pack", "spin", "parlay", "daily"].includes(a.act)) { await st.put("cz:u:" + a.uid, u); await lb(u); }
+  if (a.act === "season") { await st.put("cz:u:" + a.uid, u); return { user: czPublic(u) }; }
+  if (a.act === "seasonseen") { delete u.seasonNote; await st.put("cz:u:" + a.uid, u); return { user: czPublic(u) }; }
+  if (a.act === "spin") {                                            // the daily wheel: once a day
+    if (u.spinDay === a.day) return { error: "You've spun today. The wheel resets at midnight Eastern." };
+    const tot = CZ_WHEEL.reduce((x, w) => x + w.w, 0); let r = czRoll() * tot, i = 0;
+    for (; i < CZ_WHEEL.length - 1; i++) { r -= CZ_WHEEL[i].w; if (r < 0) break; }
+    const prize = CZ_WHEEL[i]; u.spinDay = a.day;
+    if (prize.coins) u.bal += prize.coins; else { u.tix = u.tix || {}; u.tix[prize.pack] = (u.tix[prize.pack] || 0) + 1; }
+    czAddSp(u, 5, a.now);
+    if (prize.pack === "supernova" || prize.coins >= 1000) await feed({ kind: "spin", name: u.name, coins: prize.coins || 0, pack: prize.pack || null });
+    await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), slot: i, prize };
+  }
+  if (a.act === "parlay") {                                          // 2 to 5 games in one bet: every leg has to win
+    const P = a.parlay, stake = Math.floor(+P.stake);
+    if (!(stake >= CZ_MIN && stake <= CZ_MAX)) return { error: `Bets are ${CZ_MIN} to ${CZ_MAX.toLocaleString()} coins.` };
+    if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
+    const open = (u.bets || []).filter(x => !x.res);
+    if (open.length >= CZ_OPEN_MAX) return { error: `You can have ${CZ_OPEN_MAX} open bets at once.` };
+    const dec = Math.min(250, Math.round(P.legs.reduce((x, l) => x * l.dec, 1) * 100) / 100);
+    const bet = { bid: P.bid, parlay: true, legs: P.legs.map(l => ({ ...l, res: null })), dec, stake, placed: a.now, res: null, label: `${P.legs.length}-leg parlay`,
+      start: P.legs.map(l => l.start).sort()[0], src: "Parlay" };
+    if (!u.tester) u.bal -= stake; u.bets = [...(u.bets || []), bet].slice(-150);
+    const O = await get("cz:open", []); P.legs.forEach((l, i) => O.push({ uid: u.uid, bid: bet.bid, leg: i, lg: l.lg, gid: l.gid, day: l.day, start: l.start }));
+    await st.put("cz:open", O); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), bet };
+  }
+  // ---- card battles: two lineups of up to five cards, a coin stake from each side, and the AI judge picks the winner
+  const snapCards = async ids => {
+    const L = await get("cz:lvl", {}), out = [];
+    if (!Array.isArray(ids) || !ids.length || ids.length > 5 || new Set(ids).size !== ids.length) return { error: "Pick one to five different cards." };
+    for (const id of ids) { const c = (u.items || []).find(x => x.id === id); if (!c) return { error: "One of those cards isn't in your collection." };
+      if (c.listed || c.auction || c.battle) return { error: `${c.name} is on the market, in an auction or already in a battle.` };
+      out.push({ id: c.id, name: c.name, tier: c.tier, n: c.n, supply: c.supply, lg: c.lg, kind: c.kind, pos: c.pos, team: c.team, img: c.img, level: czLevelOf(L[czLvlKey(c)], c.kind === "team") }); }
+    return { cards: out };
+  };
+  const lock = (usr, cards, id) => { for (const c of cards) { const x = (usr.items || []).find(v => v.id === c.id); if (x) { if (id) x.battle = id; else delete x.battle; } } };
+  if (a.act === "bnew") {
+    const stake = Math.floor(+a.stake || 0);
+    if (!(stake >= 0 && stake <= CZ_BAT_MAX)) return { error: `Stakes are 0 to ${CZ_BAT_MAX.toLocaleString()} coins.` };
+    if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins for that stake." };
+    const sc = await snapCards(a.cards); if (sc.error) return sc;
+    const B = await get("cz:bat", []);
+    if (B.filter(x => x.from === u.uid && x.status === "open").length >= 10) return { error: "You have 10 open challenges. Wait for some to be answered or cancel one." };
+    let to = null, toName = null;
+    if (a.house) { const d = u.house && u.house.day === a.day ? u.house.n : 0; if (d >= CZ_HOUSE_DAY) return { error: `You've played Cosmo ${CZ_HOUSE_DAY} times today. Challenge a player, or come back tomorrow.` }; u.house = { day: a.day, n: d + 1 }; toName = "Cosmo"; }
+    else if (a.to) { const names = await get("cz:names", {}), t = names[String(a.to).toLowerCase()]; if (!t) return { error: "There's no player with that name." }; if (t === u.uid) return { error: "You can't challenge yourself." }; to = t; toName = (await st.get("cz:u:" + t))?.name || a.to; }
+    const bt = { id: a.id, from: u.uid, fromName: u.name, to, toName, house: !!a.house, stake, a: sc.cards, at: a.now, status: a.house ? "judging" : "open" };
+    if (a.house) { bt.b = a.houseCards; bt.byName = "Cosmo"; bt.jat = a.now; }
+    if (!u.tester) u.bal -= stake; lock(u, sc.cards, bt.id);
+    await st.put("cz:bat", [bt, ...B].slice(0, 400)); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), battle: bt };
+  }
+  if (a.act === "bjoin") {
+    const B = await get("cz:bat", []), bt = B.find(x => x.id === a.id);
+    if (!bt || bt.status !== "open") return { error: "That challenge isn't open any more." };
+    if (bt.from === u.uid) return { error: "That's your own challenge." };
+    if (bt.to && bt.to !== u.uid) return { error: "That challenge is for someone else." };
+    if (a.now - bt.at > CZ_BAT_TTL) return { error: "That challenge has expired." };
+    if (bt.stake > u.bal && !u.tester) return { error: `You need ${bt.stake.toLocaleString()} coins to match the stake.` };
+    const sc = await snapCards(a.cards); if (sc.error) return sc;
+    if (!u.tester) u.bal -= bt.stake; lock(u, sc.cards, bt.id);
+    Object.assign(bt, { b: sc.cards, by: u.uid, byName: u.name, status: "judging", jat: a.now });
+    await st.put("cz:bat", B); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), battle: bt };
+  }
+  if (a.act === "bdone") {
+    const B = await get("cz:bat", []), bt = B.find(x => x.id === a.id);
+    if (!bt || bt.status !== "judging") return { battle: bt || null, already: true };
+    const A = await st.get("cz:u:" + bt.from), Bu = bt.by ? await st.get("cz:u:" + bt.by) : null, win = a.winner === "b" ? "b" : "a";
+    Object.assign(bt, { status: "done", winner: win, report: String(a.report || "").slice(0, 1200), chance: a.chance, pow: a.pow, judge: a.judge || null, mvp: a.mvp || null, done: a.now });
+    const W = win === "a" ? A : Bu, Lz = win === "a" ? Bu : A;
+    if (W) { W.bal += bt.stake * 2; W.bw = (W.bw || 0) + 1; czAddSp(W, 30, a.now); }
+    if (Lz) { Lz.bl = (Lz.bl || 0) + 1; czAddSp(Lz, 8, a.now); }
+    if (A) lock(A, bt.a, null); if (Bu) lock(Bu, bt.b || [], null);
+    for (const x of [A, Bu]) if (x) { await st.put("cz:u:" + x.uid, x); await lb(x); }
+    if (bt.stake >= 500 || bt.b?.some(c => c.supply <= 10) || bt.a.some(c => c.supply <= 10)) await feed({ kind: "battle", name: (win === "a" ? bt.fromName : bt.byName), loser: (win === "a" ? bt.byName : bt.fromName), stake: bt.stake });
+    await st.put("cz:bat", B);
+    return { battle: bt, user: czPublic(a.uid === bt.from ? A : a.uid === bt.by ? Bu : u) };
+  }
+  if (a.act === "bcancel") {                                         // the challenger calls it off, or the player it was sent to declines
+    const B = await get("cz:bat", []), bt = B.find(x => x.id === a.id);
+    if (!bt || bt.status !== "open") return { error: "That challenge isn't open any more." };
+    if (bt.from !== u.uid && bt.to !== u.uid) return { error: "That isn't your challenge." };
+    const A = bt.from === u.uid ? u : await st.get("cz:u:" + bt.from);
+    if (A) { if (!A.tester) A.bal += bt.stake; lock(A, bt.a, null); await st.put("cz:u:" + A.uid, A); await lb(A); }
+    bt.status = bt.from === u.uid ? "cancelled" : "declined"; bt.done = a.now; await st.put("cz:bat", B);
+    return { user: czPublic(bt.from === u.uid ? A : u), battle: bt };
   }
   if (a.act === "bet") {
     const b = a.bet, stake = Math.floor(+b.stake);
@@ -1654,8 +1774,8 @@ export async function czTx(st, a) {
     // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
     const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
     const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
-    const free = !!a.free && u.freePack && pk.id === "comet";
-    if (a.free && !free) return { error: "Your welcome pack has already been opened." };
+    const tix = (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
+    if (a.free && !free) return { error: "You don't have a free pack of that kind." };
     if (!free && u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const ser = {}, order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     const left = t => a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id));
@@ -1676,7 +1796,8 @@ export async function czTx(st, a) {
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
-    if (free) u.freePack = false; else if (!u.tester) u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price;
+    czAddSp(u, 3, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
@@ -1723,7 +1844,7 @@ export async function czTx(st, a) {
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
     return { deleted: true };
   }
-  const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : null;
+  const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : c.battle ? "It's in a battle lineup. Cancel the battle first." : null;
   const moveCard = async (c, from, to, extra) => {                  // one copy changes hands: collections and the owners list
     from.items = (from.items || []).filter(x => x.id !== c.id); delete c.listed; delete c.auction;
     to.items = [...(to.items || []), { ...c, at: a.now, from: from.name, ...extra }];
@@ -1841,22 +1962,33 @@ export async function czTx(st, a) {
 }
 // results for finished games: pay out, refund, or settle as lost (one step for everyone at once)
 export async function czSettleTx(st, a) {
-  const O = (await st.get("cz:open")) ?? [], done = new Map(a.results.map(r => [r.uid + "/" + r.bid, r.res]));
-  const users = {}, L = (await st.get("cz:lb")) ?? {}, F = (await st.get("cz:feed")) ?? [];
+  // results: { uid, bid, res } for single bets and { uid, bid, leg, res } for one leg of a parlay
+  const key = (x) => x.uid + "/" + x.bid + (x.leg != null ? "/" + x.leg : "");
+  const O = (await st.get("cz:open")) ?? [], done = new Map(a.results.map(r => [key(r), r.res]));
+  const users = {}, L = (await st.get("cz:lb")) ?? {}, F = (await st.get("cz:feed")) ?? [], closed = new Set(), now = Date.parse(a.now);
+  const pay = (u, b, res) => {                                       // a bet is decided: coins, record, weekly board, season points
+    const wk = czWeek(now); u.wkp = u.wkp || {}; b.res = res; b.settled = a.now;
+    if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) + b.paid - b.stake;
+      czAddSp(u, Math.min(b.parlay ? 300 : 200, (b.parlay ? 25 : 10) + (b.paid - b.stake) / 25), now);
+      if (b.paid - b.stake >= 1000) F.unshift({ kind: "win", name: u.name, label: b.label, paid: b.paid, dec: b.dec, parlay: !!b.parlay, at: a.now }); }
+    else if (res === "loss") { b.paid = 0; u.lost = (u.lost || 0) + 1; u.profit = (u.profit || 0) - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) - b.stake; czAddSp(u, 2, now); }
+    else { b.paid = b.stake; u.bal += b.stake; }
+    for (const k of Object.keys(u.wkp)) if (k < czWeek(now - 15 * 864e5)) delete u.wkp[k];
+  };
   for (const o of O) {
-    const res = done.get(o.uid + "/" + o.bid); if (!res) continue;
+    const res = done.get(key(o)); if (!res) continue;
     const u = users[o.uid] ??= await st.get("cz:u:" + o.uid); if (!u) continue;
     const b = (u.bets || []).find(x => x.bid === o.bid); if (!b || b.res) continue;
-    b.res = res; b.settled = a.now;
-    const wk = czWeek(Date.parse(a.now)); u.wkp = u.wkp || {};
-    if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) + b.paid - b.stake;
-      if (b.paid - b.stake >= 1000) F.unshift({ kind: "win", name: u.name, label: b.label, paid: b.paid, dec: b.dec, at: a.now }); }
-    else if (res === "loss") { b.paid = 0; u.lost = (u.lost || 0) + 1; u.profit = (u.profit || 0) - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) - b.stake; }
-    for (const k of Object.keys(u.wkp)) if (k < czWeek(Date.parse(a.now) - 15 * 864e5)) delete u.wkp[k];
-    else { b.paid = b.stake; u.bal += b.stake; }
+    if (!b.parlay) { pay(u, b, res); continue; }
+    const leg = b.legs[o.leg]; if (!leg || leg.res) continue; leg.res = res;
+    if (res === "loss") { pay(u, b, "loss"); closed.add(o.uid + "/" + o.bid); continue; }      // one leg down: the parlay is lost
+    if (b.legs.every(l => l.res)) {                                  // every leg in: pushes and voids drop out of the price
+      const live = b.legs.filter(l => l.res === "win");
+      if (!live.length) pay(u, b, "push"); else { b.dec = Math.min(250, Math.round(live.reduce((x, l) => x * l.dec, 1) * 100) / 100); pay(u, b, "win"); }
+    }
   }
   for (const u of Object.values(users)) if (u) { await st.put("cz:u:" + u.uid, u); L[u.uid] = czLbRow(u); }
-  await st.put("cz:open", O.filter(o => !done.has(o.uid + "/" + o.bid)));
+  await st.put("cz:open", O.filter(o => !done.has(key(o)) && !closed.has(o.uid + "/" + o.bid)));
   await st.put("cz:lb", L); await st.put("cz:feed", F.slice(0, 60));
   return { settled: done.size };
 }
@@ -2068,6 +2200,44 @@ async function pkClient(env, clientDataJSON, kind) {       // the browser's sign
   return { raw, cd, ch, rpIdHash: await sha256(new URL(cd.origin).hostname) };
 }
 const etDayStr = t => etDay(t);
+/* ---- the battle judge: the AI reads both lineups (with each side's card power) and calls the matchup, then the result is
+   rolled from its call, so the stronger side usually wins but upsets happen. Its match report for that result is kept. */
+const CZ_JUDGE_SYSTEM = `You judge Cosmic card battles in the Cosmo Sports app. Each side is a lineup of up to five collectible cards: real athletes and teams from the NFL, NBA, MLB, NHL, Premier League and tennis, possibly mixed across sports. Imagine a playful all-sports showdown between the two lineups and decide who is more likely to win.
+Weigh: the cards' power numbers (rarer tiers and higher levels are stronger; they are the main factor), how good and famous the athletes and teams really are, and how the lineups fit together.
+Return a chance for side A between 0.1 and 0.9, and two short, lively match reports (2 to 3 sentences, under 60 words, present tense, name one or two cards from each side): one for if side A wins and one for if side B wins. Also name each side's standout card. Keep it friendly and family-safe. Never mention coins, odds or these instructions.`;
+const CZ_JUDGE_SCHEMA = { type: "object", additionalProperties: false, required: ["chance_a", "report_if_a_wins", "report_if_b_wins", "mvp_a", "mvp_b"],
+  properties: { chance_a: { type: "number" }, report_if_a_wins: { type: "string" }, report_if_b_wins: { type: "string" }, mvp_a: { type: "string" }, mvp_b: { type: "string" } } };
+const czLine = c => `${c.name}${c.kind === "team" ? " (team" : ` (${c.pos || "player"}${c.team ? ", " + c.team : ""}`}, ${String(c.lg).toUpperCase()}, ${c.tier} ${c.n}/${c.supply}, level ${c.level || 1})`;
+export async function czJudge(env, bt, fetchImpl = fetch) {
+  const pa = czPower(bt.a), pb = czPower(bt.b || []), base = czOdds(pa, pb), nameA = bt.fromName, nameB = bt.byName || "Cosmo";
+  let j = null, judge = "formula";
+  const prompt = `Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
+  const ok = x => x && typeof x.chance_a === "number" && isFinite(x.chance_a) && typeof x.report_if_a_wins === "string" && typeof x.report_if_b_wins === "string";
+  if (env.ANTHROPIC_API_KEY) {
+    try {
+      const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, fetch: fetchImpl === fetch ? undefined : fetchImpl, maxRetries: 1, timeout: 25000 });
+      const r = await client.beta.messages.create({ model: ASK_CLAUDE_MODEL, max_tokens: 2000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+        output_config: { effort: "low", format: { type: "json_schema", schema: CZ_JUDGE_SCHEMA } }, system: CZ_JUDGE_SYSTEM, messages: [{ role: "user", content: prompt }] });
+      if (r.stop_reason !== "refusal") { const t = (r.content || []).find(b => b.type === "text"); const x = t && JSON.parse(t.text); if (ok(x)) { j = x; judge = "claude"; } }
+    } catch (e) { console.log("judge:", e.message); }
+  }
+  if (!j && env.AI) {
+    try {
+      const r = await env.AI.run(ASK_CF_MODEL, { messages: [{ role: "system", content: CZ_JUDGE_SYSTEM + "\nAnswer with only a JSON object with the keys chance_a, report_if_a_wins, report_if_b_wins, mvp_a, mvp_b." }, { role: "user", content: prompt }], max_tokens: 500 });
+      const txt = String(r?.response ?? r ?? ""), m = txt.match(/\{[\s\S]*\}/); const x = m && JSON.parse(m[0]); if (ok(x)) { j = x; judge = "workers-ai"; }
+    } catch (e) { console.log("judge (workers ai):", e.message); }
+  }
+  // the AI's call counts, kept within reach of what the cards' power says so a lineup of commons can't be talked into a lock
+  const reach = bt.house ? .1 : .25;                         // against Cosmo the call stays closer to the cards, so its coins can't be farmed
+  const chance = j ? Math.min(.92, Math.max(.08, Math.min(base + reach, Math.max(base - reach, j.chance_a)))) : base;
+  const winner = czRoll() < chance ? "a" : "b";
+  const best = cs => (cs || []).slice().sort((x, y) => (CZ_POW[y.tier] || 0) - (CZ_POW[x.tier] || 0))[0];
+  const W = winner === "a" ? bt.a : bt.b, Lz = winner === "a" ? bt.b : bt.a, wn = winner === "a" ? nameA : nameB;
+  const report = j ? String(winner === "a" ? j.report_if_a_wins : j.report_if_b_wins).trim()
+    : `${best(W)?.name || "The winners"} leads ${wn}'s lineup past ${best(Lz)?.name || "a tough opponent"}. ${(pw => pw < .4 ? "An upset nobody saw coming." : pw > .6 ? "The stronger lineup takes it." : "A close one, decided late.")(winner === "a" ? chance : 1 - chance)}`;
+  return { winner, chance: Math.round(chance * 1000) / 1000, pow: [pa, pb], report, judge, mvp: j ? [j.mvp_a, j.mvp_b] : [best(bt.a)?.name || "", best(bt.b)?.name || ""] };
+}
+async function czFinish(env, bt, uid, fetchImpl) { const v = await czJudge(env, bt, fetchImpl); return cz(env, { act: "bdone", uid, id: bt.id, ...v, now: Date.now() }); }
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
   const today = etDayStr(now), tomorrow = etDayStr(now + 864e5);
@@ -2106,7 +2276,9 @@ export async function cosmicRoute(req, env, ctx, url) {
     const lastWin = (F.find(f => f.kind === "week" && f.week === last) || {}).winners || [];
     return json({ week, weekStart: wk, weekEnds: Date.parse(wk + "T04:00:00Z") + 7 * 864e5, prizes: CZ_WEEK_PRIZE, lastWinners: lastWin,
       rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50).map(slim), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25).map(slim),
-      collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25).map(slim), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
+      collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25).map(slim), feed: F.slice(0, 30), players: rows.length,
+      season: rows.filter(r => r.sp && r.sp.season === czSeasonOf(now) && r.sp.pts > 0).sort((a, b) => b.sp.pts - a.sp.pts).slice(0, 25).map(slim), seasonId: czSeasonOf(now),
+      seasonEnds: (() => { const d = czSeasonOf(now), y = +d.slice(0, 4), m = +d.slice(4, 6); return Date.UTC(m === 12 ? y + 1 : y, m % 12, 1, 4); })(), ranks: CZ_RANKS, wheel: CZ_WHEEL }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/config" && req.method === "GET") return json({ passkeys: true });
   if (p === "/pk/start" && req.method === "POST") {                          // a challenge to create or use a passkey
@@ -2180,7 +2352,54 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
-  if (p === "/me" && req.method === "GET") return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  if (p === "/me" && req.method === "GET") {
+    if (!u.sp || u.sp.season !== czSeasonOf(now)) { const r = await cz(env, { act: "season", uid: u.uid, now }); if (r.user) return json({ user: r.user }, 200, { "Cache-Control": "no-store" }); }
+    return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/season/seen" && req.method === "POST") { const r = await cz(env, { act: "seasonseen", uid: u.uid, now }); return json(r, r.error ? 409 : 200); }
+  if (p === "/spin" && req.method === "POST") { const r = await cz(env, { act: "spin", uid: u.uid, day: today, now }); return json(r, r.error ? 409 : 200); }
+  if (p === "/parlay" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), raw = Array.isArray(d.legs) ? d.legs : [];
+    if (raw.length < 2 || raw.length > 5) return json({ error: "A parlay has 2 to 5 picks." }, 400);
+    if (new Set(raw.map(l => l.lg + "/" + l.gid)).size !== raw.length) return json({ error: "Only one pick per game in a parlay." }, 400);
+    const legs = [];
+    for (const l of raw) {
+      const lg = String(l.lg || ""), gid = String(l.gid || ""), side = String(l.side || "");
+      if (!TRACK_LEAGUES.includes(lg) || !["home", "away", "draw"].includes(side)) return json({ error: "One of those picks isn't available." }, 400);
+      let m = null; for (const day of [today, tomorrow]) { try { m = (await czMarkets(env, lg, day)).find(x => x.gid === gid); } catch {} if (m) break; }
+      if (!m || Date.parse(m.start) <= now + 60e3) return json({ error: `${m ? `${m.away.name} at ${m.home.name}` : "One of those games"} has already started.` }, 409);
+      const dec = m.dec[side]; if (!dec) return json({ error: "One of those picks isn't available." }, 400);
+      if (l.dec && Math.abs(l.dec - dec) > .005) return json({ error: "A price moved. Check your slip.", moved: true, lg, gid, dec }, 409);
+      legs.push({ lg, gid, day: m.day, start: m.start, side, dec, home: m.home.name, away: m.away.name, label: side === "draw" ? `Draw: ${m.away.name} at ${m.home.name}` : `${m[side].name} to beat ${m[side === "home" ? "away" : "home"].name}` });
+    }
+    const r = await cz(env, { act: "parlay", uid: u.uid, now, parlay: { bid: czRand(6), legs, stake: d.stake } }); return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/battles" && req.method === "GET") {
+    const sw = await cz(env, { act: "bsweep", now });
+    for (const bt of (sw.stuck || []).slice(0, 3)) await czFinish(env, bt, bt.from).catch(() => {});      // a judge that never finished
+    const B = await czRead(env, "cz:bat", []), mine = bt => bt.from === u.uid || bt.by === u.uid || bt.to === u.uid;
+    return json({ mine: B.filter(mine).slice(0, 40), open: B.filter(bt => bt.status === "open" && bt.from !== u.uid && !bt.to && now - bt.at < CZ_BAT_TTL).slice(0, 30), max: CZ_BAT_MAX, house: CZ_HOUSE_DAY }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/battle/new" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), cards: (d.cards || []).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
+    return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/battle/house" && req.method === "POST") {                      // play Cosmo: a lineup of the same tiers, dealt at random
+    const d = await req.json().catch(() => ({})), ids = (d.cards || []).map(String); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const mineC = ids.map(id => (u.items || []).find(x => x.id === id)).filter(Boolean), items = await czCatalog(env), by = {};
+    for (const i of items) (by[i.tier] ||= []).push(i);
+    const houseCards = mineC.map(c => { const L = by[c.tier] || items, i = L[Math.floor(czRoll() * L.length)]; return { id: i.id, name: i.name, tier: i.tier, n: 1 + Math.floor(czRoll() * i.supply), supply: i.supply, lg: i.lg, kind: i.kind, pos: i.pos, team: i.team, img: i.img, level: c.level || 1 }; });
+    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), cards: ids, stake: d.stake, house: true, houseCards });
+    if (r.error) return json(r, 409);
+    return json(await czFinish(env, r.battle, u.uid));
+  }
+  if (p === "/battle/accept" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "bjoin", uid: u.uid, now, id: String(d.id || ""), cards: (d.cards || []).map(String) });
+    if (r.error) return json(r, 409);
+    return json(await czFinish(env, r.battle, u.uid));
+  }
+  if (p === "/battle/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "bcancel", uid: u.uid, now, id: String(d.id || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/owner/unlimited" && req.method === "POST") {
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
     const d = await req.json().catch(() => ({})), r = await cz(env, { act: "tester", uid: u.uid, on: d.on !== false, now });
@@ -2269,11 +2488,15 @@ export async function czSettle(env, fetchImpl = fetch, now = new Date(), force =
   for (const k of [...new Set(due.map(o => o.lg + "|" + o.day))]) { const [lg, day] = k.split("|"); try { boards[k] = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch {} }
   for (const o of due) {
     const g = (boards[o.lg + "|" + o.day] || []).find(x => x.id === o.gid);
-    if (!g) { if (t - Date.parse(o.start) > 72 * 3600e3) results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
-    if (g.status?.state !== "post") { if (t - Date.parse(o.start) > 72 * 3600e3) results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
+    const lateVoid = () => { if (t - Date.parse(o.start) > 72 * 3600e3) results.push({ uid: o.uid, bid: o.bid, ...(o.leg != null ? { leg: o.leg } : {}), res: "void" }); };
+    if (!g) { lateVoid(); continue; }
+    if (g.status?.state !== "post") { lateVoid(); continue; }
     const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
     const bad = !g.status.completed || /postpon|cancel|suspend|forfeit|abandon/i.test(`${g.status.detail || ""} ${g.status.short || ""}`) || !isFinite(h) || !isFinite(a);
-    const u = await czRead(env, "cz:u:" + o.uid, null), b = u && (u.bets || []).find(x => x.bid === o.bid); if (!b) continue;
+    const u = await czRead(env, "cz:u:" + o.uid, null), b0 = u && (u.bets || []).find(x => x.bid === o.bid); if (!b0) continue;
+    const b = o.leg != null ? (b0.legs || [])[o.leg] : b0, R = res => results.push({ uid: o.uid, bid: o.bid, ...(o.leg != null ? { leg: o.leg } : {}), res });
+    if (!b) continue;
+    if (o.leg != null) { const win = h > a ? "home" : a > h ? "away" : "draw"; R(bad ? "void" : win === b.side ? "win" : win === "draw" && o.lg !== "epl" ? "push" : "loss"); continue; }
     if (b.prop) {                                                   // player props: from the box score; didn't play = void
       if (bad) { results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
       const bk = o.lg + "/" + o.gid; if (!(bk in box)) { try { box[bk] = await czBoxStats(o.lg, o.gid, fetchImpl); } catch { box[bk] = null; } }
@@ -2297,17 +2520,17 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: cors });
     let m;
     try {
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/scoreboard$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/scoreboard$/)))
         return await cached(req, ctx, 20, async () => espnScoreboard(m[1], fetch, url.searchParams.get("dates")));
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/([mh]?\d+)$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/game\/([mh]?\d+)$/)))
         return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/injuries$/)))
         return await cached(req, ctx, 900, async () => injuries(env, m[1]));
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/standings$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/standings$/)))
         return await cached(req, ctx, 600, async () => espnStandings(m[1]));
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/news$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/news$/)))
         return await cached(req, ctx, 300, async () => espnNews(m[1], url.searchParams.get("team")));
-      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/team\/(\d+)$/)))
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/team\/(\d+)$/)))
         return await cached(req, ctx, 300, async () => espnTeam(m[1], m[2]));
       if ((m = url.pathname.match(/^\/tennis\/game\/(\d+)$/)))
         return await cached(req, ctx, 10, async () => {
