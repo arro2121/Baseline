@@ -1437,20 +1437,28 @@ export async function trackAll(db) {
 }
 
 /* ---------------- Cosmic: social betting with Cosmic Coins, and limited-edition collectibles ----------------
-   Play money only: Cosmic Coins can't be bought, sold, cashed out or sent to anyone. Everyone starts with 1,000 and can claim
+   Play money only: Cosmic Coins can't be bought with money or cashed out; they only move inside Cosmic (bets, packs, and cards sold to the shop or other players). Everyone starts with 1,000 and can claim
    more every day; coins are won or lost betting on real games at real sportsbook prices (the model's fair price, with a small
-   margin, where no book has a line). Coins buy numbered, limited-edition team and player cards (1 of 1 up to 1 of 1,000) whose
+   margin, where no book has a line). Coins open packs of numbered, limited-edition team and player cards (1 of 1 up to 1 of 1,000) whose
    supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
    no cash value either.
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
-const CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
+const CZ_SHOP = .4, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
 export const CZ_TIERS = [["singularity", "Singularity", 1, 25000], ["supernova", "Supernova", 10, 5000], ["quasar", "Quasar", 25, 2800], ["nebula", "Nebula", 50, 1500],
   ["pulsar", "Pulsar", 100, 800], ["stardust", "Stardust", 250, 400], ["comet", "Comet", 1000, 150]];
+// packs: the chance (%) that each card is Singularity, Supernova, Quasar, Nebula, Pulsar, Stardust or Comet. Shown in the app.
+export const CZ_PACKS = [
+  { id: "comet", label: "Comet Pack", price: 250, cards: 3, odds: [0.01, 0.09, 0.4, 1.5, 5, 18, 75] },
+  { id: "nebula", label: "Nebula Pack", price: 1000, cards: 3, odds: [0.05, 0.45, 1.5, 6, 17, 35, 40] },
+  { id: "supernova", label: "Supernova Pack", price: 4000, cards: 3, odds: [0.2, 1.8, 6, 17, 30, 45, 0] },
+  { id: "singularity", label: "Singularity Pack", price: 12000, cards: 2, odds: [1, 5, 14, 30, 50, 0, 0] },
+];
+const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"] };
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
-const czPublic = u => u && ({ uid: u.uid, name: u.name, bal: u.bal, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czPublic = u => u && ({ uid: u.uid, name: u.name, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
 const czLbRow = u => ({ uid: u.uid, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
@@ -1489,18 +1497,76 @@ export async function czTx(st, a) {
     await st.put("cz:open", O); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), bet };
   }
-  if (a.act === "buy") {
-    const it = a.item, mint = await get("cz:mint", {}), n = (mint[it.id] || 0);
-    if (n >= it.supply) return { error: "Sold out. Every copy has been claimed." };
-    if ((u.items || []).some(x => x.id === it.id)) return { error: "You already own one of these. Collect a different card." };
-    if (u.bal < it.price) return { error: "Not enough Cosmic Coins." };
-    u.bal -= it.price; mint[it.id] = n + 1;
-    const own = { id: it.id, n: n + 1, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, price: it.price, at: a.now };
-    u.items = [...(u.items || []), own];
-    const owners = await get("cz:own:" + it.id, []); owners.push({ n: n + 1, uid: u.uid, name: u.name, at: a.now });
-    await st.put("cz:mint", mint); await st.put("cz:own:" + it.id, owners); await st.put("cz:u:" + a.uid, u); await lb(u);
-    if (it.supply <= 10 || n + 1 === it.supply) await feed({ kind: "mint", name: u.name, item: it.id, label: it.name, tier: it.tier, n: n + 1, supply: it.supply });
-    return { user: czPublic(u), card: own };
+  if (a.act === "pack") {
+    // open a pack: each card's tier is rolled with the pack's published odds, then a card of that tier the player doesn't own
+    // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
+    const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
+    const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
+    if (u.bal < pk.price) return { error: "Not enough Cosmic Coins." };
+    const order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
+    const left = t => a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id));
+    for (let c = 0; c < pk.cards; c++) {
+      let r = rnd() * 100, tier = order[order.length - 1];
+      for (let k = 0; k < order.length; k++) { r -= pk.odds[k]; if (r < 0) { tier = order[k]; break; } }
+      let ti = order.indexOf(tier), cands = left(tier);
+      for (let k = ti + 1; !cands.length && k < order.length; k++) cands = left(order[k]);      // sold out: the next more common tier
+      for (let k = ti - 1; !cands.length && k >= 0; k--) cands = left(order[k]);
+      if (!cands.length) break;
+      const it = cands[Math.floor(rnd() * cands.length)], back = ret[it.id] || [];
+      let n; if (back.length) { back.sort((x, y) => x - y); n = back.shift(); ret[it.id] = back; } else { n = (mint[it.id] || 0) + 1; mint[it.id] = n; }
+      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, rolled: tier, at: a.now, pack: pk.id });
+    }
+    if (!pulled.length) return { error: "You've collected every card this pack could give you." };
+    u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    for (const c of pulled) {
+      const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
+      if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
+    }
+    await st.put("cz:mint", mint); await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), cards: pulled };
+  }
+  const card = id => (u.items || []).find(x => x.id === id);
+  const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
+  if (a.act === "sell") {                                            // sell back to the shop: coins now, and the copy goes back into packs
+    const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
+    if (c.listed) return { error: "Take it off the market first." };
+    const pay = Math.max(1, Math.floor(a.value * CZ_SHOP));
+    u.items = u.items.filter(x => x.id !== a.id); u.bal += pay; u.sold = (u.sold || 0) + 1;
+    const ret = await get("cz:ret", {}); ret[a.id] = [...(ret[a.id] || []), c.n]; await st.put("cz:ret", ret);
+    await dropOwner(a.id, u.uid); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), paid: pay };
+  }
+  if (a.act === "list") {
+    const c = card(a.id), price = Math.floor(+a.price);
+    if (!c) return { error: "That card isn't in your collection." };
+    if (c.listed) return { error: "It's already on the market." };
+    if (!(price >= 10 && price <= 1000000)) return { error: "Ask between 10 and 1,000,000 coins." };
+    const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
+    const lid = czRand(6); c.listed = lid;
+    M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, price, uid: u.uid, seller: u.name, at: a.now });
+    await st.put("cz:mkt", M.slice(0, 2000)); await st.put("cz:u:" + a.uid, u);
+    return { user: czPublic(u), lid };
+  }
+  if (a.act === "unlist") {
+    const M = await get("cz:mkt", []), l = M.find(x => x.lid === a.lid && x.uid === u.uid); if (!l) return { error: "Listing not found." };
+    const c = card(l.id); if (c) delete c.listed;
+    await st.put("cz:mkt", M.filter(x => x.lid !== a.lid)); await st.put("cz:u:" + a.uid, u);
+    return { user: czPublic(u) };
+  }
+  if (a.act === "buyl") {                                            // buy another player's card: coins to them (less the market fee), the card to you
+    const M = await get("cz:mkt", []), l = M.find(x => x.lid === a.lid); if (!l) return { error: "Someone else got there first. That card is no longer for sale." };
+    if (l.uid === u.uid) return { error: "That's your own listing." };
+    if (card(l.id)) return { error: "You already own a copy of this card." };
+    if (u.bal < l.price) return { error: "Not enough Cosmic Coins." };
+    const s = await st.get("cz:u:" + l.uid); if (!s) return { error: "The seller's account is gone." };
+    const c = (s.items || []).find(x => x.id === l.id && x.listed === l.lid); if (!c) { await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); return { error: "That card is no longer for sale." }; }
+    const fee = Math.ceil(l.price * CZ_FEE);
+    u.bal -= l.price; s.bal += l.price - fee; s.items = s.items.filter(x => x.id !== l.id); s.sold = (s.sold || 0) + 1;
+    delete c.listed; u.items = [...(u.items || []), { ...c, at: a.now, bought: l.price, from: s.name }];
+    const o = await get("cz:own:" + l.id, []); await st.put("cz:own:" + l.id, [...o.filter(x => x.uid !== s.uid), { n: c.n, uid: u.uid, name: u.name, at: a.now, price: l.price }]);
+    await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); await st.put("cz:u:" + s.uid, s); await st.put("cz:u:" + a.uid, u); await lb(u); await lb(s);
+    await feed({ kind: "sale", name: u.name, seller: s.name, label: c.name, tier: c.tier, n: c.n, supply: c.supply, price: l.price });
+    return { user: czPublic(u), card: c };
   }
   return { error: "Unknown action." };
 }
@@ -1589,11 +1655,14 @@ export async function cosmicRoute(req, env, ctx, url) {
     return { asof: new Date().toISOString(), markets: uniq.sort((a, b) => a.start.localeCompare(b.start)) };
   });
   if (p === "/vault" && req.method === "GET") {
-    const [items, mint] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {})]);
+    const [items, mint0, ret] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]);
+    const mint = Object.fromEntries(Object.entries(mint0).map(([k, v]) => [k, v - (ret[k] || []).length]));
     const ones = items.filter(i => i.supply === 1 && mint[i.id]).map(i => i.id), owners = {};
     for (const id of ones.slice(0, 60)) { const o = await czRead(env, "cz:own:" + id, []); if (o[0]) owners[id] = o[0].name; }
-    return json({ tiers: CZ_TIERS.map(([id, label, supply, price]) => ({ id, label, supply, price })), items: items.map(i => ({ ...i, minted: mint[i.id] || 0, owner: owners[i.id] || undefined })) }, 200, { "Cache-Control": "no-store" });
+    return json({ tiers: CZ_TIERS.map(([id, label, supply, price]) => ({ id, label, supply, price })), items: items.map(i => ({ ...i, value: i.price, shop: Math.max(1, Math.floor(i.price * CZ_SHOP)), minted: mint[i.id] || 0, owner: owners[i.id] || undefined })), shop: CZ_SHOP, fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   }
+  if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
+  if (p === "/packs" && req.method === "GET") return json({ packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES) });
   if (p.startsWith("/card/") && req.method === "GET") return json({ owners: await czRead(env, "cz:own:" + p.slice(6), []) });
   if (p === "/leaders" && req.method === "GET") {
     const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
@@ -1627,10 +1696,19 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "bet", uid: u.uid, now, bet: { bid: czRand(6), lg, gid, day: m.day, start: m.start, side, dec, stake: d.stake, label, home: m.home.name, away: m.away.name, src: m.src } });
     return json(r, r.error ? 409 : 200);
   }
-  if (p === "/buy" && req.method === "POST") {
+  if (p === "/sell" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), it = (await czCatalog(env)).find(i => i.id === String(d.item || ""));
-    if (!it) return json({ error: "That card isn't in the vault." }, 404);
-    const r = await cz(env, { act: "buy", uid: u.uid, now, item: it });
+    if (!it) return json({ error: "That card isn't in Cosmic." }, 404);
+    const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: it.price }); return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
+  if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/pack" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), pk = CZ_PACKS.find(x => x.id === String(d.pack || "")), scope = Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
+    if (!pk) return json({ error: "That pack isn't available." }, 404);
+    const pool = (await czCatalog(env)).filter(i => !CZ_SCOPES[scope] || CZ_SCOPES[scope].includes(i.lg)).map(i => ({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name }));
+    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool });
     return json(r, r.error ? 409 : 200);
   }
   return json({ error: "not found" }, 404);
