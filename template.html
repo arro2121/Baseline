@@ -963,7 +963,7 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 /* ---------- Cosmo exclusives ---------- */
-.btn.primary{background:linear-gradient(90deg,#7A3DF5,#C2338F);border-color:transparent;color:#fff}
+.btn.primary{background:#6D3CE8;border-color:transparent;color:#fff}.btn.primary:hover:not(:disabled){background:#7C4FF0}
 .pulse{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:2px 8px 2px 6px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.02em;color:#E7E2FF;
   background:rgba(157,176,255,.12);border:1px solid rgba(157,176,255,.25);white-space:nowrap}
 .pulse i{width:8px;height:8px;border-radius:50%;background:#9DB0FF;box-shadow:0 0 6px #9DB0FF}
@@ -976,7 +976,7 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
 .gpick > span{margin-right:2px;font-weight:700}
 .gpick button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:4px 12px;font-weight:800;font-size:.74rem}
 .gpick button:hover{border-color:#B98BFF}
-.gpick button[aria-pressed="true"]{background:linear-gradient(90deg,#7A3DF5,#C2338F);border-color:transparent;color:#fff;box-shadow:0 0 14px -2px rgba(194,51,143,.7)}
+.gpick button[aria-pressed="true"]{background:#6D3CE8;border-color:transparent;color:#fff}
 .gpick small{margin-left:auto;font-weight:700}
 .gpick em{font-style:normal;font-weight:800;color:var(--ink)}
 .ok{color:var(--pos)}.no{color:var(--neg)}
@@ -1033,7 +1033,7 @@ dialog.modal::backdrop,dialog.drawer::backdrop{background:rgba(10,17,22,.45);bac
 .ust{font-size:.72rem;color:var(--muted);text-align:right;display:flex;flex-direction:column}.ust small{color:#C9B8FF;font-weight:700}
 .umeter{height:6px;border-radius:999px;background:var(--line-2);overflow:hidden}.umeter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4C8DFF,#B98BFF,#FF7AC8)}
 .uval{font-size:.72rem;text-align:right;line-height:1.15}.uval.hotv{color:#FF9ED8}
-.pbadge{font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;background:linear-gradient(90deg,#7A3DF5,#C2338F);color:#fff}
+.pbadge{font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;background:#6D3CE8;color:#fff}
 .pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .pstats div{background:var(--surface-2);border-radius:12px;padding:10px;text-align:center;display:flex;flex-direction:column}
 .pstats b{font-size:1.25rem;font-stretch:110%}.pstats small{font-size:.7rem;color:var(--muted)}
@@ -1243,6 +1243,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czwho{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted currentColor}.czwho.in{font-weight:600}.czwho:focus-visible{outline:2px solid var(--accent,#a78bfa);outline-offset:2px}.czwhoacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .trearly{margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(252,211,77,.35);background:rgba(252,211,77,.08);font-size:.86rem;color:var(--muted)}.trearly b{color:var(--ink)}
 .setbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn.danger{color:#fca5a5;border-color:#7f1d1d}
+.czc-mid.noface .czbadge{position:static;width:58%;max-width:none;height:auto;aspect-ratio:1;max-height:70%;filter:drop-shadow(0 6px 18px rgba(0,0,0,.45));opacity:1;transform:none}
 .czjf{display:flex;gap:10px;flex-wrap:wrap}.czjf .field{flex:1;min-width:180px}
 .czmkts{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
 .czmkt{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow);display:grid;gap:8px}
@@ -1293,7 +1294,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czpacks{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
 .czlead{margin-top:0}.czfilters{display:grid;gap:2px;margin-bottom:6px}
 .czpk-body{display:grid;gap:10px}
-.czpk-hl{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.czpk-hl b{font-size:1.35rem;font-weight:850;background:linear-gradient(90deg,#fcd34d,#f0abfc,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent}.czpk-hl span{color:var(--muted);font-size:.8rem}
+.czpk-hl{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.czpk-hl b{font-size:1.3rem;font-weight:800;color:#FCD34D}.czpk-hl span{color:var(--muted);font-size:.8rem}
 .czobar{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;background:rgba(255,255,255,.04)}.czobar i{display:block;min-width:3px}
 .czobar .t-singularity,.czolist .t-singularity{background:linear-gradient(90deg,#fde68a,#f59e0b);box-shadow:0 0 8px #fcd34d}.czobar .t-supernova{background:#fb923c}.czobar .t-quasar{background:#38bdf8}.czobar .t-nebula{background:#a78bfa}.czobar .t-pulsar{background:#34d399}.czobar .t-stardust{background:#cbd5e1}.czobar .t-comet{background:#64748b}
 .czolist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:.8rem}.czolist li{display:flex;align-items:center;gap:0;white-space:nowrap}.czolist small{color:var(--faint);font-size:.68rem;margin-left:4px}.czolist b{margin-left:auto;font-weight:750;font-variant-numeric:tabular-nums}
@@ -1315,7 +1316,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czpod.me .czpod-av{outline:2px solid #f0abfc;outline-offset:3px}.czlbme{margin:10px 0 0}
 .cztiers{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 10px}.cztiers::-webkit-scrollbar{display:none}
 .cztiers button{flex:none;display:grid;justify-items:center;gap:0;min-width:74px;padding:8px 10px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;font-size:.72rem;font-weight:700;cursor:pointer}
-.cztiers button b{font-size:1.15rem;color:var(--ink)}.cztiers button[aria-pressed="true"]{color:#fff;border-color:transparent;background:linear-gradient(150deg,#7c3aed,#db2777)}
+.cztiers button b{font-size:1.15rem;color:var(--ink)}.cztiers button[aria-pressed="true"]{color:#fff;border-color:transparent;background:#6D3CE8}
 .cztiers .t-singularity b{color:#fcd34d}.cztiers .t-supernova b{color:#fb923c}.cztiers .t-quasar b{color:#38bdf8}.cztiers .t-nebula b{color:#a78bfa}.cztiers .t-pulsar b{color:#34d399}
 .czsets{display:grid;gap:6px;margin:4px 0 10px}.czset{display:grid;grid-template-columns:130px 1fr 52px;gap:10px;align-items:center;font-size:.8rem}.czset small{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .czset-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.czset-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7c3aed,#22d3ee)}
@@ -1324,13 +1325,13 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czfoot-links{line-height:2}.cmfoot details{margin-top:8px}.cmfoot summary{cursor:pointer;color:var(--muted)}.cmfoot details p{max-width:560px;margin:8px auto 0}
 /* Cosmic's own sky: a slow nebula behind the page, and cards that tilt with a holographic sheen */
 #cosmicView{position:relative;isolation:isolate}
-#cosmicView::before{content:"";position:absolute;inset:-40px 0 0;z-index:-1;pointer-events:none;border-radius:40px;opacity:.55;
+#cosmicView::before{content:"";position:absolute;inset:-40px 0 0;z-index:-1;pointer-events:none;border-radius:40px;opacity:.3;
   background:radial-gradient(40% 30% at 15% 10%,rgba(124,58,237,.35),transparent 70%),radial-gradient(35% 28% at 90% 25%,rgba(219,39,119,.22),transparent 70%),radial-gradient(45% 30% at 50% 70%,rgba(34,211,238,.14),transparent 70%);
   animation:cznebula 26s ease-in-out infinite alternate}
-@keyframes cznebula{to{transform:translate3d(0,-20px,0) scale(1.04);filter:hue-rotate(25deg)}}
+@keyframes cznebula{to{transform:translate3d(0,-14px,0) scale(1.02)}}
 .czcard.tilt{transition:transform .08s linear;transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
 .czcard.tilt .czc-foil{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.35),transparent 45%),linear-gradient(115deg,transparent 20%,rgba(255,0,200,.12) 35%,rgba(0,255,255,.12) 50%,rgba(255,255,0,.12) 65%,transparent 80%);mix-blend-mode:screen;opacity:1}
-.czact-i{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(150deg,rgba(124,58,237,.45),rgba(34,211,238,.25));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);font-size:1.2rem}
+.czact-i{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.14);color:#C4B5FD}
 @media (prefers-reduced-motion:reduce){#cosmicView::before,.czpk-shine,.czempty-orb{animation:none}}
 .czpk{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:12px;box-shadow:var(--shadow)}
 .czpack{position:relative;overflow:hidden;isolation:isolate;border-radius:12px;height:170px;display:grid;place-content:center;justify-items:center;gap:4px;color:#fff;text-align:center;
@@ -1421,7 +1422,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czhero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .czavatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:1.3rem;background:radial-gradient(circle at 35% 30%,#f5d0fe,#a855f7 45%,#4c1d95);box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 20px rgba(192,132,252,.8)}
 .czwho{display:grid;flex:1;min-width:0}.czwho b{font-size:1.1rem}.czwho small{opacity:.8;font-size:.78rem}
-.czhero .czdaily.done{font-size:.78rem;opacity:.85}.czdaily.glow{animation:czglow 2.2s ease-in-out infinite;box-shadow:0 0 0 0 rgba(232,121,249,.7)}.czdaily.glow .czamt b{font-weight:800}
+.czhero .czdaily.done{font-size:.78rem;opacity:.85}.czdaily.glow{}.czdaily.glow .czamt b{font-weight:800}
 @keyframes czglow{50%{box-shadow:0 0 0 8px rgba(232,121,249,0)}}
 .czhero-bal{margin:12px 0 10px;display:grid}.czhero-bal small{opacity:.75;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
 .czamt.xl{font-size:2.3rem;font-stretch:112%}.czamt.xl .czcoin{width:1.05em;height:1.05em}.czamt.up b{color:#86efac;transition:color .3s}.czamt.down b{color:#fda4af;transition:color .3s}
@@ -1430,11 +1431,11 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .cztabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 10px;margin:0 0 6px;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg,#07021a) 70%,transparent)}
 .cztabs::-webkit-scrollbar{display:none}
 .cztabs button{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700;font-size:.86rem;cursor:pointer}
-.cztabs button[aria-pressed="true"]{color:#fff;border-color:transparent;background:linear-gradient(90deg,#7c3aed,#db2777);box-shadow:0 6px 18px -8px rgba(219,39,119,.8)}
+.cztabs button[aria-pressed="true"]{color:#fff;border-color:transparent;background:#6D3CE8}
 .czacts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 16px}
 .czact{display:grid;gap:3px;justify-items:start;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:inherit;font:inherit;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
 .czact:hover{transform:translateY(-2px)}.czact-i{font-size:1.4rem}.czact small{color:var(--muted);font-size:.74rem}
-.czact.hot{border-color:transparent;background:linear-gradient(150deg,rgba(124,58,237,.35),rgba(219,39,119,.25));box-shadow:0 0 0 1px rgba(232,121,249,.5),0 10px 26px -12px rgba(219,39,119,.8)}
+.czact.hot{border-color:rgba(167,139,250,.55);background:rgba(109,60,232,.16)}
 .czshow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .czedge{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 12px;margin-top:8px;border-radius:12px;border:1px solid rgba(52,211,153,.35);background:linear-gradient(90deg,rgba(16,185,129,.12),transparent);color:inherit;font:inherit;cursor:pointer}
 .czedge span{display:grid;min-width:0}.czedge small{color:var(--muted);font-size:.74rem}.czedge em{font-style:normal;font-weight:800;display:grid;justify-items:end}.czedge em i{font-style:normal;font-size:.7rem;color:#34d399}
@@ -4453,12 +4454,32 @@ function czTeam(lg, name){ return ["atp", "wta"].includes(lg) ? null : simTeam(l
 function czCard(it, ed, big){
   const player = it.kind === "player" && it.team, T = czTeam(it.lg, player ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
+  const faces = player ? czFaces(it) : [];
   return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
     <div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
     <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed != null ? `#${ed}/${it.supply}` : `1/${it.supply}`}</em></div>
-    <div class="czc-mid ${player && it.img ? "pl" : ""}">${player && it.img ? `<img class="czhs" src="${esc(it.img)}" alt="" loading="lazy" onerror="this.remove()">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
+    <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="czFaceNext(this)">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials)}'}))">` : `<b>${esc(initials)}</b>`}</div>
     <div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
+}
+// a player's photo: the one saved with the card, then the league's own photo by player id (older cards and players
+// whose photo wasn't in the roster), and finally the team's logo, large, instead of an empty card
+function czFaces(it){
+  const pid = ((it.id || "").match(/\.p(\d+)\./) || [])[1], out = [];
+  // ESPN's full-size photos are ~280 KB each; its resizer sends a card-sized copy
+  const small = u => { const m = /^https:\/\/a\.espncdn\.com(\/i\/headshots\/[^?]+\.png)$/.exec(u || ""); return m ? `https://a.espncdn.com/combiner/i?img=${m[1]}&w=260&h=190&scale=crop&cquality=80&location=origin` : null; };
+  if (it.img){ const sm = small(it.img); if (sm) out.push(sm); out.push(it.img); }
+  if (pid){
+    if (it.lg === "nfl" || it.lg === "nba"){ const u = `https://a.espncdn.com/i/headshots/${it.lg}/players/full/${pid}.png`; out.push(small(u), u); }
+    if (it.lg === "nhl") out.push(`https://assets.nhle.com/mugs/nhl/latest/${pid}.png`);
+    if (it.lg === "mlb") out.push(`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_240,q_auto:best/v1/people/${pid}/headshot/67/current`);
+  }
+  return [...new Set(out)];
+}
+function czFaceNext(img){
+  let rest = []; try { rest = JSON.parse(img.dataset.alt || "[]"); } catch {}
+  if (rest.length){ img.dataset.alt = JSON.stringify(rest.slice(1)); img.src = rest[0]; return; }
+  const mid = img.closest(".czc-mid"); img.remove(); if (mid){ mid.classList.remove("pl"); mid.classList.add("noface"); }
 }
 // each tier's scene, drawn behind the logo: a black hole, an exploding star, a quasar's jets, drifting gas, a pulsar's beams,
 // glittering stardust and a streaking comet
@@ -4477,7 +4498,7 @@ const czToday = () => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "
 function czRank(){ const L = CZ.lb && CZ.lb.rich; if (!L || !CZ.me) return null; const i = L.findIndex(r => r.uid === CZ.me.uid); return i < 0 ? null : { n: i + 1, of: CZ.lb.players }; }
 function czHeader(){
   const me = CZ.me;
-  if (!me) return `<div class="lghead czhead"><div><h1>🪐 Cosmic</h1><p>Bet free Cosmic Coins on real games, climb the leaderboards, and rip packs of limited-edition team and player cards, down to the one-and-only 1 of 1.</p></div></div>`;
+  if (!me) return `<div class="lghead czhead"><div><h1>Cosmic</h1><p>Bet free Cosmic Coins on real games, climb the leaderboards, and rip packs of limited-edition team and player cards, down to the one-and-only 1 of 1.</p></div></div>`;
   const claimed = me.lastDaily === czToday(), rk = czRank(), items = me.items || [], rarest = items.reduce((m, i) => Math.min(m, i.supply || 1e9), 1e9), open = (me.bets || []).filter(b => !b.res).length;
   const yday = (() => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(Date.now() - 864e5)); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); })();
   const next = CZ_DAILY_BASE + (me.lastDaily === yday ? Math.min(6, me.streak || 0) : 0) * 50;           // the streak bonus only carries on from yesterday
@@ -4505,8 +4526,8 @@ function drawCosmic(){
   if (!CZ.me){ el.innerHTML = czHeader() + (pkOn ? czPkHtml(false) : czJoinHtml()); czBind(el); czPkBind(el); return; }
   if (pkOn && !CZ.me.passkey){ el.innerHTML = czHeader() + czPkHtml(true); czBind(el); czPkBind(el); return; }
   czSyncStart();
-  const tabs = [["home", "🏠", "Home"], ["bet", "🎯", "Bet"], ["mine", "🧾", "My bets"], ["packs", "🎴", "Packs"], ["market", "🛒", "Market"], ["coll", "🗂️", "Collection"], ["check", "✅", "Checklist"], ["lb", "🏆", "Leaders"]];
-  el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}"><span aria-hidden="true">${i}</span>${l}</button>`).join("")}</nav>`
+  const tabs = [["home", "", "Home"], ["bet", "", "Bet"], ["mine", "", "My bets"], ["packs", "", "Packs"], ["market", "", "Market"], ["coll", "", "Collection"], ["check", "", "Checklist"], ["lb", "", "Leaders"]];
+  el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</nav>`
     + ({ home: czHomeHtml, bet: czBetHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)()
     + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button></div>
       <details><summary>About Cosmic Coins</summary><p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed.${CZ.me.passkey ? " Your account, cards, followed teams, settings and picks are saved and follow you to any device where you sign in." : ""}</p></details></footer>`;
@@ -4517,6 +4538,11 @@ function drawCosmic(){
 function czEdges(){
   return (CZ.board || []).flatMap(m => m.model ? Object.keys(m.dec).map(side => ({ m, side, edge: m.model[side] - 1 / m.dec[side] })) : []).filter(x => x.edge >= .03 && Date.parse(x.m.start) > Date.now()).sort((a, b) => b.edge - a.edge);
 }
+const CZ_ICO = { bet: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6" fill="currentColor"/>',
+  coin: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.6c0 2.2-5 1.4-5 3.7 0 .9 1.1 1.7 2.5 1.7s2.5-.7 2.5-1.7"/>',
+  pack: '<rect x="5" y="4" width="11" height="15" rx="2"/><path d="M9 20h8a2 2 0 0 0 2-2V8"/>', tag: '<path d="M4 12V5a1 1 0 0 1 1-1h7l8 8-8 8z"/><circle cx="8.5" cy="8.5" r="1.3"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7"/>' };
+const czIco = k => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${CZ_ICO[k]}</svg>`;
 function czHomeHtml(){
   const me = CZ.me, claimed = me.lastDaily === czToday(), items = (me.items || []).slice().sort((a, b) => a.supply - b.supply || (b.price || 0) - (a.price || 0));
   const games = (CZ.board || []).length, cheapest = CZ.packs ? CZ.packs.packs.filter(p => p.price <= me.bal).sort((a, b) => b.price - a.price)[0] : null, listings = CZ.market ? CZ.market.listings.filter(l => l.uid !== me.uid).length : null;
@@ -4524,19 +4550,19 @@ function czHomeHtml(){
   const edges = czEdges().slice(0, 3), L = CZ.lb, rk = czRank();
   const feedTxt = f => f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} #${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `#${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : `${czWhoBtn(f.name)} joined Cosmic`;
   return `<div class="czacts">
-      ${claimed ? tile('data-cztab="bet"', "🎯", "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', "🪙", "Claim daily coins", "Free coins every day, more for a streak", true)}
-      ${tile('data-cztab="packs"', "🎴", "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 250 coins", false)}
-      ${tile('data-cztab="market"', "🛒", "Market", listings == null ? "Buy from other collectors" : `${listings} card${listings === 1 ? "" : "s"} for sale`, false)}
-      ${tile('data-cztab="lb"', "🏆", "Leaders", rk ? `You're #${rk.n}` : "See who's on top", false)}</div>
+      ${claimed ? tile('data-cztab="bet"', czIco("bet"), "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', czIco("coin"), "Claim daily coins", "Free coins every day, more for a streak", true)}
+      ${tile('data-cztab="packs"', czIco("pack"), "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 250 coins", false)}
+      ${tile('data-cztab="market"', czIco("tag"), "Market", listings == null ? "Buy from other collectors" : `${listings} card${listings === 1 ? "" : "s"} for sale`, false)}
+      ${tile('data-cztab="lb"', czIco("trophy"), "Leaders", rk ? `You're #${rk.n}` : "See who's on top", false)}</div>
     <div class="grid" style="margin-top:0">
       <section class="card"><h2>Your showcase</h2>${items.length ? `<div class="czshow">${items.slice(0, 3).map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}</button>`).join("")}</div><p class="sub" style="margin:10px 0 0">Your rarest cards. <button type="button" class="linkbtn" data-cztab="coll">See all ${items.length}</button></p>`
         : `<p class="sub">No cards yet. A Comet Pack is 250 coins and every card in it is numbered.</p><button type="button" class="btn primary" data-cztab="packs">Open your first pack</button>`}</section>
-      <section class="card"><h2>Cosmo's best bets today</h2><p class="sub">Where the model's chance beats what the price implies. Not a sure thing, just value.</p>
+      <section class="card"><h2>Best value today</h2><p class="sub">Games where the model gives a side a better chance than its price does.</p>
         ${edges.length ? edges.map(({ m, side, edge }) => { const T = side === "draw" ? null : m[side], opp = side === "home" ? m.away : m.home;
           return `<button type="button" class="czedge" data-czbet="${m.lg}|${esc(m.gid)}|${side}">${T ? logoChip(simTeam(m.lg, T.name), "sm", m.lg) : ""}<span><b>${side === "draw" ? `Draw: ${esc(simShort(m.lg, m.away.name))} at ${esc(simShort(m.lg, m.home.name))}` : `${esc(simShort(m.lg, T.name))} ${side === "home" ? "vs" : "at"} ${esc(simShort(m.lg, opp.name))}`}</b><small>${esc(CZ_LG[m.lg])} · ${esc(new Date(m.start).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }))} · Cosmo ${Math.round(m.model[side] * 100)}%</small></span><em>${czPrice(m.dec[side])}<i>+${Math.round(edge * 100)}% edge</i></em></button>`; }).join("")
           : `<p class="sub">${CZ.board ? "No standout value right now. Check back closer to game time." : "Loading today's games…"}</p>`}</section>
-      <section class="card"><h2>Top of the cosmos</h2>${L ? L.rich.slice(0, 5).map((r, i) => `<div class="czlbr ${r.uid === me.uid ? "me" : ""}"><span class="ldn">${["🥇", "🥈", "🥉"][i] || i + 1}</span><b>${esc(r.name)}</b><span>${czAmt(r.bal)}</span></div>`).join("") + (rk && rk.n > 5 ? `<div class="czlbr me"><span class="ldn">${rk.n}</span><b>${esc(me.name)}</b><span>${czAmt(me.bal)}</span></div>` : "") : `<p class="sub">Loading…</p>`}</section>
-      <section class="card"><h2>Live from the cosmos</h2>${L && L.feed.length ? `<div class="czfeed">${L.feed.slice(0, 6).map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet. Be the first to pull a rare one.</p>`}</section>
+      <section class="card"><h2>Leaderboard</h2>${L ? L.rich.slice(0, 5).map((r, i) => `<div class="czlbr ${r.uid === me.uid ? "me" : ""}"><span class="ldn">${["🥇", "🥈", "🥉"][i] || i + 1}</span><b>${esc(r.name)}</b><span>${czAmt(r.bal)}</span></div>`).join("") + (rk && rk.n > 5 ? `<div class="czlbr me"><span class="ldn">${rk.n}</span><b>${esc(me.name)}</b><span>${czAmt(me.bal)}</span></div>` : "") : `<p class="sub">Loading…</p>`}</section>
+      <section class="card"><h2>Recent activity</h2>${L && L.feed.length ? `<div class="czfeed">${L.feed.slice(0, 6).map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet. Be the first to pull a rare one.</p>`}</section>
     </div>`;
 }
 function czJoinHtml(){
@@ -4870,8 +4896,8 @@ function czLbHtml(){
   const boards = { rich: ["Most coins", L.rich.slice(0, 50), r => czAmt(r.bal), `${L.players.toLocaleString()} player${L.players === 1 ? "" : "s"}`],
     sharp: ["Sharpest bettors", L.sharp, r => `<span class="${r.profit >= 0 ? "pos" : "neg"}">${r.profit > 0 ? "+" : ""}${Math.round(r.profit).toLocaleString()}</span> <small class="muted">${r.won}–${r.lost}</small>`, "Coins won from betting, at least 5 settled bets"],
     coll: ["Top collectors", L.collectors, r => `${r.cards} card${r.cards === 1 ? "" : "s"}${r.best <= 10 ? ` · 1/${r.best}` : ""}`, "Rarest card first"] };
-  const seg = `<div class="seg trseg czlbseg" role="group" aria-label="Leaderboard">${[["rich", "💰 Coins"], ["sharp", "🎯 Bettors"], ["coll", "🗂️ Collectors"], ["feed", "📡 Live"]].map(([k, l]) => `<button type="button" data-czlbv="${k}" aria-pressed="${board === k}">${l}</button>`).join("")}</div>`;
-  if (board === "feed") return seg + `<section class="card"><h2>Live from the cosmos</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section>`;
+  const seg = `<div class="seg trseg czlbseg" role="group" aria-label="Leaderboard">${[["rich", "Coins"], ["sharp", "Bettors"], ["coll", "Collectors"], ["feed", "Activity"]].map(([k, l]) => `<button type="button" data-czlbv="${k}" aria-pressed="${board === k}">${l}</button>`).join("")}</div>`;
+  if (board === "feed") return seg + `<section class="card"><h2>Recent activity</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section>`;
   const [title, rows, val, sub] = boards[board] || boards.rich;
   if (!rows.length) return seg + `<section class="card"><h2>${title}</h2><p class="sub">${board === "sharp" ? "Nobody has 5 settled bets yet." : "No cards collected yet."}</p></section>`;
   const pod = rows.slice(0, 3), podOrder = [pod[1], pod[0], pod[2]].filter(Boolean), mine = rows.findIndex(r => r.uid === me);
@@ -5072,7 +5098,7 @@ function trRow(r, pending){
 function drawTrack(){
   const el = $("#recordView"); if (!el) return;
   const since = new Date((TR.data && TR.data.since || "2026-09-24") + "T12:00:00Z").toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
-  const head = `<div class="lghead"><div><h1>📈 Track record</h1><p>Every pick the model makes is locked in shortly before the game starts and graded when it ends. Nothing is added afterwards, and nothing is edited. Tracking since ${esc(since)}.</p></div><button class="btn" type="button" data-tr="share">Share</button></div>`;
+  const head = `<div class="lghead"><div><h1>Track record</h1><p>Every pick the model makes is locked in shortly before the game starts and graded when it ends. Nothing is added afterwards, and nothing is edited. Tracking since ${esc(since)}.</p></div><button class="btn" type="button" data-tr="share">Share</button></div>`;
   const segs = `<div class="seg trseg" role="group" aria-label="League">${["all", ...TR_LEAGUES].map(l => `<button type="button" data-trlg="${l}" aria-pressed="${TR.lg === l}">${l === "all" ? "All" : l === "epl" ? "EPL" : LEAGUE_LABEL[l]}</button>`).join("")}</div>`;
   if (!TR.data){ el.innerHTML = head + `<div class="teamnote">${TR.err ? `<b>Couldn't load the track record</b>${ALERTS_URL ? "Check your connection and try again." : "It's kept by the live service, which this copy of the app isn't connected to."}` : cosmoLoad("Loading the track record…")}</div>`; trBind(el); return; }
   const all = TR.data.picks.filter(k => TR_LEAGUES.includes(k.lg) && Array.isArray(k.p)).map(trGrade), rows = TR.lg === "all" ? all : all.filter(r => r.k.lg === TR.lg);
@@ -5118,7 +5144,7 @@ function trBind(el){
 }
 function drawComets(){
   const el = $("#cometsView"); if (!el) return; const writer = !!cmKey();
-  const head = `<div class="lghead"><div><h1>☄️ Comets</h1><p>Articles and takes from Cosmo Sports.</p></div>${writer && !CM.edit ? `<button class="btn primary" type="button" data-cm="new">New article</button>` : ""}</div>`;
+  const head = `<div class="lghead"><div><h1>Comets</h1><p>Articles and takes from Cosmo Sports.</p></div>${writer && !CM.edit ? `<button class="btn primary" type="button" data-cm="new">New article</button>` : ""}</div>`;
   if (CM.edit){ el.innerHTML = head + cmEditorHtml(); cmBindEditor(el); return; }
   if (CM.cur){ el.innerHTML = head + cmReaderHtml(); cmBind(el); return; }
   const list = CM.list;
@@ -5651,7 +5677,7 @@ function drawUniverse(){
       <div class="ring r1"></div><div class="ring r2"></div>
       <div class="core">${core}</div>
       <div class="orbit">${inner.map((g, i) => planetHtml(g, i, 0, inner.length)).join("")}${outer.map((g, i) => planetHtml(g, i, 1, outer.length)).join("")}</div>
-      ${sky.length ? "" : `<p class="skyempty">A quiet night in the cosmos. No games today.</p>`}
+      ${sky.length ? "" : `<p class="skyempty">No games today.</p>`}
     </div>
     ${top ? `<button type="button" class="uhero" data-lg="${top.lg}" data-id="${esc(top.id)}"><small>Best game on now</small><b>${shielded(top.lg, top) ? `${esc(top.away.short || top.away.name)} at ${esc(top.home.short || top.home.name)}` : `${esc(top.away.short || top.away.name)} ${esc(top.away.score ?? "")}, ${esc(top.home.short || top.home.name)} ${esc(top.home.score ?? "")}`}</b><span>${esc(LEAGUE_LABEL[top.lg])} · ${esc(top.status.short || "")} · ⚡ ${top.pulse}</span></button>` : ""}</div>
     <div class="ucols">

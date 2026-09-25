@@ -1,5 +1,5 @@
 // Builds docs/rosters.json: every player on every NFL, NBA, NHL, MLB and Premier League roster, for the Cosmic player cards.
-// Sources (free, no key): ESPN (NFL, NBA, Premier League; through our alerts service if ESPN turns this computer away), the NHL's API and
+// Sources (free, no key): ESPN (NFL, NBA, Premier League, with the league's own site for Premier League photos; through our alerts service if ESPN turns this computer away), the NHL's API and
 // MLB's Stats API (40-man rosters). Keeps the previous list for any league that fails. Run from the repo root: node alerts/rosters.mjs
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const H = { "User-Agent": "Mozilla/5.0 (compatible; CosmoSports/1.0)" };
@@ -18,10 +18,37 @@ async function espnLeague(lg) {
   });
   return rows.flat().filter(p => p.id && p.name);
 }
+// the Premier League's own player list (its opta ids name the photo files)
+const normName = n => String(n || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
+const lastFirst = n => { const w = normName(n).split(" "); return w.length > 1 ? w[0][0] + " " + w[w.length - 1] : w[0]; };
+async function plPhotos() {
+  const PH = { ...H, Origin: "https://www.premierleague.com", Referer: "https://www.premierleague.com/" };
+  const pl = async u => { const r = await fetch(u, { headers: PH }); if (!r.ok) throw new Error(`${r.status} ${u}`); return r.json(); };
+  let cs = 777; try { const d = await pl("https://footballapi.pulselive.com/football/competitions/1/compseasons?page=0&pageSize=1"); cs = d.content?.[0]?.id || cs; } catch {}
+  const map = new Map();
+  for (const season of [...new Set([cs, 777])]) for (let page = 0; page < 20; page++) {
+    const d = await pl(`https://footballapi.pulselive.com/football/players?pageSize=100&compSeasons=${season}&altIds=true&page=${page}&type=player`);
+    for (const p of d.content || []) { const opta = String(p.altIds?.opta || "").replace(/^p/, ""); if (!opta) continue;
+      for (const k of [normName(p.name?.display), lastFirst(p.name?.display), normName(`${p.name?.first || ""} ${p.name?.last || ""}`)]) {
+        if (!k) continue; if (map.has(k) && map.get(k) !== opta) map.set(k, null); else if (!map.has(k)) map.set(k, opta); } }     // two players, one key: use neither
+    if (page + 1 >= (d.pageInfo?.numPages || 0)) break;
+  }
+  if (map.size < 200) throw new Error(`only ${map.size} photos`);
+  return map;
+}
 const builders = {
   nfl: () => espnLeague("nfl"),
   nba: () => espnLeague("nba"),
-  epl: () => espnLeague("epl"),
+  async epl() {                                  // ESPN has few Premier League photos, so match players to the league's own photos by name
+    const list = await espnLeague("epl");
+    try { const photos = await plPhotos(), miss = [];
+      for (const p of list) { const k = normName(p.name), id = photos.get(k) || photos.get(lastFirst(p.name)); if (id) p.img = `https://resources.premierleague.com/premierleague25/photos/players/110x140/${id}.png`; else if (!p.img) miss.push(p.name); }
+      // not every player has a photo on the league's site: keep only the ones that exist
+      await pool(list.filter(p => p.img.includes("premierleague.com")), 12, async p => { try { const r = await fetch(p.img, { method: "HEAD", headers: H }); if (!r.ok) p.img = ""; } catch { p.img = ""; } });
+      console.log("epl photos matched", list.length - miss.length, "of", list.length, "; available", list.filter(p => p.img).length); }
+    catch (e) { console.log("epl photos skipped:", e.message); }
+    return list;
+  },
   async nhl() {
     const st = (await get("https://api-web.nhle.com/v1/standings/now")).standings || [];
     const teams = st.map(s => ({ abbr: s.teamAbbrev?.default, name: s.teamName?.default })).filter(t => t.abbr);
