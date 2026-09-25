@@ -1,22 +1,18 @@
-# Temporary: find a source for Premier League player photos. Safe to delete.
+# Temporary: try the roster builder's Premier League photo matching. Safe to delete.
 name: Probes
 on:
   push:
     branches: [claude/dreamy-davinci-hedx5u]
-    paths: [".github/workflows/diag.yml"]
+    paths: [".github/workflows/diag.yml", "alerts/rosters.mjs"]
 permissions:
   contents: read
 jobs:
   photos:
     runs-on: ubuntu-latest
     steps:
-      - name: Premier League photo sources
-        run: |
-          H='-H Origin:https://www.premierleague.com -H Referer:https://www.premierleague.com/'
-          echo "== compseasons"; curl -s --max-time 20 $H "https://footballapi.pulselive.com/football/compseasons?page=0&pageSize=3&comps=1" | head -c 600; echo
-          echo "== players"; curl -s --max-time 20 $H "https://footballapi.pulselive.com/football/players?pageSize=3&compSeasons=777&altIds=true&page=0&type=player" | head -c 1200; echo
-          echo "== photo"; for u in "https://resources.premierleague.com/premierleague/photos/players/250x250/p118748.png" "https://resources.premierleague.com/premierleague25/photos/players/110x140/118748.png"; do curl -s -o /dev/null -w "%{http_code} %{content_type} %{size_download} $u\n" --max-time 15 "$u"; done
-          echo "== espn soccer roster"; curl -s --max-time 20 "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/359/roster" | python3 -c "import sys,json; d=json.load(sys.stdin); a=d.get('athletes',[]); print(len(a)); [print(x.get('displayName'), x.get('headshot',{}).get('href'), x.get('id')) for x in a[:6]]"
-          echo "== espn combiner"; curl -s -o /dev/null -w "%{http_code} %{content_type} %{size_download}\n" --max-time 15 "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/5084939.png&w=240&h=175&scale=crop&cquality=80&location=origin"
-          echo "== nhl latest"; curl -s -o /dev/null -w "%{http_code} %{content_type}\n" --max-time 15 "https://assets.nhle.com/mugs/nhl/latest/8481550.png"
-          echo "== fotmob search"; curl -s --max-time 15 "https://www.fotmob.com/api/search/suggest?term=Bukayo%20Saka" | head -c 400; echo
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: node alerts/rosters.mjs
+      - run: node -e 'const R=require("./docs/rosters.json").leagues; for (const [lg,l] of Object.entries(R)) console.log(lg, l.length, "with photo", l.filter(p=>p.img).length); console.log(R.epl.filter(p=>p.img).slice(0,5).map(p=>p.name+" "+p.img).join("\n"))'
+      - run: for u in $(node -e 'console.log(require("./docs/rosters.json").leagues.epl.filter(p=>p.img).slice(0,4).map(p=>p.img).join(" "))'); do curl -s -o /dev/null -w "%{http_code} $u\n" "$u"; done
