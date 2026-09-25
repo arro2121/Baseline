@@ -156,31 +156,44 @@ def sched_nhl(names, season):
     return played, left
 
 def sched_nba(names, season):
-    """The whole regular season a month at a time: ESPN's scoreboard, or the same scoreboard through our alerts service when
-    ESPN turns this computer away (it does for GitHub's). Preseason and playoff games are left out."""
+    """The whole regular season: ESPN's scoreboard (a month at a time), or, when ESPN turns this computer away (it does for
+    GitHub's), the same scoreboard through our alerts service a day at a time. Preseason and playoff games are left out."""
     res = resolver(names)
     from team_history import alerts_url
     base = alerts_url()
-    months = [(dt.date(season, 10, 1), dt.date(season, 10, 31))] + [(dt.date(y, m, 1), (dt.date(y + (m == 12), m % 12 + 1, 1) - dt.timedelta(days=1))) for y, m in
-              [(season, 11), (season, 12), (season + 1, 1), (season + 1, 2), (season + 1, 3), (season + 1, 4)]]
+    first, last = dt.date(season, 10, 1), dt.date(season + 1, 4, 30)
     games = {}
-    for a, b in months:
-        rng_ = f"{a:%Y%m%d}-{b:%Y%m%d}"
-        try:
-            d = get_json(f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates={rng_}&limit=1000")
-            evs = [dict(id=e["id"], date=e["date"], stype=(e.get("season") or {}).get("type"), neutral=e["competitions"][0].get("neutralSite", False),
-                        state=e["status"]["type"]["state"], completed=e["status"]["type"].get("completed"),
-                        home=next(c for c in e["competitions"][0]["competitors"] if c["homeAway"] == "home"), away=next(c for c in e["competitions"][0]["competitors"] if c["homeAway"] == "away"))
-                   for e in d.get("events", [])]
-            evs = [dict(x, home=dict(name=x["home"]["team"]["displayName"], score=x["home"].get("score")), away=dict(name=x["away"]["team"]["displayName"], score=x["away"].get("score"))) for x in evs]
-        except Exception:
-            if not base: raise
-            d = get_json(f"{base}/sports/nba/scoreboard?dates={rng_}")
-            evs = [dict(id=g["id"], date=g["date"], stype=g.get("stype"), neutral=g.get("neutral", False), state=g["status"]["state"], completed=g["status"].get("completed"),
-                        home=g["home"], away=g["away"]) for g in d.get("games", [])]
-        for x in evs:
-            if x["stype"] not in (2, "2"): continue
-            games[x["id"]] = x
+    def norm_espn(e):
+        c = e["competitions"][0]; side = lambda k: next(x for x in c["competitors"] if x["homeAway"] == k)
+        return dict(id=e["id"], date=e["date"], stype=(e.get("season") or {}).get("type"), neutral=c.get("neutralSite", False), state=e["status"]["type"]["state"],
+                    completed=e["status"]["type"].get("completed"), home=dict(name=side("home")["team"]["displayName"], score=side("home").get("score")),
+                    away=dict(name=side("away")["team"]["displayName"], score=side("away").get("score")))
+    try:
+        d0 = first
+        while d0 <= last:
+            d1 = min(last, (d0.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1))
+            for e in get_json(f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates={d0:%Y%m%d}-{d1:%Y%m%d}&limit=1000").get("events", []):
+                x = norm_espn(e); games[x["id"]] = x
+            d0 = d1 + dt.timedelta(days=1)
+        if len(games) < 1000: raise RuntimeError("ESPN ignored the date range")
+    except Exception:
+        if not base: raise
+        games = {}
+        from concurrent.futures import ThreadPoolExecutor
+        def day(d):
+            for i in range(3):
+                try: return get_json(f"{base}/sports/nba/scoreboard?dates={d:%Y%m%d}").get("games", [])
+                except Exception:
+                    if i == 2: return None
+        days = [first + dt.timedelta(days=i) for i in range((last - first).days + 1)]
+        with ThreadPoolExecutor(8) as ex:
+            got = list(ex.map(day, days))
+        if sum(g is None for g in got) > 10: raise RuntimeError(f"{sum(g is None for g in got)} NBA days didn't load")
+        for gs in got:
+            for g in gs or []:
+                games[g["id"]] = dict(id=g["id"], date=g["date"], stype=g.get("stype"), neutral=g.get("neutral", False), state=g["status"]["state"],
+                                      completed=g["status"].get("completed"), home=g["home"], away=g["away"])
+    games = {k: x for k, x in games.items() if x["stype"] in (2, "2")}
     played, left = [], []
     for x in games.values():
         h, a = res(x["home"]["name"]), res(x["away"]["name"])
