@@ -1,0 +1,3 @@
+nov.json 1 None [('2026-10-03T23:00Z', 1, 'pre', 'Toronto Raptors')]
+oct.json 1 None [('2026-10-03T23:00Z', 1, 'pre', 'Toronto Raptors')]
+day.json 2 None [('2026-11-06T02:00Z', 2, 'pre', 'Phoenix Suns'), ('2026-11-06T03:00Z', 2, 'pre', 'Golden State Warriors')]
