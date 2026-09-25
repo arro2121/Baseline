@@ -30,16 +30,18 @@ SCORES AND GAMES
 PREDICTIONS YOU CAN CHECK
 - Win chances for every game from a model tested on thousands of past games it never saw
 - The Track Record page grades every pick after the game, publicly, and never edits it
-- Season simulations: playoff and title odds for every team
+- Season simulations: playoff and title odds for every team, and a what-if simulator to pick results yourself
+- Predictions adjusted for key injuries
 
 PICKS
 - The Daily 3: pick the day's three closest games and keep a streak
 - Challenge a friend to the same picks
 
 COSMIC
-- Bet free Cosmic Coins on real games at real prices and climb the leaderboards
+- Bet free Cosmic Coins on real games at real prices, plus player props, and climb the leaderboards
 - Open packs of limited-edition team and player cards in seven tiers, from Comet (1 of 1,000) to Singularity: only one of each will ever exist
-- Trade cards with other collectors on the Market or sell them back to the shop
+- Trade cards with other collectors, run auctions, buy on the Market or sell back to the shop
+- Cards level up when the real player has a big game
 - Cosmic Coins are play money. They can't be bought, and they can't be cashed out. Cards have no cash value.
 
 YOUR ACCOUNT

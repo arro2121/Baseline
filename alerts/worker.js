@@ -1341,6 +1341,41 @@ function pois3(lh, la, rho) {
   G.forEach((r, i) => r.forEach((v, j) => { v /= s; if (i > j) h += v; else if (i === j) d += v; else a += v; }));
   return { home: h, draw: d, away: a };
 }
+/* ---- injuries: key players ruled out move a team's rating down before the model runs ----
+   From ESPN's injury report. Only players who are out (or doubtful, at three quarters) count, and only ones who matter:
+   an NFL starting quarterback, and the stars in allstars.json, weighted by how high they rank. The sizes are estimates in
+   Elo points (roughly: 25 points is one point of spread in the NBA), not fitted on past games: there is no free history of
+   injury reports to test them on. A team's total is capped. */
+const INJ_W = { nfl: { qb: 75, star: 10, cap: 110 }, nba: { top: 95, low: 25, cap: 170 }, nhl: { top: 30, low: 8, cap: 55 }, mlb: { top: 10, low: 4, cap: 25 }, epl: { top: 28, low: 8, cap: 55 } };
+const INJ_CACHE = new Map();
+export function injuryPenalty(lg, list, stars) {
+  const W = INJ_W[lg]; let total = 0; const out = [];
+  for (const p of list) {
+    const st = String(p.status || ""), share = /\bout\b|injured reserve|\bir\b|suspend|season/i.test(st) ? 1 : /doubtful/i.test(st) ? .75 : 0; if (!share) continue;
+    const s = stars.get(mkey(p.name)); let pen = 0;
+    if (lg === "nfl") pen = p.pos === "QB" && s && s.pool === "qbs" ? W.qb : s ? W.star : 0;
+    else if (s) pen = W.low + (W.top - W.low) * (1 - s.rank / Math.max(1, s.size - 1));
+    if (pen) { pen = Math.round(pen * share); total += pen; out.push({ name: p.name, pos: p.pos, status: st, pen }); }
+  }
+  return { pen: Math.min(W.cap, total), out: out.sort((a, b) => b.pen - a.pen) };
+}
+async function starsOf(env, lg, fetchImpl = fetch) {
+  const m = new Map(); try { const r = await siteGet(env, "/allstars.json", fetchImpl); const A = r.ok ? await r.json() : {};
+    for (const [pool, l] of Object.entries((A.sports || {})[lg] || {})) if (Array.isArray(l)) l.forEach((p, i) => { if (!m.has(mkey(p.name))) m.set(mkey(p.name), { pool, rank: i, size: l.length }); }); } catch {}
+  return m;
+}
+export async function injuries(env, lg, fetchImpl = fetch) {
+  const c = INJ_CACHE.get(lg); if (c && Date.now() - c.at < 20 * 60e3) return c.v;
+  const [d, stars] = await Promise.all([getJSON(`${ESPN}${LEAGUES[lg]}/injuries`, fetchImpl), starsOf(env, lg, fetchImpl)]);
+  const teams = {};
+  for (const t of d.injuries || []) {
+    const name = t.displayName || t.team?.displayName; if (!name) continue;
+    const list = (t.injuries || []).map(x => ({ name: x.athlete?.displayName || "", pos: x.athlete?.position?.abbreviation || "", status: x.status || x.type?.description || "" })).filter(x => x.name);
+    const r = injuryPenalty(lg, list, stars); if (r.pen) teams[name] = r;
+  }
+  const v = { lg, asof: new Date().toISOString(), teams }; INJ_CACHE.set(lg, { at: Date.now(), v }); return v;
+}
+export function injuryFor(inj, name) { if (!inj || !inj.teams) return null; const k = mkey(name); for (const [n, v] of Object.entries(inj.teams)) if (mkey(n) === k) return v; return null; }
 // the model's win chances and projected score for one scoreboard game (null when the model doesn't know a team)
 export function modelProbs(models, lg, g) {
   const M = models && models[lg]; if (!M) return null;
@@ -1351,7 +1386,8 @@ export function modelProbs(models, lg, g) {
   const share = (s, k) => s.x && s.x[k] != null ? s.x[k] : .5;
   const spRa = name => { const p = name && M.pitchers && M.pitchers[name]; if (!p) return 4.45; const [prior, roll, n] = p; return roll == null ? prior : (prior * 8 + roll * n) / (8 + n); };
   const pr = g.probables, dH = gapDays(H.last, when), dA = gapDays(A.last, when);
-  const x = { home: g.neutral ? 0 : 1, elo_d: H.elo - A.elo, mov_d: H.mov - A.mov, form_d: mean(H.form) - mean(A.form), rest_d: restOf(H) - restOf(A),
+  const penH = g.inj ? g.inj.home || 0 : 0, penA = g.inj ? g.inj.away || 0 : 0;
+  const x = { home: g.neutral ? 0 : 1, elo_d: H.elo - penH - (A.elo - penA), mov_d: H.mov - A.mov, form_d: mean(H.form) - mean(A.form), rest_d: restOf(H) - restOf(A),
     b2b_h: dH != null && dH <= 1 ? 1 : 0, b2b_a: dA != null && dA <= 1 ? 1 : 0, sp_d: lg === "mlb" ? spRa(pr && pr[0]) - spRa(pr && pr[1]) : 0, qb_d: 0,
     shots_d: share(H, "shots_share") - share(A, "shots_share"), sot_d: share(H, "sot_share") - share(A, "sot_share"), fg_d: share(H, "fg_share") - share(A, "fg_share"),
     pf_h: H.pf ?? avg, pa_h: H.pa ?? avg, pf_a: A.pf ?? avg, pa_a: A.pa ?? avg };
@@ -1401,11 +1437,13 @@ export async function trackTick(env, fetchImpl = fetch, now = new Date(), force 
     const pre = g => lg !== "epl" && g.stype === 1;                                      // preseason: not tracked
     if (day === today) st.sched[lg] = { day, at: t, starts: games.filter(g => g.status?.state === "pre" && !pre(g)).map(g => Date.parse(g.date)).filter(x => x > t) };
     const inWin = g => { const s = Date.parse(g.date); return g.status?.state === "pre" && !pre(g) && s > t && s - t <= LOCK_MS; };
-    let espnMlb = null;                                                                    // MLB's own feed has no odds: take ESPN's for the same game
+    let espnMlb = null, inj;                                                               // MLB's own feed has no odds: take ESPN's for the same game
     if (lg === "mlb" && games.some(inWin)) { try { espnMlb = (await espnBoard("mlb", fetchImpl, day)).games || []; } catch { espnMlb = []; } }
     for (const g of games) {
       const key = `${lg}/${g.id}`, cur = rec[key];
       if (inWin(g) && models && (!cur || cur.res == null)) {
+        if (inj === undefined) inj = await injuries(env, lg, fetchImpl).catch(() => null);
+        const iH = injuryFor(inj, g.home.name), iA = injuryFor(inj, g.away.name); g.inj = { home: iH ? iH.pen : 0, away: iA ? iA.pen : 0 };
         const p = modelProbs(models, lg, g); if (!p) continue;
         let o = g.odds;
         if (lg === "mlb") { const gs = Date.parse(g.date), m = (espnMlb || []).filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
@@ -1475,7 +1513,7 @@ export const czNameOk = name => { const n = czFold(String(name)), all = n.replac
   return !CZ_BAD.some(w => all.includes(w)) && !words.some(w => CZ_BAD_WORD.includes(w)) && !CZ_BAD_WORD.includes(all); };
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
-  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created });
+  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, trades: u.trades || 0, outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
@@ -1509,6 +1547,28 @@ export async function czTx(st, a) {
     await feed({ kind: "join", name: a.name });
     return { user: czPublic(u) };
   }
+  if (a.act === "aucsettle") {                                       // auctions that have ended: the card to the top bidder, the coins to the seller
+    const AU = await get("cz:auc", []), done = AU.filter(x => x.ends <= a.now); if (!done.length) return { settled: 0 };
+    for (const x of done) {
+      const sl = await st.get("cz:u:" + x.seller), c = sl && (sl.items || []).find(v => v.id === x.id && v.auction === x.aid);
+      const by = x.bidder ? await st.get("cz:u:" + x.bidder) : null;
+      if (!c) { if (by && !x.bT) { by.bal += x.bid; await st.put("cz:u:" + by.uid, by); } continue; }        // the card is gone: refund
+      if (!by) { delete c.auction; await st.put("cz:u:" + sl.uid, sl); continue; }                             // no bids: back to the seller
+      const fee = Math.ceil(x.bid * CZ_FEE);
+      sl.items = sl.items.filter(v => v.id !== x.id); delete c.auction; sl.bal += x.bid - fee; sl.sold = (sl.sold || 0) + 1;
+      by.items = [...(by.items || []), { ...c, at: a.now, bought: x.bid, from: sl.name, auction: undefined }];
+      const o = await get("cz:own:" + x.id, []); await st.put("cz:own:" + x.id, [...o.filter(v => v.uid !== sl.uid), { n: c.n, uid: by.uid, name: by.name, at: a.now, price: x.bid }]);
+      by.won_auc = [...(by.won_auc || []), { name: x.name, tier: x.tier, n: x.n, supply: x.supply, price: x.bid, at: a.now }].slice(-10);
+      await st.put("cz:u:" + sl.uid, sl); await st.put("cz:u:" + by.uid, by); await lb(sl); await lb(by);
+      await feed({ kind: "sale", name: by.name, seller: sl.name, label: x.name, tier: x.tier, n: x.n, supply: x.supply, price: x.bid, auction: true });
+    }
+    await st.put("cz:auc", AU.filter(x => x.ends > a.now)); return { settled: done.length };
+  }
+  if (a.act === "levels") {                                          // big real games level up every copy of a player's (or team's) card
+    const L = await get("cz:lvl", {}), D = await get("cz:lvdone", []);
+    for (const [k, n] of Object.entries(a.inc || {})) L[k] = (L[k] || 0) + n;
+    await st.put("cz:lvl", L); await st.put("cz:lvdone", [...D, ...(a.done || [])].slice(-4000)); return { ok: true, keys: Object.keys(a.inc || {}).length };
+  }
   const u = await st.get("cz:u:" + a.uid);
   if (!u) return { error: "Account not found." };
   if (a.act === "daily") {
@@ -1524,7 +1584,7 @@ export async function czTx(st, a) {
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
     const open = (u.bets || []).filter(x => !x.res);
     if (open.length >= CZ_OPEN_MAX) return { error: `You can have ${CZ_OPEN_MAX} open bets at once.` };
-    if (open.some(x => x.lg === b.lg && x.gid === b.gid && x.side !== b.side)) return { error: "You already have the other side of this game." };
+    if (open.some(x => x.lg === b.lg && x.gid === b.gid && ((x.prop && x.prop.key) || "") === ((b.prop && b.prop.key) || "") && x.side !== b.side)) return { error: b.prop ? "You already have the other side of this prop." : "You already have the other side of this game." };
     const bet = { ...b, stake, placed: a.now, res: null };
     if (!u.tester) u.bal -= stake; u.bets = [...(u.bets || []), bet].slice(-150);
     const O = await get("cz:open", []); O.push({ uid: u.uid, bid: bet.bid, lg: b.lg, gid: b.gid, day: b.day, start: b.start });
@@ -1586,6 +1646,10 @@ export async function czTx(st, a) {
     await st.put("cz:ret", ret);
     await st.put("cz:mkt", (await get("cz:mkt", [])).filter(x => x.uid !== u.uid));
     await st.put("cz:open", (await get("cz:open", [])).filter(x => x.uid !== u.uid));
+    const AU = await get("cz:auc", []);
+    for (const x of AU.filter(v => v.seller === u.uid && v.bidder && !v.bT)) { const by = await st.get("cz:u:" + x.bidder); if (by) { by.bal += x.bid; await st.put("cz:u:" + by.uid, by); } }
+    await st.put("cz:auc", AU.filter(v => v.seller !== u.uid).map(v => v.bidder === u.uid ? { ...v, bid: 0, bidder: null, bidderName: null, bT: false } : v));
+    await st.put("cz:trades", (await get("cz:trades", [])).filter(t => t.from !== u.uid && t.to !== u.uid));
     await st.put("cz:feed", (await get("cz:feed", [])).filter(x => x.name !== u.name && x.seller !== u.name));
     const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
     const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
@@ -1593,9 +1657,82 @@ export async function czTx(st, a) {
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
     return { deleted: true };
   }
+  const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : null;
+  const moveCard = async (c, from, to, extra) => {                  // one copy changes hands: collections and the owners list
+    from.items = (from.items || []).filter(x => x.id !== c.id); delete c.listed; delete c.auction;
+    to.items = [...(to.items || []), { ...c, at: a.now, from: from.name, ...extra }];
+    const o = await get("cz:own:" + c.id, []); await st.put("cz:own:" + c.id, [...o.filter(x => x.uid !== from.uid), { n: c.n, uid: to.uid, name: to.name, at: a.now, ...(extra && extra.bought ? { price: extra.bought } : {}) }]);
+  };
+  if (a.act === "toffer") {                                          // offer a trade: your cards (and coins) for someone else's cards
+    const names = await get("cz:names", {}), tid0 = names[String(a.to || "").toLowerCase()];
+    if (!tid0) return { error: "That player isn't in Cosmic." }; if (tid0 === u.uid) return { error: "That's you." };
+    const t = await st.get("cz:u:" + tid0); if (!t) return { error: "That player isn't in Cosmic." };
+    const give = [...new Set(a.give || [])].slice(0, 5), getIds = [...new Set(a.get || [])].slice(0, 5), coins = Math.max(0, Math.floor(+a.coins || 0));
+    if (!give.length && !getIds.length) return { error: "Add at least one card." };
+    if (!getIds.length) return { error: "Pick at least one of their cards to ask for." };
+    for (const id of give) { const c = card(id); if (!c) return { error: "You don't own one of those cards any more." }; const b = busy(c); if (b) return { error: b }; }
+    for (const id of getIds) { const c = (t.items || []).find(x => x.id === id); if (!c) return { error: `${t.name} doesn't own one of those cards any more.` }; if ((u.items || []).some(x => x.id === id)) return { error: "You already own a copy of one of those cards." }; }
+    for (const id of give) if ((t.items || []).some(x => x.id === id)) return { error: `${t.name} already owns a copy of one of the cards you're offering.` };
+    if (coins > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
+    const TR = await get("cz:trades", []); if (TR.filter(x => x.status === "open" && x.from === u.uid).length >= 10) return { error: "You can have 10 open offers at once." };
+    const snap = c => ({ id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img });
+    const tr = { tid: czRand(6), from: u.uid, fromName: u.name, to: t.uid, toName: t.name, give: give.map(id => snap(card(id))), get: getIds.map(id => snap(t.items.find(x => x.id === id))), coins, at: a.now, status: "open" };
+    await st.put("cz:trades", [tr, ...TR.filter(x => x.status === "open" || a.now - (x.done || x.at) < 7 * 864e5)].slice(0, 1500));
+    return { user: czPublic(u), trade: tr };
+  }
+  if (a.act === "tresp" || a.act === "tcancel") {
+    const TR = await get("cz:trades", []), tr = TR.find(x => x.tid === a.tid && x.status === "open");
+    if (!tr) return { error: "That offer is no longer open." };
+    if (a.act === "tcancel") { if (tr.from !== u.uid) return { error: "Only the player who made the offer can cancel it." }; tr.status = "cancelled"; tr.done = a.now; await st.put("cz:trades", TR); return { user: czPublic(u) }; }
+    if (tr.to !== u.uid) return { error: "That offer isn't for you." };
+    if (!a.accept) { tr.status = "declined"; tr.done = a.now; await st.put("cz:trades", TR); return { user: czPublic(u) }; }
+    const f = await st.get("cz:u:" + tr.from); if (!f) { tr.status = "void"; await st.put("cz:trades", TR); return { error: "That player has left Cosmic." }; }
+    const fail = async msg => { tr.status = "void"; tr.done = a.now; await st.put("cz:trades", TR); return { error: msg }; };
+    for (const g of tr.give) { const c = (f.items || []).find(x => x.id === g.id); if (!c || busy(c)) return fail(`${f.name} no longer has one of the cards on offer, so the trade was called off.`); if (card(g.id)) return fail("You already own a copy of one of those cards."); }
+    for (const g of tr.get) { const c = card(g.id); if (!c) return fail("You no longer have one of the cards they asked for."); const b = busy(c); if (b) return { error: b }; }
+    if (tr.coins > f.bal && !f.tester) return fail(`${f.name} doesn't have the coins any more, so the trade was called off.`);
+    for (const g of tr.give) await moveCard(f.items.find(x => x.id === g.id), f, u, { traded: tr.tid });
+    for (const g of tr.get) await moveCard(u.items.find(x => x.id === g.id), u, f, { traded: tr.tid });
+    if (!f.tester) f.bal -= tr.coins; u.bal += tr.coins; f.trades = (f.trades || 0) + 1; u.trades = (u.trades || 0) + 1;
+    tr.status = "accepted"; tr.done = a.now; await st.put("cz:trades", TR);
+    await st.put("cz:u:" + f.uid, f); await st.put("cz:u:" + u.uid, u); await lb(u); await lb(f);
+    await feed({ kind: "trade", name: f.name, other: u.name, cards: tr.give.length + tr.get.length });
+    return { user: czPublic(u), trade: tr };
+  }
+  if (a.act === "aucnew") {                                          // put a card up for auction
+    const c = card(a.id); if (!c) return { error: "That card isn't in your collection." }; const b = busy(c); if (b) return { error: b };
+    const start = Math.floor(+a.start), hours = [1, 6, 24, 72].includes(+a.hours) ? +a.hours : 24;
+    if (!(start >= 10 && start <= 1000000)) return { error: "Start the bidding between 10 and 1,000,000 coins." };
+    const AU = await get("cz:auc", []); if (AU.filter(x => x.seller === u.uid).length >= 10) return { error: "You can run 10 auctions at once." };
+    const aid = czRand(6); c.auction = aid;
+    AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
+    await st.put("cz:auc", AU); await st.put("cz:u:" + u.uid, u);
+    if (c.supply <= 25) await feed({ kind: "auction", name: u.name, label: c.name, tier: c.tier, n: c.n, supply: c.supply, price: start });
+    return { user: czPublic(u), aid };
+  }
+  if (a.act === "aucbid") {
+    const AU = await get("cz:auc", []), x = AU.find(v => v.aid === a.aid); if (!x || x.ends <= a.now) return { error: "That auction has ended." };
+    if (x.seller === u.uid) return { error: "That's your own auction." }; if (card(x.id)) return { error: "You already own a copy of this card." };
+    const min = x.bid ? Math.max(x.bid + 1, Math.ceil(x.bid * 1.05)) : x.start, amt = Math.floor(+a.amount);
+    if (!(amt >= min)) return { error: `The lowest bid now is ${min.toLocaleString()} coins.`, min };
+    if (x.bidder === u.uid) return { error: "You're already the highest bidder." };
+    if (amt > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
+    if (x.bidder) { const pv = await st.get("cz:u:" + x.bidder); if (pv) { if (!x.bT) pv.bal += x.bid; pv.outbid = [...(pv.outbid || []), { aid: x.aid, name: x.name, tier: x.tier, at: a.now }].slice(-10); await st.put("cz:u:" + pv.uid, pv); await lb(pv); } }
+    if (!u.tester) u.bal -= amt;                                     // held until the auction ends; returned if someone outbids you
+    x.bid = amt; x.bidder = u.uid; x.bidderName = u.name; x.bT = !!u.tester; x.bids++;
+    if (x.ends - a.now < 120e3) x.ends = a.now + 120e3;              // a late bid gives everyone two more minutes
+    await st.put("cz:auc", AU); await st.put("cz:u:" + u.uid, u); await lb(u);
+    return { user: czPublic(u), auction: x };
+  }
+  if (a.act === "auccancel") {
+    const AU = await get("cz:auc", []), x = AU.find(v => v.aid === a.aid && v.seller === u.uid); if (!x) return { error: "Auction not found." };
+    if (x.bidder) return { error: "Someone has bid, so it can't be cancelled." };
+    const c = card(x.id); if (c) delete c.auction; await st.put("cz:auc", AU.filter(v => v !== x)); await st.put("cz:u:" + u.uid, u);
+    return { user: czPublic(u) };
+  }
   if (a.act === "sell") {                                            // sell back to the shop: coins now, and the copy goes back into packs
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
-    if (c.listed) return { error: "Take it off the market first." };
+    if (busy(c)) return { error: busy(c) };
     const pay = Math.max(1, Math.floor(a.value * CZ_SHOP));
     u.items = u.items.filter(x => x.id !== a.id); u.bal += pay; u.sold = (u.sold || 0) + 1;
     const ret = await get("cz:ret", {}); ret[a.id] = [...(ret[a.id] || []), c.n]; await st.put("cz:ret", ret);
@@ -1605,7 +1742,7 @@ export async function czTx(st, a) {
   if (a.act === "list") {
     const c = card(a.id), price = Math.floor(+a.price);
     if (!c) return { error: "That card isn't in your collection." };
-    if (c.listed) return { error: "It's already on the market." };
+    if (c.listed) return { error: "It's already on the market." }; if (c.auction) return { error: "It's up for auction." };
     if (!(price >= 10 && price <= 1000000)) return { error: "Ask between 10 and 1,000,000 coins." };
     const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
     const lid = czRand(6); c.listed = lid;
@@ -1665,7 +1802,8 @@ async function cz(env, a) {
 const czRead = async (env, k, d) => { const v = await store(env).get(k); return v == null ? d : typeof v === "string" ? JSON.parse(v) : v; };
 // the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
 const czDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
-function czOffer(lg, g, models, espnMlb) {
+function czOffer(lg, g, models, espnMlb, inj) {
+  if (inj) { const iH = injuryFor(inj, g.home.name), iA = injuryFor(inj, g.away.name); g.inj = { home: iH ? iH.pen : 0, away: iA ? iA.pen : 0 }; }
   let o = g.odds;
   if (lg === "mlb" && espnMlb) { const gs = Date.parse(g.date), m = espnMlb.filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
       .sort((a, b) => Math.abs(Date.parse(a.date) - gs) - Math.abs(Date.parse(b.date) - gs))[0]; o = m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m.odds : null; }
@@ -1676,6 +1814,80 @@ function czOffer(lg, g, models, espnMlb) {
   if (p) return { src: "Cosmo model", dec: Object.fromEntries(sides.map(s => [s, r2(Math.min(30, Math.max(1.02, 1 / (p[s] * CZ_MARGIN))))])), model: Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) };
   return null;
 }
+/* ---- player props: over/under on a star's main stat, or "scores / homers" yes bets, priced from his per-game average ----
+   Lines come from allstars.json (season stats), players are matched to games through rosters.json, and anyone the injury
+   report rules out is left off. Settled from the box score; a player who doesn't play voids the bet. */
+let CZ_AUX = null;
+async function czAux(env, fetchImpl = fetch) {
+  if (CZ_AUX && Date.now() - CZ_AUX.at < 3600e3) return CZ_AUX;
+  const g = async path => { try { const r = await siteGet(env, path, fetchImpl); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [A, R, S] = await Promise.all([g("/allstars.json"), g("/rosters.json"), g("/sim.json")]), team = {};
+  for (const [lg, l] of Object.entries((R && R.leagues) || {})) team[lg] = new Map(l.map(p => [mkey(p.name), p.team]));
+  CZ_AUX = { at: Date.now(), A: (A && A.sports) || {}, team, sim: (S && S.leagues) || {} }; return CZ_AUX;
+}
+// [pool in allstars.json, key, what it counts, box-score labels, per-game average, players per team, yes-bet?]
+const CZ_PROPS = {
+  nba: [["players", "pts", "points", ["PTS"], p => p.s.ppg, 2]],
+  nfl: [["qbs", "pass", "passing yards", ["passing:YDS"], p => p.s.yds / Math.max(1, p.s.gp), 1], ["rbs", "rush", "rushing yards", ["rushing:YDS"], p => p.s.yds / Math.max(1, p.s.gp), 1],
+        ["wrs", "rec", "receiving yards", ["receiving:YDS"], p => p.s.yds / Math.max(1, p.s.gp), 1]],
+  mlb: [["hitters", "hr", "home run", ["batting:HR", "HR"], p => (p.s.hr || 0) / 150, 2, true]],
+  nhl: [["skaters", "goal", "goal", ["G"], p => (p.s.g || 0) / 80, 2, true]],
+  epl: [["attackers", "goal", "goal", ["G"], (p, md) => ((p.s.g || 0) + .6) / (md + 3), 1, true]],
+};
+export function czPropsFor(lg, g, aux, inj) {
+  const out = [], T = aux.team[lg], pools = aux.A[lg] || {}, md = lg === "epl" ? ((aux.sim.epl && aux.sim.epl.played) || 0) / 10 : 0;
+  const ruled = new Set([...(injuryFor(inj, g.home.name)?.out || []), ...(injuryFor(inj, g.away.name)?.out || [])].map(o => mkey(o.name)));
+  const r2 = v => Math.round(v * 100) / 100;
+  for (const [pool, key, what, labs, avgOf, per, yes] of CZ_PROPS[lg] || []) for (const side of [g.home, g.away]) {
+    const list = (pools[pool] || []).filter(p => p.s && T && mkey(T.get(mkey(p.name)) || "") === mkey(side.name) && !ruled.has(mkey(p.name)))
+      .map(p => ({ p, avg: avgOf(p, md) })).filter(x => isFinite(x.avg) && x.avg > 0).sort((a, b) => b.avg - a.avg).slice(0, per);
+    for (const { p, avg } of list) {
+      const base = { key: `${key}:${czSlug(p.name)}`, player: p.name, team: side.name, pos: p.pos, img: p.img, what, labs };
+      if (yes) { const pr = 1 - Math.exp(-avg); if (pr < .04) continue; out.push({ ...base, kind: "yes", line: .5, dec: { yes: r2(Math.min(25, Math.max(1.15, 1 / (pr * 1.07)))) }, p: Math.round(pr * 1000) / 1000 }); }
+      else { const line = Math.floor(avg) + .5; out.push({ ...base, kind: "ou", line, dec: { over: 1.91, under: 1.91 }, avg: Math.round(avg * 10) / 10 }); }
+    }
+  }
+  return out;
+}
+// a finished game's box score as { player -> { label: value } } (labels also kept as "group:label", e.g. "passing:YDS")
+export async function czBoxStats(lg, gid, fetchImpl = fetch) {
+  const g = await espnGame(lg, gid, fetchImpl), m = new Map();
+  for (const t of (g.box && g.box.players) || []) for (const gr of t.groups || []) { const gn = String(gr.name || "").toLowerCase();
+    for (const r of gr.rows || []) { if (r.dnp) continue; const k = mkey(r.name), o = m.get(k) || {};
+      (gr.labels || []).forEach((lab, i) => { const v = parseFloat(String(r.stats[i] ?? "").replace(/[^\d.-]/g, "")); if (!isFinite(v)) return; o[gn + ":" + lab] = v; if (o[lab] == null) o[lab] = v; }); m.set(k, o); } }
+  return m;
+}
+/* ---- card levels: every big real game a player has (or win a team has) levels up every copy of that card, up to level 5 ---- */
+const CZ_BIG = {
+  nba: s => s.PTS >= 30 || s.REB >= 15 || s.AST >= 12 || (s.PTS >= 10 && s.REB >= 10 && s.AST >= 10),
+  nfl: s => s["passing:YDS"] >= 300 || s["passing:TD"] >= 3 || s["rushing:YDS"] >= 100 || s["receiving:YDS"] >= 100 || (s["rushing:TD"] || 0) + (s["receiving:TD"] || 0) >= 2 || s["defensive:SACKS"] >= 2,
+  mlb: s => s["batting:HR"] >= 1 || s["batting:H"] >= 3 || s["pitching:K"] >= 10,
+  nhl: s => s.G >= 2 || (s.G || 0) + (s.A || 0) >= 3,
+  epl: s => s.G >= 1 || s.A >= 2,
+};
+export async function czLevels(env, fetchImpl = fetch, now = new Date(), force = false) {
+  if (!force && now.getUTCMinutes() % 10 !== 6) return "not time";
+  const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, newDone = []; let fetched = 0;
+  for (const lg of TRACK_LEAGUES) for (const day of [etDay(now.getTime() - 864e5), etDay(now.getTime())]) {
+    let games; try { games = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch { continue; }
+    for (const g of games) {
+      const key = lg + "/" + g.id; if (done.has(key) || g.status?.state !== "post" || !g.status.completed || fetched >= 16) continue;
+      done.add(key); fetched++; let box; try { box = await czBoxStats(lg, g.id, fetchImpl); } catch { done.delete(key); continue; }
+      for (const [name, st] of box) if (CZ_BIG[lg](st)) inc[`${lg}:${name}`] = (inc[`${lg}:${name}`] || 0) + 1;
+      const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
+      if (isFinite(h) && isFinite(a) && h !== a) { const k = `${lg}:t:${mkey(h > a ? g.home.name : g.away.name)}`; inc[k] = (inc[k] || 0) + 1; }
+      newDone.push(key);
+    }
+  }
+  if (!newDone.length) return { levels: 0 };
+  return cz(env, { act: "levels", inc, done: newDone });
+}
+export const czLevelOf = (xp, team) => { const T = team ? [3, 8, 15, 25] : [1, 3, 6, 10]; let lv = 1; for (const t of T) if ((xp || 0) >= t) lv++; return lv; };
+const czLvlKey = it => it.kind === "team" ? `${it.lg}:t:${mkey(it.name)}` : `${it.lg}:${mkey(it.name)}`;
+export async function czAuctionTick(env) {
+  const AU = await czRead(env, "cz:auc", []); if (!AU.some(x => x.ends <= Date.now())) return { auctions: AU.length };
+  return cz(env, { act: "aucsettle", now: Date.now() });
+}
 const CZ_BOARD = new Map();
 async function czMarkets(env, lg, day, fetchImpl = fetch) {
   const k = lg + day, hit = CZ_BOARD.get(k); if (hit && Date.now() - hit.at < 60e3) return hit.v;
@@ -1683,7 +1895,8 @@ async function czMarkets(env, lg, day, fetchImpl = fetch) {
   const board = await espnScoreboard(lg, fetchImpl, day), now = Date.now();
   const games = (board.games || []).filter(g => g.status?.state === "pre" && Date.parse(g.date) > now + 60e3 && !(lg !== "epl" && g.stype === 1));
   let espnMlb = null; if (lg === "mlb" && games.length) { try { espnMlb = (await espnBoard("mlb", fetchImpl, day)).games || []; } catch { espnMlb = []; } }
-  const v = games.map(g => { const o = czOffer(lg, g, models, espnMlb); return o && { lg, gid: g.id, day, start: g.date, home: { name: g.home.name, abbr: g.home.abbr, logo: g.home.logo, color: g.home.color },
+  const inj = games.length ? await injuries(env, lg, fetchImpl).catch(() => null) : null, aux = games.length ? await czAux(env, fetchImpl) : null;
+  const v = games.map(g => { const o = czOffer(lg, g, models, espnMlb, inj); return o && { lg, gid: g.id, day, start: g.date, inj: g.inj && (g.inj.home || g.inj.away) ? g.inj : undefined, props: aux ? czPropsFor(lg, g, aux, inj) : [], home: { name: g.home.name, abbr: g.home.abbr, logo: g.home.logo, color: g.home.color },
     away: { name: g.away.name, abbr: g.away.abbr, logo: g.away.logo, color: g.away.color }, ...o }; }).filter(Boolean);
   CZ_BOARD.set(k, { at: Date.now(), v }); if (CZ_BOARD.size > 40) CZ_BOARD.clear();
   return v;
@@ -1809,10 +2022,13 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ tiers: CZ_TIERS.map(([id, label, supply, price]) => ({ id, label, supply, price })), total: list.length, offset: off, cards: items.length,
       items: page.map(i => ({ ...i, value: i.price, shop: Math.max(1, Math.floor(i.price * CZ_SHOP)), minted: held(i.id), owner: owners[i.id] || undefined })), shop: CZ_SHOP, fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   }
+  if (p === "/auctions" && req.method === "GET") { await czAuctionTick(env).catch(() => {}); return json({ auctions: (await czRead(env, "cz:auc", [])).map(x => ({ ...x, bT: undefined })), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" }); }
+  if (p === "/levels" && req.method === "GET") { const L = await czRead(env, "cz:lvl", {}); return json({ xp: L }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   if (p === "/packs" && req.method === "GET") return json({ packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p.startsWith("/card/") && req.method === "GET") { const id = decodeURIComponent(p.slice(6)), it = await czItem(env, id);
-    return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: it.price, shop: Math.max(1, Math.floor(it.price * CZ_SHOP)) } }); }
+    const xp = it ? (await czRead(env, "cz:lvl", {}))[czLvlKey(it)] || 0 : 0, lv = it ? czLevelOf(xp, it.kind === "team") : 1, val = it ? Math.round(it.price * (1 + .15 * (lv - 1))) : 0;
+    return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: val, shop: Math.max(1, Math.floor(val * CZ_SHOP)), level: lv, xp } }); }
   if (p === "/leaders" && req.method === "GET") {
     const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
     const rows = Object.values(L).filter(r => !r.tester);
@@ -1916,10 +2132,19 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
   if (p === "/bet" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");
-    if (!TRACK_LEAGUES.includes(lg) || !["home", "away", "draw"].includes(side)) return json({ error: "That bet isn't available." }, 400);
+    if (!TRACK_LEAGUES.includes(lg) || (!d.prop && !["home", "away", "draw"].includes(side))) return json({ error: "That bet isn't available." }, 400);
     let m = null;
     for (const day of [today, tomorrow]) { try { m = (await czMarkets(env, lg, day)).find(x => x.gid === gid); } catch {} if (m) break; }
     if (!m || Date.parse(m.start) <= now + 60e3) return json({ error: "Betting on this game has closed." }, 409);
+    if (d.prop) {                                                   // a player prop
+      const pr = (m.props || []).find(x => x.key === String(d.prop)), pside = String(d.side || "");
+      if (!pr || !pr.dec[pside]) return json({ error: "That prop isn't available." }, 400);
+      if (d.dec && Math.abs(d.dec - pr.dec[pside]) > .005) return json({ error: "The price moved.", dec: pr.dec[pside], moved: true }, 409);
+      const plabel = pr.kind === "yes" ? `${pr.player} ${pr.what === "home run" ? "to hit a home run" : "to score a goal"}` : `${pr.player} ${pside} ${pr.line} ${pr.what}`;
+      const r = await cz(env, { act: "bet", uid: u.uid, now, bet: { bid: czRand(6), lg, gid, day: m.day, start: m.start, side: pside, dec: pr.dec[pside], stake: d.stake, label: plabel, home: m.home.name, away: m.away.name, src: "Cosmo props",
+        prop: { key: pr.key, player: pr.player, what: pr.what, kind: pr.kind, line: pr.line, labs: pr.labs } } });
+      return json(r, r.error ? 409 : 200);
+    }
     const dec = m.dec[side]; if (!dec) return json({ error: "That bet isn't available." }, 400);
     if (d.dec && Math.abs(d.dec - dec) > .005) return json({ error: "The price moved.", dec, moved: true }, 409);
     const label = side === "draw" ? `Draw: ${m.away.name} at ${m.home.name}` : `${m[side].name} to beat ${m[side === "home" ? "away" : "home"].name}`;
@@ -1929,8 +2154,17 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/sell" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), it = await czItem(env, String(d.item || ""));
     if (!it) return json({ error: "That card isn't in Cosmic." }, 404);
-    const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: it.price }); return json(r, r.error ? 409 : 200);
+    const lv = czLevelOf((await czRead(env, "cz:lvl", {}))[czLvlKey(it)], it.kind === "team");
+    const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: Math.round(it.price * (1 + .15 * (lv - 1))) }); return json(r, r.error ? 409 : 200);
   }
+  if (p === "/trades" && req.method === "GET") { const TR = await czRead(env, "cz:trades", []); return json({ trades: TR.filter(t => t.from === u.uid || t.to === u.uid).slice(0, 40) }, 200, { "Cache-Control": "no-store" }); }
+  if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!czAllowed("tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
+    const r = await cz(env, { act: "toffer", uid: u.uid, now, to: String(d.to || ""), give: (d.give || []).map(String), get: (d.get || []).map(String), coins: d.coins }); return json(r, r.error ? 409 : 200); }
+  if (p === "/trade/respond" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tresp", uid: u.uid, now, tid: String(d.tid || ""), accept: !!d.accept }); return json(r, r.error ? 409 : 200); }
+  if (p === "/trade/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tcancel", uid: u.uid, now, tid: String(d.tid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/new" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "aucnew", uid: u.uid, now, id: String(d.item || ""), start: d.start, hours: d.hours }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/bid" && req.method === "POST") { const d = await req.json().catch(() => ({})); await czAuctionTick(env).catch(() => {}); const r = await cz(env, { act: "aucbid", uid: u.uid, now, aid: String(d.aid || ""), amount: d.amount }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "auccancel", uid: u.uid, now, aid: String(d.aid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
   if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   // cards belong to accounts: only a signed-in account with a passkey can pull or buy them
@@ -1958,7 +2192,7 @@ export async function czSettle(env, fetchImpl = fetch, now = new Date(), force =
   if (!force && now.getUTCMinutes() % 10 !== 8) return "not time";
   const t = now.getTime(), O = await czRead(env, "cz:open", []);
   const due = O.filter(o => t > Date.parse(o.start) + GAME_H[o.lg] * 3600e3); if (!due.length) return { open: O.length, settled: 0 };
-  const results = [], boards = {};
+  const results = [], boards = {}, box = {};
   for (const k of [...new Set(due.map(o => o.lg + "|" + o.day))]) { const [lg, day] = k.split("|"); try { boards[k] = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch {} }
   for (const o of due) {
     const g = (boards[o.lg + "|" + o.day] || []).find(x => x.id === o.gid);
@@ -1967,6 +2201,16 @@ export async function czSettle(env, fetchImpl = fetch, now = new Date(), force =
     const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
     const bad = !g.status.completed || /postpon|cancel|suspend|forfeit|abandon/i.test(`${g.status.detail || ""} ${g.status.short || ""}`) || !isFinite(h) || !isFinite(a);
     const u = await czRead(env, "cz:u:" + o.uid, null), b = u && (u.bets || []).find(x => x.bid === o.bid); if (!b) continue;
+    if (b.prop) {                                                   // player props: from the box score; didn't play = void
+      if (bad) { results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
+      const bk = o.lg + "/" + o.gid; if (!(bk in box)) { try { box[bk] = await czBoxStats(o.lg, o.gid, fetchImpl); } catch { box[bk] = null; } }
+      if (!box[bk]) continue;
+      const stt = box[bk].get(mkey(b.prop.player)); let v = null; if (stt) for (const l of b.prop.labs) if (stt[l] != null) { v = stt[l]; break; }
+      if (v == null && stt && b.prop.kind === "yes") v = 0;
+      if (v == null) { results.push({ uid: o.uid, bid: o.bid, res: "void" }); continue; }
+      const hit = b.prop.kind === "yes" ? v >= 1 : v > b.prop.line;
+      results.push({ uid: o.uid, bid: o.bid, res: (b.side === "under" ? !hit : hit) ? "win" : "loss" }); continue;
+    }
     const win = h > a ? "home" : a > h ? "away" : "draw";
     results.push({ uid: o.uid, bid: o.bid, res: bad ? "void" : win === b.side ? "win" : win === "draw" && o.lg !== "epl" ? "push" : "loss" });
   }
@@ -1984,6 +2228,8 @@ export default {
         return await cached(req, ctx, 20, async () => espnScoreboard(m[1], fetch, url.searchParams.get("dates")));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/game\/([mh]?\d+)$/)))
         return await cached(req, ctx, 10, async () => espnGame(m[1], m[2]));
+      if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/injuries$/)))
+        return await cached(req, ctx, 900, async () => injuries(env, m[1]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/standings$/)))
         return await cached(req, ctx, 600, async () => espnStandings(m[1]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/news$/)))
@@ -2067,6 +2313,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
