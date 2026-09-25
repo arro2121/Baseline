@@ -1,0 +1,20 @@
+# Temporary: check that player photos load for the live site. Safe to delete.
+name: Probes
+on:
+  push:
+    branches: [claude/dreamy-davinci-hedx5u]
+    paths: [".github/workflows/diag.yml"]
+permissions:
+  contents: read
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Photos and the live card list
+        run: |
+          W=https://baseline-alerts.baseline-arro2121-3091.workers.dev
+          for lg in nfl nba mlb nhl epl; do echo "== $lg vault"; curl -s --max-time 20 "$W/cosmic/vault?kind=player&limit=2&lg=$lg" | head -c 700; echo; done
+          for u in https://a.espncdn.com/i/headshots/nfl/players/full/5084939.png https://a.espncdn.com/i/headshots/nba/players/full/4278039.png https://a.espncdn.com/i/headshots/soccer/players/full/93193.png https://assets.nhle.com/mugs/nhl/20262027/COL/8481550.png "https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/675961/headshot/67/current"; do
+            for ref in "" "https://arro2121.github.io/" "https://cosmosports.app/"; do
+              echo "$(curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}' --max-time 15 ${ref:+-H "Referer: $ref"} "$u") ref=${ref:-none} $u"; done; done
+          echo "== site"; for s in https://cosmosports.app/ http://cosmosports.app/ https://arro2121.github.io/Baseline/; do curl -s -o /dev/null -w "%{http_code} -> %{redirect_url} $s\n" --max-time 15 "$s"; done
