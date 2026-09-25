@@ -1511,10 +1511,13 @@ const CZ_BAD = ["fuck", "shit", "bitch", "nigg", "faggot", "whore", "porn", "hit
 const czFold = t => t.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[0@4]/g, m => ({ 0: "o", "@": "a", 4: "a" })[m]).replace(/[1!|]/g, "i").replace(/3/g, "e").replace(/[5$]/g, "s").replace(/7/g, "t");
 export const czNameOk = name => { const n = czFold(String(name)), all = n.replace(/[^a-z]/g, ""), words = n.split(/[\s_-]+/).map(w => w.replace(/[^a-z]/g, ""));
   return !CZ_BAD.some(w => all.includes(w)) && !words.some(w => CZ_BAD_WORD.includes(w)) && !CZ_BAD_WORD.includes(all); };
+// the Cosmic week, Monday to Sunday (US Eastern): "2026-09-21" is the Monday it starts on
+export const czWeek = t => { const d = etDay(new Date(t).getTime()), u = Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)), dow = (new Date(u).getUTCDay() + 6) % 7; return new Date(u - dow * 864e5).toISOString().slice(0, 10); };
+const CZ_WEEK_PRIZE = [2000, 1000, 500], CZ_REF_BONUS = 500, CZ_REF_MAX = 25;
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
-  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, trades: u.trades || 0, outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
-const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+  bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 export async function czTx(st, a) {
@@ -1530,9 +1533,14 @@ export async function czTx(st, a) {
     if (!a.name) return { needName: true };
     const names = await get("cz:names", {}), key = a.name.toLowerCase();
     if (names[key]) return { error: "That name is taken. Try another.", needName: true };
-    const u = { uid: a.uid, name: a.name, tok: a.tok, toks: [], ident: a.sub, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0 };
+    const u = { uid: a.uid, name: a.name, tok: a.tok, toks: [], ident: a.sub, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0, freePack: true };
+    let bonus = 0;
+    if (a.ref && a.ref !== a.uid) { const r = await st.get("cz:u:" + a.ref);                 // joined through a friend's invite: coins for both
+      if (r && (r.refs || 0) < CZ_REF_MAX) { r.bal += CZ_REF_BONUS; r.refs = (r.refs || 0) + 1; u.bal += CZ_REF_BONUS; u.refBy = r.uid; bonus = CZ_REF_BONUS;
+        r.refNote = [...(r.refNote || []), { name: a.name, at: a.now }].slice(-10); await st.put("cz:u:" + r.uid, r); await lb(r); } }
     names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:u:" + a.uid, u); await st.put("cz:id:" + a.sub, a.uid); await lb(u);
     await feed({ kind: "join", name: a.name });
+    if (bonus) return { user: czPublic(u), uid: a.uid, created: true, bonus };
     return { user: czPublic(u), uid: a.uid, created: true };
   }
   if (a.act === "tester") {                                          // the site owner's testing switch: unlimited coins, off the leaderboards
@@ -1563,6 +1571,15 @@ export async function czTx(st, a) {
       await feed({ kind: "sale", name: by.name, seller: sl.name, label: x.name, tier: x.tier, n: x.n, supply: x.supply, price: x.bid, auction: true });
     }
     await st.put("cz:auc", AU.filter(x => x.ends > a.now)); return { settled: done.length };
+  }
+  if (a.act === "weekaward") {
+    const W = await get("cz:wkdone", []); if (W.includes(a.week)) return { ok: true, already: true };
+    const L = await get("cz:lb", {}), top = Object.values(L).filter(r => !r.tester && r.wkp && r.wkp[a.week] > 0).sort((x, y) => y.wkp[a.week] - x.wkp[a.week]).slice(0, 3), winners = [];
+    for (const [i, r] of top.entries()) { const w = await st.get("cz:u:" + r.uid); if (!w) continue;
+      w.bal += CZ_WEEK_PRIZE[i]; w.trophies = [...(w.trophies || []), { week: a.week, place: i + 1, profit: Math.round(r.wkp[a.week]), prize: CZ_WEEK_PRIZE[i] }];
+      await st.put("cz:u:" + w.uid, w); await lb(w); winners.push({ name: w.name, place: i + 1, prize: CZ_WEEK_PRIZE[i] }); }
+    if (winners.length) await feed({ kind: "week", week: a.week, winners });
+    await st.put("cz:wkdone", [...W, a.week].slice(-60)); return { ok: true, winners };
   }
   if (a.act === "levels") {                                          // big real games level up every copy of a player's (or team's) card
     const L = await get("cz:lvl", {}), D = await get("cz:lvdone", []);
@@ -1596,7 +1613,9 @@ export async function czTx(st, a) {
     // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
     const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
     const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
-    if (u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
+    const free = !!a.free && u.freePack && pk.id === "comet";
+    if (a.free && !free) return { error: "Your welcome pack has already been opened." };
+    if (!free && u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     const left = t => a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id));
     for (let c = 0; c < pk.cards; c++) {
@@ -1611,7 +1630,7 @@ export async function czTx(st, a) {
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
-    if (!u.tester) u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    if (free) u.freePack = false; else if (!u.tester) u.bal -= pk.price; u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
@@ -1782,9 +1801,11 @@ export async function czSettleTx(st, a) {
     const u = users[o.uid] ??= await st.get("cz:u:" + o.uid); if (!u) continue;
     const b = (u.bets || []).find(x => x.bid === o.bid); if (!b || b.res) continue;
     b.res = res; b.settled = a.now;
-    if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake;
+    const wk = czWeek(Date.parse(a.now)); u.wkp = u.wkp || {};
+    if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) + b.paid - b.stake;
       if (b.paid - b.stake >= 1000) F.unshift({ kind: "win", name: u.name, label: b.label, paid: b.paid, dec: b.dec, at: a.now }); }
-    else if (res === "loss") { b.paid = 0; u.lost = (u.lost || 0) + 1; u.profit = (u.profit || 0) - b.stake; }
+    else if (res === "loss") { b.paid = 0; u.lost = (u.lost || 0) + 1; u.profit = (u.profit || 0) - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) - b.stake; }
+    for (const k of Object.keys(u.wkp)) if (k < czWeek(Date.parse(a.now) - 15 * 864e5)) delete u.wkp[k];
     else { b.paid = b.stake; u.bal += b.stake; }
   }
   for (const u of Object.values(users)) if (u) { await st.put("cz:u:" + u.uid, u); L[u.uid] = czLbRow(u); }
@@ -2030,10 +2051,15 @@ export async function cosmicRoute(req, env, ctx, url) {
     const xp = it ? (await czRead(env, "cz:lvl", {}))[czLvlKey(it)] || 0 : 0, lv = it ? czLevelOf(xp, it.kind === "team") : 1, val = it ? Math.round(it.price * (1 + .15 * (lv - 1))) : 0;
     return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: val, shop: Math.max(1, Math.floor(val * CZ_SHOP)), level: lv, xp } }); }
   if (p === "/leaders" && req.method === "GET") {
+    const wk = czWeek(now), last = czWeek(now - 7 * 864e5);
+    if (!(await czRead(env, "cz:wkdone", [])).includes(last)) await cz(env, { act: "weekaward", week: last, now }).catch(() => {});     // pay last week's prizes once
     const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
-    const rows = Object.values(L).filter(r => !r.tester);
-    return json({ rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25),
-      collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
+    const rows = Object.values(L).filter(r => !r.tester), slim = r => ({ ...r, wkp: undefined });
+    const week = rows.filter(r => r.wkp && r.wkp[wk]).sort((a, b) => b.wkp[wk] - a.wkp[wk]).slice(0, 25).map(r => ({ ...slim(r), week: Math.round(r.wkp[wk]) }));
+    const lastWin = (F.find(f => f.kind === "week" && f.week === last) || {}).winners || [];
+    return json({ week, weekStart: wk, weekEnds: Date.parse(wk + "T04:00:00Z") + 7 * 864e5, prizes: CZ_WEEK_PRIZE, lastWinners: lastWin,
+      rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50).map(slim), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25).map(slim),
+      collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25).map(slim), feed: F.slice(0, 30), players: rows.length }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/config" && req.method === "GET") return json({ passkeys: true });
   if (p === "/pk/start" && req.method === "POST") {                          // a challenge to create or use a passkey
@@ -2045,7 +2071,7 @@ export async function cosmicRoute(req, env, ctx, url) {
       if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
         if ((await czRead(env, "cz:names", {}))[name.toLowerCase()]) return json({ error: "That name is taken. Try another." }, 409); }
       const handle = linker ? (linker.handle || b64u.enc(crypto.getRandomValues(new Uint8Array(16)))) : b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
-      return json({ challenge: await pkChallenge(env, "reg", { name, handle, link: linker ? linker.uid : null }), user: { id: handle, name: linker ? linker.name : name } });
+      return json({ challenge: await pkChallenge(env, "reg", { name, handle, link: linker ? linker.uid : null, ref: /^[a-f0-9]{24}$/.test(String(d.ref || "")) ? d.ref : null }), user: { id: handle, name: linker ? linker.name : name } });
     }
     return json({ challenge: await pkChallenge(env, "auth") });
   }
@@ -2056,7 +2082,7 @@ export async function cosmicRoute(req, env, ctx, url) {
       if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up || !ad.credId) throw new Error("bad passkey");
       const { alg, jwk } = coseJwk(ad.cose), credId = b64u.enc(ad.credId), token = czRand(32), sub = await czHash("pk:" + ch.handle);
       if (await czRead(env, "cz:pk:" + credId, null)) throw new Error("already saved");
-      const r = await cz(env, { act: "ident", sub, uid: czRand(12), tok: await czHash(token), name: ch.link ? "" : ch.name, linkUid: ch.link, now });
+      const r = await cz(env, { act: "ident", sub, uid: czRand(12), tok: await czHash(token), name: ch.link ? "" : ch.name, linkUid: ch.link, ref: ch.link ? null : ch.ref || null, now });
       if (r.error) return json(r, 409);
       await store(env).put("cz:pk:" + credId, JSON.stringify({ uid: r.uid, sub, jwk, alg, count: ad.count, at: now }));
       return json({ ...r, auth: `${r.uid}.${token}` });
@@ -2182,7 +2208,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(80, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
       for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img }); } }
-    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool });
+    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free });
     return json(r, r.error ? 409 : 200);
   }
   return json({ error: "not found" }, 404);
