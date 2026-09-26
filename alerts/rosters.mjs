@@ -74,7 +74,20 @@ const builders = {
     return rows.flat();
   },
 };
-const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues } };
+// tennis players' photos (ESPN's rankings list the top of each tour with their ids): name -> photo, for the tennis cards
+async function tennisPhotos() {
+  const out = {};
+  for (const tour of ["atp", "wta"]) {
+    try { const d = await get(`https://site.api.espn.com/apis/site/v2/sports/tennis/${tour}/rankings`);
+      const ranks = (d.rankings && d.rankings[0] && d.rankings[0].ranks) || d.ranks || [];
+      for (const r of ranks.slice(0, 150)) { const a = r.athlete || {}, name = a.displayName || a.fullName; if (!name || !a.id) continue;
+        out[normName(name)] = (a.headshot && a.headshot.href) || `https://a.espncdn.com/i/headshots/tennis/players/full/${a.id}.png`; }
+    } catch (e) { console.log(tour, "photos skipped:", e.message); }
+  }
+  return out;
+}
+const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues }, tennis: prev.tennis || {} };
+try { const T = await tennisPhotos(); if (Object.keys(T).length > 20) out.tennis = T; console.log("tennis photos", Object.keys(T).length); } catch (e) { console.log("tennis photos kept previous:", e.message); }
 for (const [lg, fn] of Object.entries(builders)) {
   try { const list = await fn(), seen = new Set(), uniq = list.filter(p => !seen.has(p.id) && seen.add(p.id));
     if (uniq.length < (lg === "epl" ? 150 : 200)) throw new Error(`only ${uniq.length} players`);

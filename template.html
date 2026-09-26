@@ -5194,7 +5194,7 @@ const CZ_SCENE_SVG = CZ_SCENES.map((f, i) => CZ_SCENE_LIFT[i] ? `<g transform="t
 function czCard(it, ed, big){
   const player = it.kind === "player" && it.team, T = czTeam(it.lg, player ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
-  const faces = player ? czFaces(it) : [];
+  const faces = it.kind === "player" ? czFaces(it) : [];                 // tennis players have no team but do have photos
   const lv = czLevel(it);
   const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null, hot = czHotOf(it);
   const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), fn = parts.length > 1 ? parts[0] : "", ln = parts.length > 1 ? parts.slice(1).join(" ") : it.name;
@@ -5203,7 +5203,7 @@ function czCard(it, ed, big){
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? "<i></i><b></b>" : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
-    <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
+    <div class="czc-mid ${faces.length ? "pl" : ""}">${faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
     ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name">${fn ? `<span class="fn">${esc(fn)}</span> ` : ""}<span class="ln">${esc(ln)}</span></div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
 }
@@ -5217,7 +5217,9 @@ function czFaces(it){
   if (it.img){ const sm = small(it.img) || silo(it.img); if (sm) out.push(sm); out.push(it.img); }
   if (pid){
     if (it.lg === "nfl" || it.lg === "nba"){ const u = `https://a.espncdn.com/i/headshots/${it.lg}/players/full/${pid}.png`; out.push(small(u), u); }
-    if (it.lg === "nhl") out.push(`https://assets.nhle.com/mugs/nhl/latest/${pid}.png`);
+    if (it.lg === "nhl"){ const m = /mugs\/nhl\/(\d{4})(\d{4})\/([A-Z]{2,3})\//.exec(it.img || "");     // last season's photo if this season's isn't up yet
+      if (m) out.push(`https://assets.nhle.com/mugs/nhl/${+m[1] - 1}${+m[2] - 1}/${m[3]}/${pid}.png`); out.push(`https://assets.nhle.com/mugs/nhl/latest/${pid}.png`); }
+    if (it.lg === "epl"){ const u = `https://a.espncdn.com/i/headshots/soccer/players/full/${pid}.png`; out.push(small(u), u); }
     if (it.lg === "mlb") out.push(`https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:silo:current.png/w_240,q_auto:best/v1/people/${pid}/headshot/silo/current`, `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_240,q_auto:best/v1/people/${pid}/headshot/67/current`);
   }
   return [...new Set(out)];
