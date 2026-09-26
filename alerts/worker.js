@@ -1574,14 +1574,22 @@ export async function trackAll(db) {
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
 const CZ_SHOP = .4, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
-export const CZ_TIERS = [["singularity", "Singularity", 1, 25000], ["supernova", "Supernova", 10, 5000], ["quasar", "Quasar", 25, 2800], ["nebula", "Nebula", 50, 1500],
-  ["pulsar", "Pulsar", 100, 800], ["stardust", "Stardust", 250, 400], ["comet", "Comet", 1000, 150]];
+// tiers: [id, name, copies, real-card price in US dollars of an average starter's card in that tier]. Like real parallels: a base
+// card is about $1, a /250 about $4, a /50 about $25, a /10 about $250 and a 1-of-1 about $2,500, before the player's value
+export const CZ_TIERS = [["singularity", "Singularity", 1, 2500], ["supernova", "Supernova", 10, 250], ["quasar", "Quasar", 25, 60], ["nebula", "Nebula", 50, 25],
+  ["pulsar", "Pulsar", 100, 10], ["stardust", "Stardust", 250, 4], ["comet", "Comet", 1000, 1]];
+// what a card would sell for as a real card: the tier's price times the player's value, curved the way the real market is (a
+// superstar's cards sell for many times a role player's: value^2.2, so a 3.0 is worth about 11x a 1.0). Team cards sell for
+// far less than players' cards. Coins are 50 to the dollar (a coin is 2 cents).
+export const CZ_COINS_PER_USD = 50;
+export const czUsd = (base, mult, kind) => Math.round(base * Math.pow(Math.max(.3, mult), 2.2) * (kind === "team" ? .35 : 1) * 100) / 100;
+export const czCoins = usd => Math.max(10, Math.round(usd * CZ_COINS_PER_USD / 10) * 10);
 // packs: the chance (%) that each card is Singularity, Supernova, Quasar, Nebula, Pulsar, Stardust or Comet. Shown in the app.
 export const CZ_PACKS = [
   { id: "comet", label: "Comet Pack", price: 250, cards: 3, odds: [0.01, 0.09, 0.4, 1.5, 5, 18, 75] },
   { id: "nebula", label: "Nebula Pack", price: 1000, cards: 3, odds: [0.05, 0.45, 1.5, 6, 17, 35, 40] },
-  { id: "supernova", label: "Supernova Pack", price: 4000, cards: 3, odds: [0.2, 1.8, 6, 17, 30, 45, 0] },
-  { id: "singularity", label: "Singularity Pack", price: 12000, cards: 2, odds: [1, 5, 14, 30, 50, 0, 0] },
+  { id: "supernova", label: "Supernova Pack", price: 2750, cards: 3, odds: [0.2, 1.8, 6, 17, 30, 45, 0] },
+  { id: "singularity", label: "Singularity Pack", price: 5000, cards: 2, odds: [1, 5, 14, 30, 50, 0, 0] },
 ];
 // event packs: limited-time packs for the big moments of the sports year. Each opens and closes on set dates (UTC), draws
 // only from its leagues with better odds than a Nebula pack, can be opened CZ_EV_MAX times per player, and every card pulled
@@ -2009,7 +2017,7 @@ export async function czTx(st, a) {
   if (a.act === "aucnew") {                                          // put a card up for auction
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." }; const b = busy(c); if (b) return { error: b };
     const start = Math.floor(+a.start), hours = [1, 6, 24, 72].includes(+a.hours) ? +a.hours : 24;
-    if (!(start >= 10 && start <= 1000000)) return { error: "Start the bidding between 10 and 1,000,000 coins." };
+    if (!(start >= 10 && start <= 50000000)) return { error: "Start the bidding between 10 and 50,000,000 coins." };
     const AU = await get("cz:auc", []); if (AU.filter(x => x.seller === u.uid).length >= 10) return { error: "You can run 10 auctions at once." };
     const aid = czRand(6); c.auction = aid;
     AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
@@ -2072,7 +2080,7 @@ export async function czTx(st, a) {
     const c = card(a.id), price = Math.floor(+a.price);
     if (!c) return { error: "That card isn't in your collection." };
     if (c.listed) return { error: "It's already on the market." }; if (c.auction) return { error: "It's up for auction." };
-    if (!(price >= 10 && price <= 1000000)) return { error: "Ask between 10 and 1,000,000 coins." };
+    if (!(price >= 10 && price <= 50000000)) return { error: "Ask between 10 and 50,000,000 coins." };
     const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
     const lid = czRand(6); c.listed = lid;
     M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, price, uid: u.uid, seller: u.name, at: a.now });
@@ -2269,7 +2277,7 @@ async function czCatalog(env, fetchImpl = fetch) {
   const models = await trackModels(env, fetchImpl), items = [];
   // a player card's price follows his real cards' market (CZ_HOBBY) and this season's play (czMarketMult); a team's follows its
   // rating; each tier multiplies it
-  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, price: Math.max(10, Math.round(base * mult / 10) * 10), ...extra }); };
+  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, usd: czUsd(base, mult, kind), price: czCoins(czUsd(base, mult, kind)), ...extra }); };
   for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo);
     const hi = names.length ? st[names[0]].elo : 0, lo = names.length ? st[names[names.length - 1]].elo : 0;
     names.forEach((n, i) => add(lg, "team", n, .6 + 1.1 * (hi > lo ? (st[n].elo - lo) / (hi - lo) : .5), { rank: i + 1, elo: Math.round(st[n].elo) }, czSlug(n))); }
@@ -2453,7 +2461,7 @@ const czTrendOf = it => (CZ_CAT && CZ_CAT.trend[czLvlKey(it)]) || 0;         // 
 async function czItem(env, id) {
   await czCatalog(env); const it = CZ_CAT.byId.get(id); if (it) return it;
   const tier = CZ_TIERS.find(t => id.endsWith("." + t[0])); if (!tier) return null;
-  return { id, tier: tier[0], label: tier[1], supply: tier[2], price: Math.round(tier[3] * .55 / 10) * 10, lg: id.split(".")[0], name: "", kind: "player" };
+  return { id, tier: tier[0], label: tier[1], supply: tier[2], usd: czUsd(tier[3], .6, "player"), price: czCoins(czUsd(tier[3], .6, "player")), lg: id.split(".")[0], name: "", kind: "player" };
 }
 // the site owner's key (the COMETS_KEY secret), compared in constant time, with a lockout after repeated misses
 async function czOwnerCheck(req, env, ip) {
