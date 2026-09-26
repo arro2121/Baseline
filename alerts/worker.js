@@ -1592,28 +1592,39 @@ export const czCoins = usd => Math.max(10, Math.round(usd * CZ_COINS_PER_USD / 1
 // Each pack's odds are tuned against the whole catalog so its cards are worth about 70% of its price on average, like real
 // hobby boxes: opening packs slowly takes coins out of the game, which keeps card prices from inflating.
 export const CZ_PACKS = [
-  { id: "comet", label: "Comet Pack", price: 100, cards: 2, odds: [0.001, 0.01, 0.05, 0.3, 1.5, 8, 90.139] },
-  { id: "stardust", label: "Stardust Pack", price: 250, cards: 3, odds: [0.003, 0.03, 0.25, 1.2, 4, 20, 74.517] },
-  { id: "nebula", label: "Nebula Pack", price: 1000, cards: 4, odds: [0.03, 0.3, 2, 8, 14, 30, 45.67] },
-  { id: "supernova", label: "Supernova Pack", price: 5000, cards: 5, odds: [0.3, 2.5, 8, 20, 30, 39.2, 0] },
-  { id: "singularity", label: "Singularity Pack", price: 10000, cards: 5, odds: [0.85, 4.5, 15, 30, 49.65, 0, 0] },
-  { id: "galaxy", label: "Galaxy Pack", price: 100000, cards: 10, odds: [6, 30, 64, 0, 0, 0, 0] },
+  { id: "comet", label: "Comet Pack", price: 100, cards: 1, odds: [0.001, 0.02, 0.2, 1.5, 7, 30, 61.279] },
+  { id: "stardust", label: "Stardust Pack", price: 250, cards: 1, odds: [0.007, 0.09, 1.1, 7.5, 26, 45, 20.303] },
+  { id: "nebula", label: "Nebula Pack", price: 1000, cards: 2, odds: [0.027, 0.38, 3.8, 23, 42, 30.793, 0] },
+  { id: "supernova", label: "Supernova Pack", price: 5000, cards: 2, odds: [0.88, 8, 25, 40, 26.12, 0, 0] },
+  { id: "singularity", label: "Singularity Pack", price: 10000, cards: 2, odds: [2.45, 15, 40, 42.55, 0, 0, 0] },
+  { id: "galaxy", label: "Galaxy Pack", price: 100000, cards: 3, odds: [26.5, 50, 23.5, 0, 0, 0, 0] },
 ];
 export const CZ_PACK_MAX = 10;                                     // packs bought and opened at once
 // a pack's price in each league (and for teams-only or players-only packs) follows what that pool's cards are worth, so every
 // pack is worth about the same share of its price wherever it draws from. "Every league" packs keep their list prices.
-const czEvScope = e => e.lgs.includes("atp") ? "tennis" : e.lgs[0];     // an event pack's league, for its price
-export const czPackPrice = (price, m) => m === 1 ? price : price * m >= 1000 ? Math.round(price * m / 50) * 50 : Math.max(10, Math.round(price * m / 10) * 10);
-function czPackMults() {
-  if (CZ_CAT.pm) return CZ_CAT.pm;
-  const order = CZ_TIERS.map(t => t[0]), odds = CZ_PACKS.find(p => p.id === "nebula").odds, pm = {};
-  const ev = (lgs, kind) => { let s = 0; for (let k = 0; k < order.length; k++) { const l = CZ_CAT.v.filter(i => i.tier === order[k] && (!lgs || lgs.includes(i.lg)) && (kind === "all" || i.kind === kind));
-    if (l.length) s += odds[k] / 100 * l.reduce((a, i) => a + i.price, 0) / l.length; } return s; };
-  const base = ev(null, "all");
-  for (const [scope, lgs] of Object.entries(CZ_SCOPES)) for (const kind of ["all", "team", "player"])
-    pm[scope + "|" + kind] = scope === "all" && kind === "all" ? 1 : Math.round(Math.max(.3, Math.min(3, ev(lgs, kind) / base)) * 100) / 100;
-  return (CZ_CAT.pm = pm);
+export const CZ_RETURN = .7;                                        // every pack's cards are worth 70% of its price, on average
+export const czPackRound = p => p >= 1000 ? Math.round(p / 50) * 50 : p >= 100 ? Math.round(p / 10) * 10 : Math.max(5, Math.round(p / 5) * 5);
+// the average price of a card in each tier among the cards a pack can draw (a league, teams or players, one team...)
+function czTierAvg(key, keep) {
+  const C = (CZ_CAT.avgs ||= {}); if (C[key]) return C[key];
+  const sum = {}, n = {}; for (const i of CZ_CAT.v) if (keep(i)) { sum[i.tier] = (sum[i.tier] || 0) + i.price; n[i.tier] = (n[i.tier] || 0) + 1; }
+  return (C[key] = Object.fromEntries(CZ_TIERS.map(([t]) => [t, n[t] ? sum[t] / n[t] : 0])));
 }
+// a pack's expected card value; tiers missing from the pool roll down to the next more common tier, as pulls do
+export function czPackEV(odds, cards, avg) {
+  const order = CZ_TIERS.map(t => t[0]); let s = 0;
+  for (let k = 0; k < order.length; k++) { let j = k; while (j < order.length - 1 && !avg[order[j]]) j++; s += odds[k] / 100 * (avg[order[j]] || 0); }
+  return s * cards;
+}
+// what a pack costs drawing from a pool: the list price for every league, otherwise whatever makes it return 70%
+function czPoolPrice(pk, key, keep) { return key === "all|all" ? pk.price : czPackRound(czPackEV(pk.odds, pk.cards, czTierAvg(key, keep)) / CZ_RETURN); }
+const czKeep = (lgs, kind) => i => (!lgs || lgs.includes(i.lg)) && (kind === "all" || i.kind === kind);
+function czPackPrices() {
+  if (CZ_CAT.pp) return CZ_CAT.pp; const pp = {};
+  for (const pk of CZ_PACKS) { pp[pk.id] = {}; for (const [scope, lgs] of Object.entries(CZ_SCOPES)) for (const kind of ["all", "team", "player"]) pp[pk.id][scope + "|" + kind] = czPoolPrice(pk, scope + "|" + kind, czKeep(lgs, kind)); }
+  return (CZ_CAT.pp = pp);
+}
+const czEvPrice = e => czPoolPrice({ odds: e.odds, cards: e.cards }, "ev|" + e.lgs.join(","), czKeep(e.lgs, "all"));
 // event packs: limited-time packs for the big moments of the sports year. Each opens and closes on set dates (UTC), draws
 // only from its leagues with better odds than a Nebula pack, can be opened CZ_EV_MAX times per player, and every card pulled
 // from it keeps the event's edition (its frame and badge) for good, wherever the copy goes.
@@ -1632,7 +1643,7 @@ export const CZ_EVENTS = [
   { id: "nhlpo27", label: "Chase for the Cup", emoji: "🏒", color: "#0369a1", lgs: ["nhl"], start: "2027-04-17T15:00:00Z", end: "2027-05-02T08:00:00Z", blurb: "The NHL playoffs, in a playoff edition." },
   { id: "final27", label: "Final Day", emoji: "⚽", color: "#9333ea", lgs: ["epl"], start: "2027-05-19T15:00:00Z", end: "2027-05-25T08:00:00Z", blurb: "The Premier League's last matchday. Final Day edition cards." },
 ];
-export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_CARDS = 4, CZ_EV_ODDS = [0.1, 0.9, 3, 10, 22, 34, 30];
+export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_CARDS = 2, CZ_EV_ODDS = [0.1, 0.9, 5, 25, 40, 29, 0];
 // the events as packs, with where each one stands at this moment: "soon", "live" or "over"
 export const czEventsAt = now => CZ_EVENTS.map(e => { const starts = Date.parse(e.start), ends = Date.parse(e.end);
   return { ...e, id: e.id, pack: "ev:" + e.id, label: `${e.label} Pack`, price: CZ_EV_PRICE, cards: CZ_EV_CARDS, odds: CZ_EV_ODDS, max: CZ_EV_MAX, starts, ends, status: now < starts ? "soon" : now < ends ? "live" : "over" }; });
@@ -2477,14 +2488,14 @@ async function czSets(env, lg) {
 // team packs: 3 cards from one team (its players and its team card), with Nebula-pack odds. The price follows how valuable that
 // team's cards are: the average price level of its 8 most valuable players against the league's average team, so a pack of a
 // team full of stars costs more (from 600 up to 2,500 coins; an average team's is 1,000).
-export const CZ_TEAM_PACK = { cards: 4, base: 1000, odds: CZ_PACKS.find(p => p.id === "nebula").odds };
-export const czTeamPackPrice = idx => Math.round(CZ_TEAM_PACK.base * Math.max(.6, Math.min(2.5, idx)) / 50) * 50;
+export const CZ_TEAM_PACK = { cards: 2, odds: CZ_PACKS.find(p => p.id === "nebula").odds };
 async function czTeamPacks(env, lg) {
   await czCatalog(env); if (CZ_CAT.tp && CZ_CAT.tp[lg]) return CZ_CAT.tp[lg];
   const by = new Map(); for (const i of CZ_CAT.v) if (i.lg === lg && i.kind === "player" && i.tier === "comet" && i.team) (by.get(i.team) || by.set(i.team, []).get(i.team)).push(i);
   const teams = [...by].map(([team, l]) => { const top = l.sort((a, b) => b.mult - a.mult).slice(0, 8); return { team, v: top.reduce((s, i) => s + i.mult, 0) / top.length, stars: top.slice(0, 3).map(i => i.name) }; });
   const avg = teams.reduce((s, t) => s + t.v, 0) / (teams.length || 1);
-  const out = teams.map(t => ({ id: `tp:${lg}:${czSlug(t.team)}`, lg, team: t.team, label: `${t.team} Pack`, price: czTeamPackPrice(t.v / avg), idx: Math.round(t.v / avg * 100) / 100, stars: t.stars }))
+  const tslug = czSlug, out = teams.map(t => ({ id: `tp:${lg}:${czSlug(t.team)}`, lg, team: t.team, label: `${t.team} Pack`,
+    price: czPoolPrice(CZ_TEAM_PACK, `tp|${lg}|${t.team}`, i => i.lg === lg && (i.kind === "player" ? i.team === t.team : tslug(i.name) === tslug(t.team))), idx: Math.round(t.v / avg * 100) / 100, stars: t.stars }))
     .sort((a, b) => b.price - a.price || a.team.localeCompare(b.team));
   (CZ_CAT.tp ||= {})[lg] = out; return out;
 }
@@ -2653,7 +2664,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/levels" && req.method === "GET") { const [L, H] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
     return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
-  if (p === "/packs" && req.method === "GET") return json({ mults: (await czCatalog(env), czPackMults()), now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)).map(e => ({ ...e, price: czPackPrice(e.price, czPackMults()[czEvScope(e) + "|all"] || 1) })), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
+  if (p === "/packs" && req.method === "GET") return json({ prices: (await czCatalog(env), czPackPrices()), ret: CZ_RETURN, now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)).map(e => ({ ...e, price: czEvPrice(e) })), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p === "/casehits" && req.method === "GET") { const items = await czCatalog(env), pick = n => items.find(i => i.name === n && i.tier === "nebula");
     const samples = ["Victor Wembanyama", "Patrick Mahomes", "Shohei Ohtani"].map(pick).filter(Boolean);             // what each insert looks like
     return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
@@ -2918,7 +2929,7 @@ export async function cosmicRoute(req, env, ctx, url) {
       : CZ_PACKS.find(x => x.id === want), scope = E || TP ? "all" : Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
     const kind = !E && !TP && ["team", "player"].includes(d.kind) ? d.kind : "all", lgs = E ? E.lgs : TP ? [TP.lg] : CZ_SCOPES[scope];
     if (!pk) return json({ error: "That pack isn't available." }, 404);
-    if (!TP) { await czCatalog(env); const m = czPackMults()[(E ? czEvScope(E) : scope) + "|" + kind] || 1; if (m !== 1) pk = { ...pk, price: czPackPrice(pk.price, m) }; }
+    if (!TP) { await czCatalog(env); pk = { ...pk, price: E ? czEvPrice(E) : czPackPrices()[pk.id][scope + "|" + kind] }; }
     const onTeam = i => !TP || (i.kind === "player" ? i.team === TP.team : czSlug(i.name) === czSlug(TP.team));
     // shortlist: up to 80 random cards per tier that still have copies out there and that this player doesn't own;
     // the Durable Object then re-checks them in one step, so nobody gets a copy that's already gone

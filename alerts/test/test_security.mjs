@@ -150,7 +150,10 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   check("SA1 cards you don't own can't be sold", !!(await T({ act: "sellmany", uid: "V", cards: [{ id: "nfl.q1.comet", value: 1e6 }] })).error); }
 // RC1 / TP1: rookie premium and team-pack prices
 check("RC1 rookie premium grows with play (10% to 45%)", W.czRookieX(0, null) === 1.1 && W.czRookieX(0, 0) === 1.15 && Math.abs(W.czRookieX(0, 1) - 1.45) < 1e-9 && W.czRookieX(8, 1) < 1.13);
-check("TP1 team pack price follows the team's card value, 600 to 2,500", W.czTeamPackPrice(1) === 1000 && W.czTeamPackPrice(.2) === 600 && W.czTeamPackPrice(9) === 2500 && W.czTeamPackPrice(1.33) === 1350);
+check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN === .7 && W.czPackRound(1234) === 1250 && W.czPackRound(123) === 120 && W.czPackRound(12) === 10);
+{ const avg = { singularity: 75621, supernova: 5743, quasar: 1379, nebula: 574, pulsar: 230, stardust: 92, comet: 23 };
+  const r = W.CZ_PACKS.map(pk => W.czPackEV(pk.odds, pk.cards, avg) / pk.price);
+  check("TP2 every list-price pack returns 69-72% on the catalog's averages", r.every(x => x > .69 && x < .72), r.map(x => x.toFixed(3)).join()); }
 // SET1 / CH1: set checklists pay once when complete; case hits sell for 3 times the value
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "K", uid: "K", tok: "t", name: "Keeper" });
@@ -169,10 +172,11 @@ check("TP1 team pack price follows the team's card value, 600 to 2,500", W.czTea
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "Q", uid: "Q", tok: "t", name: "Bulk" }); m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 10000, freePack: false });
   const pool = Array.from({ length: 200 }, (_, i) => ({ id: `nba.p${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "P" + i, kind: "player" }));
-  const pk = W.CZ_PACKS.find(x => x.id === "stardust"), r = await T({ act: "pack", uid: "Q", pack: pk, pool, count: 5, rid: "cccccccccccccccc" }), U = m.get("cz:u:Q");
+  const pk = W.CZ_PACKS.find(x => x.id === "nebula"), r = await T({ act: "pack", uid: "Q", pack: pk, pool, count: 5, rid: "cccccccccccccccc" }), U = m.get("cz:u:Q");
   check("MB1 five packs give five packs of cards and cost five times the price", r.cards.length === 5 * pk.cards && r.count === 5 && U.bal === 10000 - 5 * pk.price && U.packs === 5, { n: r.cards.length, bal: U.bal });
   const r2 = await T({ act: "pack", uid: "Q", pack: pk, pool, count: 5, rid: "cccccccccccccccc" });
   check("MB1 the same purchase sent again isn't charged", r2.repeat && m.get("cz:u:Q").bal === 10000 - 5 * pk.price);
+  m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 100000 });
   check("MB1 at most 10 at a time", (await T({ act: "pack", uid: "Q", pack: pk, pool, count: 50, rid: "dddddddddddddddd" })).cards.length === 10 * pk.cards);
   check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
   check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000"); }
