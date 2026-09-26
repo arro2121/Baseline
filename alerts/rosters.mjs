@@ -86,7 +86,21 @@ async function tennisPhotos() {
   }
   return out;
 }
-const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues }, tennis: prev.tennis || {} };
+// the All-Time 200's portraits, from each player's Wikipedia page (a disambiguation page tries "Name (sport)")
+import { LEGENDS } from "./legends.js";
+async function legendPhotos() {
+  const sport = { nba: "basketball", nfl: "American football", mlb: "baseball", nhl: "ice hockey", epl: "footballer", atp: "tennis", wta: "tennis" }, out = {};
+  await pool(LEGENDS, 6, async L => {
+    for (const title of [L.wiki, `${L.name} (${sport[L.lg]})`]) {
+      try { const d = await get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`, 2);
+        const img = d.type !== "disambiguation" && (d.thumbnail && d.thumbnail.source || d.originalimage && d.originalimage.source);
+        if (img) { out[L.name] = img; return; } } catch {}
+    }
+  });
+  return out;
+}
+const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues }, tennis: prev.tennis || {}, legends: prev.legends || {} };
+try { const L = await legendPhotos(); if (Object.keys(L).length > 100) out.legends = L; console.log("legend photos", Object.keys(L).length, "of", LEGENDS.length); } catch (e) { console.log("legend photos kept previous:", e.message); }
 try { const T = await tennisPhotos(); if (Object.keys(T).length > 20) out.tennis = T; console.log("tennis photos", Object.keys(T).length); } catch (e) { console.log("tennis photos kept previous:", e.message); }
 for (const [lg, fn] of Object.entries(builders)) {
   try { const list = await fn(), seen = new Set(), uniq = list.filter(p => !seen.has(p.id) && seen.add(p.id));
