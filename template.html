@@ -1479,6 +1479,17 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czback{display:grid;place-content:center;justify-items:center;gap:6px;border-radius:16px;color:#f5d0fe;background:radial-gradient(80% 60% at 50% 40%,#7c3aed,#1e0b3a 70%);box-shadow:inset 0 0 0 1.5px rgba(233,213,255,.35),0 10px 26px -12px rgba(88,28,135,.9)}
 .czback .czcoin.pk{width:42px;height:42px}.czback b{letter-spacing:.2em;text-transform:uppercase;font-size:.7rem}
 .czfront{transform:rotateY(180deg)}.czfront .czcard{height:100%}
+.czback{overflow:hidden}.czback>.czcoin,.czback>b{transition:transform .35s,opacity .35s}.czflip.clueing .czback>.czcoin{transform:translateY(-38%) scale(.55);opacity:.35}.czflip.clueing .czback>b{opacity:0}
+.czclues{position:absolute;inset:8% 7%;display:grid;align-content:center;gap:7px;pointer-events:none}
+.czclue{display:grid;justify-items:center;gap:1px;padding:6px 6px;border-radius:10px;text-align:center;background:rgba(15,8,40,.72);border:1px solid rgba(233,213,255,.28);color:#fff;opacity:0;transform:translateY(14px) scale(.6);min-width:0}
+.czback .czclue b{letter-spacing:0;text-transform:none;font-size:.78rem;font-weight:850;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.czclue small{font-size:.62rem;color:#e9d5ff;letter-spacing:.08em;text-transform:uppercase}
+.czback .czclue.k-team b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.czclue img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+.czclue.in{animation:czcluein .55s cubic-bezier(.2,1.5,.4,1) forwards}
+.czclue.k-tier{background:color-mix(in srgb,var(--tc) 30%,rgba(15,8,40,.8));border-color:var(--tc);box-shadow:0 0 18px -2px var(--tc)}.czback .czclue.k-tier b{font-size:.9rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tc)}
+.czclue.k-tier.in{animation:czstamp .5s cubic-bezier(.2,1.8,.4,1) forwards}
+@keyframes czcluein{from{opacity:0;transform:translateY(14px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes czstamp{0%{opacity:0;transform:scale(2.4) rotate(-8deg)}70%{opacity:1;transform:scale(.92) rotate(1deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.czclue.in,.czclue.k-tier.in{animation:none;opacity:1;transform:none}}
 .czripmsg{text-align:center;min-height:1.4em;font-size:.95rem}
 @media (prefers-reduced-motion:reduce){.czflip{transition:none}}
 /* ---- phone layout: one bottom bar, league strip, sticky tabs, pull to refresh ---- */
@@ -5870,27 +5881,52 @@ function czBattleShow(b){
    so a rare card keeps you waiting (and shaking). Supernovas and Singularities get the full-screen treatment. ---- */
 const CZ_ASC = ["comet", "stardust", "pulsar", "nebula", "quasar", "supernova", "singularity"];
 const CZ_TCOL = { comet: "#94a3b8", stardust: "#e2e8f0", pulsar: "#34d399", nebula: "#a78bfa", quasar: "#38bdf8", supernova: "#fb923c", singularity: "#fcd34d" };
+// the three clues a face-down card gives away, one at a time, before it flips: who he plays for, where he plays, how rare it is
+const CZ_POSN = {
+  nfl: { QB: "Quarterback", RB: "Running back", FB: "Fullback", WR: "Wide receiver", TE: "Tight end", C: "Center", G: "Guard", OT: "Tackle", OL: "Offensive line", DE: "Defensive end",
+    DT: "Defensive tackle", LB: "Linebacker", CB: "Cornerback", S: "Safety", DB: "Defensive back", PK: "Kicker", P: "Punter", LS: "Long snapper" },
+  nba: { G: "Guard", F: "Forward", C: "Center", PF: "Power forward" },
+  mlb: { P: "Pitcher", C: "Catcher", "1B": "First base", "2B": "Second base", "3B": "Third base", SS: "Shortstop", LF: "Left field", CF: "Center field", RF: "Right field",
+    OF: "Outfield", DH: "Designated hitter", TWP: "Two-way player" },
+  nhl: { C: "Center", L: "Left wing", R: "Right wing", D: "Defense", G: "Goalie" },
+  epl: { G: "Goalkeeper", D: "Defender", M: "Midfielder", F: "Forward" } };
+function czClues(c){
+  const tennis = ["atp", "wta"].includes(c.lg), player = c.kind === "player", T = czTeam(c.lg, player ? c.team : c.name), logo = T ? teamLogo(T, c.lg) : null;
+  const pos = (CZ_POSN[c.lg] || {})[c.pos] || c.pos || "";
+  const team = tennis ? `<b>${esc(CZ_LG[c.lg])} Tour</b><small>Tennis</small>` : player ? `${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : ""}<b>${esc((T && T.name) || c.team || "")}</b><small>${esc(CZ_LG[c.lg] || "")}</small>`
+    : `${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : ""}<b>Team card</b><small>${esc(CZ_LG[c.lg] || "")}</small>`;
+  const where = tennis ? `<b>${c.rank ? `Ranked #${c.rank}` : "Tour player"}</b><small>Singles</small>` : player ? `<b>${esc(pos || "Player")}</b>${c.num ? `<small>#${esc(c.num)}</small>` : ""}`
+    : `<b>${c.rank ? `#${c.rank} in the ratings` : "Whole team"}</b>`;
+  return `<span class="czclues" aria-hidden="true"><span class="czclue k-team">${team}</span><span class="czclue k-pos">${where}</span>
+    <span class="czclue k-tier t-${esc(c.tier)}" style="--tc:${CZ_TCOL[c.tier]}"><b>${esc(CZ_TIER_NAME[c.tier])}</b><small>${c.supply === 1 ? "1 of 1" : `${c.n}/${c.supply}`}</small></span></span>`;
+}
 function czRip(pk, cards){
   const order = cards.slice().sort((a, b) => b.supply - a.supply), best = order[order.length - 1];
-  $("#infoBody").innerHTML = `<h2 id="infoTitle">${esc(pk.label)}</h2><p class="sub" id="czRipHint">Tap a card to reveal it. The longer it glows, the rarer it is.</p>
-    <div class="czrip">${order.map((c, i) => `<button type="button" class="czflip" data-i="${i}" data-t="${CZ_ASC.indexOf(c.tier)}" aria-label="Reveal card ${i + 1}"><span class="czback"><span class="czaura" aria-hidden="true"></span>${czCoin("pk")}<b>Cosmic</b></span><span class="czfront">${czCard({ ...c, label: CZ_TIER_NAME[c.tier] }, c.n)}</span></button>`).join("")}</div>
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">${esc(pk.label)}</h2><p class="sub" id="czRipHint">Tap a card: its team, then position, then rarity show up before the player. The longer it glows, the rarer it is.</p>
+    <div class="czrip">${order.map((c, i) => `<button type="button" class="czflip" data-i="${i}" data-t="${CZ_ASC.indexOf(c.tier)}" aria-label="Reveal card ${i + 1}"><span class="czback"><span class="czaura" aria-hidden="true"></span>${czCoin("pk")}<b>Cosmic</b>${czClues(c)}</span><span class="czfront">${czCard({ ...c, label: CZ_TIER_NAME[c.tier] }, c.n)}</span></button>`).join("")}</div>
     <p class="czripmsg" id="czRipMsg"></p>
     <div class="pkfoot"><small>They're in your Collection.</small><button class="btn" type="button" id="czRevealAll">Reveal all</button><button class="btn" type="button" id="czShareBest" hidden>Share best card</button><button class="btn" type="button" data-info="close">Done</button><button class="btn primary" type="button" id="czAgain" hidden>Open another</button></div>`;
   const flips = [...$("#infoBody").querySelectorAll(".czflip")];
   const finish = () => { if (!flips.every(f => f.classList.contains("on"))) return;
     $("#czRipMsg").innerHTML = best.supply <= 10 ? `🌌 <b>${best.supply === 1 ? "The only one in existence" : `${best.n}/${best.supply}, one of just ${best.supply}`}!</b> ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])}` : `Best pull: ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])} ${best.n}/${best.supply}`;
     ["czShareBest", "czAgain"].forEach(id => { const b = $("#" + id); if (b) b.hidden = false; }); const ra = $("#czRevealAll"); if (ra) ra.hidden = true; };
-  const flip = el => new Promise(done => {
+  // the reveal: the team slides in, then the position, then the glow climbs through the tiers until the rarity stamps down,
+  // and only then does the card flip to show the name and picture ("Reveal all" runs it faster)
+  const flip = (el, fast) => new Promise(done => {
     if (el.classList.contains("on") || el.classList.contains("charge")) { done(); return; }
-    const t = +el.dataset.t, c = order[+el.dataset.i], step = RM() ? 0 : 280, base = RM() ? 0 : 320, aura = el.querySelector(".czaura");
-    el.classList.add("charge");
-    for (let k = 0; k <= t; k++) setTimeout(() => { el.style.setProperty("--aura", CZ_TCOL[CZ_ASC[k]]); el.style.setProperty("--glow", (.35 + k * .11).toFixed(2)); if (k) sfx("tap"); }, k * step);
-    const shake = t >= 4 && !RM(); if (shake) setTimeout(() => el.classList.add(t >= 5 ? "shake2" : "shake"), t * step);
-    setTimeout(() => { el.classList.remove("charge", "shake", "shake2"); el.classList.add("on", "t-" + c.tier); sfx(t >= 4 ? "win" : "reveal");
-      if (t >= 5) czFlash(c); else if (t >= 3) czConfetti(24); finish(); done(); }, base + t * step + (shake ? 650 : 0));
+    const t = +el.dataset.t, c = order[+el.dataset.i], S = RM() ? 0 : fast ? .55 : 1, step = 280 * S, clue = k => el.querySelector(".czclue.k-" + k);
+    const at = (ms, f) => setTimeout(f, ms), climb = 1500 * S, stamp = climb + t * step + 250 * S;
+    el.classList.add("charge", "clueing");
+    at(150 * S, () => { clue("team").classList.add("in"); sfx("tap"); });
+    at(850 * S, () => { clue("pos").classList.add("in"); sfx("tap"); });
+    for (let k = 0; k <= t; k++) at(climb + k * step, () => { el.style.setProperty("--aura", CZ_TCOL[CZ_ASC[k]]); el.style.setProperty("--glow", (.35 + k * .11).toFixed(2)); if (k) sfx("tap"); });
+    const shake = t >= 4 && !RM(); if (shake) at(climb + t * step, () => el.classList.add(t >= 5 ? "shake2" : "shake"));
+    at(stamp, () => { clue("tier").classList.add("in"); sfx(t >= 3 ? "win" : "reveal"); });
+    at(stamp + (900 + (shake ? 500 : 0)) * S, () => { el.classList.remove("charge", "clueing", "shake", "shake2"); el.classList.add("on", "t-" + c.tier); sfx(t >= 4 ? "win" : "reveal");
+      if (t >= 5) czFlash(c); else if (t >= 3) czConfetti(24); finish(); done(); });
   });
   flips.forEach(f => f.onclick = () => flip(f));
-  $("#czRevealAll").onclick = async () => { $("#czRevealAll").disabled = true; for (const f of flips) await flip(f); };
+  $("#czRevealAll").onclick = async () => { $("#czRevealAll").disabled = true; for (const f of flips) await flip(f, true); };
   $("#czAgain").onclick = () => { $("#infoDlg").close(); const tix = (CZ.me && CZ.me.tix) || {}; czOpen(pk.id, !!tix[pk.id]); };
   $("#czShareBest").onclick = () => czShareCard({ ...best, label: CZ_TIER_NAME[best.tier] }, best.n);
   const d = $("#infoDlg"); if (!d.open) d.showModal();
