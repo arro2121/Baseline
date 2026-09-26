@@ -14,7 +14,9 @@ async function espnLeague(lg) {
     let athletes = [];
     try { const d = await get(`${ESPN}${PATH[lg]}/teams/${t.id}/roster`); athletes = (d.athletes || []).flatMap(g => g.items ? g.items : [g]); }
     catch (e) { if (!ALERTS) throw e; const d = await get(`${ALERTS}/sports/${lg}/team/${t.id}`); athletes = (d.roster || []).map(p => ({ id: p.id, fullName: p.name, jersey: p.num, position: { abbreviation: p.pos }, headshot: { href: p.img } })); }
-    return athletes.map(a => ({ id: String(a.id), name: a.fullName || a.displayName, team: t.displayName, pos: a.position?.abbreviation || "", num: a.jersey || "", img: a.headshot?.href || "" }));
+    // rookies (RC): ESPN's years of experience is 0 in a player's first season (NFL and NBA; soccer rosters don't carry it)
+    return athletes.map(a => ({ id: String(a.id), name: a.fullName || a.displayName, team: t.displayName, pos: a.position?.abbreviation || "", num: a.jersey || "", img: a.headshot?.href || "",
+      ...(lg !== "epl" && a.experience && a.experience.years === 0 ? { rc: 1 } : {}) }));
   });
   return rows.flat().filter(p => p.id && p.name);
 }
@@ -54,12 +56,20 @@ const builders = {
     const teams = st.map(s => ({ abbr: s.teamAbbrev?.default, name: s.teamName?.default })).filter(t => t.abbr);
     const rows = await pool(teams, 6, async t => { const d = await get(`https://api-web.nhle.com/v1/roster/${t.abbr}/current`);
       return [...(d.forwards || []), ...(d.defensemen || []), ...(d.goalies || [])].map(p => ({ id: String(p.id), name: `${p.firstName?.default || ""} ${p.lastName?.default || ""}`.trim(), team: t.name, pos: p.positionCode || "", num: String(p.sweaterNumber ?? ""), img: p.headshot || "" })); });
+    // rookies (RC): the NHL's stats site flags each season's rookies; before the first games it has none, so last season's list isn't reused
+    try { const y = new Date().getUTCFullYear(), m = new Date().getUTCMonth() + 1, s = m >= 9 ? `${y}${y + 1}` : `${y - 1}${y}`, ids = new Set();
+      for (const kind of ["skater", "goalie"]) { const d = await get(`https://api.nhle.com/stats/rest/en/${kind}/summary?isAggregate=false&isGame=false&start=0&limit=200&cayenneExp=seasonId=${s}%20and%20gameTypeId=2%20and%20isRookie=%221%22`, 1);
+        for (const r of d.data || []) ids.add(String(r.playerId)); }
+      if (ids.size && ids.size < 250) for (const p of rows.flat()) if (ids.has(p.id)) p.rc = 1;
+      console.log("nhl rookies", ids.size); } catch (e) { console.log("nhl rookies skipped:", e.message); }
     return rows.flat();
   },
   async mlb() {
     const teams = (await get("https://statsapi.mlb.com/api/v1/teams?sportId=1")).teams.filter(t => t.active !== false);
-    const rows = await pool(teams, 6, async t => { const d = await get(`https://statsapi.mlb.com/api/v1/teams/${t.id}/roster?rosterType=40Man`);
-      return (d.roster || []).map(r => ({ id: String(r.person.id), name: r.person.fullName, team: t.name, pos: r.position?.abbreviation || "", num: r.jerseyNumber || "",
+    // rookies (RC): debuted in the majors this season, or late last season (August on, the September call-ups who keep rookie status)
+    const yr = new Date().getUTCFullYear(), rookie = d => !!d && (+d.slice(0, 4) === yr || (+d.slice(0, 4) === yr - 1 && +d.slice(5, 7) >= 8));
+    const rows = await pool(teams, 6, async t => { const d = await get(`https://statsapi.mlb.com/api/v1/teams/${t.id}/roster?rosterType=40Man&hydrate=person`);
+      return (d.roster || []).map(r => ({ id: String(r.person.id), name: r.person.fullName, team: t.name, pos: r.position?.abbreviation || "", num: r.jerseyNumber || "", ...(rookie(r.person.mlbDebutDate) ? { rc: 1 } : {}),
         img: `https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/${r.person.id}/headshot/67/current` })); });
     return rows.flat();
   },
@@ -68,7 +78,7 @@ const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues } };
 for (const [lg, fn] of Object.entries(builders)) {
   try { const list = await fn(), seen = new Set(), uniq = list.filter(p => !seen.has(p.id) && seen.add(p.id));
     if (uniq.length < (lg === "epl" ? 150 : 200)) throw new Error(`only ${uniq.length} players`);
-    out.leagues[lg] = uniq; console.log(lg, "ok", uniq.length, "players,", new Set(uniq.map(p => p.team)).size, "teams"); }
+    out.leagues[lg] = uniq; console.log(lg, "ok", uniq.length, "players,", new Set(uniq.map(p => p.team)).size, "teams,", uniq.filter(p => p.rc).length, "rookies"); }
   catch (e) { console.log(lg, "kept previous:", e.message); }
 }
 writeFileSync(OUT, JSON.stringify(out));
