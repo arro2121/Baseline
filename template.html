@@ -1473,6 +1473,94 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:0;background:#94a3b8}
 .czdot.t-singularity{background:#fcd34d;box-shadow:0 0 6px #fcd34d}.czdot.t-supernova{background:#fb923c}.czdot.t-quasar{background:#38bdf8}.czdot.t-nebula{background:#a78bfa}.czdot.t-pulsar{background:#34d399}.czdot.t-stardust{background:#cbd5e1}.czdot.t-comet{background:#64748b}
 .czopen{justify-content:center}.czownd{font-size:.72rem;color:#c084fc;text-align:center;font-weight:700}
+/* binder and set checklists */
+.czcview{margin:4px 0 12px}.czsetlg{margin:0 0 10px;flex-wrap:wrap}
+.czbinder{margin:10px 0;padding:12px;border-radius:14px;background:linear-gradient(160deg,#2a1747,#150a2a);box-shadow:inset 0 0 0 1px rgba(233,213,255,.18),0 12px 30px -16px #000;perspective:1200px}
+.czbhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}.czbhead small{color:var(--muted);font-size:.78rem}
+.czbpage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px;border-radius:10px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,transparent 2px 6px),rgba(255,255,255,.04);transform-origin:left center}
+.czbpage.flip-n{animation:czflipn .45s cubic-bezier(.3,.8,.4,1)}.czbpage.flip-p{animation:czflipp .45s cubic-bezier(.3,.8,.4,1)}
+@keyframes czflipn{from{transform:rotateY(-70deg);opacity:.3}}@keyframes czflipp{from{transform:rotateY(70deg);opacity:.3}}
+.czpocket{position:relative;display:grid;border:0;padding:3px;border-radius:10px;background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);cursor:pointer;min-width:0}
+.czpocket::after{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.14) 42%,transparent 55%)}
+.czpocket .czcard{padding:6px;border-radius:8px}.czpocket .czc-top{font-size:.46rem}.czpocket .czc-top span{padding:2px 4px}.czpocket .czc-top em{font-size:.5rem}.czpocket .czc-name{font-size:.62rem}.czpocket .czc-lg{font-size:.44rem}.czpocket .czc-plate{padding:3px 4px}
+.czpocket .czrc{top:20px;left:5px;font-size:.45rem;padding:0 3px}.czpocket .czch-ban{font-size:.4rem}.czpocket .czlv,.czpocket .czhot,.czpocket .czev{display:none}
+.czpocket.empty,.czpocket.blank{aspect-ratio:5/7;cursor:default;align-content:center;justify-items:center;text-align:center;gap:2px;padding:6px;border:1.5px dashed rgba(233,213,255,.25);background:rgba(0,0,0,.25)}
+.czpocket.empty b{font-size:.62rem;line-height:1.15}.czpocket.empty small{font-size:.5rem;color:var(--muted)}
+.czsil{width:42%;aspect-ratio:1;border-radius:50% 50% 40% 40%;background:radial-gradient(circle at 50% 35%,rgba(233,213,255,.28) 0 30%,transparent 31%),radial-gradient(ellipse at 50% 100%,rgba(233,213,255,.28) 0 45%,transparent 46%)}
+.czbnav{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:10px}.czbnav .btn{min-width:44px;font-size:1.2rem;padding:4px 12px}
+.czsetlist{display:grid;gap:8px}.czsetrow{display:grid;gap:6px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);color:inherit;font:inherit;cursor:pointer}
+.czsetrow b{display:block}.czsetrow small{color:var(--muted);font-size:.78rem}.czsetrow.full{border-color:#fde68a;box-shadow:0 0 14px -4px #fde68a}.czsetrow.done{opacity:.7}
+.czsetrow .czset-bar,.czset-bar.big{display:block;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}.czsetrow .czset-bar i,.czset-bar.big i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#a855f7,#fde68a)}
+.czsethead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0}.czsethead h2{margin:0}.czsethead .sub{margin:2px 0 0}.czsetdone{font-weight:800;color:#86efac}
+@media (prefers-reduced-motion:reduce){.czbpage.flip-n,.czbpage.flip-p{animation:none}}
+/* ---- card designs: twelve original frames (the .czdz layer and the name plate), all in the team's colors ---- */
+.czdz{position:absolute;inset:0;z-index:-1;pointer-events:none}.czdz i,.czdz b{position:absolute;display:block}
+.czc-plate{position:relative;min-width:0;padding:5px 7px 4px;margin:0 -3px -3px;border-radius:9px}
+.czc-plate .czc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.czc-plate .czc-lg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 0 Prism: chrome bevel and prism rays behind the player */
+.d-0{box-shadow:inset 0 0 0 3px rgba(255,255,255,.28),inset 0 0 0 5px color-mix(in srgb,var(--c1) 60%,transparent),0 10px 30px -12px rgba(0,0,0,.8)}
+.d-0 .czdz i{inset:8% -30% 30%;background:repeating-conic-gradient(from 0deg at 50% 60%,color-mix(in srgb,var(--c1) 38%,transparent) 0 6deg,transparent 6deg 14deg,color-mix(in srgb,var(--c2) 30%,transparent) 14deg 18deg,transparent 18deg 26deg);-webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent)}
+.d-0 .czc-plate{clip-path:polygon(0 0,100% 0,100% 70%,94% 100%,0 100%);background:linear-gradient(100deg,color-mix(in srgb,var(--c1) 85%,#000),color-mix(in srgb,var(--c2) 70%,#000));box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+/* 1 Arena: stadium spotlights from the top corners and a lit field below */
+.d-1 .czdz i{inset:0;background:conic-gradient(from 150deg at 0 0,transparent 0 8deg,rgba(255,255,255,.2) 12deg,transparent 22deg),conic-gradient(from 188deg at 100% 0,transparent 0 8deg,rgba(255,255,255,.2) 12deg,transparent 22deg)}
+.d-1 .czdz b{left:-10%;right:-10%;bottom:0;height:34%;background:repeating-linear-gradient(90deg,transparent 0 18px,rgba(255,255,255,.12) 18px 19px),linear-gradient(0deg,color-mix(in srgb,var(--c1) 55%,#052e16),transparent);transform:perspective(120px) rotateX(38deg);transform-origin:bottom}
+.d-1 .czc-plate{background:#05060d;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 2px 0 color-mix(in srgb,var(--c1) 80%,#fff 10%),0 0 12px -4px var(--c1);font-variant-numeric:tabular-nums}
+.d-1 .czc-plate .czc-name{color:#fde68a;letter-spacing:.03em}
+/* 2 Blueprint: drafting grid and a drawn play */
+.d-2 .czdz i{inset:0;opacity:.5;background:repeating-linear-gradient(0deg,color-mix(in srgb,var(--c2) 45%,transparent) 0 1px,transparent 1px 14px),repeating-linear-gradient(90deg,color-mix(in srgb,var(--c2) 45%,transparent) 0 1px,transparent 1px 14px)}
+.d-2 .czdz b{left:10%;top:16%;width:80%;height:46%;border:1.5px dashed rgba(255,255,255,.35);border-radius:50% 50% 10% 10%/60% 60% 10% 10%;background:radial-gradient(circle at 18% 70%,transparent 0 5px,rgba(255,255,255,.4) 5px 6.5px,transparent 7px),radial-gradient(circle at 82% 30%,transparent 0 5px,rgba(255,255,255,.4) 5px 6.5px,transparent 7px)}
+.d-2 .czc-plate{background:color-mix(in srgb,var(--c2) 22%,rgba(8,20,48,.85));border:1.5px dashed rgba(255,255,255,.45);font-family:ui-monospace,Menlo,monospace}
+/* 3 Retro: a thick cream frame with a team stripe and a pennant name plate */
+.d-3{box-shadow:inset 0 0 0 5px #f5ecd7,inset 0 0 0 7px var(--c1),0 10px 30px -12px rgba(0,0,0,.8)}
+.d-3 .czdz i{left:7px;right:7px;top:7px;height:9px;background:repeating-linear-gradient(90deg,var(--c1) 0 12px,var(--c2) 12px 24px);opacity:.75}
+.d-3 .czc-plate{background:linear-gradient(90deg,var(--c1),color-mix(in srgb,var(--c1) 60%,var(--c2)));clip-path:polygon(0 0,88% 0,100% 50%,88% 100%,0 100%);padding-right:18%;border-radius:4px}
+.d-3 .czc-plate .czc-name{font-style:italic;text-transform:uppercase;letter-spacing:.02em}
+/* 4 Circuit: neon traces and nodes, clipped tech corners */
+.d-4{clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 14px,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px),0 14px);border-radius:4px}
+.d-4 .czdz i{inset:0;opacity:.55;background:linear-gradient(90deg,transparent 12%,var(--c2) 12% 13%,transparent 13%) 0 22%/100% 1px no-repeat,linear-gradient(90deg,transparent 60%,var(--c2) 60% 92%,transparent 92%) 0 70%/100% 1px no-repeat,linear-gradient(0deg,transparent 22%,var(--c2) 22% 70%,transparent 70%) 13% 0/1px 100% no-repeat,linear-gradient(0deg,transparent 30%,var(--c1) 30% 70%,transparent 70%) 92% 0/1px 100% no-repeat,radial-gradient(circle at 13% 22%,#fff 0 2px,transparent 3px),radial-gradient(circle at 92% 70%,#fff 0 2px,transparent 3px),radial-gradient(circle at 60% 70%,#fff 0 2px,transparent 3px)}
+.d-4 .czc-plate{background:rgba(2,6,23,.85);border:1px solid var(--c2);box-shadow:0 0 10px -2px var(--c2),inset 0 0 8px -2px var(--c2)}
+/* 5 Shatter: broken-glass shards in team colors */
+.d-5 .czdz i{inset:0;background:color-mix(in srgb,var(--c1) 40%,transparent);clip-path:polygon(0 0,38% 0,22% 34%,0 48%,0 100%,0 100%,14% 64%,0 58%);opacity:.8}
+.d-5 .czdz b{inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--c2) 45%,transparent),transparent);clip-path:polygon(100% 0,70% 0,82% 26%,100% 40%,100% 18%,88% 12%);opacity:.9;box-shadow:inset 0 0 0 1px #fff}
+.d-5 .czc-plate{background:linear-gradient(120deg,rgba(255,255,255,.18),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(3px);clip-path:polygon(3% 0,100% 0,97% 100%,0 100%)}
+/* 6 Tide: rolling waves in team colors under the player */
+.d-6 .czdz i{left:-20%;right:-20%;bottom:0;height:40%;background:radial-gradient(60% 60% at 25% 100%,color-mix(in srgb,var(--c1) 70%,transparent) 60%,transparent 61%),radial-gradient(60% 55% at 78% 105%,color-mix(in srgb,var(--c2) 60%,transparent) 60%,transparent 61%)}
+.d-6 .czdz b{left:-20%;right:-20%;bottom:0;height:24%;background:radial-gradient(55% 70% at 50% 110%,color-mix(in srgb,var(--c1) 85%,#000) 60%,transparent 61%)}
+.d-6 .czc-plate{background:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+/* 7 Halftone: comic dots and a bold slanted plate */
+.d-7 .czdz i{inset:0;opacity:.45;background:radial-gradient(circle,var(--c2) 1.4px,transparent 1.8px) 0 0/8px 8px;-webkit-mask:linear-gradient(160deg,#000,transparent 55%);mask:linear-gradient(160deg,#000,transparent 55%)}
+.d-7 .czc-plate{background:var(--c1);border:2px solid #000;box-shadow:3px 3px 0 #000;transform:skew(-8deg);margin:0 2px 2px}
+.d-7 .czc-plate>*{transform:skew(8deg)}.d-7 .czc-plate .czc-name{text-transform:uppercase;font-weight:900;-webkit-text-stroke:.3px #000}
+/* 8 Contour: topographic map lines */
+.d-8 .czdz i{inset:-20%;opacity:.35;background:repeating-radial-gradient(ellipse at 30% 35%,transparent 0 9px,var(--c2) 9px 10px),repeating-radial-gradient(ellipse at 80% 80%,transparent 0 11px,var(--c1) 11px 12px);-webkit-mask:linear-gradient(90deg,#000 20%,transparent 50%,#000 80%);mask:linear-gradient(90deg,#000 20%,transparent 50%,#000 80%)}
+.d-8 .czc-plate{background:rgba(0,0,0,.55);border-left:4px solid var(--c1);border-radius:3px}
+/* 9 Crest: a shield behind the player and a ribbon banner */
+.d-9 .czdz i{left:16%;right:16%;top:13%;height:56%;background:linear-gradient(160deg,color-mix(in srgb,var(--c1) 55%,transparent),color-mix(in srgb,var(--c2) 35%,transparent));clip-path:polygon(50% 0,100% 12%,100% 55%,50% 100%,0 55%,0 12%);box-shadow:inset 0 0 0 2px #fff}
+.d-9 .czdz b{left:14%;right:14%;top:11%;height:60%;clip-path:polygon(50% 0,100% 12%,100% 55%,50% 100%,0 55%,0 12%,50% 0,50% 3%,3% 14%,3% 54%,50% 96%,97% 54%,97% 14%,50% 3%);background:#fde68a;opacity:.7}
+.d-9 .czc-plate{background:linear-gradient(0deg,color-mix(in srgb,var(--c1) 80%,#000),var(--c1));clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%);text-align:center;padding:5px 14px 4px}
+/* 10 Velocity: speed streaks and a slash */
+.d-10 .czdz i{inset:0;opacity:.55;background:linear-gradient(90deg,transparent 5%,rgba(255,255,255,.5) 30%,transparent 55%) 0 18%/100% 1.5px no-repeat,linear-gradient(90deg,transparent 40%,var(--c2) 70%,transparent) 0 32%/100% 2px no-repeat,linear-gradient(90deg,transparent 10%,var(--c1) 40%,transparent 70%) 0 58%/100% 3px no-repeat,linear-gradient(90deg,transparent 50%,rgba(255,255,255,.4) 80%,transparent) 0 66%/100% 1px no-repeat}
+.d-10 .czdz b{top:-10%;bottom:-10%;left:62%;width:26%;background:linear-gradient(180deg,color-mix(in srgb,var(--c1) 55%,transparent),color-mix(in srgb,var(--c2) 45%,transparent));transform:skewX(-18deg);opacity:.6}
+.d-10 .czc-plate{background:linear-gradient(90deg,var(--c1) 60%,transparent);clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
+.d-10 .czc-plate .czc-name{font-style:italic;font-weight:900}
+/* 11 Mosaic: diamond tiles fading in from the corners */
+.d-11 .czdz i{inset:0;opacity:.4;background:conic-gradient(from 45deg,color-mix(in srgb,var(--c1) 60%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--c2) 50%,transparent) 0 75%,transparent 0) 0 0/16px 16px;-webkit-mask:radial-gradient(90% 70% at 50% 45%,transparent 45%,#000);mask:radial-gradient(90% 70% at 50% 45%,transparent 45%,#000)}
+.d-11 .czc-plate{background:rgba(255,255,255,.1);border-top:2px solid var(--c1);border-bottom:2px solid var(--c2);border-radius:0}
+/* ---- case hits: three ultra-rare insert designs ---- */
+.czcard.ch{box-shadow:0 0 0 2px #fde68a,0 0 26px 2px rgba(253,230,138,.55)}
+.czch-ban{position:absolute;z-index:5;left:0;right:0;bottom:31%;padding:2px 0;text-align:center;font:900 .56rem/1.3 system-ui;letter-spacing:.14em;color:#1e1b4b;background:linear-gradient(90deg,transparent,#fde68a 15%,#f59e0b 50%,#fde68a 85%,transparent);transform:rotate(-6deg)}
+.czch-ban span{display:none}.czcard.big .czch-ban{font-size:.8rem}.czcard.big .czch-ban span{display:inline}
+.czcard.ch .czdz i,.czcard.ch .czdz b{inset:0;width:auto;height:auto;border:0;border-radius:0;clip-path:none;background:none;transform:none;-webkit-mask:none;mask:none;opacity:1;box-shadow:none;filter:none;animation:none}
+.czcard.ch-horizon .czdz i{left:50%;top:40%;right:auto;bottom:auto;width:150%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(68deg);border-radius:50%;background:conic-gradient(#f59e0b,#fde68a,#fb923c,#7c2d12,#f59e0b);-webkit-mask:radial-gradient(closest-side,transparent 55%,#000 58% 100%);mask:radial-gradient(closest-side,transparent 55%,#000 58% 100%);animation:czspin 7s linear infinite;opacity:.85}
+.czcard.ch-horizon .czdz b{inset:0;background:radial-gradient(circle at 50% 40%,transparent 25%,rgba(0,0,0,.65) 70%)}
+.czcard.ch-starfall .czdz i{inset:-20% 0;background:linear-gradient(200deg,transparent 45%,#fde68a 49%,transparent 50%) 0 0/60px 60px,linear-gradient(200deg,transparent 45%,rgba(255,255,255,.8) 48%,transparent 49%) 25px 10px/80px 80px;animation:czfall 2.4s linear infinite;opacity:.9}
+.czcard.ch-starfall .czdz b{inset:0;background:linear-gradient(0deg,rgba(245,158,11,.35),transparent 50%)}
+@keyframes czfall{to{transform:translateY(20%)}}
+.ch-crown{background:radial-gradient(120% 80% at 50% 0,#6d28d9,#2e1065 55%,#0b0420)!important}
+.czcard.ch-crown .czdz i{left:32%;right:32%;top:14%;bottom:auto;height:12%;background:linear-gradient(180deg,#fde68a,#d97706);clip-path:polygon(0 100%,0 30%,20% 60%,35% 0,50% 55%,65% 0,80% 60%,100% 30%,100% 100%);filter:drop-shadow(0 0 6px #fde68a)}
+.czcard.ch-crown .czdz b{inset:0;box-shadow:inset 0 0 0 3px #fde68a,inset 0 0 22px rgba(253,230,138,.5)}
+@media (prefers-reduced-motion:reduce){.ch-horizon .czdz i,.czcard.ch-starfall .czdz i{animation:none}}
+
 .czrc{position:absolute;z-index:4;top:30px;left:8px;padding:1px 5px;border-radius:5px;font:900 .62rem/1.3 system-ui;letter-spacing:.06em;color:#1e1b4b;background:linear-gradient(160deg,#fde68a,#f59e0b);box-shadow:0 0 0 1px rgba(255,255,255,.6),0 2px 6px rgba(0,0,0,.45)}
 .czcard.big .czrc{top:44px;left:12px;font-size:.8rem;padding:2px 7px}
 .czrc-s{font-style:normal;font-size:.62rem;font-weight:900;padding:0 4px;border-radius:4px;color:#1e1b4b;background:#fbbf24;vertical-align:1px}
@@ -1601,7 +1689,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czflip.on.t-supernova,.czflip.on.t-singularity{filter:drop-shadow(0 0 18px var(--aura))}
 .czflash{position:fixed;inset:0;z-index:110;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle,rgba(253,230,138,.95),rgba(245,158,11,.55) 35%,rgba(15,8,40,.85) 75%);animation:czflashin .5s ease-out both}
 .czflash.t-supernova{background:radial-gradient(circle,rgba(251,146,60,.95),rgba(219,39,119,.55) 35%,rgba(15,8,40,.85) 75%)}
-.czflash.out{opacity:0;transition:opacity .6s}
+.czflash.out{opacity:0;transition:opacity .6s}.czflash.casehit{background:radial-gradient(circle,rgba(253,230,138,.98),rgba(124,58,237,.7) 40%,rgba(15,8,40,.9) 75%)}
 .czflash-in{display:grid;justify-items:center;gap:4px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.6);animation:czpop .7s cubic-bezier(.2,1.6,.4,1) both}.czflash-in small{letter-spacing:.3em;text-transform:uppercase;font-weight:800}.czflash-in b{font-size:clamp(2.6rem,12vw,5rem);font-weight:900;line-height:1}.czflash-in span{font-size:1.2rem;font-weight:700}
 @keyframes czflashin{from{opacity:0}}@keyframes czpop{from{transform:scale(.3);opacity:0}}
 @media (prefers-reduced-motion:reduce){.czflip.charge .czback,.czflip.shake,.czflip.shake2,.rk-cosmic,.judging .czsb-vs span,.czjudge-orb{animation:none}}
@@ -4884,6 +4972,7 @@ async function czLoad(what = ["me", "board", "vault", "lb", "rookies", "teampack
   if (!CZ.cfg){ try { CZ.cfg = await czApi("/config"); } catch { CZ.cfg = { passkeys: false }; } }
   await Promise.all(what.map(async w => { try {
     if (w === "rookies"){ CZ.rookies = await czApi("/rookies"); return; }
+    if (w === "sets"){ const lg = CZ.setlg || "all"; const r = await czApi("/sets?lg=" + lg); (CZ.sets ||= {})[lg] = r.sets; return; }
     if (w === "teampacks"){ const lg = ["nfl", "nba", "mlb", "nhl", "epl"].includes(CZ.scope) ? CZ.scope : null; CZ.tpacks = lg ? { lg, ...(await czApi("/teampacks?lg=" + lg)) } : null; return; }
     if (w === "me" && czKey()){ const M = await czApi("/me"); CZ.me = M.user; CZ.pxAlerts = M.pxAlerts || []; CZ.meErr = false; lsSet("cz-lastname", CZ.me.name);
       const ob = (CZ.me.outbid || []).filter(o => o.at > lsGet("cz-ob-seen", 0)), wa = (CZ.me.wonAuc || []).filter(o => o.at > lsGet("cz-wa-seen", 0));
@@ -4931,18 +5020,24 @@ function czLevel(it){
   let lv = 1; for (const t of team ? [3, 8, 15, 25] : [1, 3, 6, 10]) if (xp >= t) lv++; return lv;
 }
 // a collectible: galaxy card in the team's colours, with the tier's foil and the edition number
+// card designs: every card has one of twelve original designs, the same for a player in every tier (like a real set), in the
+// team's colors; case hits have their own three insert designs
+const CZ_DESIGNS = ["Prism", "Arena", "Blueprint", "Retro", "Circuit", "Shatter", "Tide", "Halftone", "Contour", "Crest", "Velocity", "Mosaic"];
+const CZ_CASE_NAME = { horizon: "Event Horizon", starfall: "Starfall", crown: "Galaxy Crown" };
+function czDesign(it){ const s = String(it.id || it.name || "").replace(/\.[a-z]+$/, ""); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % CZ_DESIGNS.length; }
 function czCard(it, ed, big){
   const player = it.kind === "player" && it.team, T = czTeam(it.lg, player ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
   const faces = player ? czFaces(it) : [];
   const lv = czLevel(it);
   const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null, hot = czHotOf(it);
-  return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
-    ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
+  const dz = czDesign(it);
+  return `<div class="czcard t-${esc(it.tier)} d-${dz} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
+    ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czdz" aria-hidden="true"><i></i><b></b></div><div class="czc-foil"></div>${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
-    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
+    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate"><div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
 }
 // a player's photo: the one saved with the card, then the league's own photo by player id (older cards and players
 // whose photo wasn't in the roster), and finally the team's logo, large, instead of an empty card
@@ -5591,7 +5686,48 @@ function czReveal(it, n){
   const d = $("#infoDlg"); if (!d.open) d.showModal();
 }
 // ---- Collection and leaders
+// the Collection has three views: the grid, a binder (9-pocket pages you flip through) and set checklists
 function czCollHtml(){
+  const v = CZ.cview || "grid", seg = `<div class="seg trseg czcview" role="group" aria-label="View">${[["grid", "▦ Grid"], ["binder", "📒 Binder"], ["sets", "✅ Sets"]].map(([k, l]) => `<button type="button" data-czcv="${k}" aria-pressed="${v === k}">${l}</button>`).join("")}</div>`;
+  if (v === "sets") return seg + czSetsHtml();
+  if (v === "binder") { const all = (CZ.me.items || []).slice().sort((a, b) => a.supply - b.supply || (b.price || 0) - (a.price || 0));
+    const ct = CZ.ctier || "all", items = ct === "all" ? all : all.filter(i => i.tier === ct);
+    if (!items.length) return seg + `<p class="sub">No cards to put in the binder yet. Open a pack!</p>`;
+    return seg + czBinderHtml(items.map(i => ({ card: i })), "Your binder", `${items.length} card${items.length === 1 ? "" : "s"}, rarest first`); }
+  return seg + czCollGridHtml();
+}
+// a binder: pages of 9 pockets (3 x 3). Each slot is { card } (an owned copy) or { empty: member } (a set card still needed)
+function czBinderHtml(slots, title, sub){
+  const pages = Math.max(1, Math.ceil(slots.length / 9)), pg = Math.min(CZ.bpage || 0, pages - 1); CZ.bpage = pg;
+  const slot = s => s.card ? `<button type="button" class="czpocket" data-czcard="${esc(s.card.id)}" data-n="${s.card.n}">${czCard({ ...s.card, label: CZ_TIER_NAME[s.card.tier] }, s.card.n)}</button>`
+    : s.empty ? `<div class="czpocket empty"><span class="czsil" aria-hidden="true"></span><b>${esc(s.empty.name)}</b><small>${esc([s.empty.pos, s.empty.team ? simShort(s.empty.lg, s.empty.team) : "", CZ_LG[s.empty.lg]].filter(Boolean).join(" · "))}</small>${s.empty.rc ? '<i class="czrc-s">RC</i>' : ""}</div>` : `<div class="czpocket blank"></div>`;
+  const page = slots.slice(pg * 9, pg * 9 + 9); while (page.length < 9) page.push({});
+  return `<section class="czbinder"><div class="czbhead"><b>${esc(title)}</b><small>${esc(sub)}</small></div>
+    <div class="czbpage ${CZ.bflip || ""}" aria-label="Page ${pg + 1} of ${pages}">${page.map(slot).join("")}</div>
+    <div class="czbnav"><button type="button" class="btn" data-czbp="-1" ${pg ? "" : "disabled"} aria-label="Previous page">‹</button><span>Page ${pg + 1} of ${pages}</span><button type="button" class="btn" data-czbp="1" ${pg < pages - 1 ? "" : "disabled"} aria-label="Next page">›</button></div></section>`;
+}
+// set checklists: collect one card (any tier) of every player in a set, then claim its reward once
+const czBase = id => String(id).replace(/\.[a-z]+$/, "");
+function czSetsHtml(){
+  const lg = CZ.setlg || "all", S = CZ.sets && CZ.sets[lg], names = { all: "Featured", nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League", tennis: "Tennis" };
+  const chips = `<div class="seg trseg czsetlg" role="group" aria-label="Sets">${Object.entries(names).map(([k, l]) => `<button type="button" data-czsetlg="${k}" aria-pressed="${lg === k}">${l}</button>`).join("")}</div>`;
+  if (!S) return chips + `<div class="teamnote">${cosmoLoad("Printing the checklists…")}</div>`;
+  const own = new Map(); for (const i of CZ.me.items || []) { const b = czBase(i.id), o = own.get(b); if (!o || i.supply < o.supply) own.set(b, i); }
+  const done = new Set(CZ.me.setsDone || []), prog = s => s.members.filter(m => own.has(m.b)).length;
+  const open = CZ.openSet && S.find(s => s.id === CZ.openSet);
+  if (open) { const n = prog(open), full = n === open.members.length, claimed = done.has(open.id);
+    return chips + `<button type="button" class="linkbtn" data-czsetback>‹ All sets</button>
+      <div class="czsethead"><div><h2>${esc(open.label)}</h2><p class="sub">${n} of ${open.members.length} collected · reward ${czAmt(open.reward)}</p></div>
+        ${claimed ? `<span class="czsetdone">✅ Claimed</span>` : `<button type="button" class="btn ${full ? "primary glow" : ""}" data-czclaim="${esc(open.id)}" ${full ? "" : "disabled"}>${full ? `Claim ${open.reward.toLocaleString()} coins` : `${open.members.length - n} to go`}</button>`}</div>
+      <div class="czset-bar big"><i style="width:${(n / open.members.length * 100).toFixed(1)}%"></i></div>
+      ${czBinderHtml(open.members.map(m => own.has(m.b) ? { card: own.get(m.b) } : { empty: m }), open.label, "Any tier counts. Empty pockets show who you still need.")}`; }
+  // sort: sets you've started first, then by how close you are
+  const list = S.slice().sort((a, b) => (done.has(a.id) - done.has(b.id)) || (prog(b) / b.members.length - prog(a) / a.members.length) || a.label.localeCompare(b.label));
+  return chips + `<p class="sub">Collect one card of every player in a set (any tier counts), then claim its coins. ${lg === "all" ? "Pick a league for every team's Core Nine." : ""}</p>
+    <div class="czsetlist">${list.map(s => { const n = prog(s), c = done.has(s.id), full = n === s.members.length;
+      return `<button type="button" class="czsetrow ${c ? "done" : full ? "full" : ""}" data-czset="${esc(s.id)}"><span><b>${esc(s.label)}</b><small>${c ? "✅ Claimed" : full ? "🎉 Complete! Tap to claim" : `${n} of ${s.members.length}`} · ${s.reward.toLocaleString()} coins</small></span><span class="czset-bar"><i style="width:${(n / s.members.length * 100).toFixed(1)}%"></i></span></button>`; }).join("")}</div>`;
+}
+function czCollGridHtml(){
   const all = (CZ.me.items || []).slice().sort((a, b) => !!czHotOf(b) - !!czHotOf(a) || a.supply - b.supply || b.price - a.price);   // tonight's heroes first
   if (!all.length) return `<div class="czempty"><div class="czempty-orb" aria-hidden="true"></div><b>Your collection is empty</b><p class="sub">Claim your daily coins, then open a pack. Only one Singularity of each team and player will ever exist.</p><button type="button" class="btn primary" data-cztab="packs">Open a pack</button></div>`;
   const ct = CZ.ctier || "all", items = ct === "all" ? all : all.filter(i => i.tier === ct), n = t => all.filter(i => i.tier === t).length;
@@ -5996,7 +6132,7 @@ function czRip(pk, cards){
     const shake = t >= 4 && !RM(); if (shake) at(climb + t * step, () => el.classList.add(t >= 5 ? "shake2" : "shake"));
     at(stamp, () => { clue("tier").classList.add("in"); sfx(t >= 3 ? "win" : "reveal"); });
     at(stamp + (900 + (shake ? 500 : 0)) * S, () => { el.classList.remove("charge", "clueing", "shake", "shake2"); el.classList.add("on", "t-" + c.tier); sfx(t >= 4 ? "win" : "reveal");
-      if (t >= 5) czFlash(c); else if (t >= 3) czConfetti(24); finish(); done(); });
+      if (t >= 5 || c.ch) czFlash(c); else if (t >= 3) czConfetti(24); finish(); done(); });
   });
   flips.forEach(f => f.onclick = () => flip(f));
   const revealAll = async () => { const ra = $("#czRevealAll"); if (ra) ra.disabled = true; for (const f of flips) await flip(f, true); };
@@ -6013,7 +6149,8 @@ function czRip(pk, cards){
 }
 function czFlash(c){
   if (RM()) return; const el = document.createElement("div"); el.className = "czflash t-" + c.tier; el.setAttribute("aria-hidden", "true");
-  el.innerHTML = `<div class="czflash-in"><small>${esc(CZ_TIER_NAME[c.tier])}</small><b>${c.supply === 1 ? "1 of 1" : `${c.n}/${c.supply}`}</b><span>${esc(c.name)}</span></div>`;
+  if (c.ch) el.classList.add("casehit");
+  el.innerHTML = `<div class="czflash-in"><small>${c.ch ? `💎 Case hit · ${esc(CZ_CASE_NAME[c.ch] || "")}` : esc(CZ_TIER_NAME[c.tier])}</small><b>${c.supply === 1 ? "1 of 1" : `${c.n}/${c.supply}`}</b><span>${esc(c.name)}</span></div>`;
   document.body.appendChild(el); czConfetti(c.supply === 1 ? 140 : 90); setTimeout(() => el.classList.add("out"), 1900); setTimeout(() => el.remove(), 2500);
 }
 function czBind(el){
@@ -6063,6 +6200,13 @@ function czBind(el){
   el.querySelectorAll("[data-czscope]").forEach(b => b.onclick = async () => { CZ.scope = b.dataset.czscope; lsSet("cz-scope", CZ.scope); CZ.tpacks = null; drawCosmic(); await czLoad(["teampacks"]); drawCosmic(); });
   el.querySelectorAll("[data-czcard]").forEach(b => b.onclick = () => czHistory(b.dataset.czcard, +b.dataset.n));
   el.querySelectorAll("[data-czsellall]").forEach(b => b.onclick = () => czSellAll());
+  el.querySelectorAll("[data-czcv]").forEach(b => b.onclick = async () => { CZ.cview = b.dataset.czcv; CZ.bpage = 0; CZ.openSet = null; drawCosmic(); if (CZ.cview === "sets" && !(CZ.sets && CZ.sets[CZ.setlg || "all"])) { await czLoad(["sets"]); drawCosmic(); } });
+  el.querySelectorAll("[data-czsetlg]").forEach(b => b.onclick = async () => { CZ.setlg = b.dataset.czsetlg; CZ.openSet = null; drawCosmic(); if (!(CZ.sets && CZ.sets[CZ.setlg])) { await czLoad(["sets"]); drawCosmic(); } });
+  el.querySelectorAll("[data-czset]").forEach(b => b.onclick = () => { CZ.openSet = b.dataset.czset; CZ.bpage = 0; drawCosmic(); window.scrollTo({ top: 0 }); });
+  el.querySelectorAll("[data-czsetback]").forEach(b => b.onclick = () => { CZ.openSet = null; drawCosmic(); });
+  el.querySelectorAll("[data-czbp]").forEach(b => b.onclick = () => { const d = +b.dataset.czbp; CZ.bpage = (CZ.bpage || 0) + d; CZ.bflip = d > 0 ? "flip-n" : "flip-p"; drawCosmic(); CZ.bflip = ""; sfx("tap"); });
+  el.querySelectorAll("[data-czclaim]").forEach(b => b.onclick = async () => { b.disabled = true;
+    try { const r = await czApi("/sets/claim", { id: b.dataset.czclaim }); CZ.me = r.user; sfx("win"); czConfetti(120); toast(`Set complete! +${r.reward.toLocaleString()} coins`); drawCosmic(); } catch (e) { toast(e.message); b.disabled = false; } });
   el.querySelectorAll("[data-czrookies]").forEach(b => b.onclick = async () => { CZ.vkind = "rookie"; CZ.vtier = "all"; CZ.tab = "check"; drawCosmic(); try { await czVault(); } catch (e) { toast(e.message); } drawCosmic(); });
   el.querySelectorAll("[data-cztp]").forEach(b => b.onclick = () => czOpen(b.dataset.cztp));
   const f = el.querySelector("[data-czform=join]");
