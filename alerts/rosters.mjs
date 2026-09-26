@@ -88,13 +88,14 @@ async function tennisPhotos() {
 }
 // the All-Time 200's portraits, from each player's Wikipedia page (a disambiguation page tries "Name (sport)")
 import { LEGENDS } from "./legends.js";
+import { MOMENTS } from "./moments.js";
 // Wikipedia asks API clients to identify themselves (a generic browser user agent gets turned away)
 const WIKI_H = { "User-Agent": "CosmoSports/1.0 (https://cosmosports.app; card photos)", "Api-User-Agent": "CosmoSports/1.0 (https://cosmosports.app)" };
 const wiki = async (u, tries = 3) => { for (let i = 0; ; i++) { try { const r = await fetch(u, { headers: WIKI_H }); if (r.status === 404) return null; if (!r.ok) throw new Error(`${r.status} ${u}`); return await r.json(); }
   catch (e) { if (i >= tries - 1) throw e; await new Promise(r => setTimeout(r, 1500 * (i + 1))); } } };
-async function legendPhotos() {
+async function legendPhotos(LIST = LEGENDS) {
   const sport = { nba: "basketball", nfl: "American football", mlb: "baseball", nhl: "ice hockey", epl: "footballer", atp: "tennis", wta: "tennis" }, out = {}, errs = [];
-  await pool(LEGENDS, 3, async L => {
+  await pool(LIST, 3, async L => {
     for (const title of [L.wiki, `${L.name} (${sport[L.lg]})`]) {
       try { const d = await wiki(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`); if (!d) continue;
         const img = d.type !== "disambiguation" && (d.thumbnail && d.thumbnail.source || d.originalimage && d.originalimage.source);
@@ -106,6 +107,8 @@ async function legendPhotos() {
 }
 const out = { asof: new Date().toISOString(), leagues: { ...prev.leagues }, tennis: prev.tennis || {}, legends: prev.legends || {} };
 try { const L = await legendPhotos(); out.legends = { ...out.legends, ...L }; console.log("legend photos", Object.keys(L).length, "of", LEGENDS.length); } catch (e) { console.log("legend photos kept previous:", e.message); }
+out.moments = prev.moments || {};
+try { const M = await legendPhotos(MOMENTS); out.moments = { ...out.moments, ...M }; console.log("moment photos", Object.keys(M).length, "of", MOMENTS.length); } catch (e) { console.log("moment photos kept previous:", e.message); }
 try { const T = await tennisPhotos(); if (Object.keys(T).length > 20) out.tennis = T; console.log("tennis photos", Object.keys(T).length); } catch (e) { console.log("tennis photos kept previous:", e.message); }
 for (const [lg, fn] of Object.entries(builders)) {
   try { const list = await fn(), seen = new Set(), uniq = list.filter(p => !seen.has(p.id) && seen.add(p.id));
