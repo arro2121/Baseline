@@ -1472,7 +1472,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czodds{width:100%;border-collapse:collapse;font-size:.84rem}.czodds td{padding:4px 0;border-bottom:1px solid var(--line-2)}.czodds td:last-child{text-align:right;font-weight:750}.czodds small{color:var(--muted);font-size:.7rem}
 .czdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:0;background:#94a3b8}
 .czdot.t-singularity{background:#fcd34d;box-shadow:0 0 6px #fcd34d}.czdot.t-supernova{background:#fb923c}.czdot.t-quasar{background:#38bdf8}.czdot.t-nebula{background:#a78bfa}.czdot.t-pulsar{background:#34d399}.czdot.t-stardust{background:#cbd5e1}.czdot.t-comet{background:#64748b}
-.czopen{justify-content:center}.czownd{font-size:.72rem;color:#c084fc;text-align:center;font-weight:700}
+.czopen{justify-content:center}.czownd{font-size:.72rem;color:#c084fc;text-align:center;font-weight:700}.czusd{color:#86efac;font-weight:700;font-size:.85em;margin-left:4px}.czwhy b .czusd{display:block;margin:2px 0 0}
 /* binder and set checklists */
 .czcview{margin:4px 0 12px}.czsetlg{margin:0 0 10px;flex-wrap:wrap}
 .czbinder{margin:10px 0;padding:12px;border-radius:14px;background:linear-gradient(160deg,#2a1747,#150a2a);box-shadow:inset 0 0 0 1px rgba(233,213,255,.18),0 12px 30px -16px #000;perspective:1200px}
@@ -5738,6 +5738,8 @@ function czMineHtml(){
 }
 // ---- Vault
 // a card's price follows current play: ▲ or ▼ is how its price level moved over the last week
+// a coin is 2 cents: what a card would sell for as a real card
+const czUsdTxt = coins => { const d = coins / 50; return "$" + (d >= 1000 ? Math.round(d).toLocaleString() : d >= 10 ? Math.round(d) : d.toFixed(2)); };
 const czTrendChip = t => t ? `<em class="cztr ${t > 0 ? "up" : "dn"}" title="Price change over the last week">${t > 0 ? "▲" : "▼"}${Math.abs(t).toFixed(t >= 10 || t <= -10 ? 0 : 1)}%</em>` : "";
 function czPriceWhy(V){
   if (!V) return ""; const bits = [];
@@ -5754,14 +5756,14 @@ function czPriceWhy(V){
   if (V.level > 1) bits.push(`level ${V.level} from big games (+${(V.level - 1) * 15}%)`);
   if (V.hot) bits.push("hot from a big game (+10%)");
   if (V.scarce) bits.push(`${V.scarce >= 25 ? "sold out" : "copies being pulled"} (+${V.scarce}%)`);
-  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices track what each player's real cards sell for next to other players, and rise or fall every night with how he's playing this season: ${bits.join(", ")}.</p>`;
+  return `<p class="czwhy"><b>Why ${czAmt(V.value)} <span class="czusd">≈ ${czUsdTxt(V.value)} as a real card</span>${czTrendChip(V.trend)}</b> Priced like real cards (a coin is 2¢): a base card of a role player is under a dollar, a superstar's numbered cards run hundreds, and his 1-of-1 tens of thousands. Prices rise or fall every night with how he's playing this season: ${bits.join(", ")}.</p>`;
 }
 function czVaultHtml(){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
   const mine = new Set((CZ.me.items || []).map(i => i.id));
   const tile = i => { const left = i.supply - i.minted, own = mine.has(i.id);
     return `<div class="czitem">${i.minted > 0 && !own ? `<button type="button" class="czown czopen-o" data-czcard="${esc(i.id)}" data-n="0" aria-label="See who owns ${esc(i.name)} and trade">${czCard(i)}</button>` : czCard(i)}<div class="czinfo"><span class="czleft">${left <= 0 ? (i.owner ? `Owned by ${esc(i.owner)}` : "All pulled") : i.supply === 1 ? "Only one exists" : `${left} of ${i.supply} left`}</span>
-      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Value ${czAmt(i.value || i.price)}${czTrendChip(i.trend)}</span>`}</div></div>`; };
+      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Value ${czAmt(i.value || i.price)} <small class="czusd">≈ ${czUsdTxt(i.value || i.price)}</small>${czTrendChip(i.trend)}</span>`}</div></div>`; };
   return `<p class="sub czvnote">Every team and player comes in seven tiers. A Comet card has 1,000 numbered copies, a Pulsar 100, and so on down to a Singularity, the only tier with just one copy. The rarest are listed first.</p><div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams"], ["player", "Players"], ["rookie", "⭐ Rookies"]].map(([k, l]) => `<button type="button" data-czvk="${k}" aria-pressed="${(CZ.vkind || "all") === k}">${l}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Tier">${["all", ...V.tiers.map(t => t.id)].map(t => `<button type="button" data-czvt="${t}" aria-pressed="${CZ.vtier === t}">${t === "all" ? "Every tier" : `${CZ_TIER_NAME[t]} 1/${V.tiers.find(x => x.id === t).supply}`}</button>`).join("")}</div>
