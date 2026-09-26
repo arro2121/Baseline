@@ -98,13 +98,10 @@ await call("/delete", { confirm: "DELETE" }, cat.auth);
 check("S6 support messages go when the account is deleted", JSON.parse(data.get("cz:support")).length === 0);
 // S8
 { const r = await W.default.fetch(new Request("https://w.dev/cosmic/leaders"), { KV: env.KV, SITE_URL: env.SITE_URL }, { waitUntil() {} }); check("S8 Cosmic refuses to run without the Durable Object", r.status === 503); }
-// S9 + AI1
-{ const envC = { ...env, ANTHROPIC_API_KEY: "sk-test", AI: { run: async () => new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('data: {"response":"workers-ai"}\n\n')); c.close(); } }) } };
-  const ask = async auth => (await W.default.fetch(new Request("https://w.dev/ask", { method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.6.7.8", ...(auth ? { Authorization: "Bearer " + auth } : {}) }, body: JSON.stringify({ messages: [{ role: "user", content: "How is PCA doing?" }], focus: "Cubs at Brewers. Pete Crow-Armstrong (CF, PCA)", member: true }) }), envC, { waitUntil() {} })).text();
-  check("S9 anonymous visitors don't reach Claude (even claiming membership)", await ask(null) === "workers-ai" && !sent.length);
-  check("S9 no-passkey accounts don't reach Claude", await ask(np.auth) === "workers-ai" && !sent.length);
-  check("S9 passkey accounts get Claude with the smaller model and fewer tokens", await ask(dan.auth) === "claude" && sent[0].model === "claude-sonnet-5" && sent[0].max_tokens === 1200, sent[0] && [sent[0].model, sent[0].max_tokens]);
-  check("AI1 the open game goes first, as FOCUS", sent[0].system[1].text.startsWith("FOCUS:")); }
+// Ask Cosmo was removed: the route is gone and asking calls no AI
+{ const envC = { ...env, ANTHROPIC_API_KEY: "sk-test", AI: { run: async () => { throw new Error("AI called"); } } };
+  const r = await W.default.fetch(new Request("https://w.dev/ask", { method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.6.7.8", Authorization: "Bearer " + dan.auth }, body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }) }), envC, { waitUntil() {} });
+  check("ASK0 Ask Cosmo is gone: /ask is refused and reaches no AI", r.status >= 400 && !sent.length, r.status); }
 // S11
 { const c = W.czSyncClean({ v: 1, ls: { picks: { a: 1 }, evil: "<x>", spoil: "x".repeat(5000) }, fav: { nfl: ["Chiefs", 5], "../x": ["y"] }, settings: { theme: "dark", obj: { deep: 1 } }, extra: 1 });
   check("S11 synced data keeps only known keys within their size caps", JSON.stringify(c) === '{"v":1,"ls":{"picks":{"a":1}},"fav":{"nfl":["Chiefs"]},"settings":{"theme":"dark"}}', c);

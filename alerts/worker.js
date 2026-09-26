@@ -3055,13 +3055,7 @@ export default {
     if (url.pathname.startsWith("/cosmic/")) { try { return await cosmicRoute(req, env, ctx, url); } catch (e) { return json({ error: "Cosmic isn't available right now." }, 503); } }
     if (url.pathname === "/track") return await cached(req, ctx, 120, () => trackAll(db)).catch(e => json({ error: String(e.message || e) }, 503));
     if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
-    if (url.pathname === "/ask" && req.method === "POST") {
-      if (!(await askAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
-      const raw = await req.json().catch(() => null), who = await czAuth(req, env).catch(() => null);
-      const body = raw && { ...raw, member: czSecured(who) };                             // Claude answers only signed-in passkey accounts
-      try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
-      catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
-    }
+    if (url.pathname === "/ask") return json({ error: "Ask Cosmo was removed." }, 410);   // removed from the app; nothing reaches the AI through it
     if (url.pathname === "/tts" && req.method === "POST") {
       if (!env.AI) return json({ error: "no voice" }, 503);
       if (!(await ttsAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "slow down" }, 429);
@@ -3111,7 +3105,7 @@ export default {
       if (r.status === 404 || r.status === 410) await db.subDel(s.sub.endpoint).catch(() => {});
       return json({ ok: r.ok, status: r.status, detail }, r.ok ? 200 : 502);
     }
-    return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
+    return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
     ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));

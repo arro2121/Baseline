@@ -7,8 +7,6 @@ standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, N
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
 **What makes it different**
-* **Ask Cosmo:** an AI sports companion that answers questions about any game, team or pick from live scores,
-  last night's results, the open game's plays and box score, your teams and the Cosmo model.
 * **Picks:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and friend challenge
   links (no account needed), plus your running record against the Cosmo model.
 * **Comets:** articles and takes from you to everyone who uses the app, with a reader, share links, a teaser on
@@ -111,10 +109,6 @@ every five minutes GitHub also publishes a copy of today's scores to the site it
 network blocks ESPN and the alerts service (some school, work and hotel Wi-Fi, VPNs and content blockers do), the
 app shows that copy, a few minutes behind and labeled as such, instead of an error. All of these allow personal, non-commercial use, so keep
 the app free and ad-free. There is no free official feed with the same detail for the NFL, NBA or Premier League.
-
-**Ask Cosmo (the AI companion)** runs on your Cloudflare account's free Workers AI allowance, with no extra key
-or cost. For sharper answers, add a GitHub secret named `ANTHROPIC_API_KEY` (from console.anthropic.com) and run
-the workflow; the companion then uses Claude (billed to your Anthropic account per question).
 
 **Comets (your articles)** are stored by the alerts service and shown to everyone. Only you can write them:
 1. Pick a long passphrase you don't use anywhere else (this is your writer key).
@@ -227,7 +221,7 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
   League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
-  standings, team pages and news. Ask Cosmo, our AI sports companion, anything about tonight's games. Every game
+  standings, team pages and news. Every game
   gets a prediction from a multi-factor model with the reasons behind it, tested on seasons it never saw. Play the
   Daily 3 and see how your picks stack up against the model. Tap Listen in a live game to
   hear the plays called by a natural human voice. Get alerts for your teams, close finishes and a morning briefing, and turn on the
@@ -235,20 +229,19 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Keywords:** live scores, sports scores, NFL, NBA, MLB, NHL, Premier League, tennis, play by play, box score,
   predictions, picks, sports alerts, AI sports, sports analytics, win probability
 * **Category:** Sports · **Content rating:** 17+ / Mature: answer "yes" to gambling-related content (the app shows
-  odds but takes no bets and has no prizes) and "yes" to AI-generated content (Ask Cosmo) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
+  odds but takes no bets and has no prizes) and "yes" to AI-generated content (Cosmic card battle verdicts) · **Privacy policy URL:** `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
 * **Screenshots:** `docs/screenshots/` (phone and desktop). **Icon:** `docs/icon-512.png`. **Feature graphic /
   social image:** `docs/og-image.png`. The source artwork for the logo is in `brand/`.
 
 **Final checklist before you submit**
 1. Open the app on your phone, go through the welcome screens, follow a couple of teams and turn on notifications;
    use Settings > Notifications > Send a test to confirm alerts arrive.
-2. Ask Cosmo a question or two (it runs free on Cloudflare; add the optional `ANTHROPIC_API_KEY` secret for Claude).
-3. Make your Daily 3 picks and send yourself a challenge link to see how it looks.
-4. Run the site address through [PWABuilder](https://www.pwabuilder.com); it should show the manifest, service worker
+2. Make your Daily 3 picks and send yourself a challenge link to see how it looks.
+3. Run the site address through [PWABuilder](https://www.pwabuilder.com); it should show the manifest, service worker
    and icons as ready, then package for each store as described above.
-5. Paste the store text above, upload `docs/screenshots/`, and use `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
+4. Paste the store text above, upload `docs/screenshots/`, and use `https://YOUR-GITHUB-USERNAME.github.io/Baseline/privacy.html`
    as the privacy policy link.
-6. Optional: rename the GitHub repository (Settings > General) to something like `cosmo-sports` **before** you
+5. Optional: rename the GitHub repository (Settings > General) to something like `cosmo-sports` **before** you
    publish, so the web address reads better. Do it before anyone installs the app, because installed copies
    are tied to the old address.
 
