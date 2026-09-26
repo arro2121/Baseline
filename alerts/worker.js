@@ -172,6 +172,7 @@ export class Store {
     else if (d.op === "subDel") { await st.delete("sub:" + await subId(d.e)); v = true; }
     else if (d.op === "rate") v = await this.rate(d);
     else if (d.op === "gc") v = await this.gc();
+    else if (d.op === "pwpurge") v = await this.pwpurge();
     return new Response(JSON.stringify({ v }), { headers: { "Content-Type": "application/json" } });
   }
   // attempt limits (sign-ups, owner-key misses, reports, Ask…) for every copy of the worker at once. Short windows are counted
@@ -187,6 +188,14 @@ export class Store {
     if (keep && count) await this.state.storage.put(k, l);
     return ok;
   }
+  // email and password sign-in was removed: erase everything it stored (email hashes, masked emails, password hashes). Once.
+  async pwpurge() {
+    const st = this.state.storage; if (await st.get("cz:pwpurged")) return { done: true, already: true }; let em = 0, us = 0;
+    for (const k of (await st.list({ prefix: "cz:em:" })).keys()) { await st.delete(k); em++; }
+    for (const [k, u] of await st.list({ prefix: "cz:u:" })) if (u && (u.pw || u.emh || u.emmask)) { delete u.pw; delete u.emh; delete u.emmask; await st.put(k, u); us++; }
+    for (const k of (await st.list({ prefix: "rl:pw" })).keys()) await st.delete(k);
+    await st.put("cz:pwpurged", Date.now()); return { done: true, emails: em, accounts: us };
+  }
   async gc() {                                               // hourly: drop old attempt counts and support messages past their time
     const st = this.state.storage, now = Date.now(); let n = 0;
     for (const [k, l] of await st.list({ prefix: "rl:" })) if (!Array.isArray(l) || !l.some(t => now - t < 7 * 864e5)) { await st.delete(k); this.rl?.delete(k); n++; }
@@ -200,6 +209,7 @@ export async function rateOk(env, k, max, win, mode = "hit") {
   const now = Date.now(), l = (RATE_LOCAL.get(k) || []).filter(t => now - t < win), ok = l.length < max;   // no Store: this copy's memory only
   if (mode === "add" || (mode !== "peek" && ok)) l.push(now); if (RATE_LOCAL.size > 20000) RATE_LOCAL.clear(); RATE_LOCAL.set(k, l); return ok;
 }
+async function pwPurge(env) { if (!env.STORE) return 0; try { const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "pwpurge" }) }); return (await r.json()).v; } catch (e) { return String(e.message || e); } }
 async function storeGc(env) { if (!env.STORE || new Date().getUTCMinutes() >= 2) return 0; return (await store(env).gc?.()) ?? 0; }
 export function store(env) {
   if (env.STORE) {
@@ -1639,8 +1649,8 @@ export const CZ_BSPORT = {
 const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
 const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
-const czSecured = u => !!(u && (u.ident || u.pw));                // signed in with a passkey or an email and password
-const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), email: u.emmask || null, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czSecured = u => !!(u && u.ident);                          // signed in with a passkey
+const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
@@ -1689,19 +1699,6 @@ export async function czTx(st, a) {
   if (a.act === "repdone") {                                         // the owner dismisses the reports about a name
     await st.put("cz:reports", (await get("cz:reports", [])).map(r => r.name.toLowerCase() === String(a.name).toLowerCase() && !r.done ? { ...r, done: a.now, action: "dismissed" } : r));
     return { ok: true };
-  }
-  if (a.act === "pwjoin") {                                          // a new account secured by email and password (no passkey needed)
-    const names = await get("cz:names", {}), key = a.name.toLowerCase();
-    if (names[key]) return { error: "That name is taken. Try another." };
-    if (await get("cz:em:" + a.emh, null)) return { error: "That email already has an account. Sign in with it instead." };
-    const u = { uid: a.uid, name: a.name, toks: [a.tok], emh: a.emh, emmask: a.mask, pw: a.pw, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0, freePack: true };
-    let bonus = 0;
-    if (a.ref && a.ref !== a.uid) { const r = await st.get("cz:u:" + a.ref);
-      if (r && (r.refs || 0) < CZ_REF_MAX) { r.bal += CZ_REF_BONUS; r.refs = (r.refs || 0) + 1; u.bal += CZ_REF_BONUS; u.refBy = r.uid; bonus = CZ_REF_BONUS;
-        r.refNote = [...(r.refNote || []), { name: a.name, at: a.now }].slice(-10); await st.put("cz:u:" + r.uid, r); await lb(r); } }
-    names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:em:" + a.emh, { uid: a.uid }); await st.put("cz:u:" + a.uid, u); await lb(u);
-    await feed({ kind: "join", name: a.name });
-    return { user: czPublic(u), uid: a.uid, created: true, ...(bonus ? { bonus } : {}) };
   }
   if (a.act === "tester") {                                          // the site owner's testing switch: unlimited coins, off the leaderboards
     const u = await st.get("cz:u:" + a.uid); if (!u) return { error: "Account not found." };
@@ -1760,16 +1757,6 @@ export async function czTx(st, a) {
   }
   const u = await st.get("cz:u:" + a.uid);
   if (!u) return { error: "Account not found." };
-  if (a.act === "pwset") {                                          // add or change the email and password on this account
-    const owner = (await get("cz:em:" + a.emh, null))?.uid; if (owner && owner !== u.uid) return { error: "That email is already used by another Cosmo Sports account." };
-    if (u.emh && u.emh !== a.emh) await (st.delete ? st.delete("cz:em:" + u.emh) : st.put("cz:em:" + u.emh, null));
-    u.emh = a.emh; u.emmask = a.mask; u.pw = a.pw; await st.put("cz:em:" + a.emh, { uid: u.uid }); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u) };
-  }
-  if (a.act === "pwdel") {
-    if (u.emh) await (st.delete ? st.delete("cz:em:" + u.emh) : st.put("cz:em:" + u.emh, null));
-    delete u.emh; delete u.emmask; delete u.pw; await st.put("cz:u:" + u.uid, u); return { user: czPublic(u) };
-  }
-  if (a.act === "addtok") { u.toks = [...(u.toks || []), a.tok].slice(-10); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), uid: u.uid }; }
   if (a.act === "daily") {
     if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
     u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
@@ -1933,7 +1920,7 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), tid = names[String(a.name).toLowerCase()];
     if (!tid) return { error: "That player isn't in Cosmic any more." };
     if (tid === u.uid) return { error: "That's you." };
-    if (!czSecured(u)) return { error: "Secure your account with a passkey or an email and password to report players." };
+    if (!czSecured(u)) return { error: "Add a passkey to your account to report players." };
     const R = await get("cz:reports", []);
     if (R.some(r => r.from === u.uid && r.uid === tid && a.now - r.at < CZ_REP_COOL)) return { ok: true, already: true };
     const counts = a.now - (u.created || a.now) >= CZ_REP_AGE_DAYS * 864e5;
@@ -1956,7 +1943,6 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
     const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
     if (u.ident) await del("cz:id:" + u.ident);
-    if (u.emh) await del("cz:em:" + u.emh);
     const S = await st.get("cz:support"); if (S) await st.put("cz:support", JSON.stringify((typeof S === "string" ? JSON.parse(S) : S).filter(x => x.uid !== u.uid)));
     await st.put("cz:reports", (await get("cz:reports", [])).filter(r => r.from !== u.uid && r.uid !== u.uid));
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
@@ -2321,28 +2307,6 @@ export function czSyncClean(d) {
     if (/^[\w-]{1,40}$/.test(k) && (prim(v) ? String(v).length <= 400 : Array.isArray(v) && v.length <= 100 && v.every(prim))) settings[k] = v;
   return { v: 1, ls, fav, settings };
 }
-// email and password sign-in (for computers): the password is kept only as a salted PBKDF2 hash, and the email only as a hash
-// for looking the account up plus a masked copy for display ("a•••@gmail.com"). Wrong guesses are limited per address and per email.
-const CZ_PW_ITER = 100000;                                   // Cloudflare Workers' PBKDF2 maximum
-const czEmail = e => String(e || "").trim().toLowerCase();
-const czEmailOk = e => e.length <= 254 && /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(e);
-const czEmailMask = e => { const [n, d] = e.split("@"); return `${n[0]}•••@${d}`; };
-const CZ_PW_WEAK = ["password", "123456", "qwerty", "letmein", "iloveyou", "football", "baseball", "basketball", "welcome", "cosmosports", "abc123", "monkey", "dragon", "sunshine"];
-function czPwProblem(pw, email) {
-  if (typeof pw !== "string" || pw.length < 10) return "Use at least 10 characters.";
-  if (pw.length > 200) return "That password is too long.";
-  const low = pw.toLowerCase(); if (CZ_PW_WEAK.some(w => low.includes(w)) || /^(.)\1+$/.test(pw) || (email && low.includes(email.split("@")[0]))) return "That password is too easy to guess. Try a longer phrase.";
-  return null;
-}
-async function czPwHash(pw, salt, iter = CZ_PW_ITER) {
-  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
-  return b64u.enc(new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64u.dec(salt), iterations: iter }, k, 256)));
-}
-async function czPwCheck(u, pw) {
-  if (!u || !u.pw || typeof pw !== "string") return false;
-  const h = await czPwHash(pw, u.pw.salt, u.pw.iter || CZ_PW_ITER); let d = h.length ^ u.pw.hash.length;
-  for (let i = 0; i < Math.min(h.length, u.pw.hash.length); i++) d |= h.charCodeAt(i) ^ u.pw.hash.charCodeAt(i); return d === 0;
-}
 const czTokHash = async req => { const m = /^Bearer\s+[a-f0-9]{24}\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); return m ? czHash(m[1]) : null; };
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
@@ -2538,30 +2502,6 @@ export async function cosmicRoute(req, env, ctx, url) {
       return json({ ...r, auth: `${r.uid}.${token}` });
     } catch (e) { return json({ error: e.message === "unknown passkey" ? "That passkey isn't linked to a Cosmic account. Create an account first." : "Sign-in didn't go through (" + e.message + "). Try again." }, 401); }
   }
-  if (p === "/pw/login" && req.method === "POST") {                         // sign in with email and password
-    const d = await req.json().catch(() => ({})), email = czEmail(d.email), emh = await czHash("em:" + email);
-    if (!(await rateOk(env, "pwip:" + ip, 20, 900e3)) || !(await rateOk(env, "pwem:" + emh, 10, 3600e3))) return json({ error: "Too many tries. Wait a while, or sign in with your passkey." }, 429);
-    const uid = czEmailOk(email) ? (await czRead(env, "cz:em:" + emh, null))?.uid : null, u = uid ? await czRead(env, "cz:u:" + uid, null) : null;
-    if (!u || !u.pw) await czPwHash(String(d.password || "x"), "AAAAAAAAAAAAAAAAAAAAAA");   // same work either way, so timing doesn't reveal which emails have accounts
-    if (!(await czPwCheck(u, String(d.password || "")))) return json({ error: "Wrong email or password." }, 401);
-    const token = czRand(32), r = await cz(env, { act: "addtok", uid: u.uid, tok: await czHash(token), now });
-    if (r.error) return json(r, 409);
-    return json({ ...r, auth: `${u.uid}.${token}` });
-  }
-  if (p === "/pw/join" && req.method === "POST") {                          // create an account with a name, email and password
-    if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
-    const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim(), email = czEmail(d.email), pw = String(d.password || "");
-    if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
-    if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
-    if (!czEmailOk(email)) return json({ error: "Enter a valid email address." }, 400);
-    const bad = czPwProblem(pw, email); if (bad) return json({ error: bad }, 400);
-    const uid = czRand(12), token = czRand(32), salt = b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
-    const r = await cz(env, { act: "pwjoin", uid, tok: await czHash(token), name, emh: await czHash("em:" + email), mask: czEmailMask(email), pw: { salt, hash: await czPwHash(pw, salt), iter: CZ_PW_ITER },
-      ref: /^[a-f0-9]{24}$/.test(String(d.ref || "")) ? d.ref : null, now });
-    if (r.error) return json(r, 409);
-    await rateOk(env, "join:" + ip, 5, 3600e3, "add");
-    return json({ ...r, auth: `${uid}.${token}` });
-  }
   if (p === "/join" && req.method === "POST") {
     if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
     if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
@@ -2598,22 +2538,6 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
-  if (p === "/pw/set" && req.method === "POST") {                           // add or change the email and password for signing in on a computer
-    const d = await req.json().catch(() => ({})), email = czEmail(d.email), pw = String(d.password || "");
-    if (!(await rateOk(env, "pwset:" + u.uid, 10, 3600e3))) return json({ error: "Too many tries. Wait a while." }, 429);
-    if (u.pw && !(await czPwCheck(u, String(d.current || "")))) return json({ error: "Your current password isn't right." }, 403);
-    if (!czEmailOk(email)) return json({ error: "Enter a valid email address." }, 400);
-    const bad = czPwProblem(pw, email); if (bad) return json({ error: bad }, 400);
-    const salt = b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
-    const r = await cz(env, { act: "pwset", uid: u.uid, emh: await czHash("em:" + email), mask: czEmailMask(email), pw: { salt, hash: await czPwHash(pw, salt), iter: CZ_PW_ITER }, now });
-    return json(r, r.error ? 409 : 200);
-  }
-  if (p === "/pw/remove" && req.method === "POST") {
-    const d = await req.json().catch(() => ({}));
-    if (!(await rateOk(env, "pwset:" + u.uid, 10, 3600e3))) return json({ error: "Too many tries. Wait a while." }, 429);
-    if (u.pw && !(await czPwCheck(u, String(d.current || "")))) return json({ error: "Your current password isn't right." }, 403);
-    const r = await cz(env, { act: "pwdel", uid: u.uid, now }); return json(r, r.error ? 409 : 200);
-  }
   if (p === "/signout" && req.method === "POST") {                           // this device's key stops working (or every key, with all)
     const d = await req.json().catch(() => ({})), r = await cz(env, { act: "signout", uid: u.uid, tok: await czTokHash(req), all: !!d.all, now }); return json({ ok: true, all: !!d.all && r.ok });
   }
@@ -2731,7 +2655,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
   if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   // cards belong to accounts: only a signed-in account with a passkey can pull or buy them
-  if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !czSecured(u)) return json({ error: "Secure your account with a passkey or an email and password to collect cards.", needPasskey: true }, 403);
+  if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !czSecured(u)) return json({ error: "Add a passkey to your account to collect cards.", needPasskey: true }, 403);
   if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/pack" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), want = String(d.pack || ""), E = want.startsWith("ev:") ? czEventsAt(now).find(e => e.pack === want) : null;
@@ -2828,7 +2752,7 @@ export default {
     if (url.pathname === "/ask" && req.method === "POST") {
       if (!(await askAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
       const raw = await req.json().catch(() => null), who = await czAuth(req, env).catch(() => null);
-      const body = raw && { ...raw, member: czSecured(who) };                             // Claude answers only secured, signed-in accounts
+      const body = raw && { ...raw, member: czSecured(who) };                             // Claude answers only signed-in passkey accounts
       try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
       catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
     }
@@ -2884,6 +2808,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
