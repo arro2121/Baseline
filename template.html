@@ -5106,6 +5106,7 @@ async function czLoad(what = ["me", "board", "vault", "lb", "rookies", "teampack
     if (w === "teampacks"){ const lg = ["nfl", "nba", "mlb", "nhl", "epl"].includes(CZ.scope) ? CZ.scope : null; CZ.tpacks = lg ? { lg, ...(await czApi("/teampacks?lg=" + lg)) } : null; return; }
     if (w === "me" && czKey()){ const M = await czApi("/me"); CZ.me = M.user; CZ.pxAlerts = M.pxAlerts || []; CZ.meErr = false; lsSet("cz-lastname", CZ.me.name);
       const ob = (CZ.me.outbid || []).filter(o => o.at > lsGet("cz-ob-seen", 0)), wa = (CZ.me.wonAuc || []).filter(o => o.at > lsGet("cz-wa-seen", 0));
+      const lr = CZ.me.legacyRefund; if (lr && lr.at > lsGet("cz-lr-seen", 0)){ lsSet("cz-lr-seen", lr.at); toast(`The old Supernova, Quasar, Nebula and Stardust cards are retired. Your ${lr.n} ${lr.n === 1 ? "card was" : "cards were"} bought back for ${Number(lr.coins).toLocaleString()} coins.`); }
       if (ob.length){ lsSet("cz-ob-seen", Math.max(...ob.map(o => o.at))); toast(`You were outbid on ${ob[ob.length - 1].name}. Your coins are back.`); }
       if (wa.length){ lsSet("cz-wa-seen", Math.max(...wa.map(o => o.at))); toast(`You won the auction for ${wa[wa.length - 1].name}!`); sfx("win"); } }
     if (w === "board") CZ.board = (await czApi("/board")).markets;
@@ -5893,7 +5894,7 @@ async function czLegends(more, kind = "legends"){ const d = await czApi(`/vault?
 // case hits: the three inserts, their odds and every one pulled so far
 function czCaseHitsHtml(){
   const C = CZ.casehits; if (!C) return `<div class="teamnote">${cosmoLoad("Opening the case…")}</div>`;
-  const fb = (CZ.vault && CZ.vault.items || []).find(i => i.kind === "player") || { id: "nba.x.nebula", name: "Cosmic Star", kind: "player", lg: "nba", tier: "nebula", supply: 50 }, sample = k => (C.samples || [])[k % Math.max(1, (C.samples || []).length)] || fb;
+  const fb = (CZ.vault && CZ.vault.items || []).find(i => i.kind === "player") || { id: "nba.x.pulsar", name: "Cosmic Star", kind: "player", lg: "nba", tier: "pulsar", supply: 100 }, sample = k => (C.samples || [])[k % Math.max(1, (C.samples || []).length)] || fb;
   return `<p class="sub">Case hits are the rarest inserts in the set: about <b>1 in every ${Math.round(1 / C.rate)}</b> cards from any pack comes out as one, in one of ${C.inserts.length} designs. Any player or team from any pack can hit one. It's the same player and serial, in an insert frame, and worth <b>${C.mult}×</b> the regular card.</p>
     <div class="czchgal">${C.inserts.map(([id, name], k) => `<div class="czchitem">${czCard({ ...sample(k), ch: id, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>${esc(name)}</b></div>`).join("")}</div>
     <h3 class="subh">✍️ Cosmic Ink</h3><p class="sub">A signed-style insert: about <b>1 in every ${Math.round(1 / ((C.ink && C.ink.rate) || 1 / 75))}</b> player cards comes out with the player's name inked across it in gold, worth <b>${(C.ink && C.ink.mult) || 2}×</b> the regular card.</p>
