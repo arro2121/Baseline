@@ -1573,6 +1573,28 @@ export const CZ_PACKS = [
   { id: "supernova", label: "Supernova Pack", price: 4000, cards: 3, odds: [0.2, 1.8, 6, 17, 30, 45, 0] },
   { id: "singularity", label: "Singularity Pack", price: 12000, cards: 2, odds: [1, 5, 14, 30, 50, 0, 0] },
 ];
+// event packs: limited-time packs for the big moments of the sports year. Each opens and closes on set dates (UTC), draws
+// only from its leagues with better odds than a Nebula pack, can be opened CZ_EV_MAX times per player, and every card pulled
+// from it keeps the event's edition (its frame and badge) for good, wherever the copy goes.
+export const CZ_EVENTS = [
+  { id: "mlbpost26", label: "October Baseball", emoji: "⚾", color: "#ea580c", lgs: ["mlb"], start: "2026-09-29T15:00:00Z", end: "2026-11-04T08:00:00Z", blurb: "The postseason is here. Every card is an MLB star or team, in an October edition." },
+  { id: "nhlopen26", label: "Puck Drop", emoji: "🏒", color: "#0284c7", lgs: ["nhl"], start: "2026-10-06T15:00:00Z", end: "2026-10-14T08:00:00Z", blurb: "A new NHL season starts. Opening-week edition cards." },
+  { id: "nbaopen26", label: "Opening Night", emoji: "🏀", color: "#f59e0b", lgs: ["nba"], start: "2026-10-19T15:00:00Z", end: "2026-10-28T08:00:00Z", blurb: "The NBA is back. Opening Night edition cards." },
+  { id: "thanks26", label: "Thanksgiving Football", emoji: "🦃", color: "#b45309", lgs: ["nfl"], start: "2026-11-23T15:00:00Z", end: "2026-11-30T08:00:00Z", blurb: "Football on Thanksgiving. A holiday edition of NFL cards." },
+  { id: "xmas26", label: "Christmas Day Hoops", emoji: "🎄", color: "#16a34a", lgs: ["nba"], start: "2026-12-21T15:00:00Z", end: "2026-12-28T08:00:00Z", blurb: "The NBA's Christmas Day games, in a holiday edition." },
+  { id: "boxing26", label: "Boxing Day", emoji: "🎁", color: "#dc2626", lgs: ["epl"], start: "2026-12-23T15:00:00Z", end: "2026-12-30T08:00:00Z", blurb: "The Premier League's busiest week, in a Boxing Day edition." },
+  { id: "nflpo27", label: "Playoff Football", emoji: "🏈", color: "#4f46e5", lgs: ["nfl"], start: "2027-01-08T15:00:00Z", end: "2027-01-27T08:00:00Z", blurb: "Win or go home. NFL playoff edition cards." },
+  { id: "ao27", label: "Summer Slam", emoji: "🎾", color: "#0891b2", lgs: ["atp", "wta"], start: "2027-01-15T15:00:00Z", end: "2027-02-01T08:00:00Z", blurb: "The first Grand Slam of the year. Tennis edition cards." },
+  { id: "champ27", label: "Championship Week", emoji: "🏆", color: "#ca8a04", lgs: ["nfl"], start: "2027-02-08T15:00:00Z", end: "2027-02-16T08:00:00Z", blurb: "The biggest game of the year. A championship edition of NFL cards." },
+  { id: "opening27", label: "Opening Day", emoji: "⚾", color: "#15803d", lgs: ["mlb"], start: "2027-03-22T15:00:00Z", end: "2027-04-03T08:00:00Z", blurb: "Baseball is back. Opening Day edition cards." },
+  { id: "nbapo27", label: "NBA Playoffs", emoji: "🏀", color: "#7c3aed", lgs: ["nba"], start: "2027-04-17T15:00:00Z", end: "2027-05-02T08:00:00Z", blurb: "Sixteen teams, one trophy. Playoff edition cards." },
+  { id: "nhlpo27", label: "Chase for the Cup", emoji: "🏒", color: "#0369a1", lgs: ["nhl"], start: "2027-04-17T15:00:00Z", end: "2027-05-02T08:00:00Z", blurb: "The NHL playoffs, in a playoff edition." },
+  { id: "final27", label: "Final Day", emoji: "⚽", color: "#9333ea", lgs: ["epl"], start: "2027-05-19T15:00:00Z", end: "2027-05-25T08:00:00Z", blurb: "The Premier League's last matchday. Final Day edition cards." },
+];
+export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_ODDS = [0.1, 0.9, 3, 10, 22, 34, 30];
+// the events as packs, with where each one stands at this moment: "soon", "live" or "over"
+export const czEventsAt = now => CZ_EVENTS.map(e => { const starts = Date.parse(e.start), ends = Date.parse(e.end);
+  return { ...e, id: e.id, pack: "ev:" + e.id, label: `${e.label} Pack`, price: CZ_EV_PRICE, cards: 3, odds: CZ_EV_ODDS, max: CZ_EV_MAX, starts, ends, status: now < starts ? "soon" : now < ends ? "live" : "over" }; });
 const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"] }, CZ_KINDS = ["all", "team", "player"];
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -1619,7 +1641,7 @@ const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
-  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !u.ident || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
@@ -1841,7 +1863,9 @@ export async function czTx(st, a) {
     // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
     const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
     const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
-    const tix = (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
+    const tix = pk.ev ? 0 : (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
+    const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0;
+    if (pk.ev && evUsed >= (pk.max || CZ_EV_MAX)) return { error: `You've opened all ${pk.max || CZ_EV_MAX} of your ${pk.label}s. It's a limited edition!` };
     if (a.free && !free) return { error: "You don't have a free pack of that kind." };
     if (!free && u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const ser = {}, order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
@@ -1860,14 +1884,15 @@ export async function czTx(st, a) {
       if (!open.length) continue;
       const n = open[Math.floor(rnd() * open.length)];
       if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
-      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id });
+      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
     if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price;
+    if (pk.ev) u.evp = { ...(u.evp || {}), [pk.ev]: evUsed + 1 };
     czAddSp(u, 3, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
-      if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label });
+      if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label, evl: c.evl });
     }
     for (const id in ser) await st.put("cz:ser:" + id, ser[id]);
     await st.put("cz:mint", mint); await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
@@ -1959,7 +1984,7 @@ export async function czTx(st, a) {
     if (!(start >= 10 && start <= 1000000)) return { error: "Start the bidding between 10 and 1,000,000 coins." };
     const AU = await get("cz:auc", []); if (AU.filter(x => x.seller === u.uid).length >= 10) return { error: "You can run 10 auctions at once." };
     const aid = czRand(6); c.auction = aid;
-    AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
+    AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
     await st.put("cz:auc", AU); await st.put("cz:u:" + u.uid, u);
     if (c.supply <= 25) await feed({ kind: "auction", name: u.name, label: c.name, tier: c.tier, n: c.n, supply: c.supply, price: start });
     return { user: czPublic(u), aid };
@@ -2000,7 +2025,7 @@ export async function czTx(st, a) {
     if (!(price >= 10 && price <= 1000000)) return { error: "Ask between 10 and 1,000,000 coins." };
     const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
     const lid = czRand(6); c.listed = lid;
-    M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, price, uid: u.uid, seller: u.name, at: a.now });
+    M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, price, uid: u.uid, seller: u.name, at: a.now });
     await st.put("cz:mkt", M.slice(0, 2000)); await st.put("cz:u:" + a.uid, u);
     return { user: czPublic(u), lid };
   }
@@ -2345,7 +2370,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/auctions" && req.method === "GET") { await czAuctionTick(env).catch(() => {}); return json({ auctions: (await czRead(env, "cz:auc", [])).map(x => ({ ...x, bT: undefined })), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/levels" && req.method === "GET") { const L = await czRead(env, "cz:lvl", {}); return json({ xp: L }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
-  if (p === "/packs" && req.method === "GET") return json({ packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
+  if (p === "/packs" && req.method === "GET") return json({ now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p.startsWith("/card/") && req.method === "GET") { const id = decodeURIComponent(p.slice(6)), it = await czItem(env, id);
     const xp = it ? (await czRead(env, "cz:lvl", {}))[czLvlKey(it)] || 0 : 0, lv = it ? czLevelOf(xp, it.kind === "team") : 1, val = it ? Math.round(it.price * (1 + .15 * (lv - 1))) : 0;
     return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: val, shop: Math.max(1, Math.floor(val * CZ_SHOP)), level: lv, xp } }); }
@@ -2565,13 +2590,16 @@ export async function cosmicRoute(req, env, ctx, url) {
   if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !u.ident) return json({ error: "Create your Cosmo Sports account with a passkey to collect cards.", needPasskey: true }, 403);
   if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/pack" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), pk = CZ_PACKS.find(x => x.id === String(d.pack || "")), scope = Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
-    const kind = ["team", "player"].includes(d.kind) ? d.kind : "all";
+    const d = await req.json().catch(() => ({})), want = String(d.pack || ""), E = want.startsWith("ev:") ? czEventsAt(now).find(e => e.pack === want) : null;
+    if (E && E.status !== "live") return json({ error: E.status === "soon" ? `The ${E.label} opens soon. Check the countdown on the Packs tab.` : `The ${E.label} has ended.` }, 409);
+    const pk = E ? { id: E.pack, label: E.label, price: E.price, cards: E.cards, odds: E.odds, max: E.max, ev: E.id, evl: `${E.emoji} ${E.label.replace(/ Pack$/, "")}`, evc: E.color }
+      : CZ_PACKS.find(x => x.id === want), scope = E ? "all" : Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
+    const kind = !E && ["team", "player"].includes(d.kind) ? d.kind : "all", lgs = E ? E.lgs : CZ_SCOPES[scope];
     if (!pk) return json({ error: "That pack isn't available." }, 404);
     // shortlist: up to 80 random cards per tier that still have copies out there and that this player doesn't own;
     // the Durable Object then re-checks them in one step, so nobody gets a copy that's already gone
     const [items, mint, ret] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), mine = new Set((u.items || []).map(x => x.id));
-    const P = items.filter(i => (!CZ_SCOPES[scope] || CZ_SCOPES[scope].includes(i.lg)) && (kind === "all" || i.kind === kind) && !mine.has(i.id) && (mint[i.id] || 0) - (ret[i.id] || []).length < i.supply);
+    const P = items.filter(i => (!lgs || lgs.includes(i.lg)) && (kind === "all" || i.kind === kind) && !mine.has(i.id) && (mint[i.id] || 0) - (ret[i.id] || []).length < i.supply);
     const byTier = {}; for (const i of P) (byTier[i.tier] ||= []).push(i);
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(80, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));

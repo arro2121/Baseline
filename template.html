@@ -1371,6 +1371,23 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czpack b{font-size:1.15rem;font-stretch:112%;text-shadow:0 2px 12px rgba(0,0,0,.5)}.czpack small{font-size:.72rem;opacity:.85}.czpack .czcoin.pk{width:46px;height:46px}
 .czpk-sky{position:absolute;inset:0;z-index:-1;background-image:radial-gradient(1px 1px at 15% 25%,#fff,transparent),radial-gradient(1px 1px at 75% 20%,#fff,transparent),radial-gradient(1.5px 1.5px at 60% 75%,#f5d0fe,transparent),radial-gradient(1px 1px at 30% 80%,#fff,transparent);opacity:.8}
 .czpk-crimp{position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 4px,transparent 4px 8px);opacity:.5}.czpk-crimp.b{top:auto;bottom:0}
+/* event packs: the event's color, a live countdown, and an edition frame on every card pulled */
+.czevs{margin-bottom:18px}.czevh{font-size:1.1rem;margin:4px 0 10px}
+.czpack.p-event{background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--ev) 85%,#fff 15%),color-mix(in srgb,var(--ev) 55%,#1e1b4b) 55%,#0b0826)}
+.czevpk{border-color:color-mix(in srgb,var(--ev) 55%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--ev) 30%,transparent),var(--shadow)}
+.czevpk.soon .czpack{filter:saturate(.75) brightness(.85)}
+.czev-emoji{font-size:2.2rem;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
+.czcd{display:inline-flex;align-items:baseline;gap:6px;border-radius:999px;padding:3px 10px;background:rgba(0,0,0,.35);color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.czcd small{font-size:.7rem;opacity:.85}.czcd b{font-size:.85rem}.czcd.big{margin-top:6px;padding:5px 12px}.czcd.big b{font-size:1rem}
+.czcd.live b{color:#FDE68A}
+.czevlim{margin:0;font-size:.82rem;color:var(--muted)}.czevlim b{color:var(--ink)}
+.czevban{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid color-mix(in srgb,var(--ev) 60%,var(--line));border-radius:14px;padding:12px 14px;margin:0 0 12px;cursor:pointer;color:var(--ink);font:inherit;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--ev) 30%,var(--surface)),var(--surface) 70%)}
+.czevban>span:nth-child(2){flex:1;min-width:0;display:grid}.czevban small{color:var(--muted);font-size:.78rem}.czevban .czev-emoji{font-size:1.6rem}
+.czcard.evcard{box-shadow:0 0 0 2px var(--ev,#f59e0b),0 0 18px color-mix(in srgb,var(--ev,#f59e0b) 55%,transparent)}
+.czev{position:absolute;z-index:4;left:50%;bottom:-1px;transform:translateX(-50%);max-width:92%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.56rem;font-weight:800;letter-spacing:.02em;
+  padding:2px 8px;border-radius:8px 8px 0 0;color:#fff;background:var(--ev,#f59e0b);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.czcard.big .czev{font-size:.72rem}.czcard.evcard{padding-bottom:18px}.czcard.big.evcard{padding-bottom:26px}
 .czpack.p-comet{background:linear-gradient(160deg,#475569,#1e293b 60%,#312e81)}
 .czpack.p-nebula{background:linear-gradient(160deg,#7c3aed,#312e81 55%,#0e7490)}
 .czpack.p-supernova{background:linear-gradient(160deg,#f97316,#db2777 50%,#4c1d95)}
@@ -4749,8 +4766,8 @@ async function czLoad(what = ["me", "board", "vault", "lb"]){
       if (ob.length){ lsSet("cz-ob-seen", Math.max(...ob.map(o => o.at))); toast(`You were outbid on ${ob[ob.length - 1].name}. Your coins are back.`); }
       if (wa.length){ lsSet("cz-wa-seen", Math.max(...wa.map(o => o.at))); toast(`You won the auction for ${wa[wa.length - 1].name}!`); sfx("win"); } }
     if (w === "board") CZ.board = (await czApi("/board")).markets;
-    if (w === "vault"){ await czVault(); if (!CZ.packs) CZ.packs = await czApi("/packs"); }
-    if (w === "board" && !CZ.packs) CZ.packs = await czApi("/packs");
+    if (w === "vault"){ await czVault(); if (!CZ.packs) czSetPacks(await czApi("/packs")); }
+    if (w === "board" && !CZ.packs) czSetPacks(await czApi("/packs"));
     if (w === "lb") CZ.lb = await czApi("/leaders");
     if (w === "market"){ CZ.market = await czApi("/market"); CZ.auc = (await czApi("/auctions")).auctions; }
     if (w === "trades" && CZ.me) CZ.trades = (await czApi("/trades")).trades;
@@ -4772,8 +4789,9 @@ function czCard(it, ed, big){
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
   const faces = player ? czFaces(it) : [];
   const lv = czLevel(it);
-  return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
-    <div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
+  const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null;
+  return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
+    ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}<div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
     <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
@@ -4936,7 +4954,7 @@ function czHomeHtml(){
   const A = czAchievements(me), nA = A.filter(a => a.done).length;
   const tix = Object.entries(me.tix || {}).filter(([, n]) => n > 0);
   return `${tix.map(([k, n]) => `<section class="czwelcome"><div><b>You have ${n} free ${k === "comet" ? "Comet" : k === "supernova" ? "Supernova" : k} pack${n === 1 ? "" : "s"}</b><small>Won on the daily wheel.</small></div><button type="button" class="btn primary" data-czfreepk="${esc(k)}">Open it free</button></section>`).join("")}
-    ${czWheelHtml()}${me.freePack ? `<section class="czwelcome"><div><b>Your welcome pack is ready</b><small>A free Comet pack: 3 numbered cards from any league.</small></div><button type="button" class="btn primary" data-czfree>Open it free</button></section>` : ""}
+    ${czEventBannerHtml()}${czWheelHtml()}${me.freePack ? `<section class="czwelcome"><div><b>Your welcome pack is ready</b><small>A free Comet pack: 3 numbered cards from any league.</small></div><button type="button" class="btn primary" data-czfree>Open it free</button></section>` : ""}
     <div class="czacts">
       ${claimed ? tile('data-cztab="bet"', czIco("bet"), "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', czIco("coin"), "Claim daily coins", "Free coins every day, more for a streak", true)}
       ${tile('data-cztab="packs"', czIco("pack"), "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 250 coins", false)}
@@ -5309,7 +5327,7 @@ function czPacksHtml(){
   const bar = pk => { const w = pk.odds.map(o => o ? Math.max(2.5, Math.sqrt(o) * 10) : 0), tot = w.reduce((a, b) => a + b, 0);       // square-root widths so the rare tiers are still visible
     return `<div class="czobar" aria-hidden="true">${CZ_ORDER.map((t, i) => w[i] ? `<i class="t-${t}" style="flex-basis:${(w[i] / tot * 100).toFixed(2)}%"></i>` : "").join("")}</div>`; };
   const rareOdds = pk => pk.odds.slice(0, 3).reduce((a, b) => a + b, 0), perPack = pk => 1 - Math.pow(1 - rareOdds(pk) / 100, pk.cards);
-  return `<p class="sub czlead">Choose where your cards come from, then rip a pack. Every card is numbered, and supply is shared by every player.</p>
+  return czEventPacksHtml(P, bar, perPack) + `<p class="sub czlead">Choose where your cards come from, then rip a pack. Every card is numbered, and supply is shared by every player.</p>
     <div class="czfilters"><div class="seg trseg" role="group" aria-label="League">${P.scopes.map(k => `<button type="button" data-czscope="${k}" aria-pressed="${CZ.scope === k}">${esc(scopeName[k] || k)}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams only"], ["player", "Players only"]].map(([k, l]) => `<button type="button" data-czkind="${k}" aria-pressed="${CZ.kind === k}">${l}</button>`).join("")}</div></div>
     <div class="czpacks">${P.packs.map(pk => { const can = czBal() >= pk.price;
@@ -5322,8 +5340,37 @@ function czPacksHtml(){
         <button type="button" class="btn ${(CZ.me.tix || {})[pk.id] ? "" : "primary"} czopen" data-czpack="${esc(pk.id)}" ${can ? "" : "disabled"}>${can ? `Open for ${czAmt(pk.price)}` : `Need ${czAmt(pk.price)}`}</button></div></article>`; }).join("")}</div>
     <details class="czhow"><summary>How packs work</summary><p>Each card's tier is rolled with the odds shown (they're per card). Then a card of that tier you don't own yet is drawn from the copies still out there. If every copy of a tier is gone, that card comes from the next more common tier. Cards you sell to the shop go back into packs. You've opened ${CZ.me.packs || 0} pack${CZ.me.packs === 1 ? "" : "s"}.</p></details>`;
 }
+// ---- event packs: limited-time packs for big moments, with a countdown to when they open and when they close
+const czCdTxt = ms => { const s = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return d ? `${d}d ${h}h ${m}m ${String(x).padStart(2, "0")}s` : h ? `${h}h ${m}m ${String(x).padStart(2, "0")}s` : `${m}m ${String(x).padStart(2, "0")}s`; };
+const czNow = () => Date.now() + (CZ.packs && CZ.packs.skew || 0);                // the server's clock, so every player sees the same countdown
+const czCd = (e, big) => { const live = e.status === "live", t = live ? e.ends : e.starts;
+  return `<span class="czcd ${live ? "live" : "soon"} ${big ? "big" : ""}" data-czcd="${t}" data-czcdk="${live ? "live" : "soon"}"><small>${live ? "Ends in" : "Opens in"}</small><b>${czCdTxt(t - czNow())}</b></span>`; };
+function czEventPacksHtml(P, bar, perPack){
+  const E = P.events || []; if (!E.length) return "";
+  const lgName = { mlb: "MLB", nba: "NBA", nfl: "NFL", nhl: "NHL", epl: "Premier League", atp: "tennis", wta: "tennis" };
+  return `<section class="czevs"><h2 class="czevh">Limited-time packs</h2><div class="czpacks">${E.map(e => { const live = e.status === "live", used = (CZ.me.evp || {})[e.id] || 0, left = Math.max(0, e.max - used), can = live && left > 0 && czBal() >= e.price;
+    return `<article class="czpk czevpk ${live ? "live" : "soon"}" style="--ev:${esc(e.color)}">
+      <div class="czpack p-event"><div class="czpk-crimp"></div><div class="czpk-sky"></div><div class="czpk-shine"></div><span class="czev-emoji" aria-hidden="true">${esc(e.emoji)}</span><b>${esc(e.label)}</b><small>${e.cards} cards · ${esc([...new Set(e.lgs.map(l => lgName[l] || l))].join(" and "))} · event edition</small>${czCd(e, true)}<div class="czpk-crimp b"></div></div>
+      <div class="czpk-body"><p class="sub" style="margin:0">${esc(e.blurb)}</p>
+        <div class="czpk-hl"><b>${czOddsPct(perPack(e) * 100)}</b><span>chance of a Quasar or rarer in this pack</span></div>${bar(e)}
+        <ul class="czolist">${CZ_ORDER.map((t, i) => e.odds[i] ? `<li><i class="czdot t-${t}"></i>${esc(CZ_TIER_NAME[t])} <small>1/${P.tiers[i].supply}</small><b>${czOddsPct(e.odds[i])}</b></li>` : "").join("")}</ul>
+        <p class="czevlim">${live ? `Limited: <b>${left} of ${e.max}</b> left for you` : `Limited to ${e.max} per player`}. Every card keeps the ${esc(e.label.replace(/ Pack$/, ""))} frame for good.</p>
+        ${live ? `<button type="button" class="btn primary czopen" data-czpack="${esc(e.pack)}" ${can ? "" : "disabled"}>${!left ? "All opened" : czBal() >= e.price ? `Open for ${czAmt(e.price)}` : `Need ${czAmt(e.price)}`}</button>`
+          : `<button type="button" class="btn czopen" disabled>Opens ${esc(new Date(e.starts).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }))}</button>`}</div></article>`; }).join("")}</div></section>`;
+}
+function czEventBannerHtml(){
+  const E = (CZ.packs && CZ.packs.events) || [], e = E.find(x => x.status === "live") || E.find(x => x.status === "soon" && x.starts - czNow() < 7 * 864e5); if (!e) return "";
+  return `<button type="button" class="czevban ${e.status}" data-cztab="packs" style="--ev:${esc(e.color)}"><span class="czev-emoji" aria-hidden="true">${esc(e.emoji)}</span><span><b>${esc(e.label)}</b><small>${e.status === "live" ? "Limited-time pack, open now" : "A limited-time pack is coming"}</small></span>${czCd(e)}</button>`;
+}
+// the countdowns tick every second; when one reaches zero the packs reload (an event opens or closes)
+setInterval(() => { const els = document.querySelectorAll("[data-czcd]"); if (!els.length) return; let flip = false;
+  els.forEach(el => { const ms = +el.dataset.czcd - czNow(); if (ms <= 0){ flip = true; return; } const b = el.querySelector("b"); if (b) b.textContent = czCdTxt(ms); });
+  if (flip && !CZ.cdReload){ CZ.cdReload = true; czApi("/packs").then(p => { czSetPacks(p); drawCosmic(); }).catch(() => {}).finally(() => { CZ.cdReload = false; }); } }, 1000);
+function czSetPacks(p){ if (p && p.now) p.skew = p.now - Date.now(); CZ.packs = p; return p; }
 async function czOpen(id, free){
-  if (!CZ.packs) CZ.packs = await czApi("/packs").catch(() => null); const pk = CZ.packs && CZ.packs.packs.find(p => p.id === id); if (!pk) return;
+  if (!CZ.packs) czSetPacks(await czApi("/packs").catch(() => null));
+  const pk = CZ.packs && (CZ.packs.packs.find(p => p.id === id) || (CZ.packs.events || []).map(e => ({ ...e, id: e.pack })).find(p => p.id === id)); if (!pk) return;
   if (!free && czBal() < pk.price){ toast(`You need ${(pk.price - CZ.me.bal).toLocaleString()} more coins for this pack`); return; }
   if (!free && !confirm(`Open a ${pk.label} (${pk.cards} cards) for ${pk.price.toLocaleString()} Cosmic Coins?`)) return;
   try { const r = await czApi("/pack", { pack: id, scope: free ? "all" : CZ.scope, kind: free ? "all" : CZ.kind, free: !!free }); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); if (r.cards.some(c => c.supply <= 50)) askReview(6000); }
@@ -5349,7 +5396,7 @@ async function czHistory(id, n){
   try { const d = await czApi("/card/" + encodeURIComponent(id)); owners = d.owners; V = d.item; } catch {}
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
-  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
     <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
     ${lv > 1 || V ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
     ${!own ? "" : `<div class="czsell">${it.auction ? `<p>Up for auction. Follow it in Market, Auctions.</p>` : it.listed ? `<p>On the market. <button type="button" class="btn" data-czact="unlist">Take it off the market</button></p>` : `
