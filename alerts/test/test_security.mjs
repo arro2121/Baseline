@@ -165,4 +165,15 @@ check("TP1 team pack price follows the team's card value, 600 to 2,500", W.czTea
   await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
   check("CH1 a case hit sells for 3 times a regular copy", b1 === 1200 && m.get("cz:u:K").bal - b1 === 400, { b1, b2: m.get("cz:u:K").bal });
   check("CH1 about 1 card in 300 is a case hit", Math.abs(W.CZ_CASE.rate - 1 / 300) < 1e-9 && W.CZ_CASE.inserts.length === 3); }
+// MB1: buying several packs at once opens them together, charges each, and a repeat of the same purchase isn't charged again
+{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+  await T({ act: "ident", sub: "Q", uid: "Q", tok: "t", name: "Bulk" }); m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 10000, freePack: false });
+  const pool = Array.from({ length: 200 }, (_, i) => ({ id: `nba.p${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "P" + i, kind: "player" }));
+  const pk = W.CZ_PACKS.find(x => x.id === "stardust"), r = await T({ act: "pack", uid: "Q", pack: pk, pool, count: 5, rid: "cccccccccccccccc" }), U = m.get("cz:u:Q");
+  check("MB1 five packs give five packs of cards and cost five times the price", r.cards.length === 5 * pk.cards && r.count === 5 && U.bal === 10000 - 5 * pk.price && U.packs === 5, { n: r.cards.length, bal: U.bal });
+  const r2 = await T({ act: "pack", uid: "Q", pack: pk, pool, count: 5, rid: "cccccccccccccccc" });
+  check("MB1 the same purchase sent again isn't charged", r2.repeat && m.get("cz:u:Q").bal === 10000 - 5 * pk.price);
+  check("MB1 at most 10 at a time", (await T({ act: "pack", uid: "Q", pack: pk, pool, count: 50, rid: "dddddddddddddddd" })).cards.length === 10 * pk.cards);
+  check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
+  check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000"); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
