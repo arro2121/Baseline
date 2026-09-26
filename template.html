@@ -1543,6 +1543,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard .czc-mid .czhs{position:absolute;left:50%;bottom:-3%;transform:translateX(-50%);height:122%;width:auto;max-width:112%;aspect-ratio:auto;border-radius:0;object-fit:contain;object-position:50% 100%;background:none;
   box-shadow:none;filter:drop-shadow(0 10px 10px rgba(0,0,0,.55)) drop-shadow(0 0 1.5px rgba(255,255,255,.7))}
 .czcard.czcard .czc-mid .czbadge{position:absolute;right:2%;bottom:2%;width:24%;max-width:none;padding:2.2cqw;border-radius:50%;background:#fff;box-shadow:0 0 0 1.2cqw var(--c1),0 4px 10px rgba(0,0,0,.5);z-index:2}
+.czcard.czcard .czc-mid.noface{display:grid;place-items:center}.czcard.czcard .czc-mid.noface .czbadge{position:static;width:56%;padding:0;background:none;box-shadow:none;border-radius:0;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5))}
 .czcard.czcard .czc-mid:not(.pl) img{width:62%;max-width:none;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5))}
 .czword{display:block;right:1.4cqw;top:38%;writing-mode:vertical-rl;font:800 3.2cqw/1 Archivo,system-ui,sans-serif;font-stretch:80%;letter-spacing:.3em;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.5);z-index:2}
 .czword b{color:var(--c2);filter:brightness(1.5)}
@@ -1559,7 +1560,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 
 /* 1 Vertical: the last name runs huge down the left side */
 .czcard.l-1 .czdz,.czcard.l-1 .czc-win{display:none}.czcard.l-1 .czfx{opacity:.5}
-.czcard.l-1 .czbig{display:block;left:1cqw;top:11%;bottom:23%;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;overflow:hidden;white-space:nowrap;
+.czcard.l-1 .czbig{display:block;left:1cqw;top:17%;bottom:23%;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;overflow:hidden;white-space:nowrap;
   font:900 min(27cqw,calc(190cqw / var(--n))) /.9 Archivo,system-ui,sans-serif;font-stretch:62%;color:color-mix(in srgb,var(--c2) 45%,transparent);-webkit-text-stroke:.5cqw rgba(255,255,255,.8);z-index:0}
 .czcard.czcard.l-1 .czc-mid .czhs{left:60%}
 .czcard.czcard.l-1 .czc-plate{background:#fff;box-shadow:inset 0 -1.2cqw 0 var(--c1);border-radius:6px;margin:0 -2px}
@@ -1610,6 +1611,49 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.ch .czdz{display:block}
 .czcard.czcard .czc-plate.long .czc-name .ln{font-size:.76em}.czcard.czcard .czc-plate.xlong .czc-name .ln{font-size:.62em}
 @container (max-width:140px){.czposb,.czword,.czsnd{display:none!important}}
+/* card number on the front, like a real card */
+.czno{position:absolute;display:block;right:4cqw;bottom:3.4cqw;z-index:4;font:700 3.1cqw/1 Archivo,system-ui,sans-serif;font-stretch:85%;letter-spacing:.04em;color:rgba(255,255,255,.75);pointer-events:none}
+.czno b{color:#fff}.czcard.l-1 .czno,.czcard.l-2 .czno{color:rgba(28,25,23,.6)}.czcard.l-1 .czno b,.czcard.l-2 .czno b{color:#1c1917}
+.czcard.czcard .czc-plate{padding-right:14cqw}
+/* case hits: their own insert layout (no normal layout pieces), with a foil insert title */
+.czcard.ch .czbig,.czcard.ch .czsnd,.czcard.ch .czposb,.czcard.ch .czword{display:none!important}
+.czcard.ch .czc-win{display:none}.czcard.czcard.ch .czdz,.czcard.czcard.ch .czfx{left:0;right:0;top:0;bottom:0;border-radius:10px}
+.czch-logo{position:absolute;display:grid;justify-items:center;left:0;right:0;top:19%;z-index:4;pointer-events:none;font:900 8.5cqw/1 Archivo,system-ui,sans-serif;font-stretch:70%;letter-spacing:.03em;text-transform:uppercase;
+  background:linear-gradient(180deg,#fff7d6,#fbbf24 45%,#b45309 55%,#fde68a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(251,191,36,.6))}
+.czch-logo small{font:800 2.8cqw/1.4 Archivo,system-ui,sans-serif;letter-spacing:.3em;color:#fde68a;-webkit-text-fill-color:#fde68a}
+.czcard.ch-horizon{--tf:linear-gradient(135deg,#111,#fbbf24 30%,#000 50%,#f59e0b 70%,#111)}.czcard.ch-horizon .czc-stock{background:radial-gradient(circle at 50% 42%,#000 0 20%,transparent 60%),#0a0604}
+.czcard.ch-starfall{--tf:linear-gradient(135deg,#e0f2fe,#94a3b8 30%,#fde68a 55%,#e2e8f0)}.czcard.ch-starfall .czc-stock{background:linear-gradient(180deg,#0c1a3a,#1e3a8a 60%,#b45309)}
+.czcard.ch-starfall .czch-logo{background:linear-gradient(180deg,#fff,#cbd5e1 50%,#64748b 55%,#f1f5f9);-webkit-background-clip:text;background-clip:text}
+.czcard.ch-crown{--tf:linear-gradient(135deg,#fde68a,#7c3aed 35%,#fde68a 55%,#4c1d95)}
+.czcard.ch .czch-ban{bottom:auto;top:33%;transform:none;background:none;color:#fde68a;font-size:2.8cqw;letter-spacing:.4em}.czcard.ch .czch-ban span{display:none!important}
+.czcard.czcard.ch .czc-plate{background:linear-gradient(90deg,#1c1206,#3b2708 50%,#1c1206);box-shadow:inset 0 0 0 .7cqw #fbbf24,0 4px 10px -4px #000}
+.czcard.czcard.czcard.ch .czc-plate{clip-path:none;transform:none;margin:0 -2px -1px;padding:2.5cqw 14cqw 2.2cqw 4cqw;border-radius:8px;text-align:left;background:linear-gradient(90deg,#1c1206,#3b2708 50%,#1c1206);box-shadow:inset 0 0 0 .7cqw #fbbf24,0 4px 10px -4px #000}
+.czcard.czcard.czcard.ch .czc-name{display:block;font-size:10cqw;color:#fde68a;text-shadow:0 1px 0 #000;filter:none}
+.czcard.czcard.czcard.ch .czc-name .fn,.czcard.czcard.czcard.ch .czc-name .ln{background:none;border:0;box-shadow:none;transform:none;padding:0;color:inherit;-webkit-text-stroke:0}
+.czcard.czcard.czcard.ch .czc-name .fn{font-size:.6em;color:#fef3c7}.czcard.czcard.czcard.ch .czc-lg{color:#fcd34d;opacity:.85;margin:0;text-shadow:none}
+.czcard.ch .czch-ban{display:none}.czcard.ch .czno{color:rgba(253,230,138,.8)}.czcard.ch .czno b{color:#fde68a}
+.czchgal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.czchitem{display:grid;gap:6px;justify-items:center;text-align:center}.czchitem .czcard{width:100%}
+/* flip a card to its back */
+.czflipcard{position:relative;max-width:260px;margin:0 auto;perspective:1200px}
+.czfc-f,.czfc-b{transition:transform .6s cubic-bezier(.3,1.2,.5,1);backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.czfc-f,.czfc-b{transition:transform .6s cubic-bezier(.3,1.2,.5,1),visibility 0s .3s}.czfc-b{position:absolute;inset:0;transform:rotateY(180deg);visibility:hidden}.czflipcard.back .czfc-f{transform:rotateY(-180deg);visibility:hidden}.czflipcard.back .czfc-b{transform:rotateY(0);visibility:visible}
+.czflipbtn{margin:10px auto 0;display:flex}
+.czcbk{height:100%;box-sizing:border-box;border-radius:14px;padding:12px;display:grid;align-content:start;gap:8px;color:#1c1917;background:linear-gradient(180deg,#f7f3e8,#ece4cf);border:4px solid var(--c1);box-shadow:inset 0 0 0 2px #fff,0 12px 28px -14px #000;font-size:.82rem;text-align:left}
+.czbk-head{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;color:#fff;background:linear-gradient(90deg,var(--c1),color-mix(in srgb,var(--c1) 60%,var(--c2)))}
+.czbk-head b{font:900 1.1rem/1 Archivo,system-ui,sans-serif}.czbk-head span{font:800 1rem/1.1 Archivo,system-ui,sans-serif;font-stretch:78%;text-transform:uppercase}.czbk-head img{width:30px;height:30px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}
+.czbk-sub{font-weight:700;color:#57534e;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem}
+.czbk-t{width:100%;border-collapse:collapse}.czbk-t th{text-align:left;font-weight:700;color:#78716c;padding:3px 0;width:40%}.czbk-t td{font-weight:800;padding:3px 0}.czbk-t tr{border-bottom:1px dashed #d6cfbd}
+.czbk-line{display:grid;padding:6px 8px;border-radius:6px;background:#fff;border:1px solid #d6cfbd}.czbk-line small{color:#78716c;font-weight:700;text-transform:uppercase;font-size:.66rem;letter-spacing:.06em}
+.czcbk .czbk-blurb{margin:0;color:#44403c;font-size:.78rem;line-height:1.35}
+.czbk-foot{display:flex;justify-content:space-between;gap:6px;margin-top:auto;padding-top:6px;border-top:2px solid var(--c1);font-size:.66rem;font-weight:800;color:#57534e;text-transform:uppercase;letter-spacing:.04em}
+/* the printed checklist */
+.czcl{margin:10px 0;padding:10px;border-radius:12px;background:#f7f3e8;color:#1c1917;box-shadow:inset 0 0 0 2px #fff,0 10px 26px -14px #000}
+.czcl-h{display:grid;padding:4px 6px 8px;border-bottom:3px double #1c1917;margin-bottom:4px}.czcl-h b{font:900 1.15rem/1.1 Archivo,system-ui,sans-serif;font-stretch:80%;text-transform:uppercase}.czcl-h small{color:#57534e;font-weight:600}
+.czclr{display:grid;grid-template-columns:18px 34px minmax(0,1fr) auto auto;gap:8px;align-items:center;width:100%;padding:5px 6px;border:0;border-bottom:1px dotted #bfb6a0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.czcl-box{width:14px;height:14px;border:1.5px solid #1c1917;border-radius:2px;display:grid;place-items:center;font-weight:900;font-size:.72rem;color:#15803d}
+.czcl-no{font:700 .8rem/1 ui-monospace,Menlo,monospace;color:#57534e}.czcl-nm{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.czcl-tm{font-size:.74rem;color:#78716c;white-space:nowrap}
+.czcl-t{display:flex;gap:1px}.czcl-t .czdot{margin:0;width:7px;height:7px}.czclr.have{background:rgba(21,128,61,.06)}
+@media (prefers-reduced-motion:reduce){.czfc-f,.czfc-b{transition:none}}
 
 
 .czcard.t-supernova .czscene,.czcard.t-singularity .czscene{opacity:.8}.czcard.t-supernova .czfx,.czcard.t-singularity .czfx{opacity:.7}
@@ -5055,6 +5099,12 @@ async function czApi(path, body, opt = {}){
   const r = await fetch(ALERTS_URL + "/cosmic" + path, { method: opt.method || (body ? "POST" : "GET"), headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}), ...(opt.headers || {}) }, body: opt.body || (body ? JSON.stringify(body) : undefined), cache: "no-store" });
   const d = await r.json().catch(() => ({})); if (!r.ok){ const e = new Error(d.error || "Something went wrong (" + r.status + ")"); e.data = d; e.status = r.status; throw e; } return d;
 }
+// the printed checklist: one row per card number (the Comet tier stands in for all seven), in set order
+async function czVList(more){
+  const lg = ["nfl", "nba", "mlb", "nhl", "epl", "tennis"].includes(CZ.vlg) ? CZ.vlg : "nba";
+  const d = await czApi(`/vault?lg=${lg}&tier=comet&kind=all&sort=no&limit=96&offset=${more && CZ.vlist ? CZ.vlist.items.length : 0}`);
+  CZ.vlist = more && CZ.vlist ? { ...d, items: [...CZ.vlist.items, ...d.items] } : d;
+}
 // the Checklist, a page at a time (the vault has tens of thousands of cards)
 async function czVault(more){
   const q = new URLSearchParams({ lg: CZ.vlg, tier: CZ.vtier, kind: CZ.vkind || "all", q: CZ.vq || "", offset: more && CZ.vault ? CZ.vault.items.length : 0, limit: 48 });
@@ -5199,7 +5249,8 @@ function czCard(it, ed, big){
   const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null, hot = czHotOf(it);
   const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), fn = parts.length > 1 ? parts[0] : "", ln = parts.length > 1 ? parts.slice(1).join(" ") : it.name;
   const abbr = player ? simShort(it.lg, it.team) : (T && simShort(it.lg, T.name)) || initials, bigTxt = L === 1 ? ln : L === 3 ? (player ? (it.num || abbr) : "#" + (it.rank || 1)) : L === 2 ? abbr : "";
-  const extra = `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
+  const setLg = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "PL", atp: "ATP", wta: "WTA" }[it.lg] || "";
+  const extra = (it.no ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? "<i></i><b></b>" : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
@@ -5740,8 +5791,6 @@ function czMineHtml(){
 }
 // ---- Vault
 // a card's price follows current play: ▲ or ▼ is how its price level moved over the last week
-// a coin is 2 cents: what a card would sell for as a real card
-const czUsdTxt = coins => { const d = coins / 50; return "$" + (d >= 1000 ? Math.round(d).toLocaleString() : d >= 10 ? Math.round(d) : d.toFixed(2)); };
 const czTrendChip = t => t ? `<em class="cztr ${t > 0 ? "up" : "dn"}" title="Price change over the last week">${t > 0 ? "▲" : "▼"}${Math.abs(t).toFixed(t >= 10 || t <= -10 ? 0 : 1)}%</em>` : "";
 function czPriceWhy(V){
   if (!V) return ""; const bits = [];
@@ -5758,14 +5807,37 @@ function czPriceWhy(V){
   if (V.level > 1) bits.push(`level ${V.level} from big games (+${(V.level - 1) * 15}%)`);
   if (V.hot) bits.push("hot from a big game (+10%)");
   if (V.scarce) bits.push(`${V.scarce >= 25 ? "sold out" : "copies being pulled"} (+${V.scarce}%)`);
-  return `<p class="czwhy"><b>Why ${czAmt(V.value)} <span class="czusd">≈ ${czUsdTxt(V.value)} as a real card</span>${czTrendChip(V.trend)}</b> Priced like real cards (a coin is 2¢): a base card of a role player is under a dollar, a superstar's numbered cards run hundreds, and his 1-of-1 tens of thousands. Prices rise or fall every night with how he's playing this season: ${bits.join(", ")}.</p>`;
+  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Priced the way the real card market prices them: a role player's base card is worth little, a superstar's numbered parallels far more, and his 1-of-1 is the grail. Prices rise or fall every night with how he's playing this season: ${bits.join(", ")}.</p>`;
 }
 function czVaultHtml(){
+  const vv = CZ.vview || "cards", seg = `<div class="seg trseg czcview" role="group" aria-label="View">${[["cards", "▦ Cards"], ["list", "☑ Checklist"], ["case", "💎 Case hits"]].map(([k, l]) => `<button type="button" data-czvv="${k}" aria-pressed="${vv === k}">${l}</button>`).join("")}</div>`;
+  if (vv === "case") return seg + czCaseHitsHtml();
+  return seg + czVaultInner(vv);
+}
+// case hits: the three inserts, their odds and every one pulled so far
+function czCaseHitsHtml(){
+  const C = CZ.casehits; if (!C) return `<div class="teamnote">${cosmoLoad("Opening the case…")}</div>`;
+  const fb = (CZ.vault && CZ.vault.items || []).find(i => i.kind === "player") || { id: "nba.x.nebula", name: "Cosmic Star", kind: "player", lg: "nba", tier: "nebula", supply: 50 }, sample = k => (C.samples || [])[k] || fb;
+  return `<p class="sub">Case hits are the rarest inserts in the set: about <b>1 in every ${Math.round(1 / C.rate)}</b> cards from any pack comes out as one, in one of three designs. It's the same player and serial, in an insert frame, and worth <b>${C.mult}×</b> the regular card.</p>
+    <div class="czchgal">${C.inserts.map(([id, name], k) => `<div class="czchitem">${czCard({ ...sample(k), ch: id, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>${esc(name)}</b></div>`).join("")}</div>
+    <h3 class="subh">Pulled so far</h3>
+    ${C.pulled.length ? `<div class="czgrid">${C.pulled.map(c => `<div class="czitem">${czCard({ ...c, label: CZ_TIER_NAME[c.tier] }, c.n)}<div class="czinfo"><span class="czleft">Pulled by ${esc(c.by)}</span><small>${esc(new Date(c.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></div></div>`).join("")}</div>`
+      : `<div class="teamnote"><b>No case hits pulled yet</b>Every pack has a chance. Be the first!</div>`}`;
+}
+function czVaultInner(vv){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
+  if (vv === "list") { const own = new Map(); for (const i of CZ.me.items || []) { const b = i.id.replace(/\.[a-z]+$/, ""); (own.get(b) || own.set(b, []).get(b)).push(i.tier); }
+    const L = CZ.vlist; if (!L) return `<div class="teamnote">${cosmoLoad("Printing the checklist…")}</div>`;
+    const lgs = ["nfl", "nba", "mlb", "nhl", "epl", "tennis"], nm = { nfl: "Football", nba: "Basketball", mlb: "Baseball", nhl: "Hockey", epl: "Premier League", tennis: "Tennis" }, lg = lgs.includes(CZ.vlg) ? CZ.vlg : "nba";
+    return `<div class="seg trseg" role="group" aria-label="Set">${lgs.map(k => `<button type="button" data-czvlg="${k}" aria-pressed="${lg === k}">${nm[k]}</button>`).join("")}</div>
+      <div class="czcl"><div class="czcl-h"><b>2026 Cosmic ${esc(nm[lg])}</b><small>Checklist · ${L.total.toLocaleString()} cards · each in 7 tiers</small></div>
+      ${L.items.map(i => { const t = own.get(i.id.replace(/\.[a-z]+$/, "")) || [];
+        return `<button type="button" class="czclr ${t.length ? "have" : ""}" data-czcard="${esc(i.id)}" data-n="0"><span class="czcl-box">${t.length ? "✓" : ""}</span><span class="czcl-no">${String(i.no || 0).padStart(3, "0")}</span><span class="czcl-nm">${esc(i.name)}${i.rc ? ' <i class="czrc-s">RC</i>' : ""}</span><span class="czcl-tm">${esc(i.kind === "team" ? "Team card" : simShort(i.lg, i.team || "") || i.lg.toUpperCase())}</span><span class="czcl-t">${CZ_ORDER.filter(x => t.includes(x)).map(x => `<i class="czdot t-${x}"></i>`).join("")}</span></button>`; }).join("")}
+      ${L.total > L.items.length ? `<button class="btn" type="button" data-czclmore style="margin:10px">Show more</button>` : ""}</div>`; }
   const mine = new Set((CZ.me.items || []).map(i => i.id));
   const tile = i => { const left = i.supply - i.minted, own = mine.has(i.id);
     return `<div class="czitem">${i.minted > 0 && !own ? `<button type="button" class="czown czopen-o" data-czcard="${esc(i.id)}" data-n="0" aria-label="See who owns ${esc(i.name)} and trade">${czCard(i)}</button>` : czCard(i)}<div class="czinfo"><span class="czleft">${left <= 0 ? (i.owner ? `Owned by ${esc(i.owner)}` : "All pulled") : i.supply === 1 ? "Only one exists" : `${left} of ${i.supply} left`}</span>
-      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Value ${czAmt(i.value || i.price)} <small class="czusd">≈ ${czUsdTxt(i.value || i.price)}</small>${czTrendChip(i.trend)}</span>`}</div></div>`; };
+      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Value ${czAmt(i.value || i.price)}${czTrendChip(i.trend)}</span>`}</div></div>`; };
   return `<p class="sub czvnote">Every team and player comes in seven tiers. A Comet card has 1,000 numbered copies, a Pulsar 100, and so on down to a Singularity, the only tier with just one copy. The rarest are listed first.</p><div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams"], ["player", "Players"], ["rookie", "⭐ Rookies"]].map(([k, l]) => `<button type="button" data-czvk="${k}" aria-pressed="${(CZ.vkind || "all") === k}">${l}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Tier">${["all", ...V.tiers.map(t => t.id)].map(t => `<button type="button" data-czvt="${t}" aria-pressed="${CZ.vtier === t}">${t === "all" ? "Every tier" : `${CZ_TIER_NAME[t]} 1/${V.tiers.find(x => x.id === t).supply}`}</button>`).join("")}</div>
@@ -5933,12 +6005,31 @@ async function czSellAll(){
     catch (e) { $("#czErr").textContent = e.message; go.disabled = false; go.textContent = "Try again"; } };
   preview();
 }
+// the back of a card, like a real one: set and card number, bio, this season's line, and the card's own details
+function czCardBack(it){
+  const T = czTeam(it.lg, it.kind === "player" ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
+  const setName = `2026 Cosmic ${({ nfl: "Football", nba: "Basketball", mlb: "Baseball", nhl: "Hockey", epl: "Premier League", atp: "Tennis", wta: "Tennis" })[it.lg] || ""}`;
+  const pos = it.kind === "player" ? ((CZ_POSN[it.lg] || {})[it.pos] || it.pos || "") : "Team card";
+  const rows = [["Team", it.kind === "player" ? it.team || CZ_LG[it.lg] : it.name], ["Position", pos], it.num ? ["Number", "#" + it.num] : null, it.ovr ? ["Rating", `${it.ovr} this season`] : null, it.rank ? [it.kind === "team" ? "Ratings rank" : "Tour rank", "#" + it.rank] : null].filter(Boolean);
+  const blurb = it.ch ? `A case hit: one of the rarest inserts in ${setName}, about 1 in every 300 cards.` : it.rc ? `Rookie card. ${it.name}'s first season, the card collectors chase first.` : it.line ? `This season: ${it.line}.` : it.kind === "team" ? `${it.name} team card from ${setName}.` : `Part of ${setName}.`;
+  return `<div class="czcbk t-${esc(it.tier)}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
+    <div class="czbk-head"><b>#${String(it.no || 0).padStart(3, "0")}</b><span>${esc(it.name)}</span>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : ""}</div>
+    <div class="czbk-sub">${esc(pos)}${it.rc ? ' · <i class="czrc-s">RC</i>' : ""}</div>
+    <table class="czbk-t">${rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(String(v))}</td></tr>`).join("")}</table>
+    ${it.line ? `<div class="czbk-line"><small>2026 season</small><b>${esc(it.line)}</b></div>` : ""}
+    <p class="czbk-blurb">${esc(blurb)}</p>
+    <div class="czbk-foot"><span>${esc(setName)}</span><span>${esc(CZ_TIER_NAME[it.tier] || "")}${it.n ? ` · ${it.n}/${it.supply}` : ""}${it.ch ? ` · ${esc(CZ_CASE_NAME[it.ch] || "")}` : ""}</span></div>
+  </div>`;
+}
 async function czHistory(id, n){
   const own = (CZ.me.items || []).find(i => i.id === id); let owners = [], V = null;
   try { const d = await czApi("/card/" + encodeURIComponent(id)); owners = d.owners; V = d.item; } catch {}
+  setTimeout(() => { const b = $("#czFlipBtn"); if (b) b.onclick = () => { $("#czFlipCard").classList.toggle("back"); sfx("tap"); }; }, 0);
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
+  if (V && own && own.ch) { V = { ...V, value: V.value * 3, shop: V.shop * 3 }; }       // a case hit is worth three times the card
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
-  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+  const face = czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true), back = czCardBack({ ...it, ...(V || {}), ch: it.ch, n: n || it.n, label: CZ_TIER_NAME[it.tier] });
+  $("#infoBody").innerHTML = `<div class="czreveal"><div class="czflipcard" id="czFlipCard"><div class="czfc-f">${face}</div><div class="czfc-b">${back}</div></div><button type="button" class="btn czflipbtn" id="czFlipBtn">↻ Flip card</button><h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
     ${czPriceWhy(V)}
     ${czHotOf(it) ? `<p class="czhotnote">🔥 <b>${esc(czHotOf(it).line)}</b>${czHotOf(it).game ? ` · ${esc(czHotOf(it).game)}` : ""}. Every copy glows for a day after a big game.</p>` : ""}
     <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
@@ -6332,7 +6423,10 @@ function czBind(el){
   el.querySelectorAll("[data-czlg]").forEach(b => b.onclick = () => { CZ.lg = b.dataset.czlg; drawCosmic(); });
   el.querySelectorAll("[data-czlbv]").forEach(b => b.onclick = () => { CZ.lbv = b.dataset.czlbv; drawCosmic(); });
   el.querySelectorAll("[data-czct]").forEach(b => b.onclick = () => { CZ.ctier = b.dataset.czct; drawCosmic(); });
-  const vReload = async () => { if (CZ.tab === "check"){ try { await czVault(); } catch (e) { toast(e.message); } } drawCosmic(); };
+  const vReload = async () => { if (CZ.tab === "check"){ try { if (CZ.vview === "list") await czVList(); else await czVault(); } catch (e) { toast(e.message); } } drawCosmic(); };
+  el.querySelectorAll("[data-czvv]").forEach(b => b.onclick = async () => { CZ.vview = b.dataset.czvv; drawCosmic();
+    try { if (CZ.vview === "list") await czVList(); else if (CZ.vview === "case") CZ.casehits = await czApi("/casehits"); } catch (e) { toast(e.message); } drawCosmic(); });
+  el.querySelectorAll("[data-czclmore]").forEach(b => b.onclick = async () => { b.disabled = true; try { await czVList(true); } catch (e) { toast(e.message); } drawCosmic(); });
   el.querySelectorAll("[data-czvlg]").forEach(b => b.onclick = () => { CZ.vlg = b.dataset.czvlg; vReload(); });
   el.querySelectorAll("[data-czvt]").forEach(b => b.onclick = () => { CZ.vtier = b.dataset.czvt; vReload(); });
   el.querySelectorAll("[data-czvk]").forEach(b => b.onclick = () => { CZ.vkind = b.dataset.czvk; vReload(); });

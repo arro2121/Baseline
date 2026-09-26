@@ -1919,7 +1919,7 @@ export async function czTx(st, a) {
       const n = open[Math.floor(rnd() * open.length)];
       if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
       const ch = rnd() < CZ_CASE.rate ? CZ_CASE.inserts[Math.floor(rnd() * CZ_CASE.inserts.length)][0] : null;
-      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, ...(it.rc ? { rc: true } : {}), ...(ch ? { ch } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
+      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(ch ? { ch } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
     if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price;
@@ -1929,6 +1929,7 @@ export async function czTx(st, a) {
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25 || c.ch) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label, evl: c.evl, ch: c.ch });
+      if (c.ch) { const L = await get("cz:chlog", []); L.unshift({ id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, rc: c.rc, ch: c.ch, by: u.name, at: a.now }); await st.put("cz:chlog", L.slice(0, 200)); }
     }
     for (const id in ser) await st.put("cz:ser:" + id, ser[id]);
     await st.put("cz:mint", mint); await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
@@ -2299,6 +2300,12 @@ async function czCatalog(env, fetchImpl = fetch) {
       const d = czHobbyOf(lg, p.name, p.pos), off = d && !S && rated.has(lg), play = S ? czPlayPct(S.ovr) : off ? CZ_OFF_FORM : null, rx = p.rc ? czRookieX(d, S ? play : null) : 1;
       add(lg, "player", p.name, czMarketMult(d, play, lg === "nfl" && p.pos === "QB" ? .6 : .5) * rx, { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined,
         hobby: d, form: d && play != null ? Math.round((czFormOf(play) - 1) * 100) : undefined, off: off || undefined, rc: p.rc ? true : undefined, rcx: p.rc ? Math.round((rx - 1) * 100) : undefined }, "p" + p.id); } } catch {}
+  // card numbers, like a real set: each league's set (2026 Cosmic NBA...) runs teams first, then players by team and name.
+  // A card keeps its number in every tier.
+  { const byLg = new Map(); for (const i of items) if (i.tier === "comet") (byLg.get(i.lg) || byLg.set(i.lg, []).get(i.lg)).push(i);
+    const noOf = new Map(); for (const [, l] of byLg) l.sort((a, b) => (a.kind === "team" ? 0 : 1) - (b.kind === "team" ? 0 : 1) || String(a.team || "").localeCompare(String(b.team || "")) || a.name.localeCompare(b.name))
+      .forEach((i, k) => noOf.set(i.id.replace(/\.comet$/, ""), k + 1));
+    for (const i of items) i.no = noOf.get(i.id.replace(/\.[a-z]+$/, "")); }
   const byId = new Map(items.map(i => [i.id, i]));
   CZ_CAT = { at: Date.now(), v: items, byId, trend: {}, day: {} };
   // once a day, the price level of every rated card is saved; the app shows how it moved over the last week
@@ -2603,6 +2610,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const val = i => czValueOf(i, { xp: XP[czLvlKey(i)] || 0, hot: !!(HOT[czLvlKey(i)] && now - HOT[czLvlKey(i)].at < 30 * 3600e3), held: held(i.id) });
     const scope = CZ_SCOPES[lg] || null;
     let list = items.filter(i => (!scope || scope.includes(i.lg)) && (tier === "all" || i.tier === tier) && (kind === "all" || (kind === "rookie" ? i.rc : i.kind === kind)) && (!term || czSlug(`${i.name} ${i.team || ""}`).includes(term)));
+    if (q.get("sort") === "no") list.sort((a, b) => a.lg.localeCompare(b.lg) || (a.no || 0) - (b.no || 0) || a.supply - b.supply); else
     list.sort((a, b) => (held(a.id) >= a.supply) - (held(b.id) >= b.supply) || a.supply - b.supply || (a.kind === "team" ? 0 : 1) - (b.kind === "team" ? 0 : 1) || b.price - a.price);
     const page = list.slice(off, off + lim), owners = {};
     for (const i of page) if (i.supply === 1 && held(i.id)) { const o = await czRead(env, "cz:own:" + i.id, []); if (o[0]) owners[i.id] = o[0].name; }
@@ -2614,6 +2622,9 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   if (p === "/packs" && req.method === "GET") return json({ now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
+  if (p === "/casehits" && req.method === "GET") { const items = await czCatalog(env), pick = n => items.find(i => i.name === n && i.tier === "nebula");
+    const samples = ["Victor Wembanyama", "Patrick Mahomes", "Shohei Ohtani"].map(pick).filter(Boolean);             // what each insert looks like
+    return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/sets" && req.method === "GET") { const lg = url.searchParams.get("lg") || "all";
     if (!["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].includes(lg)) return json({ error: "Pick a league." }, 400);
     return json({ sets: await czSets(env, lg) }, 200, { "Cache-Control": "no-store" }); }
@@ -2739,7 +2750,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (!u.sp || u.sp.season !== czSeasonOf(now)) { const r = await cz(env, { act: "season", uid: u.uid, now }); if (r.user) user = r.user; }
     const pxAlerts = await czPriceAlerts(env, u.items || []);
     // cards pulled before RC labels or before their player's photo was known
-    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => { const c = CZ_CAT.byId.get(i.id); return c && ((!i.rc && c.rc) || (!i.img && c.img)) ? { ...i, rc: i.rc || c.rc || undefined, img: i.img || c.img } : i; }) };
+    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => { const c = CZ_CAT.byId.get(i.id); return c && ((!i.rc && c.rc) || (!i.img && c.img) || !i.no) ? { ...i, rc: i.rc || c.rc || undefined, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num } : i; }) };
     return json({ user, pxAlerts }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/season/seen" && req.method === "POST") { const r = await cz(env, { act: "seasonseen", uid: u.uid, now }); return json(r, r.error ? 409 : 200); }
@@ -2883,7 +2894,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const byTier = {}; for (const i of P) (byTier[i.tier] ||= []).push(i);
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(80, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
-      for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, ...(i.rc ? { rc: true } : {}) }); } }
+      for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, no: i.no, num: i.num, ...(i.rc ? { rc: true } : {}) }); } }
     const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
     const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free, rid });
     return json(r, r.error ? 409 : 200);
