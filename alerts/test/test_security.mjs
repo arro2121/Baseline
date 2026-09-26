@@ -139,4 +139,13 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   check("PK1 charged once and given one pack's cards", U.bal === 5000 - pk.price && U.items.length === pk.cards && U.packs === 1, { bal: U.bal, items: U.items.length });
   const c = await buy("bbbbbbbbbbbbbbbb"), U2 = m.get("cz:u:B");
   check("PK1 a new purchase id opens a new pack", !c.repeat && U2.bal === 5000 - 2 * pk.price && U2.items.length === 2 * pk.cards); }
+// SA1: Sell all sells every free card at shop value, skips cards on the market, and puts the copies back into packs
+{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+  await T({ act: "ident", sub: "V", uid: "V", tok: "t", name: "Vendor" });
+  const cs = [1, 2, 3].map(i => ({ id: `nfl.q${i}.comet`, tier: "comet", supply: 1000, n: i, lg: "nfl", name: "Q" + i, kind: "player" }));
+  m.set("cz:u:V", { ...m.get("cz:u:V"), bal: 0, items: cs.map((c, i) => i === 2 ? { ...c, listed: "L1" } : c) });
+  const r = await T({ act: "sellmany", uid: "V", cards: cs.map(c => ({ id: c.id, value: 1000 })) }), U = m.get("cz:u:V");
+  check("SA1 sells the free cards and pays shop value", r.sold === 2 && r.skipped === 1 && U.bal === 800 && U.items.length === 1 && U.items[0].listed, r);
+  check("SA1 sold copies go back into packs", (m.get("cz:ret") || {})["nfl.q1.comet"]?.[0] === 1);
+  check("SA1 cards you don't own can't be sold", !!(await T({ act: "sellmany", uid: "V", cards: [{ id: "nfl.q1.comet", value: 1e6 }] })).error); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
