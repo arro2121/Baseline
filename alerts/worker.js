@@ -2043,6 +2043,19 @@ export async function czTx(st, a) {
     await dropOwner(a.id, u.uid); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), paid: pay };
   }
+  if (a.act === "sellmany") {                                        // Sell all: many cards to the shop in one go
+    const want = new Map((a.cards || []).map(x => [x.id, x.value])), sold = [], skipped = [];
+    const ret = await get("cz:ret", {}); let paid = 0;
+    for (const c of (u.items || []).filter(x => want.has(x.id))) {
+      if (busy(c)) { skipped.push(c.id); continue; }
+      const pay = Math.max(1, Math.floor(want.get(c.id) * CZ_SHOP)); paid += pay; sold.push(c.id);
+      ret[c.id] = [...(ret[c.id] || []), c.n]; await dropOwner(c.id, u.uid);
+    }
+    if (!sold.length) return { error: skipped.length ? "Those cards are on the market, in an auction or in a battle." : "None of those cards are in your collection." };
+    const gone = new Set(sold); u.items = u.items.filter(x => !gone.has(x.id)); u.bal += paid; u.sold = (u.sold || 0) + sold.length;
+    await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
+    return { user: czPublic(u), paid, sold: sold.length, skipped: skipped.length };
+  }
   if (a.act === "list") {
     const c = card(a.id), price = Math.floor(+a.price);
     if (!c) return { error: "That card isn't in your collection." };
@@ -2722,6 +2735,17 @@ export async function cosmicRoute(req, env, ctx, url) {
     const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), k = czLvlKey(it);
     const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[it.id] || 0) - (ret[it.id] || []).length });
     const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: V.value }); return json(r, r.error ? 409 : 200);
+  }
+  // Sell all: the cards to sell (up to 500), valued the same way as one at a time. With preview, only says what they'd bring.
+  if (p === "/sellmany" && req.method === "POST") {
+    const d = await req.json().catch(() => ({})), ids = [...new Set((Array.isArray(d.items) ? d.items : []).map(String))].slice(0, 500);
+    if (!ids.length) return json({ error: "Pick some cards to sell." }, 400);
+    const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), cards = [];
+    for (const id of ids) { const it = await czItem(env, id); if (!it) continue; const k = czLvlKey(it);
+      cards.push({ id, value: czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[id] || 0) - (ret[id] || []).length }).value }); }
+    if (d.preview) { const mine = new Map((u.items || []).map(x => [x.id, x])), ok = cards.filter(c => mine.has(c.id) && !mine.get(c.id).listed && !mine.get(c.id).auction && !mine.get(c.id).battle);
+      return json({ count: ok.length, total: ok.reduce((s, c) => s + Math.max(1, Math.floor(c.value * CZ_SHOP)), 0), busy: cards.filter(c => mine.has(c.id)).length - ok.length }); }
+    const r = await cz(env, { act: "sellmany", uid: u.uid, now, cards }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/trades" && req.method === "GET") { const TR = await czRead(env, "cz:trades", []); return json({ trades: TR.filter(t => t.from === u.uid || t.to === u.uid).slice(0, 40) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!await rateOk(env, "tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
