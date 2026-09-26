@@ -1730,6 +1730,9 @@ export async function czTx(st, a) {
   if (a.act === "levels") {                                          // big real games level up every copy of a player's (or team's) card
     const L = await get("cz:lvl", {}), D = await get("cz:lvdone", []);
     for (const [k, n] of Object.entries(a.inc || {})) L[k] = (L[k] || 0) + n;
+    const H = await get("cz:hot", {}), t = a.now || Date.now();                                 // each card's latest big game, kept 36 hours
+    for (const [k, v] of Object.entries(a.hot || {})) H[k] = { ...v, lv: L[k] || 0 };
+    await st.put("cz:hot", Object.fromEntries(Object.entries(H).filter(([, v]) => t - v.at < 36 * 3600e3).sort((x, y) => y[1].at - x[1].at).slice(0, 600)));
     await st.put("cz:lvl", L); await st.put("cz:lvdone", [...D, ...(a.done || [])].slice(-4000)); return { ok: true, keys: Object.keys(a.inc || {}).length };
   }
   if (a.act === "bsweep") {                                          // challenges nobody answered in 48 hours: stakes back
@@ -2158,22 +2161,35 @@ const CZ_BIG = {
   nhl: s => s.G >= 2 || (s.G || 0) + (s.A || 0) >= 3,
   epl: s => s.G >= 1 || s.A >= 2,
 };
+// living cards: the line a big game is remembered by ("32 PTS · 11 REB · 9 AST"), shown on every copy of that card for a day
+const czN = v => v != null && isFinite(v) ? v : 0;
+export const CZ_HOTLINE = {
+  nba: s => [czN(s.PTS) && `${s.PTS} PTS`, czN(s.REB) >= 5 && `${s.REB} REB`, czN(s.AST) >= 5 && `${s.AST} AST`],
+  nfl: s => [czN(s["passing:YDS"]) >= 150 && `${s["passing:YDS"]} pass yds`, czN(s["passing:TD"]) && `${s["passing:TD"]} pass TD`, czN(s["rushing:YDS"]) >= 40 && `${s["rushing:YDS"]} rush yds`,
+    czN(s["receiving:YDS"]) >= 40 && `${s["receiving:YDS"]} rec yds`, czN(s["rushing:TD"]) + czN(s["receiving:TD"]) && `${czN(s["rushing:TD"]) + czN(s["receiving:TD"])} TD`, czN(s["defensive:SACKS"]) && `${s["defensive:SACKS"]} sacks`],
+  mlb: s => [czN(s["batting:HR"]) && `${s["batting:HR"]} HR`, czN(s["batting:H"]) >= 2 && `${s["batting:H"]} hits`, czN(s["batting:RBI"]) && `${s["batting:RBI"]} RBI`, czN(s["pitching:K"]) >= 5 && `${s["pitching:K"]} K`],
+  nhl: s => [czN(s.G) && `${s.G} G`, czN(s.A) && `${s.A} A`],
+  epl: s => [czN(s.G) && `${s.G} goal${s.G > 1 ? "s" : ""}`, czN(s.A) && `${s.A} assist${s.A > 1 ? "s" : ""}`],
+};
+export const czHotLine = (lg, st) => (CZ_HOTLINE[lg] ? CZ_HOTLINE[lg](st) : []).filter(Boolean).slice(0, 3).join(" · ");
 export async function czLevels(env, fetchImpl = fetch, now = new Date(), force = false) {
   if (!force && now.getUTCMinutes() % 10 !== 6) return "not time";
-  const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, newDone = []; let fetched = 0;
+  const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, hot = {}, newDone = []; let fetched = 0;
   for (const lg of TRACK_LEAGUES) for (const day of [etDay(now.getTime() - 864e5), etDay(now.getTime())]) {
     let games; try { games = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch { continue; }
     for (const g of games) {
       const key = lg + "/" + g.id; if (done.has(key) || g.status?.state !== "post" || !g.status.completed || fetched >= 16) continue;
       done.add(key); fetched++; let box; try { box = await czBoxStats(lg, g.id, fetchImpl); } catch { done.delete(key); continue; }
-      for (const [name, st] of box) if (CZ_BIG[lg](st)) inc[`${lg}:${name}`] = (inc[`${lg}:${name}`] || 0) + 1;
+      const at = Date.parse(g.date) || now.getTime(), game = `${g.away.short || g.away.name} at ${g.home.short || g.home.name}`;
+      for (const [name, st] of box) if (CZ_BIG[lg](st)) { inc[`${lg}:${name}`] = (inc[`${lg}:${name}`] || 0) + 1; hot[`${lg}:${name}`] = { at, line: czHotLine(lg, st), game, lg }; }
       const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
-      if (isFinite(h) && isFinite(a) && h !== a) { const k = `${lg}:t:${mkey(h > a ? g.home.name : g.away.name)}`; inc[k] = (inc[k] || 0) + 1; }
+      if (isFinite(h) && isFinite(a) && h !== a) { const W = h > a ? g.home : g.away, L = h > a ? g.away : g.home, k = `${lg}:t:${mkey(W.name)}`; inc[k] = (inc[k] || 0) + 1;
+        hot[k] = { at, line: `Beat ${L.short || L.name} ${Math.max(h, a)}-${Math.min(h, a)}`, game, lg }; }
       newDone.push(key);
     }
   }
   if (!newDone.length) return { levels: 0 };
-  return cz(env, { act: "levels", inc, done: newDone });
+  return cz(env, { act: "levels", inc, hot, done: newDone, now: now.getTime() });
 }
 export const czLevelOf = (xp, team) => { const T = team ? [3, 8, 15, 25] : [1, 3, 6, 10]; let lv = 1; for (const t of T) if ((xp || 0) >= t) lv++; return lv; };
 const czLvlKey = it => it.kind === "team" ? `${it.lg}:t:${mkey(it.name)}` : `${it.lg}:${mkey(it.name)}`;
@@ -2368,7 +2384,8 @@ export async function cosmicRoute(req, env, ctx, url) {
       items: page.map(i => ({ ...i, value: i.price, shop: Math.max(1, Math.floor(i.price * CZ_SHOP)), minted: held(i.id), owner: owners[i.id] || undefined })), shop: CZ_SHOP, fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/auctions" && req.method === "GET") { await czAuctionTick(env).catch(() => {}); return json({ auctions: (await czRead(env, "cz:auc", [])).map(x => ({ ...x, bT: undefined })), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" }); }
-  if (p === "/levels" && req.method === "GET") { const L = await czRead(env, "cz:lvl", {}); return json({ xp: L }, 200, { "Cache-Control": "public, max-age=300" }); }
+  if (p === "/levels" && req.method === "GET") { const [L, H] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
+    return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   if (p === "/packs" && req.method === "GET") return json({ now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p.startsWith("/card/") && req.method === "GET") { const id = decodeURIComponent(p.slice(6)), it = await czItem(env, id);
