@@ -129,4 +129,14 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   check("P6 test account can't offer trades", !!(await T({ act: "toffer", uid: "O", to: "Seller", give: [], get: [c1.id], coins: 99999 })).error);
   check("P6 test account can't challenge players", !!(await T({ act: "bnew", uid: "O", sport: "nfl", id: "b1", cards: [mine.id], stake: 5000, to: "Seller", day: "d" })).error);
   check("P6 test account can still play Cosmo AI", !(await T({ act: "bnew", uid: "O", sport: "nfl", id: "b2", cards: [mine.id], stake: 0, house: true, houseCards: [c1], day: "d" })).error); }
+// PK1: a pack bought twice with the same purchase id (a double tap, or a retry after a dropped connection) opens once
+{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+  await T({ act: "ident", sub: "B", uid: "B", tok: "t", name: "Buyer" }); m.set("cz:u:B", { ...m.get("cz:u:B"), bal: 5000, freePack: false });
+  const pool = Array.from({ length: 30 }, (_, i) => ({ id: `nfl.p${i}.comet`, tier: "comet", supply: 1000, lg: "nfl", name: "P" + i, kind: "player" }));
+  const pk = W.CZ_PACKS.find(x => x.id === "comet"), buy = rid => T({ act: "pack", uid: "B", pack: pk, pool, rid });
+  const a = await buy("aaaaaaaaaaaaaaaa"), b = await buy("aaaaaaaaaaaaaaaa"), U = m.get("cz:u:B");
+  check("PK1 the repeat returns the same cards", b.repeat && JSON.stringify(b.cards) === JSON.stringify(a.cards), b);
+  check("PK1 charged once and given one pack's cards", U.bal === 5000 - pk.price && U.items.length === pk.cards && U.packs === 1, { bal: U.bal, items: U.items.length });
+  const c = await buy("bbbbbbbbbbbbbbbb"), U2 = m.get("cz:u:B");
+  check("PK1 a new purchase id opens a new pack", !c.repeat && U2.bal === 5000 - 2 * pk.price && U2.items.length === 2 * pk.cards); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);

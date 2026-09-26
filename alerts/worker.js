@@ -1884,6 +1884,9 @@ export async function czTx(st, a) {
     // yet is drawn from what's left. If every card of that tier is gone, the pull moves to the next more common tier.
     const pk = a.pack, mint = await get("cz:mint", {}), ret = await get("cz:ret", {}), owned = new Set((u.items || []).map(x => x.id));
     const out = id => (mint[id] || 0) - (ret[id] || []).length;                  // copies held by collectors (sold-back copies return to packs)
+    // the same purchase sent twice (a double tap, or a retry after the connection dropped) opens one pack: the repeat gets the
+    // cards the first one pulled and isn't charged again
+    if (a.rid && u.lastPack && u.lastPack.rid === a.rid) return { user: czPublic(u), cards: u.lastPack.cards, repeat: true };
     const tix = pk.ev ? 0 : (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
     const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0;
     if (pk.ev && evUsed >= (pk.max || CZ_EV_MAX)) return { error: `You've opened all ${pk.max || CZ_EV_MAX} of your ${pk.label}s. It's a limited edition!` };
@@ -1911,6 +1914,7 @@ export async function czTx(st, a) {
     if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price;
     if (pk.ev) u.evp = { ...(u.evp || {}), [pk.ev]: evUsed + 1 };
     czAddSp(u, 3, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    if (a.rid) u.lastPack = { rid: a.rid, cards: pulled };
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
       if (c.supply <= 25) await feed({ kind: "pull", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, pack: pk.label, evl: c.evl });
@@ -2747,7 +2751,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(80, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
       for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img }); } }
-    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free });
+    const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
+    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free, rid });
     return json(r, r.error ? 409 : 200);
   }
   return json({ error: "not found" }, 404);
