@@ -148,4 +148,7 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   check("SA1 sells the free cards and pays shop value", r.sold === 2 && r.skipped === 1 && U.bal === 800 && U.items.length === 1 && U.items[0].listed, r);
   check("SA1 sold copies go back into packs", (m.get("cz:ret") || {})["nfl.q1.comet"]?.[0] === 1);
   check("SA1 cards you don't own can't be sold", !!(await T({ act: "sellmany", uid: "V", cards: [{ id: "nfl.q1.comet", value: 1e6 }] })).error); }
+// RC1 / TP1: rookie premium and team-pack prices
+check("RC1 rookie premium grows with play (10% to 45%)", W.czRookieX(0, null) === 1.1 && W.czRookieX(0, 0) === 1.15 && Math.abs(W.czRookieX(0, 1) - 1.45) < 1e-9 && W.czRookieX(8, 1) < 1.13);
+check("TP1 team pack price follows the team's card value, 600 to 2,500", W.czTeamPackPrice(1) === 1000 && W.czTeamPackPrice(.2) === 600 && W.czTeamPackPrice(9) === 2500 && W.czTeamPackPrice(1.33) === 1350);
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
