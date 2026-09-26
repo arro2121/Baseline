@@ -43,6 +43,7 @@ body::after{background:
   background-size:600px 460px;animation:twinkle 5s ease-in-out infinite alternate}
 @keyframes twinkle{from{opacity:.35}to{opacity:1}}
 @media (prefers-reduced-motion: reduce){body::after{animation:none}}
+body.vplay::after,body.vplay::before,body.vplay .shooting *,body.vplay .gspin,body.vplay [class^="nb-"]{animation-play-state:paused!important}
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -57,6 +58,7 @@ button{cursor:pointer}
 .wrap{max-width:1120px;margin:0 auto;padding:18px 24px 72px}
 .muted{color:var(--muted)}
 [hidden]{display:none!important}
+body{overflow-x:clip}                  /* nothing can make the page scroll sideways on a phone (clip keeps sticky headers working) */
 
 /* ---------- header ---------- */
 .top{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
@@ -403,7 +405,7 @@ dialog.modal.wide{max-width:640px}
 .sportnav{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;margin:-6px 0 12px;scrollbar-width:none}
 .sportnav::-webkit-scrollbar{display:none}
 .sportnav button{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.88rem;color:var(--muted)}
-.sportnav button span{font-size:1.05rem}
+.sportnav button span{font-size:1.05rem}.sportnav .chipsub{font-size:.7rem;font-weight:600;opacity:.7;margin-left:-2px}.sportnav .navsep{flex:none;width:1px;align-self:stretch;margin:4px 4px;background:var(--line)}
 .sportnav button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .lghead{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:6px 0 16px}
 .lghead h1{margin:0;font-stretch:112%;font-size:1.7rem;letter-spacing:-.01em}
@@ -1311,9 +1313,11 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.t-comet .czc-top span{background:rgba(148,163,184,.14)}.czcard.t-comet .czc-foil{opacity:.18}
 .czcard.big{max-width:260px;margin:0 auto}.czreveal{text-align:center}.czreveal .czcard{animation:czpop .7s cubic-bezier(.2,1.4,.4,1)}
 @keyframes czpop{from{transform:scale(.6) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
-.czown-list{display:grid;gap:4px;max-height:220px;overflow:auto;margin:12px 0}.czown-list div{display:grid;grid-template-columns:52px 1fr auto;gap:8px;font-size:.85rem;padding:5px 0;border-bottom:1px solid var(--line-2)}.czown-list small{color:var(--muted)}
+.czown-list{display:grid;gap:4px;max-height:220px;overflow:auto;margin:12px 0}.czown-list div{display:grid;grid-template-columns:86px 1fr auto;gap:8px;font-size:.85rem;padding:5px 0;border-bottom:1px solid var(--line-2)}.czown-list small{color:var(--muted)}.czmh{font-size:1.05rem;margin:18px 0 8px}.czown-list div.me{background:color-mix(in srgb,var(--accent,#8b5cf6) 16%,transparent);border-radius:8px;padding-left:6px}.czown-list b small{font-weight:500}
 .czlbr{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:.9rem}.czlbr.me{background:rgba(192,132,252,.12);border-radius:8px;padding-left:6px}
 .czfeed{display:grid;gap:8px;font-size:.86rem}.czfeed div{display:grid;gap:1px}.czfeed small{color:var(--muted);font-size:.72rem}
+.czwarn{background:color-mix(in srgb,#f5a524 16%,transparent);border:1px solid color-mix(in srgb,#f5a524 45%,transparent);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
+.czinh{font-size:1rem;margin:14px 0 6px}.czinrow{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.czinrow small{display:block;color:var(--muted)}.czinrow p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.czinrow span{display:flex;gap:6px;flex-shrink:0}
 .czkey{width:100%;min-height:80px;font-family:ui-monospace,monospace;font-size:.8rem;word-break:break-all}
 @media (prefers-reduced-motion:reduce){.czc-foil,.czcard.t-singularity .czc-foil,.czreveal .czcard{animation:none}}
 @media (max-width:560px){.czgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.czmkts{grid-template-columns:1fr}.czc-name{font-size:.8rem}.czbal{justify-items:start}}
@@ -1708,18 +1712,19 @@ dialog.onb p{margin:0 0 12px}
     <button class="livepill" id="openLive"><i></i><span id="liveCount">Live</span></button>
     <button class="btn" id="installBtn" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg>Install app</button>
     <button class="btn" id="openUpdate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Update rankings</button>
-    <button class="iconbtn" id="searchBtn" aria-label="Find a team" onclick="openSearch()"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5"/></svg></button>
+    <button class="iconbtn" id="searchBtn" aria-label="Find a team" data-ui="search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5"/></svg></button>
     <button class="iconbtn" id="helpBtn" aria-label="How Cosmo Sports works"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.9 7.6a2.2 2.2 0 0 1 4.2.8c0 1.5-2.1 1.9-2.1 3.3M10 14.4v.1"/></svg></button>
     <button class="iconbtn askTop" id="askTopBtn" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span></button>
-    <button class="iconbtn" id="settingsBtn" aria-label="Settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.8 4.2l-1.5 1.5M5.7 14.3l-1.5 1.5M15.8 15.8l-1.5-1.5M5.7 5.7 4.2 4.2"/></svg></button>
+    <button class="iconbtn" id="settingsBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </header>
   <nav class="sportnav" id="sportNav" aria-label="Sport">
     <button data-sport="universe" aria-pressed="false"><span aria-hidden="true">◎</span>Today</button>
+    <button data-sport="comets" aria-pressed="false" id="cometsChip" aria-label="Comets: articles"><span aria-hidden="true">📰</span>Comets<small class="chipsub" aria-hidden="true">Articles</small></button>
     <button data-sport="following" aria-pressed="false"><span aria-hidden="true">★</span>Following</button>
     <button data-sport="play" aria-pressed="false"><span aria-hidden="true">🎯</span>Picks</button>
     <button data-sport="cosmic" aria-pressed="false"><span aria-hidden="true">🪐</span>Cosmic</button>
     <button data-sport="record" aria-pressed="false"><span aria-hidden="true">📈</span>Record</button>
-    <button data-sport="comets" aria-pressed="false"><span aria-hidden="true">☄️</span>Comets</button>
+    <span class="navsep" role="separator" aria-hidden="true"></span>
     <button data-sport="tennis" aria-pressed="true"><span aria-hidden="true">🎾</span>Tennis</button>
     <button data-sport="nfl" aria-pressed="false"><span aria-hidden="true">🏈</span>NFL</button>
     <button data-sport="nba" aria-pressed="false"><span aria-hidden="true">🏀</span>NBA</button>
@@ -1929,11 +1934,11 @@ dialog.onb p{margin:0 0 12px}
   <p class="askfine">Answers are generated by AI from live data and can be wrong.</p>
 </div></dialog>
 <dialog id="cardDlg" class="modal" aria-labelledby="cardTitle"><div class="dlg"><h2 id="cardTitle">Score card</h2><p id="cardNote"></p><img id="cardImg" class="cardimg" alt="Score card for this game">
-  <div class="dlgfoot"><button class="btn" type="button" onclick="document.getElementById('cardDlg').close()">Close</button><span><button class="btn" id="cardSave" type="button">Save image</button> <button class="btn primary" id="cardShare" type="button" hidden>Share</button></span></div></div></dialog>
+  <div class="dlgfoot"><button class="btn" type="button" data-ui="close">Close</button><span><button class="btn" id="cardSave" type="button">Save image</button> <button class="btn primary" id="cardShare" type="button" hidden>Share</button></span></div></div></dialog>
 <dialog id="teamDlg" class="drawer" aria-label="Team"><div class="pbody" id="tbody"></div></dialog>
 <dialog id="searchDlg" class="modal" aria-labelledby="searchTitle"><div class="dlg"><h2 id="searchTitle">Find a team</h2>
   <input class="field" id="searchIn" style="width:100%;text-align:left;margin:6px 0 10px;font-size:1rem" type="search" placeholder="Team or city" autocomplete="off" aria-label="Team or city"><div class="srchout" id="searchOut"></div>
-  <div class="dlgfoot"><small>Tap ☆ to follow, or a team to open its page</small><button class="btn" type="button" onclick="this.closest('dialog').close()">Done</button></div></div></dialog>
+  <div class="dlgfoot"><small>Tap ☆ to follow, or a team to open its page</small><button class="btn" type="button" data-ui="close">Done</button></div></div></dialog>
 <dialog id="updDlg" class="modal" aria-labelledby="updTitle">
   <div class="dlg">
     <h2 id="updTitle">Update the rankings</h2>
@@ -1945,6 +1950,9 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
   <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Cosmic: bet free coins, rip packs, pull one-of-a-kind cards.</p></div></div>
   <ul class="newlist">
+    <li><i>🏆</i><span><b>Standings by division.</b> Standings now open on the divisions, with a switch to the full conference (MLB: league) tables that decide seeds and wild cards.</span></li>
+    <li><i>🛡️</i><span><b>Safer accounts.</b> Sign out everywhere, make a new account key, and Face ID, fingerprint or passcode is now required for every passkey sign-in. Reported names are reviewed by a person.</span></li>
+    <li><i>🎬</i><span><b>Smoother highlights and a faster start.</b> Clips stream at the quality your connection can handle, and tennis ratings load only when you open Tennis.</span></li>
     <li><i>⚔️</i><span><b>Card battles, one for each sport.</b> Pick NFL, NBA, MLB, NHL, Premier League or tennis, build a lineup of up to five of your cards from it, and play a real person or the AI. An AI judge sizes up both sides and calls the winner, who takes both stakes.</span></li>
     <li><i>🎡</i><span><b>Daily spin and parlays.</b> Spin the wheel once a day for coins or a free pack, and combine 2 to 5 picks into one parlay for a bigger payout.</span></li>
     <li><i>💎</i><span><b>Seasons and suspenseful packs.</b> Climb from Bronze to Cosmic each month for coin rewards. Pack cards now glow brighter the rarer they are before they flip.</span></li>
@@ -1962,7 +1970,7 @@ dialog.onb p{margin:0 0 12px}
     <li><i>🧠</i><span><b>A real model for every league.</b> The NFL, NBA, MLB, NHL and Premier League now get the tennis treatment: Elo, opponent-adjusted margin, offense and defense, form, rest and a factor for each sport (starting pitchers, quarterbacks, shots).</span></li>
     <li><i>📊</i><span><b>A Model tab in every league.</b> Accuracy on seasons it never saw, against Elo and the betting market, a calibration chart and what each factor is worth.</span></li>
     <li><i>🔎</i><span><b>Why the model leans that way.</b> Every matchup and game page shows each factor's push, a projected score, fair spread and total, form, rating trends and the last meetings.</span></li>
-    <li><i>☄️</i><span><b>Comets.</b> Articles and takes from Cosmo Sports, right in the app. The newest one shows on Today.</span></li>
+    <li><i>📰</i><span><b>Comets.</b> Articles and takes from Cosmo Sports, right in the app. The newest one shows on Today.</span></li>
     <li><i>⚽</i><span><b>Likeliest scores</b> for Premier League matches, plus over 2.5 goals and both teams to score.</span></li>
   </ul>
   <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">Open Cosmic</button></div>
@@ -1985,7 +1993,7 @@ dialog.onb p{margin:0 0 12px}
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
     <button class="sheetrow" data-go="cosmic"><b>🪐 Cosmic</b><span>Bet free Cosmic Coins on real games and collect limited-edition team and player cards</span></button>
     <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and what betting them would have made</span></button>
-    <button class="sheetrow" data-go="comets"><b>☄️ Comets</b><span>Articles and takes from Cosmo Sports</span></button>
+    <button class="sheetrow" data-go="comets"><b>📰 Comets</b><span>Articles and takes from Cosmo Sports</span></button>
     <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
@@ -2015,13 +2023,13 @@ dialog.onb p{margin:0 0 12px}
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Last page</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option><option value="cfb">College Football</option><option value="cbb">College Basketball</option></select></div>
     <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
     <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about a player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
-    <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); openSearch()">Manage</button></div>
+    <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" data-ui="close search">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
     <div class="setrow"><div><b>Odds format</b><small>How prices are shown</small></div>
       <div class="seg" role="group" aria-label="Odds format"><button data-oddsfmt="us">American</button><button data-oddsfmt="dec">Decimal</button></div></div>
     <div class="setrow"><div><b>Your data</b><small>Your teams, picks and settings are saved to your account. Reset clears this device's copy and chat, turns off alerts and signs you out here</small></div><button class="btn" id="resetData">Reset</button></div>
-    <div class="setrow"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" onclick="document.getElementById('settingsDlg').close(); maybeOnboard(true)">Start</button></div>
+    <div class="setrow"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" data-ui="close tour">Start</button></div>
     <div class="dlgfoot" style="margin-top:14px"><small id="verInfo"></small><button class="btn" id="setClose">Done</button></div>
   </div>
 </dialog>
@@ -2040,7 +2048,7 @@ dialog.onb p{margin:0 0 12px}
     <p>Answers are written by an AI model from live data and can be wrong; check anything important. Your questions are sent to the AI provider to answer them and aren't stored by us.</p>
     <h3>Your privacy</h3>
     <p>No ads and no tracking. Your account keeps your teams, picks, settings and Cosmic cards so they follow you to any device, and you can delete it any time in Settings. Alerts and Ask Cosmo send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
-    <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" onclick="this.closest('dialog').close()">Done</button></div>
+    <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" data-ui="close">Done</button></div>
   </div>
 </dialog>
 
@@ -2082,7 +2090,14 @@ dialog.onb p{margin:0 0 12px}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-const DATA = /*DATA*/;
+let DATA = /*DATA*/;                                       // the tennis ratings: inline in a local build, else loaded when Tennis opens
+let TENNIS_READY = !!DATA, TENNIS_LOADING = null;
+function loadTennis(){
+  if (TENNIS_READY) return Promise.resolve();
+  return TENNIS_LOADING ||= fetch("tennis.json?v=/*TENNIS_V*/").then(r => { if (!r.ok) throw new Error("tennis " + r.status); return r.json(); })
+    .then(d => { DATA = d; TENNIS_READY = true; tennisInit(); renderFeed(); const n = document.getElementById("tennisLoad"); if (n) n.remove(); })
+    .catch(e => { TENNIS_LOADING = null; const n = document.getElementById("tennisLoad"); if (n) n.innerHTML = `Couldn't load the tennis ratings. <button type="button" class="linkbtn" id="tennisRetry">Try again</button>`; const b = document.getElementById("tennisRetry"); if (b) b.onclick = () => { n.textContent = "Loading tennis ratings…"; loadTennis().catch(() => {}); }; throw e; });
+}
 const FLAGS = /*FLAGS*/;
 const NEUTRAL = new Set(["RUS","BLR","POC",""]);
 const CC = {ARG:["#74ACDF","#FFFFFF","#F6B40E"],AUS:["#012169","#FFFFFF","#E4002B"],AUT:["#ED2939","#FFFFFF","#ED2939"],BEL:["#1A1A1A","#FDDA24","#EF3340"],
@@ -2258,6 +2273,7 @@ function renderOdds(A, B, p){
 
 /* ---------- main render ---------- */
 function update(){
+  if (!TENNIS_READY) return;
   const A = byId(st.a), B = byId(st.b);
   document.body.dataset.surface = st.surface;
   const { p, parts } = predict(A, B);
@@ -2353,6 +2369,7 @@ function spark(arr){
   return `<svg class="spark" viewBox="0 0 90 24" aria-hidden="true"><path d="${d}"/></svg>`;
 }
 function renderRankings(){
+  if (!TENNIS_READY) return;
   const cols = [["rank",T().tour+" rank"],["elo","Overall"],["Hard","Hard"],["Clay","Clay"],["Grass","Grass"],["sv","Serve"],["rt","Return"]];
   const val = (p,k) => k==="rank" ? -(p.rank ?? 9999) : k==="elo" ? p.elo : SURF.includes(k) ? p.selo[k] : p[k];
   const q = $("#rsearch").value.trim().toLowerCase();
@@ -2397,7 +2414,7 @@ const ALERTS_URL = "/*ALERTS_URL*/".replace(/^\/\*.*\*\/$/, "").replace(/\/$/, "
 // ESPN's scores and play-by-play, read straight from the phone (build_site.py copies this code from alerts/worker.js)
 const ESPN_DIRECT = (() => { /*ESPN_NORM*/
   return { scoreboard: (lg, dates) => espnScoreboard(lg, undefined, dates), game: (lg, id) => espnGame(lg, id),
-    standings: lg => espnStandings(lg), news: (lg, team) => espnNews(lg, team), team: (lg, id) => espnTeam(lg, id) };
+    standings: (lg, view) => espnStandings(lg, undefined, view), news: (lg, team) => espnNews(lg, team), team: (lg, id) => espnTeam(lg, id) };
 })();
 // ESPN (or MLB's own API) straight from the phone, then the alerts service; every source has a time limit, and the
 // whole chain gets one more try, because phones switch networks and a blocked or sleepy source shouldn't blank the app
@@ -2501,7 +2518,7 @@ function renderSettings(){
     $("#acctDel").onclick = () => { $("#settingsDlg").close(); czDeleteAccount(); }; }
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
   document.querySelectorAll("[data-oddsfmt]").forEach(b => b.setAttribute("aria-pressed", b.dataset.oddsfmt === SET.odds));
-  $("#verInfo").textContent = `Ratings through ${fmtDate(T().data_through)}`;
+  $("#verInfo").textContent = TENNIS_READY ? `Tennis ratings through ${fmtDate(T().data_through)}` : `Team ratings updated nightly`;
 }
 document.querySelectorAll("[data-spoil]").forEach(b => b.addEventListener("click", () => { const v = b.dataset.spoil; SPOIL.on = v !== "off"; if (SPOIL.on) SPOIL.scope = v; saveSpoil(); renderSettings(); toast(SPOIL.on ? "Spoiler shield is on" : "Spoiler shield is off");
   if (SPORT === "universe") drawUniverse(); else if (SPORT === "following") renderFollowing(); else if (SPORT !== "tennis" && SPORT !== "play" && !$("#tt-games").hidden && SB[SPORT]) drawGames(); }));
@@ -2521,7 +2538,7 @@ const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platfo
 
 /* ---------- live feed board ---------- */
 const nkey = s => s.normalize("NFKD").replace(/[^A-Za-z]/g,"").toLowerCase();
-function feedPlayer(name, tour){ return DATA[tour].players.find(p => nkey(p.name) === nkey(name)) || null; }
+function feedPlayer(name, tour){ return !DATA || !DATA[tour] ? null : DATA[tour].players.find(p => nkey(p.name) === nkey(name)) || null; }
 let prevScores = {};
 function fitRally(){ document.querySelectorAll(".mini").forEach(mn => { const w = mn.clientWidth; mn.style.setProperty("--span", Math.max(40, w*0.82) + "px"); }); }
 window.addEventListener("resize", fitRally);
@@ -2614,7 +2631,7 @@ function renderFeed(){
   $("#feed").querySelectorAll("[data-pbp]").forEach(b => b.addEventListener("click", () => openGame("tennis", b.dataset.pbp)));
   $("#feed").querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => {
     const m = LIVE.matches.slice().sort((x,y)=>order[x.status]-order[y.status])[+b.dataset.open];
-    const PA = feedPlayer(m.a, m.tour), PB = feedPlayer(m.b, m.tour);
+    const PA = feedPlayer(m.a, m.tour), PB = feedPlayer(m.b, m.tour); if (!PA || !PB) return;
     if (st.tour !== m.tour) setTour(m.tour);
     st.a = PA.id; st.b = PB.id; ctx.a = freshCtx(PA); ctx.b = freshCtx(PB);
     st.surface = m.surface; document.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed", x.dataset.s===m.surface)); setEvent(false);
@@ -2795,6 +2812,7 @@ pdlg.addEventListener("click", e => { if (e.target === pdlg) pdlg.close(); });
 
 /* ---------- accuracy ---------- */
 function renderAccuracy(){
+  if (!TENNIS_READY) return;
   const d = T(), bt = d.backtest, full = bt["Full model (all factors)"], base = bt["Overall Elo only"];
   const hi = d.calibration.filter(c => parseInt(c.bucket) >= 75), hiN = hi.reduce((a,c)=>a+c.n,0);
   const hiAcc = hiN ? hi.reduce((a,c)=>a+c.actual*c.n,0)/hiN : 0;
@@ -2821,7 +2839,7 @@ function renderAccuracy(){
 /* ---------- wiring ---------- */
 function setEvent(slam){ st.slam = slam; document.querySelectorAll("[data-ev]").forEach(b=>b.setAttribute("aria-pressed", (b.dataset.ev==="slam")===slam)); }
 function setTour(t){
-  st.tour = t; st.a = T().players[0].id; st.b = T().players[1].id; st.odds = {a:"",b:""}; $("#oa").value = ""; $("#ob").value = "";
+  st.tour = t; if (!TENNIS_READY) return; st.a = T().players[0].id; st.b = T().players[1].id; st.odds = {a:"",b:""}; $("#oa").value = ""; $("#ob").value = "";
   ctx.a = freshCtx(byId(st.a)); ctx.b = freshCtx(byId(st.b));
   $("#slamBtn").textContent = "Grand Slam"; $("#slamBtn").title = t==="atp" ? "Men play best of 5 sets at the Grand Slams" : "";
   document.querySelectorAll("[data-tour]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.tour===t));
@@ -2858,7 +2876,7 @@ $("#copyAsk").addEventListener("click", async () => {
 
 if (HOSTED){ const u = $("#openUpdate"); if (u) u.hidden = true; }
 /* ---------- team sports: games, play-by-play, rankings, predictions ---------- */
-let SPORT = "tennis", TT = "games", SB = {}, sbTimer = null, gTimer = null, GSEEN = new Set();
+let SPORT = "tennis", TT = "games", TT_LG = null, SB = {}, sbTimer = null, gTimer = null, GSEEN = new Set();
 const LEAGUE_LABEL = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League" };
 // college football and men's college basketball: their own tabs, scores, standings, news and Predict (the best 100 programs).
 // They stay out of Cosmic, the track record and the season simulations. On the field they play like the pro sport.
@@ -2965,7 +2983,9 @@ function setSport(sp){
   const tennis = sp === "tennis", follow = sp === "following", uni = sp === "universe", play = sp === "play", comets = sp === "comets", record = sp === "record", cosmic = sp === "cosmic";
   $("#tennisView").hidden = !tennis; $("#teamView").hidden = tennis || follow || uni || play || comets || record || cosmic; $("#followView").hidden = !follow; $("#uniView").hidden = !uni; $("#playView").hidden = !play; $("#cometsView").hidden = !comets; $("#recordView").hidden = !record; $("#cosmicView").hidden = !cosmic; $("#tourSeg").hidden = !tennis; $("#asof").hidden = !tennis; $("#openLive").hidden = !tennis;
   clearInterval(sbTimer); sbTimer = null;
-  if (tennis){ document.body.dataset.surface = st.surface; return; }
+  if (tennis){ document.body.dataset.surface = st.surface;
+    if (!TENNIS_READY){ if (!$("#tennisLoad")) $("#tennisView").insertAdjacentHTML("afterbegin", `<div id="tennisLoad" class="teamnote" role="status">Loading tennis ratings…</div>`); loadTennis().catch(() => {}); }
+    return; }
   materialize(tennis ? $("#tennisView") : follow ? $("#followView") : uni ? $("#uniView") : play ? $("#playView") : comets ? $("#cometsView") : record ? $("#recordView") : cosmic ? $("#cosmicView") : $("#teamView"));
   if (cosmic){ document.body.dataset.surface = "Hard"; drawCosmic(); czLoad(["me", "board", "vault", "lb", "trades", "bat"]); if (HOSTED) sbTimer = setInterval(() => czLoad(CZ.tab === "lb" ? ["lb", "me"] : ["me"]), 60000); return; }
   if (record){ document.body.dataset.surface = "Hard"; drawTrack(); loadTrack(); if (HOSTED) sbTimer = setInterval(() => loadTrack(), 180000); return; }
@@ -2974,6 +2994,7 @@ function setSport(sp){
   if (uni){ document.body.dataset.surface = "Hard"; drawUniverse(); loadUniverse(); if (HOSTED) sbTimer = setInterval(loadUniverse, 30000); return; }
   if (play){ document.body.dataset.surface = "Hard"; drawPlay(); if (HOSTED){ loadUniverse(); sbTimer = setInterval(loadUniverse, 60000); } return; }
   lsSet("lastLeague", sp); loadInj(sp);
+  if (TT_LG !== sp) TT = "games"; TT_LG = sp;                 // a different league opens on its Games tab, like ESPN and theScore
   document.body.dataset.surface = sp === "epl" || sp === "mlb" || sp === "cfb" ? "Grass" : "Hard";
   const L = LG();
   $("#lgTitle").textContent = LG_NAME[sp];
@@ -3263,7 +3284,7 @@ function renderModelTab(){
   const imp = Object.entries(m.ablation).sort((a, b) => b[1] - a[1]), mx = Math.max(1e-5, ...imp.map(x => Math.abs(x[1])));
   const tested = (m.dropped || []).filter(k => k !== "elo_d");
   el.innerHTML = `<div class="metrics">${metrics.map(([n, l]) => `<div class="metric"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
-    ${isCollege(lg) ? "" : `<button type="button" class="trlink" onclick="TR.lg='${lg}';setSport('record');window.scrollTo({top:0})"><b>📈 Live track record</b><span>Every ${LEAGUE_LABEL[lg]} pick since launch, locked in before the game, and what $100 bets would have made</span><i>→</i></button>`}
+    ${isCollege(lg) ? "" : `<button type="button" class="trlink" data-ui="record" data-lg="${lg}"><b>📈 Live track record</b><span>Every ${LEAGUE_LABEL[lg]} pick since launch, locked in before the game, and what $100 bets would have made</span><i>→</i></button>`}
     <div class="grid" style="margin-top:0">
       <section class="card"><h2>Backtest on unseen seasons</h2><p class="sub">Fitted on ${m.seasons.split("–")[0]}–${m.test_seasons[0] - 1} (${m.train_games.toLocaleString()} ${soccer ? "matches" : "games"}), then tested on ${m.test_seasons.join(", ")} (${m.test_games.toLocaleString()}). Every rating and stat was built only from games played before each one.</p>
         <div class="scroll"><table class="cmp"><thead><tr><th>Method</th><th>Accuracy</th><th>Log-loss</th><th>Brier</th></tr></thead><tbody>${Object.entries(bt).map(([k, v]) => `<tr class="${k === "Full model (all factors)" ? "best" : ""}"><td>${esc(names[k] || k)}${k.includes("same games") || k.startsWith("Betting") ? ` <small>(${v.n})</small>` : ""}</td><td>${pct1(v.acc)}</td><td>${v.logloss.toFixed(3)}</td><td>${v.brier.toFixed(3)}</td></tr>`).join("")}</tbody></table></div>
@@ -3547,7 +3568,7 @@ function teamLogo(T, lg = SPORT){
 }
 function logoChip(T, size = "", lg = SPORT){
   const src = teamLogo(T, lg);
-  if (src) return `<span class="tlogo ${size}"><img src="${esc(src)}" alt="${esc((T && T.abbr) || "")}" loading="lazy" onerror="const s=this.parentNode;s.classList.add('txt');s.style.background='#55656E';s.textContent=this.alt"></span>`;
+  if (src) return `<span class="tlogo ${size}"><img src="${esc(src)}" alt="${esc((T && T.abbr) || "")}" loading="lazy" data-err="logo"></span>`;
   const st = T && T.name ? teamStyle(T, lg) : null;
   return `<span class="tlogo txt ${size}" style="background:${st ? st.main : "#55656E"}">${esc((T && (T.abbr || (st && st.abbr))) || "")}</span>`;
 }
@@ -3575,7 +3596,7 @@ const ordStr = n => n + ([, "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 :
 function playerChip(p, g, lg, size = ""){
   const T = (g.teams || {})[p.team], logo = teamLogo(T, lg), tc = tcolor(T, "#DCE2DE");
   if (!p.who && !T) return "";
-  return `<span class="pchip ${size}" style="--tc:${tc}">${logo ? `<img class="tl" src="${esc(logo)}" alt="" loading="lazy">` : ""}${p.who && p.who.photo ? `<img class="ph" src="${esc(p.who.photo)}" alt="${esc(p.who.name)}" loading="lazy" onerror="this.remove()">` : ""}${logo ? `<span class="tb"><img src="${esc(logo)}" alt=""></span>` : ""}</span>`;
+  return `<span class="pchip ${size}" style="--tc:${tc}">${logo ? `<img class="tl" src="${esc(logo)}" alt="" loading="lazy">` : ""}${p.who && p.who.photo ? `<img class="ph" src="${esc(p.who.photo)}" alt="${esc(p.who.name)}" loading="lazy" data-err="rm">` : ""}${logo ? `<span class="tb"><img src="${esc(logo)}" alt=""></span>` : ""}</span>`;
 }
 function playTime(p, lg){
   if (lg === "mlb") return p.outs != null && !p.live && p.kind !== "change" ? `<div class="outs" aria-label="${p.outs} out${p.outs === 1 ? "" : "s"}">${[0,1,2].map(i => `<i class="${i < p.outs ? "on" : ""}"></i>`).join("")}</div>` : "";
@@ -3982,8 +4003,9 @@ function performers(g, lg){
     // one line per player, even when they lead several categories
     const byName = []; for (const x of t.items){ const o = byName.find(y => y.name === x.name); if (o) o.lines.push(`${x.cat} ${x.value}`); else byName.push({ ...x, lines: [`${x.cat} · ${x.value}`] }); }
     const items = byName.map(x => ({ ...x, cat: x.lines.length > 1 ? x.lines.map(l => l.replace(" · ", " ")).join(" · ") : x.cat, value: x.lines.length > 1 ? "" : x.value }));
-    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
+    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
 }
+const CAN_HLS = () => { try { return !!document.createElement("video").canPlayType("application/vnd.apple.mpegurl"); } catch { return false; } };
 function highlightsStrip(g){
   const v = g.videos || [];
   if (!v.length) return "";
@@ -3994,11 +4016,15 @@ function bindHighlights(g, lg){ document.querySelectorAll("#gScene .hl[data-vid]
 function playClip(g, lg, i){
   const c = (g.videos || [])[i], el = $("#gScene"); if (!c || !el) return;
   SCENE_VIDEO = c.id; el.hidden = false; FX.forEach(a => { try { a.cancel(); } catch {} }); FX.length = 0;
-  el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(c.mp4)}"></video></div>
+  // the adaptive (HLS) stream where the browser plays it natively (Safari, iPhone, Android and newer Chrome), else the MP4
+  const useHls = !!(c.hls && CAN_HLS());
+  el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(useHls ? c.hls : c.mp4)}"></video></div>
     <div class="cap"><div class="ct"><b>Replay</b> · ${esc(c.title)}</div><button class="replay" id="gBack" type="button">← Field view</button></div>` + highlightsStrip(g);
   const v = el.querySelector("video");
-  v.onerror = () => { el.querySelector(".gvideo").innerHTML = `<div class="err">ESPN won't play this clip here${c.geo && !c.geo.includes("US") ? " (ESPN only shows it in some countries)" : ""}.${c.web ? ` <a href="${esc(c.web)}" target="_blank" rel="noopener">Watch it on ESPN</a>` : ""}</div>`; };
-  $("#gBack").onclick = () => { SCENE_VIDEO = null; renderScene(g, lg, true); };
+  // the space background keeps still while a clip plays, so the phone spends its effort on the video
+  v.addEventListener("playing", () => document.body.classList.add("vplay")); ["pause", "ended", "emptied"].forEach(k => v.addEventListener(k, () => document.body.classList.remove("vplay")));
+  v.onerror = () => { if (useHls && c.mp4 && v.getAttribute("src") !== c.mp4){ v.src = c.mp4; v.play().catch(() => {}); return; } el.querySelector(".gvideo").innerHTML = `<div class="err">ESPN won't play this clip here${c.geo && !c.geo.includes("US") ? " (ESPN only shows it in some countries)" : ""}.${c.web ? ` <a href="${esc(c.web)}" target="_blank" rel="noopener">Watch it on ESPN</a>` : ""}</div>`; };
+  $("#gBack").onclick = () => { SCENE_VIDEO = null; document.body.classList.remove("vplay"); renderScene(g, lg, true); };
   bindHighlights(g, lg);
   $("#gbody").scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -4187,7 +4213,7 @@ function boxHtml(g, lg){
     out += `<div class="bsec"><h3>Players</h3><div class="seg bseg" role="group" aria-label="Team"><button type="button" data-bt="away" aria-pressed="${BOXTEAM === "away"}">${logoChip(A, "sm", lg)}${esc(A.short || A.name || "")}</button><button type="button" data-bt="home" aria-pressed="${BOXTEAM === "home"}">${logoChip(H, "sm", lg)}${esc(H.short || H.name || "")}</button></div>
       ${pt && pt.formation ? `<p class="bnote">Formation ${esc(pt.formation)}</p>` : ""}
       ${(pt ? pt.groups : []).map(gr => { const played = gr.rows.filter(r => !r.dnp), bench = SK(lg) === "nba" && played.some(r => r.starter);
-        const row = r => `<tr class="${r.starter && bench ? "st" : ""}"><th><span class="bname">${r.photo ? `<img src="${esc(r.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(r.short || r.name)}</b><small>${esc([r.jersey ? "#" + r.jersey : "", r.pos].filter(Boolean).join(" "))}</small></span></span></th>${r.stats.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`;
+        const row = r => `<tr class="${r.starter && bench ? "st" : ""}"><th><span class="bname">${r.photo ? `<img src="${esc(r.photo)}" alt="" loading="lazy" data-err="rm">` : ""}<span><b>${esc(r.short || r.name)}</b><small>${esc([r.jersey ? "#" + r.jersey : "", r.pos].filter(Boolean).join(" "))}</small></span></span></th>${r.stats.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`;
         return `<h4>${esc(niceGroup(gr.name))}</h4><div class="tscroll"><table class="bx"><thead><tr><th>${lg === "epl" ? "Player" : "Name"}</th>${gr.labels.map(l => `<th>${esc(l)}</th>`).join("")}</tr></thead><tbody>
           ${bench ? played.filter(r => r.starter).map(row).join("") + `<tr class="sub"><th colspan="${gr.labels.length + 1}">Bench</th></tr>` + played.filter(r => !r.starter).map(row).join("") : played.map(row).join("")}
           ${gr.totals && gr.totals.some(Boolean) ? `<tr class="totals"><th>Team</th>${gr.totals.map(v => `<td>${esc(v)}</td>`).join("")}</tr>` : ""}</tbody></table></div>`; }).join("")}</div>`;
@@ -4218,7 +4244,7 @@ function infoHtml(g, lg){
   }
   if ((I.form || []).length) out += `<div class="bsec"><h3>Recent form</h3>${I.form.map(f => { const T = (g.teams || {})[f.team] || {}; return `<div class="form"><span class="fteam">${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</span>${f.results.map(r => `<i class="r${esc(r.r)}" title="${esc(r.score + " vs " + r.opp)}">${esc(r.r)}</i>`).join("")}</div>`; }).join("")}</div>`;
   if ((I.injuries || []).length) out += `<div class="bsec"><h3>Injuries</h3><div class="inj">${I.injuries.map(t => { const T = (g.teams || {})[t.team] || {};
-    return `<div><h4>${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</h4>${t.items.map(x => `<div class="irow"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(x.name)}</b> <small>${esc(x.pos)}</small><small>${esc(x.detail)}</small></div><em class="${/out|reserve/i.test(x.status) ? "out" : "q"}">${esc(x.status)}</em></div>`).join("")}</div>`; }).join("")}</div></div>`;
+    return `<div><h4>${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</h4>${t.items.map(x => `<div class="irow"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(x.name)}</b> <small>${esc(x.pos)}</small><small>${esc(x.detail)}</small></div><em class="${/out|reserve/i.test(x.status) ? "out" : "q"}">${esc(x.status)}</em></div>`).join("")}</div>`; }).join("")}</div></div>`;
   const when = g.date ? new Date(g.date) : null, facts = [
     when ? ["When", when.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })] : null,
     g.tv ? ["TV", g.tv] : null, I.venue ? ["Venue", I.venue + (I.city ? ", " + I.city : "")] : null, I.grass ? ["Surface", I.grass] : null,
@@ -4232,7 +4258,7 @@ function infoHtml(g, lg){
 }
 const LG_TEAMS = lg => ((SPORTS.leagues || {})[lg] || {}).teams || [];
 function newsList(items){
-  return `<div class="news">${items.map(n => `<a class="nitem" href="${esc(n.url || "#")}" target="_blank" rel="noopener">${n.img ? `<img src="${esc(n.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(n.title)}</b>${n.desc ? `<small>${esc(n.desc)}</small>` : ""}<em>${esc(ago(n.date))}</em></span></a>`).join("")}</div>`;
+  return `<div class="news">${items.map(n => `<a class="nitem" href="${esc(n.url || "#")}" target="_blank" rel="noopener">${n.img ? `<img src="${esc(n.img)}" alt="" loading="lazy" data-err="rm">` : ""}<span><b>${esc(n.title)}</b>${n.desc ? `<small>${esc(n.desc)}</small>` : ""}<em>${esc(ago(n.date))}</em></span></a>`).join("")}</div>`;
 }
 function ago(d){
   if (!d) return ""; const s = (Date.now() - new Date(d)) / 1000;
@@ -4297,18 +4323,26 @@ addEventListener("hashchange", handleHash);
 
 /* ---- league standings ---- */
 const STAND = {}, NEWS = {};
+// the pro leagues open on their divisions, with a switch to the conference (MLB: league) tables that decide seeds and wild cards
+const STAND_DIVS = ["nfl", "nba", "mlb", "nhl"], standView = lg => STAND_DIVS.includes(lg) ? lsGet("standView", "div") : "";
+async function loadStand(lg, view = standView(lg)){
+  const k = lg + (view ? ":" + view : "");
+  return STAND[k] = STAND[k] || await espnOr(() => ESPN_DIRECT.standings(lg, view), `${ALERTS_URL}/sports/${lg}/standings${view ? "?view=" + view : ""}`);
+}
 async function renderStandings(){
-  const lg = SPORT, el = $("#tt-stand");
-  if (!STAND[lg]) el.innerHTML = `<div class="teamnote">${cosmoLoad("Loading standings…")}</div>`;
-  try { STAND[lg] = STAND[lg] || await espnOr(() => ESPN_DIRECT.standings(lg), `${ALERTS_URL}/sports/${lg}/standings`); }
-  catch { el.innerHTML = `<div class="teamnote"><b>Couldn't load standings</b>ESPN didn't respond. Try again in a moment.</div>`; return; }
-  if (SPORT !== lg) return;
-  const S = STAND[lg], notes = new Map();
-  el.innerHTML = S.groups.map(gr => `<h3 class="sgname">${esc(gr.name)}</h3><div class="card tableCard"><div class="scroll"><table class="rank stand"><thead><tr><th>#</th><th>Team</th>${S.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>
+  const lg = SPORT, el = $("#tt-stand"), view = standView(lg), k = lg + (view ? ":" + view : "");
+  const seg = view ? `<div class="seg trseg standseg" role="group" aria-label="Standings view">${[["div", "Division"], ["conf", lg === "mlb" ? "League" : "Conference"]].map(([v, l]) => `<button type="button" data-sview="${v}" aria-pressed="${view === v}">${l}</button>`).join("")}</div>` : "";
+  const bindSeg = () => el.querySelectorAll("[data-sview]").forEach(b => b.onclick = () => { lsSet("standView", b.dataset.sview); renderStandings(); });
+  if (!STAND[k]){ el.innerHTML = seg + `<div class="teamnote">${cosmoLoad("Loading standings…")}</div>`; bindSeg(); }
+  try { await loadStand(lg, view); }
+  catch { el.innerHTML = seg + `<div class="teamnote"><b>Couldn't load standings</b>ESPN didn't respond. Try again in a moment.</div>`; bindSeg(); return; }
+  if (SPORT !== lg || standView(lg) !== view) return;
+  const S = STAND[k], notes = new Map();
+  el.innerHTML = seg + (view === "conf" ? `<p class="condNote">${lg === "mlb" ? "League" : "Conference"} standings decide playoff seeding and the wild cards.</p>` : "") + S.groups.map(gr => `<h3 class="sgname">${esc(gr.name)}</h3><div class="card tableCard"><div class="scroll"><table class="rank stand"><thead><tr><th>#</th><th>Team</th>${S.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>
     ${gr.rows.map((r, i) => { if (r.note) notes.set(r.note.text, r.note.color); return `<tr data-team="${esc(r.id)}" class="${isFav(lg, r.name) ? "favrow" : ""}"><td style="${r.note ? `box-shadow:inset 3px 0 0 ${esc(r.note.color)}` : ""}">${i + 1}</td><td><span class="tcell">${logoChip(r, "sm")}<b>${esc(r.short || r.name)}</b></span></td>${r.vals.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`; }).join("")}
     </tbody></table></div></div>`).join("") + (notes.size ? `<div class="snotes">${[...notes].map(([t, c]) => `<span><i style="background:${esc(c)}"></i>${esc(t)}</span>`).join("")}</div>` : "") +
     `<p class="condNote">Official standings from ESPN${S.season ? `, ${esc(S.season)}` : ""}. Tap a team for its schedule, roster and news.</p>`;
-  el.querySelectorAll("[data-team]").forEach(r => r.onclick = () => openTeam(lg, r.dataset.team));
+  el.querySelectorAll("[data-team]").forEach(r => r.onclick = () => openTeam(lg, r.dataset.team)); bindSeg();
 }
 /* ---- league news ---- */
 async function renderNews(){
@@ -4317,7 +4351,7 @@ async function renderNews(){
   try { NEWS[lg] = NEWS[lg] || await espnOr(() => ESPN_DIRECT.news(lg), `${ALERTS_URL}/sports/${lg}/news`); }
   catch { el.innerHTML = `<div class="teamnote"><b>Couldn't load news</b>ESPN didn't respond. Try again in a moment.</div>`; return; }
   if (SPORT !== lg) return;
-  el.innerHTML = `<div class="newsgrid">${NEWS[lg].map((n, i) => `<a class="ncard ${i === 0 ? "lead" : ""}" href="${esc(n.url || "#")}" target="_blank" rel="noopener">${n.img ? `<img src="${esc(n.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(n.title)}</b>${n.desc ? `<small>${esc(n.desc)}</small>` : ""}<em>${n.video ? "▶ Video · " : ""}${esc(ago(n.date))}</em></span></a>`).join("")}</div><p class="condNote">Stories from ESPN open on espn.com.</p>`;
+  el.innerHTML = `<div class="newsgrid">${NEWS[lg].map((n, i) => `<a class="ncard ${i === 0 ? "lead" : ""}" href="${esc(n.url || "#")}" target="_blank" rel="noopener">${n.img ? `<img src="${esc(n.img)}" alt="" loading="lazy" data-err="rm">` : ""}<span><b>${esc(n.title)}</b>${n.desc ? `<small>${esc(n.desc)}</small>` : ""}<em>${n.video ? "▶ Video · " : ""}${esc(ago(n.date))}</em></span></a>`).join("")}</div><p class="condNote">Stories from ESPN open on espn.com.</p>`;
 }
 
 /* ---- team pages ---- */
@@ -4325,8 +4359,8 @@ let TTAB = "schedule";
 async function resolveTeamId(lg, name){
   const k = tkey(name), rated = LG_TEAMS(lg).find(t => tkey(t.name) === k);
   if (rated && rated.espn_id) return rated.espn_id;
-  try { STAND[lg] = STAND[lg] || await espnOr(() => ESPN_DIRECT.standings(lg), `${ALERTS_URL}/sports/${lg}/standings`); } catch { return null; }
-  for (const gr of STAND[lg].groups) for (const r of gr.rows) if (tkey(r.name) === k || tkey(r.short) === k) return r.id;
+  let S; try { S = await loadStand(lg); } catch { return null; }
+  for (const gr of S.groups) for (const r of gr.rows) if (tkey(r.name) === k || tkey(r.short) === k) return r.id;
   return null;
 }
 async function openTeamByName(lg, name){ const id = await resolveTeamId(lg, name); if (id) openTeam(lg, id); else toast("Couldn't find that team's page"); }
@@ -4360,7 +4394,7 @@ async function openTeam(lg, id){
       const up = t.games.filter(x => x.state !== "post"), done = t.games.filter(x => x.state === "post").reverse();
       L.innerHTML = constellationHtml(t) + (up.length ? `<div class="pgrp">Coming up</div>${up.slice(0, 25).map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") + (done.length ? `<div class="pgrp">Results</div>${done.map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") || `<div class="teamnote">No games scheduled.</div>`;
     } else if (TTAB === "roster"){
-      L.innerHTML = t.roster.length ? (t.coach ? `<p class="bnote">Head coach: <b>${esc(t.coach)}</b></p>` : "") + t.roster.map(gr => `<div class="pgrp">${esc(gr.name)} <span>${gr.players.length}</span></div>${gr.players.map(p => `<div class="rrow"><span class="pchip" style="--tc:${esc(col)}">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span><div><b>${esc(p.name)}</b><small>${esc([p.jersey ? "#" + p.jersey : "", p.pos, p.age ? "Age " + p.age : "", p.ht, p.wt].filter(Boolean).join(" · "))}</small></div>${p.hurt ? `<em class="${/out|reserve/i.test(p.hurt) ? "out" : "q"}">${esc(p.hurt)}</em>` : ""}</div>`).join("")}`).join("") : `<div class="teamnote">No roster available.</div>`;
+      L.innerHTML = t.roster.length ? (t.coach ? `<p class="bnote">Head coach: <b>${esc(t.coach)}</b></p>` : "") + t.roster.map(gr => `<div class="pgrp">${esc(gr.name)} <span>${gr.players.length}</span></div>${gr.players.map(p => `<div class="rrow"><span class="pchip" style="--tc:${esc(col)}">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(p.name)}</b><small>${esc([p.jersey ? "#" + p.jersey : "", p.pos, p.age ? "Age " + p.age : "", p.ht, p.wt].filter(Boolean).join(" · "))}</small></div>${p.hurt ? `<em class="${/out|reserve/i.test(p.hurt) ? "out" : "q"}">${esc(p.hurt)}</em>` : ""}</div>`).join("")}`).join("") : `<div class="teamnote">No roster available.</div>`;
     } else {
       L.innerHTML = `<div class="teamnote">${cosmoLoad("Loading news…")}</div>`;
       try { const n = await espnOr(() => ESPN_DIRECT.news(lg, t.id), `${ALERTS_URL}/sports/${lg}/news?team=${t.id}`); if (TTAB === "news") L.innerHTML = n.length ? newsList(n) : `<div class="teamnote">No recent stories.</div>`; }
@@ -4524,12 +4558,36 @@ function gameBrief(g, lg){
   if (g.info?.venue) out.push(`Venue: ${g.info.venue}${g.info.city ? ", " + g.info.city : ""}.`);
   return out.join("\n");
 }
+// the game on screen goes to Ask as its FOCUS, with both teams' players and the initials fans use for them ("PCA")
+const nameInitials = n => String(n || "").replace(/\s+(Jr|Sr|II|III|IV)\.?$/i, "").split(/[\s-]+/).filter(w => /^\p{L}/u.test(w)).map(w => w[0].toUpperCase()).join("");
+let ROSTERS = null;
+async function loadRosters(){
+  if (ROSTERS) return ROSTERS;
+  try { const r = await fetch("rosters.json"); ROSTERS = r.ok ? (await r.json()).leagues || {} : {}; } catch { ROSTERS = {}; }
+  return ROSTERS;
+}
+async function gameFocus(g, lg){
+  const out = [gameBrief(g, lg)], T = side => (g[side] || {});
+  const person = (name, bits) => `${name} (${[...bits, nameInitials(name)].filter(Boolean).join(", ")})`;
+  const box = g.box?.players || [];
+  for (const side of ["away", "home"]){
+    const team = T(side), pt = box.find(p => String(p.team) === String(team.id)), seen = new Map();
+    for (const gr of pt?.groups || []) for (const r of gr.rows || []){ if (!r.name || seen.has(r.name)) continue;
+      const stats = (gr.labels || []).slice(0, 5).map((l, i) => r.stats?.[i] ? `${l} ${r.stats[i]}` : "").filter(Boolean).join(" ");
+      seen.set(r.name, person(r.name, [r.pos, stats && `${gr.name ? gr.name.toLowerCase() + ": " : ""}${stats}`])); }
+    if (!seen.size){                                          // before the game: the team's roster from the nightly file
+      const R = ((await loadRosters())[lg] || []), k = tkey(team.name || "");
+      for (const p of R) if (k && (tkey(p.team) === k || k.endsWith(" " + tkey(p.team)) || tkey(p.team).endsWith(" " + k)) && !seen.has(p.name)) seen.set(p.name, person(p.name, [p.pos, p.num ? "#" + p.num : ""]));
+    }
+    if (seen.size) out.push(`${team.name || side} players (name, position, stats, initials): ${[...seen.values()].slice(0, 45).join("; ")}.`);
+  }
+  return out.join("\n");
+}
 function askContext(){
   const out = [];
   const fav = Object.entries(FAV).filter(([, a]) => a.length).map(([lg, a]) => `${LG_NAME[lg] || lg}: ${a.map(k => (LG_TEAMS(lg).find(t => tkey(t.name) === k) || {}).name || k).join(", ")}`);
   out.push("Teams they follow: " + (fav.length ? fav.join("; ") : "none yet"));
   out.push("Screen they're on: " + (SPORT === "universe" ? "Today (all leagues)" : SPORT === "following" ? "Following" : SPORT === "tennis" ? "Tennis" : `${LG_NAME[SPORT]} (${TT})`));
-  if ($("#gameDlg").open && G_LAST) out.push(gameBrief(G_LAST[0], G_LAST[1]));
   const games = (UNI || []).length ? UNI : Object.entries(SB).flatMap(([lg, d]) => (d?.games || []).map(g => ({ ...g, lg })));
   const rows = games.slice(0, 60).map(g => {
     const p = g.pred || withSport(g.lg, () => { const H = findTeam(g.home.name), A = findTeam(g.away.name); return H && A ? teamPredict(H, A, g.neutral, g) : null; });
@@ -4570,8 +4628,8 @@ async function sendAsk(q){
   ASK.push({ role: "user", content: q.slice(0, 1000) }); const ans = { role: "assistant", content: "" }; ASK.push(ans);
   ASK_BUSY = true; renderAsk(); $("#askIn").value = "";
   try {
-    const r = await fetch(ALERTS_URL + "/ask", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: ASK.slice(0, -1).slice(-10), context: askContext() }) });
+    const r = await fetch(ALERTS_URL + "/ask", { method: "POST", headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}) },
+      body: JSON.stringify({ messages: ASK.slice(0, -1).slice(-10), context: askContext(), focus: $("#gameDlg").open && G_LAST ? await gameFocus(G_LAST[0], G_LAST[1]) : "" }) });
     if (!r.ok || !r.body){ const e = await r.json().catch(() => ({})); throw new Error(e.error || "unavailable"); }
     const rd = r.body.getReader(), dec = new TextDecoder(); let last = 0;
     for (;;){ const { value, done } = await rd.read(); if (done) break; ans.content += dec.decode(value, { stream: true });
@@ -4631,7 +4689,7 @@ async function renderLeaders(){
   const cards = LEADERS[lg].map(([pool, k, label, low]) => {
     const list = (d[pool] || []).filter(p => p.s && p.s[k] != null && p.s[k] !== "" && !isNaN(+p.s[k])).sort((a, b) => low ? a.s[k] - b.s[k] : b.s[k] - a.s[k]).slice(0, 5);
     if (!list.length) return "";
-    return `<section class="usec ldcard"><h3>${esc(label)}</h3>${list.map((p, i) => `<div class="ldrow ${i ? "" : "top"}" data-pid="${esc(p.id)}" role="button" tabindex="0"><span class="ldn">${i + 1}</span><img src="${esc(p.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span class="ldp"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${esc(p.pos)}</small></span><span class="ldv">${esc(String(fmt(k, p.s[k])))}</span></div>`).join("")}</section>`;
+    return `<section class="usec ldcard"><h3>${esc(label)}</h3>${list.map((p, i) => `<div class="ldrow ${i ? "" : "top"}" data-pid="${esc(p.id)}" role="button" tabindex="0"><span class="ldn">${i + 1}</span><img src="${esc(p.img)}" alt="" loading="lazy" data-err="hide"><span class="ldp"><b>${esc(p.name)}</b><small>${esc(p.team)} · ${esc(p.pos)}</small></span><span class="ldv">${esc(String(fmt(k, p.s[k])))}</span></div>`).join("")}</section>`;
   }).join("");
   el.innerHTML = `<div class="ldgrid">${cards || `<div class="teamnote">No leaders yet.</div>`}</div><p class="condNote">${esc(d.season || "")} season stats among the league's top players, updated every night.${SK(lg) === "nfl" ? (d.current === false ? " Last season's numbers until this season has a couple of games in." : d.games ? ` Through ${d.games} game${d.games === 1 ? "" : "s"} per team.` : "") : ""}</p>`;
 }
@@ -4650,7 +4708,7 @@ async function playerOpen(id){
   let hit = null; for (const [sp, pools] of Object.entries(SD.data.sports || {})) for (const [key, list] of Object.entries(pools)) if (Array.isArray(list)){ const p = list.find(x => x.id === id); if (p && !hit) hit = { sp, key, p }; }
   if (!hit) return toast("Couldn't find that player"); const { sp, key, p } = hit;
   const stats = Object.entries(p.s || {}).filter(([k, v]) => v != null && v !== "" && !(sp === "epl" && ((key === "attackers" && (k === "cs" || k === "sv")) || (key === "keepers" && (k === "g" || k === "a")))));
-  $("#infoBody").innerHTML = `<div class="plhead"><span class="plpic">${p.img ? `<img src="${esc(p.img)}" alt="" onerror="this.remove()">` : ""}<b>${esc(p.name.split(" ").map(w => w[0]).join("").slice(0, 2))}</b></span>
+  $("#infoBody").innerHTML = `<div class="plhead"><span class="plpic">${p.img ? `<img src="${esc(p.img)}" alt="" data-err="rm">` : ""}<b>${esc(p.name.split(" ").map(w => w[0]).join("").slice(0, 2))}</b></span>
       <div><h2 id="infoTitle">${esc(p.name)}</h2><p>${esc(p.team)} · ${esc(p.pos || "")} · ${esc(LEAGUE_LABEL[sp] || "")}</p><p class="plline">${esc(p.line || "")}</p></div></div>
     ${stats.length ? `<h3 class="plh">This season <small>${esc(SD.data.sports[sp]?.season || "")}</small></h3><div class="plstats">${stats.map(([k, v]) => `<span><b>${esc(statFmt(sp, k, v))}</b><small>${esc(STAT_LABEL[k] || k)}</small></span>`).join("")}</div>` : ""}
     <h3 class="plh">Among the league's best <small>percentile against the top players at the position, 60 to 99</small></h3>
@@ -4716,8 +4774,8 @@ function czCard(it, ed, big){
   return `<div class="czcard t-${esc(it.tier)} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
     <div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-foil"></div>
     <div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
-    <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="czFaceNext(this)">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
-      : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${esc(initials)}'}))">` : `<b>${esc(initials)}</b>`}</div>
+    <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
+      : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
     ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div>`;
 }
 // a player's photo: the one saved with the card, then the league's own photo by player id (older cards and players
@@ -4734,6 +4792,23 @@ function czFaces(it){
   }
   return [...new Set(out)];
 }
+// no inline handlers anywhere (the Content-Security-Policy blocks them): images say what to do if they fail with data-err,
+// buttons in markup built as text say what they do with data-ui
+document.addEventListener("error", e => { const t = e.target; if (!(t instanceof HTMLImageElement) || !t.dataset.err) return;
+  const k = t.dataset.err;
+  if (k === "rm") t.remove(); else if (k === "up") t.parentNode && t.parentNode.remove(); else if (k === "hide") t.style.visibility = "hidden";
+  else if (k === "logo"){ const sp = t.parentNode; if (sp){ sp.classList.add("txt"); sp.style.background = "#55656E"; sp.textContent = t.alt; } }
+  else if (k === "face") czFaceNext(t); else if (k === "ini") t.replaceWith(Object.assign(document.createElement("b"), { textContent: t.dataset.ini || "" }));
+}, true);
+document.addEventListener("click", e => { const b = e.target.closest("[data-ui]"); if (!b) return;
+  for (const k of b.dataset.ui.split(" ")){
+    if (k === "close") b.closest("dialog")?.close();
+    else if (k === "search") openSearch();
+    else if (k === "tour") maybeOnboard(true);
+    else if (k === "record"){ TR.lg = b.dataset.lg; setSport("record"); window.scrollTo({ top: 0 }); }
+    else if (k === "odds"){ setSport(b.dataset.lg); setTT("odds"); window.scrollTo({ top: 0 }); }
+  }
+});
 function czFaceNext(img){
   let rest = []; try { rest = JSON.parse(img.dataset.alt || "[]"); } catch {}
   if (rest.length){ img.dataset.alt = JSON.stringify(rest.slice(1)); img.src = rest[0]; return; }
@@ -4796,7 +4871,7 @@ function drawCosmic(){
   const tabs = [["home", "", "Home"], ["bet", "", "Bet"], ["battle", "", "Battles" + (nBat ? ` (${nBat})` : "")], ["mine", "", "My bets"], ["packs", "", "Packs"], ["market", "", "Market"], ["trades", "", "Trades" + (nIn ? ` (${nIn})` : "")], ["coll", "", "Collection"], ["check", "", "Checklist"], ["lb", "", "Leaders"]];
   el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</nav>`
     + ({ home: czHomeHtml, bet: czBetHtml, battle: czBattleHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, trades: czTradesHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)() + czParlayBar()
-    + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button></div>
+    + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · <button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="signoutall">Sign out everywhere</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button>${cmKey() ? ` · <button type="button" class="linkbtn" data-cz="inbox">Owner inbox</button>` : ""}</div>
       <details><summary>About Cosmic Coins</summary><p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed.${CZ.me.passkey ? " Your account, cards, followed teams, settings and picks are saved and follow you to any device where you sign in." : ""}</p></details></footer>`;
   czBind(el); czAnimBal(); czSeasonNote();
   const t = el.querySelector('.cztabs [aria-pressed="true"]'); if (t && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center" });
@@ -4884,6 +4959,7 @@ function czJoinHtml(){
   const ones = (CZ.preview || []).slice(0, 4);
   return `<section class="card czjoin"><h2>Join Cosmic</h2><p class="sub">Pick a name for the leaderboard. You start with ${czAmt(1000)} and can claim more every day.</p>
     <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button></form>
+    <p class="sub" style="margin:10px 0 0">This browser can't make passkeys, so this account plays without one: it stays off the leaderboards and weekly prizes and can't report players until you add a passkey from a phone or computer that supports them.</p>
     <p class="sub" style="margin:10px 0 0">Already playing on another device? <button type="button" class="linkbtn" data-cz="usekey">Use your Cosmic key</button></p></section>
     ${ones.length ? `<section class="card"><h2>In the vault</h2><p class="sub">Every team and every player in the NFL, NBA, MLB, NHL and Premier League, plus the top tennis players, in seven tiers from 1 of 1,000 to 1 of 1. Only one Singularity card of each will ever exist.</p><div class="czgrid">${ones.map(i => czCard(i)).join("")}</div></section>` : ""}`;
 }
@@ -4912,12 +4988,12 @@ function czPkErr(e){
 async function czPkCreate(name, link){
   const ch = await czApi("/pk/start", { kind: "reg", name, link, ref: link ? null : lsGet("cz-ref", null) });
   const c = await navigator.credentials.create({ publicKey: { challenge: b64uD(ch.challenge), rp: { name: "Cosmo Sports" }, user: { id: b64uD(ch.user.id), name: ch.user.name, displayName: ch.user.name },
-    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { residentKey: "required", requireResidentKey: true, userVerification: "preferred" }, attestation: "none", timeout: 120000 } });
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 120000 } });
   return czApi("/pk/register", { id: c.id, clientDataJSON: b64uE(c.response.clientDataJSON), attestationObject: b64uE(c.response.attestationObject) });
 }
 async function czPkLogin(){
   const ch = await czApi("/pk/start", { kind: "auth" });
-  const a = await navigator.credentials.get({ publicKey: { challenge: b64uD(ch.challenge), userVerification: "preferred", timeout: 120000 } });
+  const a = await navigator.credentials.get({ publicKey: { challenge: b64uD(ch.challenge), userVerification: "required", timeout: 120000 } });
   return czApi("/pk/login", { id: a.id, clientDataJSON: b64uE(a.response.clientDataJSON), authenticatorData: b64uE(a.response.authenticatorData), signature: b64uE(a.response.signature), userHandle: a.response.userHandle ? b64uE(a.response.userHandle) : null });
 }
 function czPkBind(el){
@@ -4928,6 +5004,24 @@ function czPkBind(el){
   el.querySelectorAll("[data-czpk=link]").forEach(b => b.onclick = () => run(b, () => czPkCreate("", true)));
   el.querySelectorAll("[data-czpk=add]").forEach(b => b.onclick = async () => { try { await czPkCreate("", true); toast("Passkey added on this device"); } catch (e) { toast(czPkErr(e)); } });
   const f = el.querySelector("form[data-czpk=new]"); if (f) f.onsubmit = e => { e.preventDefault(); P.name = f.name.value.trim(); P.newOpen = true; run(f.querySelector("button"), () => czPkCreate(P.name, false)); };
+}
+// ---- the owner's inbox: reports wait here for review (nothing is renamed automatically) and support messages are kept 180 days
+async function czInbox(){
+  const H = { "X-Owner-Key": cmKey() }; let d;
+  try { d = await czApi("/owner/inbox", undefined, { headers: H }); } catch (e) { toast(e.message); return; }
+  const open = d.reports.filter(r => !r.done), by = {};
+  for (const r of open) (by[r.name.toLowerCase()] ||= { name: r.name, n: 0, counted: 0, why: [] }), by[r.name.toLowerCase()].n++, r.counts && by[r.name.toLowerCase()].counted++, r.reason && by[r.name.toLowerCase()].why.push(r.reason);
+  const rows = Object.values(by).sort((a, b) => b.counted - a.counted || b.n - a.n);
+  const when = t => new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">Owner inbox</h2>
+    <h3 class="czinh">Reported names</h3>${rows.length ? rows.map(r => `<div class="czinrow"><div><b>${esc(r.name)}</b><small>${r.n} report${r.n === 1 ? "" : "s"} · ${r.counted} from established passkey accounts${r.why.length ? ` · “${esc(r.why.slice(0, 3).join("”, “"))}”` : ""}</small></div><span><button class="btn" type="button" data-inr="${esc(r.name)}">Rename</button><button class="btn" type="button" data-ind="${esc(r.name)}">Dismiss</button></span></div>`).join("") : `<p class="sub">No reports waiting.</p>`}
+    <h3 class="czinh">Support messages</h3><p class="sub">Kept ${d.supportDays || 180} days, and deleted with the sender's account. Clear each one once it's handled.</p>${d.support.length ? d.support.map(m => `<div class="czinrow"><div><b>${esc(m.name || "Visitor")}</b> <small>${esc(when(m.at))}${m.contact ? ` · ${esc(m.contact)}` : ""}</small><p>${esc(m.message)}</p></div><span><button class="btn" type="button" data-ins="${esc(m.id || String(m.at))}">Clear</button></span></div>`).join("") : `<p class="sub">No messages.</p>`}
+    <div class="pkfoot"><button class="btn primary" type="button" data-info="close">Done</button></div>`;
+  const act = async (path, body, msg) => { try { await czApi(path, body, { headers: H }); toast(msg); czInbox(); } catch (e) { toast(e.message); } };
+  $("#infoBody").querySelectorAll("[data-inr]").forEach(b => b.onclick = () => confirm(`Replace the name "${b.dataset.inr}" with a random "Player" name?`) && act("/owner/review", { name: b.dataset.inr, action: "rename" }, "Name replaced"));
+  $("#infoBody").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => act("/owner/review", { name: b.dataset.ind, action: "dismiss" }, "Reports dismissed"));
+  $("#infoBody").querySelectorAll("[data-ins]").forEach(b => b.onclick = () => act("/owner/support/delete", { id: b.dataset.ins }, "Message cleared"));
+  if (!$("#infoDlg").open) $("#infoDlg").showModal();
 }
 // ---- report and block: tap any player's name on the leaderboard, the Market or the feed
 const czBlocked = () => lsGet("cz-blocked", []);
@@ -4945,7 +5039,7 @@ function czWho(name){
     const a = b.dataset.whoact;
     if (a === "block"){ const L = czBlocked().filter(n => n !== name); if (!blocked) L.push(name); lsSet("cz-blocked", L); $("#infoDlg").close(); toast(blocked ? `${name} unblocked` : `${name} blocked. You won't see them in Cosmic.`); await czLoad(["lb", "market"]); drawCosmic(); return; }
     if (a === "report"){ const why = prompt(`Why are you reporting "${name}"? (optional)`, ""); if (why === null) return;
-      try { await czApi("/report", { name, reason: why }); toast("Thanks. We'll review it, and the name is replaced if several players report it."); } catch (e) { toast(e.message); } }
+      try { await czApi("/report", { name, reason: why }); toast("Thanks. The site's owner reviews every report and replaces names that break the rules."); } catch (e) { toast(e.message); } }
     $("#infoDlg").close();
   });
   $("#infoDlg").showModal();
@@ -5067,8 +5161,10 @@ async function czDeleteAccount(){
   lsSet("cz-auth", ""); lsSet("cz-synced", ""); lsSet("cz-lastname", ""); CZ.me = null; CZ.syncOn = false; CZ.pk = {}; drawCosmic(); drawGate();
   toast("Your account was deleted. You can remove its passkey in your device's password settings.");
 }
-async function czSignOut(){
-  await czSyncPush(true); lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; CZ.pk = {}; drawCosmic(); drawGate();
+async function czSignOut(all){
+  await czSyncPush(true);
+  try { await czApi("/signout", { all: !!all }); } catch (e) { if (all){ toast("Couldn't reach Cosmo Sports to sign out your other devices. Try again."); return; } }
+  lsSet("cz-auth", ""); lsSet("cz-synced", ""); CZ.me = null; CZ.syncOn = false; CZ.pk = {}; drawCosmic(); drawGate();
 }
 // ---- your data follows your account: followed teams, settings and picks
 const CZ_SYNC_LS = ["picks", "daily", "duels", "spoil", "sounds", "startSport", "voiceKind", "voiceRate", "rankView", "onboarded"];
@@ -5120,7 +5216,7 @@ function czPropsHtml(m){
   const P = m.props || []; if (!P.length) return "";
   const open = new Set((CZ.me.bets || []).filter(b => !b.res && b.prop).map(b => b.gid + "/" + b.prop.key + "/" + b.side));
   const pb = (pr, side, lab) => `<button type="button" class="czpp ${open.has(m.gid + "/" + pr.key + "/" + side) ? "on" : ""}" data-czprop="${m.lg}|${esc(m.gid)}|${esc(pr.key)}|${side}"><span>${lab}</span><b>${czPrice(pr.dec[side])}</b></button>`;
-  return `<details class="czprops"><summary>Player props · ${P.length}</summary>${P.map(pr => `<div class="czprop">${pr.img ? `<img src="${esc(pr.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}
+  return `<details class="czprops"><summary>Player props · ${P.length}</summary>${P.map(pr => `<div class="czprop">${pr.img ? `<img src="${esc(pr.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="rm">` : ""}
     <div><b>${esc(pr.player)}</b><small>${esc(pr.kind === "yes" ? (pr.what === "home run" ? "Hits a home run" : "Scores a goal") : `${pr.what[0].toUpperCase() + pr.what.slice(1)} · averages ${pr.avg}`)}</small></div>
     <div class="czpps">${pr.kind === "yes" ? pb(pr, "yes", "Yes") : pb(pr, "over", "Over " + pr.line) + pb(pr, "under", "Under " + pr.line)}</div></div>`).join("")}</details>`;
 }
@@ -5192,7 +5288,7 @@ function czVaultHtml(){
   const tile = i => { const left = i.supply - i.minted, own = mine.has(i.id);
     return `<div class="czitem">${i.minted > 0 && !own ? `<button type="button" class="czown czopen-o" data-czcard="${esc(i.id)}" data-n="0" aria-label="See who owns ${esc(i.name)} and trade">${czCard(i)}</button>` : czCard(i)}<div class="czinfo"><span class="czleft">${left <= 0 ? (i.owner ? `Owned by ${esc(i.owner)}` : "All pulled") : i.supply === 1 ? "Only one exists" : `${left} of ${i.supply} left`}</span>
       ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Shop value ${czAmt(i.value || i.price)}</span>`}</div></div>`; };
-  return `<div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
+  return `<p class="sub czvnote">Every team and player comes in seven tiers. A Comet card has 1,000 numbered copies, a Pulsar 100, and so on down to a Singularity, the only tier with just one copy. The rarest are listed first.</p><div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams"], ["player", "Players"]].map(([k, l]) => `<button type="button" data-czvk="${k}" aria-pressed="${(CZ.vkind || "all") === k}">${l}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Tier">${["all", ...V.tiers.map(t => t.id)].map(t => `<button type="button" data-czvt="${t}" aria-pressed="${CZ.vtier === t}">${t === "all" ? "Every tier" : `${CZ_TIER_NAME[t]} 1/${V.tiers.find(x => x.id === t).supply}`}</button>`).join("")}</div>
     <input class="field czq" type="search" placeholder="Find a team or player" value="${esc(CZ.vq)}" data-czq></div>
@@ -5248,14 +5344,14 @@ async function czHistory(id, n){
   try { const d = await czApi("/card/" + encodeURIComponent(id)); owners = d.owners; V = d.item; } catch {}
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
-  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${esc(CZ_TIER_NAME[it.tier] || "")} · ${own ? `${n}/${it.supply}` : it.supply === 1 ? "only 1 exists" : `${it.supply} exist`}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+  $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
     <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
     ${lv > 1 || V ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
     ${!own ? "" : `<div class="czsell">${it.auction ? `<p>Up for auction. Follow it in Market, Auctions.</p>` : it.listed ? `<p>On the market. <button type="button" class="btn" data-czact="unlist">Take it off the market</button></p>` : `
       <div><b>Sell to the shop</b><small>Coins right away. The copy goes back into packs.</small><button type="button" class="btn" data-czact="shop" ${shop ? "" : "disabled"}>Sell for ${shop ? czAmt(shop) : "…"}</button></div>
-      <div><b>Sell to other players</b><small>Set your price. Buyers pay you, less a 5% market fee.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
-      <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (less 5%). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
-    ${owners.length ? `<h3 class="plh">Who owns the ${it.supply === 1 ? "card" : "copies"}</h3><div class="czown-list">${owners.slice().sort((a, b) => a.n - b.n).map(o => `<div><b>${o.n}/${it.supply}</b><span>${esc(o.name)}</span><small>${esc(new Date(o.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small>${o.uid !== CZ.me.uid && !own ? `<button type="button" class="btn czbuy" data-cztrade="${esc(o.name)}">Trade</button>` : ""}</div>`).join("")}</div>` : `<p class="sub">Nobody owns a copy yet.</p>`}
+      <div><b>Sell to other players</b><small>Set your price. You get it minus 5%, which is retired (taken out of the game) to keep card prices steady.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
+      <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (you get it minus the 5% that's retired). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
+    ${owners.length ? `<h3 class="plh">Who owns the ${it.supply === 1 ? "card" : "copies"}</h3>${it.supply > 1 ? `<p class="sub czlvnote">Each copy has its own serial number, from #1 to #${it.supply.toLocaleString()}. It's not how many someone owns.</p>` : ""}<div class="czown-list">${owners.slice().sort((a, b) => a.n - b.n).map(o => `<div class="${o.uid === CZ.me.uid ? "me" : ""}"><b>${it.supply === 1 ? "1 of 1" : `#${o.n} <small>of ${it.supply.toLocaleString()}</small>`}</b><span>${esc(o.name)}</span><small>${esc(new Date(o.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small>${o.uid !== CZ.me.uid && !own ? `<button type="button" class="btn czbuy" data-cztrade="${esc(o.name)}">Trade</button>` : ""}</div>`).join("")}</div>` : `<p class="sub">Nobody owns a copy yet.</p>`}
     <p class="czerr" id="czErr" role="alert"></p><div class="pkfoot"><small>Worth about ${czAmt(value || 0)} in the shop's book.</small>${own ? `<button class="btn" type="button" data-czshare>Share image</button>` : ""}<button class="btn primary" type="button" data-info="close">Close</button></div>`;
   const body = $("#infoBody"), done = (msg, r) => { if (r && r.user) CZ.me = r.user; $("#infoDlg").close(); toast(msg); drawCosmic(); czLoad(["vault", "market"]); };
   const fail = e => { $("#czErr").textContent = e.message; };
@@ -5298,12 +5394,13 @@ function czMarketHtml(){
   const own = all.filter(l => l.uid === CZ.me.uid), rest = all.filter(l => l.uid !== CZ.me.uid).sort(CZ.msort === "cheap" ? (a, b) => a.price - b.price : CZ.msort === "rare" ? (a, b) => a.supply - b.supply || a.price - b.price : (a, b) => b.at - a.at);
   const tile = (l, you) => `<div class="czitem">${czCard({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n)}<div class="czinfo"><span class="czleft">${you ? "Your listing" : `Sold by ${czWhoBtn(l.seller, "in")}`}</span>
     ${you ? `<button type="button" class="btn czbuy" data-czunl="${esc(l.lid)}">Remove · ${czAmt(l.price)}</button>` : `<button type="button" class="btn ${mine.has(l.id) || czBal() < l.price ? "" : "primary"} czbuy" data-czbl="${esc(l.lid)}" ${mine.has(l.id) ? "disabled" : ""}>${mine.has(l.id) ? "You own one" : czAmt(l.price)}</button>`}</div></div>`;
-  return seg + `<p class="sub">Cards other collectors are selling. Sellers set the price, and ${Math.round(M.fee * 100)}% of each sale is a market fee. To sell or auction a card, open it in your Collection.</p>
+  return seg + `<p class="sub">Cards other collectors are selling. Sellers set the price. ${Math.round(M.fee * 100)}% of each sale is retired: those coins leave the game for good (nobody receives them), which keeps free daily coins from pushing card prices ever higher. To sell or auction a card, open it in your Collection.</p>
     <div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czmlg="${l}" aria-pressed="${mlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <input class="field czq" type="search" placeholder="Find a team or player" value="${esc(CZ.mq || "")}" data-czmq>
     <div class="seg trseg" role="group" aria-label="Sort">${[["new", "Newest"], ["cheap", "Cheapest"], ["rare", "Rarest"]].map(([k, l]) => `<button type="button" data-czms="${k}" aria-pressed="${(CZ.msort || "new") === k}">${l}</button>`).join("")}</div>
     ${own.length ? `<section class="card"><h2>Your listings</h2><div class="czgrid">${own.map(l => tile(l, true)).join("")}</div></section>` : ""}
-    ${rest.length ? `<div class="czgrid">${rest.slice(0, 96).map(l => tile(l, false)).join("")}</div>` : `<div class="teamnote"><b>Nothing for sale${CZ.vlg === "all" ? "" : " here"} yet</b>List a card from your Collection and it shows up here for everyone.</div>`}`;
+    ${own.length ? `<h2 class="czmh">From other collectors</h2>` : ""}
+    ${rest.length ? `<div class="czgrid">${rest.slice(0, 96).map(l => tile(l, false)).join("")}</div>` : own.length ? `<div class="teamnote"><b>No one else is selling${(CZ.mlg || "all") === "all" ? "" : " here"} yet</b>Other players' cards show up here as soon as they list them.</div>` : `<div class="teamnote"><b>Nothing for sale${(CZ.mlg || "all") === "all" ? "" : " here"} yet</b>List a card from your Collection and it shows up here for everyone.</div>`}`;
 }
 function czLbHtml(){
   const L = CZ.lb; if (!L) return `<div class="teamnote">${cosmoLoad("Loading the leaderboard…")}</div>`;
@@ -5645,6 +5742,8 @@ function czBind(el){
     const k = b.dataset.cz;
     if (k === "daily"){ try { const r = await czApi("/daily", {}); CZ.me = r.user; sfx("win"); toast(`+${r.amount} Cosmic Coins${r.user.streak > 1 ? ` · ${r.user.streak}-day streak` : ""}`); drawCosmic(); czLoad(["lb"]); remSchedule(); if (r.user.streak >= 3) askReview(1500); } catch (e) { toast(e.message); } }
     if (k === "signout"){ if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSignOut(); return; }
+    if (k === "signoutall"){ if (!confirm("Sign out everywhere? Every phone and computer signed in to your account, this one included, is signed out, and any copy of your account key stops working. Sign back in with your passkey.")) return; await czSignOut(true); toast("Signed out everywhere"); return; }
+    if (k === "inbox"){ czInbox(); return; }
     if (k === "owner"){                                               // the site owner's testing switch, unlocked with the Comets writer key
       let key = cmKey();
       if (!key && !CZ.me.tester){ key = (prompt("Owner only: paste your owner key (the COMETS_KEY you set up for Comets) to give this account unlimited coins for testing.") || "").trim(); if (!key) return; }
@@ -5655,7 +5754,9 @@ function czBind(el){
     if (k === "delacct"){ czDeleteAccount(); return; }
     if (k === "season"){ czSeasonDlg(); if (!CZ.lb) czLoad(["lb"]); return; }
     if (k === "vmore"){ b.disabled = true; try { await czVault(true); } catch (e) { toast(e.message); } drawCosmic(); }
-    if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your Cosmic key</h2><p class="sub">This key is your account. Paste it into Cosmic on another device, or on the site's new address if it moves, to sign in there, then add a passkey. Keep it private: anyone with it can spend your coins.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
+    if (k === "key"){ $("#infoBody").innerHTML = `<h2 id="infoTitle">Your account key</h2><p class="czwarn" role="note"><b>This key works like a password.</b> Anyone who has it can use your account and spend your coins. Never share it or post it anywhere, and nobody from Cosmo Sports will ever ask for it.</p><p class="sub">Paste it into Cosmic on another device to sign in there, then add a passkey. If someone else may have seen it, make a new one: the old key stops working and your other devices are signed out.</p><textarea class="field czkey" readonly>${esc(czKey())}</textarea><div class="pkfoot"><button class="btn" type="button" data-cz="newkey">Make a new key</button><button class="btn" type="button" id="czCopy">Copy</button><button class="btn primary" type="button" data-info="close">Done</button></div>`;
+      $("#infoBody [data-cz=newkey]").onclick = async () => { if (!confirm("Make a new account key? Your old key stops working and every other device is signed out. Devices with your passkey can sign back in.")) return;
+        try { const r = await czApi("/key/new", {}); lsSet("cz-auth", r.auth); $("#infoBody textarea").value = r.auth; toast("New key made. Your other devices are signed out."); } catch (e) { toast(e.message); } };
       $("#czCopy").onclick = async () => { try { await navigator.clipboard.writeText(czKey()); toast("Key copied"); } catch { $("#infoBody textarea").select(); } }; $("#infoDlg").showModal(); }
     if (k === "usekey"){ const v = (prompt("Paste your Cosmic key") || "").trim(); if (!/^[a-f0-9]{24}\.[a-f0-9]{64}$/i.test(v)) { if (v) toast("That doesn't look like a Cosmic key"); return; }
       lsSet("cz-auth", v); CZ.me = null; await czLoad(["me"]); toast(CZ.me ? `Signed in as ${CZ.me.name}` : "That key didn't work"); drawCosmic(); drawGate(); }
@@ -5672,8 +5773,11 @@ const cmApi = async (path, opt = {}) => {
 async function loadComets(){
   if (!ALERTS_URL){ CM.loaded = true; return; }
   try { const d = await cmApi("/comets?t=" + Math.floor(Date.now() / 30000)); CM.list = d.posts || []; lsSet("comets-cache", CM.list.slice(0, 50)); CM.err = false; } catch { CM.err = true; }
-  CM.loaded = true; if (SPORT === "comets") drawComets(); else if (SPORT === "universe") try { drawUniverse(); } catch {}
+  CM.loaded = true; cmChip(); if (SPORT === "comets") drawComets(); else if (SPORT === "universe") try { drawUniverse(); } catch {}
 }
+// the Comets chip shows once there's an article to read (always for the writer)
+function cmChip(){ const c = $("#cometsChip"); if (c) c.hidden = !CM.list.length && !cmKey() && !(CM.loaded && CM.err && SPORT === "comets"); }
+cmChip();
 // a small, safe Markdown: everything is escaped first, then headings, bold, italics, links, images, lists, quotes and rules
 function cmMd(src){
   const inline = s => esc(s)
@@ -5850,15 +5954,16 @@ function trBind(el){
   }));
 }
 function drawComets(){
+  cmChip();
   const el = $("#cometsView"); if (!el) return; const writer = !!cmKey();
   const head = `<div class="lghead"><div><h1>Comets</h1><p>Articles and takes from Cosmo Sports.</p></div>${writer && !CM.edit ? `<button class="btn primary" type="button" data-cm="new">New article</button>` : ""}</div>`;
   if (CM.edit){ el.innerHTML = head + cmEditorHtml(); cmBindEditor(el); return; }
   if (CM.cur){ el.innerHTML = head + cmReaderHtml(); cmBind(el); return; }
   const list = CM.list;
   el.innerHTML = head + (list.length ? `<div class="cmlist">${list.map((p, i) => `<button type="button" class="cmcard ${i === 0 ? "lead" : ""}" data-cmopen="${esc(p.id)}">
-      ${p.cover ? `<span class="cmimg"><img src="${esc(p.cover)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></span>` : ""}
+      ${p.cover ? `<span class="cmimg"><img src="${esc(p.cover)}" alt="" loading="lazy" data-err="up"></span>` : ""}
       <span class="cmtext">${p.tag ? `<em>${esc(p.tag)}</em>` : ""}<b>${esc(p.title)}</b><small>${esc(p.excerpt || "")}</small><i>${esc(cmDate(p.at))} · ${cmMins(p.words)} min read</i></span></button>`).join("")}</div>`
-    : `<div class="teamnote">${!CM.loaded ? cosmoLoad("Loading Comets…") : CM.err ? "<b>Couldn't load Comets</b>Check your connection and try again." : writer ? "<b>No articles yet</b>Tap New article to write the first one." : "<b>No articles yet</b>New articles will show up here, and you'll get an alert if notifications are on."}</div>`)
+    : `<div class="teamnote">${!CM.loaded ? cosmoLoad("Loading Comets…") : CM.err ? "<b>Couldn't load Comets</b>Check your connection and try again." : writer ? "<b>No articles yet</b>Tap New article to write the first one." : "<b>The first article is coming soon</b>Comets is where Cosmo Sports publishes articles and takes: previews, recaps and what the model sees. New ones show up here and on Today, and you'll get an alert if notifications are on."}</div>`)
     + `<p class="cmfoot">${writer ? `You're signed in as the writer on this device. <button type="button" class="linkbtn" data-cm="signout">Sign out</button>` : `<button type="button" class="linkbtn" data-cm="signin">Writer sign-in</button>`}</p>`;
   cmBind(el);
 }
@@ -5868,7 +5973,7 @@ function cmReaderHtml(){
   const words = p.body.split(/\s+/).length;
   return `<article class="cmart"><button type="button" class="btn cmback" data-cm="back">‹ All articles</button>
     ${p.tag ? `<em class="cmtag">${esc(p.tag)}</em>` : ""}<h1>${esc(p.title)}</h1><p class="cmmeta">${esc(cmDate(p.at))}${p.updated ? ` · updated ${esc(cmDate(p.updated))}` : ""} · ${cmMins(words)} min read</p>
-    ${p.cover ? `<img class="cmcover" src="${esc(p.cover)}" alt="" onerror="this.remove()">` : ""}
+    ${p.cover ? `<img class="cmcover" src="${esc(p.cover)}" alt="" data-err="rm">` : ""}
     <div class="cmbody">${cmMd(p.body)}</div>
     <div class="cmacts"><button class="btn" type="button" data-cm="share">Share</button>${cmKey() ? `<button class="btn" type="button" data-cm="edit">Edit</button><button class="btn" type="button" data-cm="delete">Delete</button>` : ""}</div></article>`;
 }
@@ -6081,7 +6186,7 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-cosmic3";
+const NEW_V = "2026-09-review1";
 function maybeWhatsNew(){
   if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
@@ -6176,7 +6281,7 @@ function starOfGame(g){
 }
 function starHtml(g, lg){
   const s = starOfGame(g); if (!s) return "";
-  return `<div class="sotg" style="--tc:${tcolor(s.team, "#B98BFF")}"><span class="sotg-ph">${s.photo ? `<img src="${esc(s.photo)}" alt="" loading="lazy" onerror="this.remove()">` : ""}${logoChip(s.team, "", lg)}</span>
+  return `<div class="sotg" style="--tc:${tcolor(s.team, "#B98BFF")}"><span class="sotg-ph">${s.photo ? `<img src="${esc(s.photo)}" alt="" loading="lazy" data-err="rm">` : ""}${logoChip(s.team, "", lg)}</span>
     <div><small>Player of the game${g.status?.state === "in" ? " so far" : ""}</small><b>${esc(s.name)}</b><span>${esc([s.cat, s.value].filter(Boolean).join(" · "))}</span></div></div>`;
 }
 
@@ -6219,7 +6324,7 @@ function forecastHtml(){
     return `<button type="button" class="fcrow" data-lg="${g.lg}" data-id="${esc(g.id)}"><span>${LG_ICON[g.lg] || ""}</span>${logoChip(T, "", g.lg)}<span class="fct"><b>${esc(T.short || T.name)}</b><small>${s === "home" ? "vs" : "at"} ${esc(O.short || O.name)} · ${note || esc(new Date(g.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}</small></span><em>${Math.round(pr * 100)}%</em></button>`; };
   const upsets = pre.filter(g => { const h = ml(g.odds?.homeML), a = ml(g.odds?.awayML); return h != null && a != null && (h > a ? "home" : "away") !== fav(g)[0] && Math.abs(g.pred.home - g.pred.away) > .03; }).slice(0, 3);
   const locks = pre.filter(g => !upsets.includes(g) && fav(g)[1] >= .58).sort((a, b) => fav(b)[1] - fav(a)[1]).slice(0, 3);
-  const flips = pre.filter(g => g.pred.draw == null && Math.abs(g.pred.home - g.pred.away) < .06 && !locks.includes(g)).slice(0, 3);
+  const flips = pre.filter(g => g.pred.draw == null && Math.abs(g.pred.home - g.pred.away) < .06 && !locks.includes(g) && !upsets.includes(g)).slice(0, 3);   // each game in one list only
   return `<section class="usec forecast"><h3>Model picks <small>today's games</small></h3>
     <h4>Strongest picks</h4>${locks.length ? locks.map(g => row(g)).join("") : `<p class="fcnone">No strong favorites today.</p>`}
     ${upsets.length ? `<h4>Model vs. market <small>the betting favorite is the other team</small></h4>${upsets.map(g => row(g, "market favors opponent")).join("")}` : ""}
@@ -6366,9 +6471,15 @@ function stakesHtml(){
   const d0 = new Date(), iso = x => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`, today = iso(d0), tmw = iso(new Date(d0.getTime() + 864e5));
   const list = Object.entries(SIM.data.leagues || {}).flatMap(([lg, L]) => (L.big || []).filter(b => b.date === today || b.date === tmw).map(b => ({ lg, ...b }))).sort((a, b) => b.swing - a.swing).slice(0, 4);
   if (!list.length) return "";
-  return `<section class="usec"><h3>Most at stake <small>playoff races, from 10,000 simulated seasons</small></h3><div class="ulist">${list.map(b => `<button type="button" class="stkrow" onclick="setSport('${b.lg}');setTT('odds');window.scrollTo({top:0})">
+  return `<section class="usec"><h3>Most at stake <small>playoff races, from 10,000 simulated seasons</small></h3><div class="ulist">${list.map(b => `<button type="button" class="stkrow" data-ui="odds" data-lg="${b.lg}">
     <span class="stkt">${logoChip(simTeam(b.lg, b.a), "sm", b.lg)}<b>${esc(simShort(b.lg, b.a))}</b><span class="muted">at</span>${logoChip(simTeam(b.lg, b.h), "sm", b.lg)}<b>${esc(simShort(b.lg, b.h))}</b><em>${esc(LEAGUE_LABEL[b.lg] === "Premier League" ? "EPL" : LEAGUE_LABEL[b.lg])}${b.date === tmw ? " · tomorrow" : ""}</em></span>
-    <small>${b.lg === "epl" ? "" : `${esc(simShort(b.lg, b.a))} ${oddsPct(b.a_if_win)} or ${oddsPct(b.a_if_loss)} · ${esc(simShort(b.lg, b.h))} ${oddsPct(b.h_if_win)} or ${oddsPct(b.h_if_loss)} to make the playoffs, win or lose`}</small></button>`).join("")}</div></section>`;
+    <small>${b.lg === "epl" ? "" : stakeLine(b)}</small></button>`).join("")}</div></section>`;
+}
+// "Cubs 71% or 58% · Twins out of the race": a team the simulation has no playoff odds for is out of it
+function stakeLine(b){
+  const T = [[b.a, b.a_if_win, b.a_if_loss], [b.h, b.h_if_win, b.h_if_loss]], out = ([, w, l]) => !(w > 0) && !(l > 0);
+  const live = T.filter(t => !out(t)).map(([n, w, l]) => `${esc(simShort(b.lg, n))} ${oddsPct(w)} or ${oddsPct(l)}`), gone = T.filter(out).map(([n]) => `${esc(simShort(b.lg, n))} out of the race`);
+  return [live.length ? live.join(" · ") + " to make the playoffs, win or lose" : "", ...gone].filter(Boolean).join(" · ");
 }
 function drawUniverse(){
   const el = $("#uniView"); if (!el) return;
@@ -6502,7 +6613,7 @@ function openSearch(){
   out.onclick = e => { const b = e.target.closest("[data-lg]"); if (!b) return; if (e.target.closest("[data-favs]")){ toggleFav(b.dataset.lg, b.dataset.name); draw(); if (SPORT === "following") renderFollowing(); return; } dlg.close(); openTeamByName(b.dataset.lg, b.dataset.name); };
   if (!dlg.open) dlg.showModal(); setTimeout(() => inp.focus(), 50);
 }
-$("#gameDlg").addEventListener("close", () => { if (LISTEN.key) listenStop(); if (/^#game=/.test(location.hash)) history.replaceState(null, "", APP_URL()); clearInterval(gTimer); gTimer = null; document.querySelectorAll("#gameDlg video").forEach(v => v.pause()); SCENE_VIDEO = null; });
+$("#gameDlg").addEventListener("close", () => { document.body.classList.remove("vplay"); if (LISTEN.key) listenStop(); if (/^#game=/.test(location.hash)) history.replaceState(null, "", APP_URL()); clearInterval(gTimer); gTimer = null; document.querySelectorAll("#gameDlg video").forEach(v => v.pause()); SCENE_VIDEO = null; });
 $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $("#gameDlg").close(); });
 
 /* ---------- phone app feel: one bottom bar, a league strip, sticky section tabs, swipes and pull to refresh ---------- */
@@ -6548,7 +6659,7 @@ function refreshView(){
     if (SPORT === "comets") return loadComets();
     if (SPORT === "tennis") return location.reload();
     if (TT === "games"){ SB[SPORT] = null; return renderGames(); }
-    if (TT === "stand"){ delete STAND[SPORT]; return renderStandings(); }
+    if (TT === "stand"){ for (const k of Object.keys(STAND)) if (k === SPORT || k.startsWith(SPORT + ":")) delete STAND[k]; return renderStandings(); }
     if (TT === "news"){ delete NEWS[SPORT]; return renderNews(); }
     setTT(TT);
   } catch (e) { console.warn(e); }
@@ -6604,8 +6715,8 @@ if (HOSTED && !NATIVE){
   });
 }
 buildSide("a"); buildSide("b");
-renderFeed();
-{ const q = new URLSearchParams(location.search);
+function tennisInit(){                                   // once the ratings are here: the tour, and any players, surface or event in the link
+  const q = new URLSearchParams(location.search);
   const t0 = q.get("tour") === "wta" || q.get("tour") === "atp" ? q.get("tour") : location.hash === "#wta" ? "wta" : location.hash === "#atp" ? "atp" : SET.tour;
   setTour(t0);
   const qa = q.get("a"), qb = q.get("b");
@@ -6613,6 +6724,10 @@ renderFeed();
   if (SURF.includes(q.get("s"))){ st.surface = q.get("s"); document.querySelectorAll("[data-s]").forEach(x => x.setAttribute("aria-pressed", x.dataset.s === st.surface)); }
   if (q.get("ev") === "slam") setEvent(true);
   update();
+}
+renderFeed();
+{ const q = new URLSearchParams(location.search);
+  if (TENNIS_READY) tennisInit();
   warpIntro();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play", "comets", "record", "cosmic"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);

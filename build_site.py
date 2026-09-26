@@ -72,7 +72,7 @@ self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Pr
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
-  const data = url.origin === location.origin && (url.pathname.match(/(live|scores|allstars|models|track|sim)\\.json$/) || [])[0];
+  const data = url.origin === location.origin && (url.pathname.match(/(live|scores|allstars|models|track|sim|tennis)\\.json$/) || [])[0];
   if (url.origin === location.origin && (e.request.mode === "navigate" || data || url.pathname.endsWith("index.html"))) {
     // fresh first: new scores and nightly ratings win, the cached copy is the offline fallback
     e.respondWith(fetch(e.request, { cache: "no-cache" }).then(r => { const c = r.clone(); if (r.ok) caches.open(CACHE).then(k => k.put(data || e.request, c)); return r; })
@@ -161,6 +161,26 @@ def write_aasa(root):
         json.dump(body, open(path, "w"), indent=2)
 
 
+# Content-Security-Policy (GitHub Pages can't send headers, so it goes in a <meta> tag). Scripts: only this site's files and
+# the page's own inline script, allowed by its hash, so an injected <script> or inline handler can't run and read the account
+# key. Data comes from this site, the alerts service and the leagues' public feeds; pictures and clips may come from any https host.
+CSP_CONNECT = ["https://site.api.espn.com", "https://site.web.api.espn.com", "https://cdn.espn.com", "https://statsapi.mlb.com", "https://api-web.nhle.com"]
+
+
+def add_csp(html):
+    import base64, hashlib
+    hashes = sorted({"'sha256-" + base64.b64encode(hashlib.sha256(m.encode("utf-8")).digest()).decode() + "'"
+                     for m in re.findall(r"<script>(.*?)</script>", html, flags=re.S)})
+    alerts = alerts_url()
+    policy = "; ".join([
+        "default-src 'self'", "script-src 'self' " + " ".join(hashes), "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' data: https://fonts.gstatic.com", "img-src 'self' data: blob: https:", "media-src 'self' blob: https:",
+        "connect-src 'self' " + " ".join(([alerts] if alerts else []) + CSP_CONNECT), "worker-src 'self'", "manifest-src 'self'",
+        "object-src 'none'", "base-uri 'self'", "form-action 'self'"])
+    tag = f'<meta http-equiv="Content-Security-Policy" content="{policy}">'
+    return re.sub(r'(<meta charset="utf-8">)', lambda m: m.group(1) + "\n" + tag, html, count=1, flags=re.I)
+
+
 def main(hosted=True, out="docs/index.html"):
     snap = json.load(open("snapshot.json"))
     if os.path.exists("data/rankings_live.json"):
@@ -189,7 +209,12 @@ def main(hosted=True, out="docs/index.html"):
                .replace("/*HOSTED*/false", "true" if hosted else "false")
                .replace("/*ALERTS_URL*/", alerts_url() if hosted else "")
                .replace("/*ESPN_NORM*/", espn_norm())
-               .replace("/*DATA*/", json.dumps(snap, separators=(",", ":")).replace("<", "\\u003c")))
+               # hosted: the tennis ratings (about 2 MB) load from tennis.json only when the Tennis tab opens; a local build keeps them inline
+               .replace("/*DATA*/", "null" if hosted else json.dumps(snap, separators=(",", ":")).replace("<", "\\u003c"))
+               .replace("/*TENNIS_V*/", str(snap.get("built", ""))))
+    if hosted:
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        json.dump(snap, open(os.path.join(os.path.dirname(out), "tennis.json"), "w"), separators=(",", ":"))
     if hosted:
         stamp = str(snap.get("built", "")) + "-" + str(len(html))
         repo = os.environ.get("GITHUB_REPOSITORY", "")                 # owner/name on GitHub Actions: the site's public address
@@ -199,13 +224,13 @@ def main(hosted=True, out="docs/index.html"):
         write_aasa(os.path.dirname(out))
         # the Support page's contact form posts to the alerts service
         open(os.path.join(os.path.dirname(out), "support.html"), "w", encoding="utf-8").write(
-            open("pages/support.html", encoding="utf-8").read().replace("__ALERTS__", alerts_url()))
-        open(os.path.join(os.path.dirname(out), "install.html"), "w", encoding="utf-8").write(open("pages/install.html", encoding="utf-8").read())
+            add_csp(open("pages/support.html", encoding="utf-8").read().replace("__ALERTS__", alerts_url())))
+        open(os.path.join(os.path.dirname(out), "install.html"), "w", encoding="utf-8").write(add_csp(open("pages/install.html", encoding="utf-8").read()))
         # names the alerts service uses to match API names like "J. Sinner"
         json.dump([{"name": p["name"], "tour": t} for t in ("atp", "wta") for p in snap[t]["players"]],
                   open(os.path.join(os.path.dirname(out), "players.json"), "w"), separators=(",", ":"))
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    open(out, "w", encoding="utf-8").write(html)
+    open(out, "w", encoding="utf-8").write(add_csp(html))
     print(f"built {out} ({len(html)//1024} KB)")
 
 
