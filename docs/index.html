@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bNoaOjNDAeZJ/6KBdWFiJAl5dzJbTbPGThZ943LaXAs='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-lHyt6OsalpZ2DL+FqHz3mpU2L4exNpLPWI0okDPQ3fc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -6325,12 +6325,20 @@ setInterval(() => { const els = document.querySelectorAll("[data-czcd]"); if (!e
   els.forEach(el => { const ms = +el.dataset.czcd - czNow(); if (ms <= 0){ flip = true; return; } const b = el.querySelector("b"); if (b) b.textContent = czCdTxt(ms); });
   if (flip && !CZ.cdReload){ CZ.cdReload = true; czApi("/packs").then(p => { czSetPacks(p); drawCosmic(); }).catch(() => {}).finally(() => { CZ.cdReload = false; }); } }, 1000);
 function czSetPacks(p){ if (p && p.now) p.skew = p.now - Date.now(); CZ.packs = p; return p; }
+// one pack at a time: taps while a pack is being bought are ignored, and every purchase carries its own id so a retry (or a
+// double tap that slips through) can never buy a second pack. If the connection drops, it asks once more with the same id and
+// gets back the cards already pulled.
 async function czOpen(id, free){
+  if (CZ.opening) return; CZ.opening = true;
+  try { await czOpenPack(id, free); } finally { CZ.opening = false; }
+}
+async function czOpenPack(id, free){
   if (!CZ.packs) czSetPacks(await czApi("/packs").catch(() => null));
   const pk = CZ.packs && (CZ.packs.packs.find(p => p.id === id) || (CZ.packs.events || []).map(e => ({ ...e, id: e.pack })).find(p => p.id === id)); if (!pk) return;
   if (!free && czBal() < pk.price){ toast(`You need ${(pk.price - CZ.me.bal).toLocaleString()} more coins for this pack`); return; }
   if (!free && !confirm(`Open a ${pk.label} (${pk.cards} cards) for ${pk.price.toLocaleString()} Cosmic Coins?`)) return;
-  try { const r = await czApi("/pack", { pack: id, scope: free ? "all" : CZ.scope, kind: free ? "all" : CZ.kind, free: !!free }); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); if (r.cards.some(c => c.supply <= 50)) askReview(6000); }
+  const body = { pack: id, scope: free ? "all" : CZ.scope, kind: free ? "all" : CZ.kind, free: !!free, rid: [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, "0")).join("") };
+  try { const r = await czApi("/pack", body).catch(e => e.status ? Promise.reject(e) : czApi("/pack", body)); CZ.me = r.user; czRip(pk, r.cards); drawCosmic(); czLoad(["vault"]); if (r.cards.some(c => c.supply <= 50)) askReview(6000); }
   catch (e) { toast(e.message); czLoad(["vault", "me"]); }
 }
 function czReveal(it, n){
@@ -6723,7 +6731,14 @@ function czRip(pk, cards){
       if (t >= 5) czFlash(c); else if (t >= 3) czConfetti(24); finish(); done(); });
   });
   flips.forEach(f => f.onclick = () => flip(f));
-  $("#czRevealAll").onclick = async () => { $("#czRevealAll").disabled = true; for (const f of flips) await flip(f, true); };
+  const revealAll = async () => { const ra = $("#czRevealAll"); if (ra) ra.disabled = true; for (const f of flips) await flip(f, true); };
+  $("#czRevealAll").onclick = revealAll;
+  // every card gets shown: Done (or Escape) with cards still face down reveals them first
+  const dlg = $("#infoDlg"), left = () => flips.some(f => !f.classList.contains("on"));
+  const hold = e => { if (!document.body.contains(flips[0])) { dlg.removeEventListener("cancel", hold); return; } if (left()) { e.preventDefault(); revealAll(); } };
+  const backdrop = e => { if (!document.body.contains(flips[0])) { dlg.removeEventListener("click", backdrop, true); return; } if (e.target === dlg && left()) { e.stopImmediatePropagation(); revealAll(); } };
+  dlg.addEventListener("cancel", hold); dlg.addEventListener("click", backdrop, true);
+  $("#infoBody").querySelectorAll(".pkfoot [data-info=close]").forEach(b => b.addEventListener("click", e => { if (left()) { e.preventDefault(); e.stopImmediatePropagation(); revealAll(); } }, true));
   $("#czAgain").onclick = () => { $("#infoDlg").close(); const tix = (CZ.me && CZ.me.tix) || {}; czOpen(pk.id, !!tix[pk.id]); };
   $("#czShareBest").onclick = () => czShareCard({ ...best, label: CZ_TIER_NAME[best.tier] }, best.n);
   const d = $("#infoDlg"); if (!d.open) d.showModal();
