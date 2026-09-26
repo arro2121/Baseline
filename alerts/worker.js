@@ -2246,23 +2246,26 @@ async function czCatalog(env, fetchImpl = fetch) {
   try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
     for (const tour of ["atp", "wta"]) { const names = P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name);
       names.forEach((n, i) => { const d = czHobbyOf(tour, n);
-        add(tour, "player", n, czMarketMult(d, 1 - (names.length > 1 ? i / (names.length - 1) : 0)), { rank: i + 1, hobby: d }, czSlug(n)); }); } } catch {}
+        const play = 1 - (names.length > 1 ? i / (names.length - 1) : 0);
+        add(tour, "player", n, czMarketMult(d, play), { rank: i + 1, hobby: d, form: d ? Math.round((czFormOf(play) - 1) * 100) : undefined }, czSlug(n)); }); } } catch {}
   const stars = new Map();                                          // league:player -> { ovr, line }: this season's rating and stat line
   try { const r = await siteGet(env, "/allstars.json", fetchImpl); const A = r.ok ? await r.json() : {};
     for (const [lg, pools] of Object.entries(A.sports || {})) for (const l of Object.values(pools)) if (Array.isArray(l)) { const prod = czProduction(l);
       for (const p of l) { const k = lg + ":" + czSlug(p.name), o = (+p.ovr || 0) + (p.ovr ? (prod.get(p) - .5) * 1.8 : 0), prev = stars.get(k);   // ties broken by this season's numbers
         if (!prev || o > prev.ovr) stars.set(k, { ovr: o, raw: +p.ovr || 0, line: p.line || "" }); } } } catch {}
+  const rated = new Set([...stars.keys()].map(k => k.split(":")[0]));    // leagues with this season's stats
   try { const r = await siteGet(env, "/rosters.json", fetchImpl); const R = r.ok ? await r.json() : {};
     for (const [lg, list] of Object.entries(R.leagues || {})) for (const p of list) { const S = stars.get(lg + ":" + czSlug(p.name));
-      const d = czHobbyOf(lg, p.name, p.pos);
-      add(lg, "player", p.name, czMarketMult(d, czPlayPct(S && S.ovr), lg === "nfl" && p.pos === "QB" ? .6 : .5), { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined, hobby: d }, "p" + p.id); } } catch {}
+      const d = czHobbyOf(lg, p.name, p.pos), off = d && !S && rated.has(lg), play = S ? czPlayPct(S.ovr) : off ? CZ_OFF_FORM : null;
+      add(lg, "player", p.name, czMarketMult(d, play, lg === "nfl" && p.pos === "QB" ? .6 : .5), { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined,
+        hobby: d, form: d && play != null ? Math.round((czFormOf(play) - 1) * 100) : undefined, off: off || undefined }, "p" + p.id); } } catch {}
   const byId = new Map(items.map(i => [i.id, i]));
   CZ_CAT = { at: Date.now(), v: items, byId, trend: {} };
   // once a day, the price level of every rated card is saved; the app shows how it moved over the last week
-  try { const day = etDay(Date.now()), db = store(env), last = await czRead(env, "cz:pxlast2", null), snap = {};
+  try { const day = etDay(Date.now()), db = store(env), last = await czRead(env, "cz:pxlast3", null), snap = {};
     for (const i of items) if (i.tier === "comet" && (i.star || i.kind === "team" || i.rank || i.hobby)) snap[czLvlKey(i)] = i.mult;
-    if (last !== day) { await db.put("cz:px2:" + day, JSON.stringify(snap)); await db.put("cz:pxlast2", JSON.stringify(day)); }
-    let old = null; for (let k = 7; k >= 1 && !old; k--) old = await czRead(env, "cz:px2:" + etDay(Date.now() - k * 864e5), null);
+    if (last !== day) { await db.put("cz:px3:" + day, JSON.stringify(snap)); await db.put("cz:pxlast3", JSON.stringify(day)); }
+    let old = null; for (let k = 7; k >= 1 && !old; k--) old = await czRead(env, "cz:px3:" + etDay(Date.now() - k * 864e5), null);
     if (old) for (const [k, m] of Object.entries(snap)) if (old[k]) { const t = Math.round((m / old[k] - 1) * 1000) / 10; if (t) CZ_CAT.trend[k] = t; } } catch {}
   return items;
 }
@@ -2332,12 +2335,17 @@ export const CZ_HOBBY = (() => { const o = {}; for (const [lg, s] of Object.entr
 // "Name/POS" in the list picks one of two players with the same name
 const czHobbyOf = (lg, name, pos) => { const H = CZ_HOBBY[lg]; if (!H) return undefined; const k = czSlug(name);
   return pos && H[k + "/" + pos] || (Object.hasOwn(H, k) ? H[k] : undefined); };
-// a player card's price multiplier: the card market sets the order (1.2 at 1 up to 3.0 at 10), and this season's play moves it
-// within about ±10% (play: 0-1, or null with no rating yet). Players off the market list follow play only, from 0.5 up to 1.5.
+// a player card's price multiplier: the card market sets the order (1.2 at 1 up to 3.0 at 10), and this season's real play
+// moves it up to 22% either way (czFormOf; play: 0-1, or null with no rating yet). Players off the market list follow play
+// only, from 0.6 up to 1.5 (or the floor with no rating).
+export const czFormOf = play => play == null ? 1 : .78 + .44 * play;
 export function czMarketMult(demand, play, floor = .5) {
-  if (demand > 0) return Math.round((1 + .2 * Math.min(10, demand)) * (play == null ? 1 : .9 + .2 * play) * 1000) / 1000;
+  if (demand > 0) return Math.round((1 + .2 * Math.min(10, demand)) * czFormOf(play) * 1000) / 1000;
   return play == null ? floor : Math.round((.6 + .9 * play) * 1000) / 1000;
 }
+// a market favorite who isn't among this season's leaders in his league (off form, hurt or not playing much) is priced as
+// below-par play; with no season stats for the league at all (between seasons) his price holds
+export const CZ_OFF_FORM = .25;
 // this season's play as 0-1 from the overall rating (55 or lower = 0, 99 = 1); null when the player has no rating yet
 const czPlayPct = ovr => ovr > 0 ? Math.max(0, Math.min(1, (ovr - 55) / 44)) : null;
 // a copy's value right now: the catalog price (current play), + 15% per level from big games, + 10% while it's hot from a
