@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-zGC3j1NSotZhG3Ufu3jY2NWzwGTxbDvbzFfqJhFR3fo='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-FLCzD3W9mhoXGyTWnlos8RwYpENS28D5RUV+86Zly5g='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -2194,7 +2194,6 @@ dialog.onb p{margin:0 0 12px}
     <button class="btn" id="openUpdate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Update rankings</button>
     <button class="iconbtn" id="searchBtn" aria-label="Find a team" data-ui="search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5"/></svg></button>
     <button class="iconbtn" id="helpBtn" aria-label="How Cosmo Sports works"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.9 7.6a2.2 2.2 0 0 1 4.2.8c0 1.5-2.1 1.9-2.1 3.3M10 14.4v.1"/></svg></button>
-    <button class="iconbtn askTop" id="askTopBtn" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span></button>
     <button class="iconbtn" id="settingsBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </header>
   <nav class="sportnav" id="sportNav" aria-label="Sport">
@@ -2401,16 +2400,6 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="gameDlg" class="drawer" aria-label="Game"><div class="pbody" id="gbody"></div></dialog>
 <div id="gate" class="gate" hidden role="dialog" aria-modal="true" aria-labelledby="gateTitle"><div class="gate-sky" aria-hidden="true"></div><div class="gate-in" id="gateBody"></div></div>
 <dialog id="onbDlg" class="modal onb" aria-label="Welcome to Cosmo Sports"><div class="dlg" id="onbBody"></div></dialog>
-<button class="askfab" id="askFab" type="button" aria-label="Ask Cosmo, the AI sports companion"><span class="aav" aria-hidden="true"></span><span>Ask Cosmo</span></button>
-<dialog id="askDlg" class="drawer askd" aria-labelledby="askTitle"><div class="askwrap">
-  <header class="askhd"><span class="aav" aria-hidden="true"></span><div><h2 id="askTitle">Ask Cosmo</h2><small>Your AI sports companion</small></div>
-    <button class="btn" id="askClear" type="button">New chat</button><button class="xbtn" id="askClose" type="button" aria-label="Close">✕</button></header>
-  <p class="asknote" id="askNote" hidden>Ask Cosmo works in the installed app, where it can read live scores.</p>
-  <div class="askmsgs" id="askMsgs" aria-live="polite"></div>
-  <div class="asksug" id="askSug"></div>
-  <form class="askform" id="askForm"><input id="askIn" type="text" autocomplete="off" maxlength="1000" placeholder="Ask about any game, team or pick…" aria-label="Your question"><button class="btn primary" type="submit" aria-label="Send">Ask</button></form>
-  <p class="askfine">Answers are generated by AI from live data and can be wrong.</p>
-</div></dialog>
 <dialog id="cardDlg" class="modal" aria-labelledby="cardTitle"><div class="dlg"><h2 id="cardTitle">Score card</h2><p id="cardNote"></p><img id="cardImg" class="cardimg" alt="Score card for this game">
   <div class="dlgfoot"><button class="btn" type="button" data-ui="close">Close</button><span><button class="btn" id="cardSave" type="button">Save image</button> <button class="btn primary" id="cardShare" type="button" hidden>Share</button></span></div></div></dialog>
 <dialog id="teamDlg" class="drawer" aria-label="Team"><div class="pbody" id="tbody"></div></dialog>
@@ -2476,7 +2465,6 @@ dialog.onb p{margin:0 0 12px}
     <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and how it does against the odds</span></button>
     <button class="sheetrow" data-go="comets"><b>📰 Comets</b><span>Articles and takes from Cosmo Sports</span></button>
     <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
-    <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
     <button class="sheetrow" data-go="account"><b id="moreAcct">👤 Sign in</b><span>Your Cosmic account: coins, cards, and your teams and settings on every device</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
     <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
@@ -2519,17 +2507,15 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="aboutDlg" class="modal wide" aria-labelledby="aboutTitle">
   <div class="dlg helpbody">
     <div class="aboutbrand"><img src="icon-192.png" alt="" width="64" height="64"><div><h2 id="aboutTitle">Cosmo Sports</h2><p>Every game, every league, one app.</p></div></div>
-    <p>Cosmo Sports brings live scores, play-by-play with animated replays, box scores, standings, team pages, news and data-driven predictions for tennis, the NFL, NBA, MLB, NHL and the Premier League together in one place, with alerts for your teams, Ask Cosmo (an AI sports companion), and daily picks and games.</p>
+    <p>Cosmo Sports brings live scores, play-by-play with animated replays, box scores, standings, team pages, news and data-driven predictions for tennis, the NFL, NBA, MLB, NHL and the Premier League together in one place, with alerts for your teams and daily picks and games.</p>
     <h3>Where the data comes from</h3>
     <p>Baseball comes from MLB's official Stats API, including MLB's own highlight clips. Other live scores, play-by-play, box scores, standings, schedules, rosters, news, highlight clips and team logos come from ESPN's public sports data, with the NHL's official API as a backup for hockey; ESPN's articles and videos open or play from ESPN. Tennis results and ratings are built from Jeff Sackmann's Tennis Abstract data and API-Tennis; NFL history from nflverse; Premier League history from openfootball.</p>
     <h3>Predictions</h3>
     <p>Win chances come from Cosmo Sports' own rating models and are estimates, not guarantees. Betting lines are shown for information only. If you bet, bet only what you can afford to lose; in the US, call 1-800-GAMBLER for help.</p>
     <h3>Not affiliated</h3>
     <p>Cosmo Sports is an independent app. It isn't affiliated with or endorsed by ESPN, the NFL, NBA, MLB, NHL, the Premier League, the ATP, the WTA or any team. Team names and logos belong to their owners and are used to identify the teams.</p>
-    <h3>Ask Cosmo</h3>
-    <p>Answers are written by an AI model from live data and can be wrong; check anything important. Your questions are sent to the AI provider to answer them and aren't stored by us.</p>
     <h3>Your privacy</h3>
-    <p>No ads and no tracking. Your account keeps your teams, picks, settings and Cosmic cards so they follow you to any device, and you can delete it any time in Settings. Alerts and Ask Cosmo send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
+    <p>No ads and no tracking. Your account keeps your teams, picks, settings and Cosmic cards so they follow you to any device, and you can delete it any time in Settings. Alerts send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
     <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" data-ui="close">Done</button></div>
   </div>
 </dialog>
@@ -2539,7 +2525,7 @@ dialog.onb p{margin:0 0 12px}
     <h2 id="helpTitle">How Cosmo Sports works</h2>
     <nav class="helptoc" aria-label="Guide sections"><a href="#h-around">Getting around</a><a href="#h-predict">Predictions</a><a href="#h-numbers">Reading the numbers</a><a href="#h-model">The Model tab</a><a href="#h-games">Games</a><a href="#h-comets">Comets</a><a href="#h-alerts">Alerts</a><a href="#h-picks">Picks</a><a href="#h-bet">Betting terms</a></nav>
     <h3 id="h-around">Getting around</h3>
-    <p>The bar at the bottom has five stops. <b>Today</b> shows every game across the leagues. <b>Scores</b> opens the league you looked at last; switch leagues with the chips at the top. <b>Picks</b> has the Daily 3 and your record against the model. <b>Following</b> gathers your teams. <b>More</b> has Ask Cosmo, search, settings and this guide. In a league, the tabs are Games, Standings, News, Leaders, Ratings, <b>Model</b> and <b>Predict</b>.</p>
+    <p>The bar at the bottom has five stops. <b>Today</b> shows every game across the leagues. <b>Scores</b> opens the league you looked at last; switch leagues with the chips at the top. <b>Picks</b> has the Daily 3 and your record against the model. <b>Following</b> gathers your teams. <b>More</b> has search, settings and this guide. In a league, the tabs are Games, Standings, News, Leaders, Ratings, <b>Model</b> and <b>Predict</b>.</p>
     <h3 id="h-predict">How the predictions work</h3>
     <p>Every league has its own model, built the same way as the tennis one: walk through every game in date order, record what was known about both teams <i>before</i> each game, fit the model on older seasons and test it on seasons it never saw.</p>
     <p>What the team models know before a game: an <b>Elo rating</b> that moves after every result (by more for upsets and big wins) and drifts back toward average between seasons; an <b>opponent-adjusted scoring margin</b>, where recent games count most; <b>offense and defense</b>; <b>form</b> over the last 10 games; <b>rest</b> (and back-to-backs in the NBA and NHL); <b>home advantage</b>; and a factor for each sport: <b>starting pitchers</b> in MLB (runs allowed in their recent starts), <b>starting quarterback</b> continuity in the NFL, <b>shot share</b> in the NHL, <b>shots on target</b> in the Premier League and <b>shooting</b> in the NBA. A factor is kept only if it improves the predictions on a separate validation season.</p>
@@ -5328,7 +5314,7 @@ function drawGame(g, lg){
     $("#gbody").innerHTML = `<header class="ghd" id="gHead"></header><div class="gfield" id="gScene" hidden></div><div class="pbar" id="gBar"></div><div class="plays" id="gList"></div>`;
   }
   const tn = t => `<div class="tn">${logoChip(t, "big", lg)}<span>${esc(t.name || "")}</span></div>`;
-  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button><button class="sharebtn cardbtn" id="gAsk" type="button">Ask</button>${g.status?.state === "in" ? listenBtn(g, lg) : ""}${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
+  $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button>${g.status?.state === "in" ? listenBtn(g, lg) : ""}${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
     <div class="row">${tn(A)}<div class="big">${esc(A.score ?? "")}</div></div>
     <div class="row">${tn(H)}<div class="big">${esc(H.score ?? "")}</div></div>
     ${g.status?.state === "pre" && g.date ? `<div class="countdown">Starts in <b data-launch="${esc(g.date)}" data-big="1"></b></div>` : ""}
@@ -5337,7 +5323,6 @@ function drawGame(g, lg){
   $("#gClose").onclick = () => $("#gameDlg").close();
   $("#gShare").onclick = () => shareGame(g, lg);
   $("#gCard").onclick = () => openCard(g, lg);
-  $("#gAsk").onclick = () => openAsk();
   bindListen(g, lg); listenUpdate(g, lg);
   const bh = $("#gHead [data-bell]"); if (bh) bh.onclick = async () => { if (await toggleBell(lg, g)) drawGame(g, lg); };
   if (scored){ nova($("#gHead")); sfx("score"); const [pa, ph] = (G_PREV_SC[g.id] || "").split("-"); document.querySelectorAll("#gHead .big").forEach((b, i) => { if ((i ? ph : pa) !== String(i ? H.score : A.score)) b.classList.add("roll"); }); }
@@ -5808,111 +5793,6 @@ function renderNtf(){
 // keep the alerts service's copy of your teams fresh (subscriptions can also change on the browser's side)
 if (NTF.on) setTimeout(ntfSync, 3000);
 
-/* ================= Ask Cosmo: the AI sports companion ================= */
-let ASK = (() => { try { return JSON.parse(sessionStorage.getItem("cosmo-ask") || "[]"); } catch { return []; } })();
-let ASK_BUSY = false;
-const saveAsk = () => { try { sessionStorage.setItem("cosmo-ask", JSON.stringify(ASK.slice(-20))); } catch {} };
-function gameBrief(g, lg){
-  const A = g.away || {}, H = g.home || {}, out = [`The game open on screen (${LG_NAME[lg] || lg}): ${A.name} ${A.score ?? ""} at ${H.name} ${H.score ?? ""}, ${g.status?.detail || g.status?.short || ""}.`];
-  if (g.homeWinProb != null) out.push(`Live win probability: ${H.short || H.name} ${Math.round(g.homeWinProb * 100)}%.`);
-  const pred = withSport(lg, () => { const Ht = findTeam(H.name), At = findTeam(A.name); return Ht && At ? teamPredict(Ht, At, g.neutral, g) : null; });
-  if (pred) out.push(`Cosmo model before the game: ${A.short || A.name} ${Math.round(pred.away * 100)}%, ${H.short || H.name} ${Math.round(pred.home * 100)}%${pred.draw != null ? `, draw ${Math.round(pred.draw * 100)}%` : ""}.`);
-  const ex = pulseOf(g, lg, pred); if (ex != null) out.push(`Excitement score: ${ex}/100.`);
-  if (g.lines) out.push(`Line score: ${A.abbr || "Away"} ${g.lines.away.join(" ")} | ${H.abbr || "Home"} ${g.lines.home.join(" ")}.`);
-  for (const L of g.leaders || []) { const T = (g.teams || {})[L.team]; out.push(`Top performers ${T ? T.short || T.name : ""}: ${L.items.map(i => `${i.name} (${[i.cat, i.value].filter(Boolean).join(" ")})`).join("; ")}.`); }
-  if ((g.swings || []).length) out.push("Turning points: " + g.swings.map(s => `${s.when}: ${s.text}${s.delta != null ? ` (+${s.delta}% for ${s.side})` : ""}`).join(" | "));
-  const plays = (g.plays || []).filter(p => !p.minor && p.text).slice(0, 14).map(p => `${[p.head, p.clock].filter(Boolean).join(" ")}: ${p.text}`);
-  if (plays.length) out.push("Latest plays, newest first:\n- " + plays.join("\n- "));
-  for (const t of g.box?.teams || []) { const T = (g.teams || {})[t.id]; if (t.stats?.length) out.push(`${T ? T.short || T.name : t.side} team stats: ${t.stats.slice(0, 10).map(([k, v]) => `${k} ${v}`).join(", ")}.`); }
-  if (g.info?.venue) out.push(`Venue: ${g.info.venue}${g.info.city ? ", " + g.info.city : ""}.`);
-  return out.join("\n");
-}
-// the game on screen goes to Ask as its FOCUS, with both teams' players and the initials fans use for them ("PCA")
-const nameInitials = n => String(n || "").replace(/\s+(Jr|Sr|II|III|IV)\.?$/i, "").split(/[\s-]+/).filter(w => /^\p{L}/u.test(w)).map(w => w[0].toUpperCase()).join("");
-let ROSTERS = null;
-async function loadRosters(){
-  if (ROSTERS) return ROSTERS;
-  try { const r = await fetch("rosters.json"); ROSTERS = r.ok ? (await r.json()).leagues || {} : {}; } catch { ROSTERS = {}; }
-  return ROSTERS;
-}
-async function gameFocus(g, lg){
-  const out = [gameBrief(g, lg)], T = side => (g[side] || {});
-  const person = (name, bits) => `${name} (${[...bits, nameInitials(name)].filter(Boolean).join(", ")})`;
-  const box = g.box?.players || [];
-  for (const side of ["away", "home"]){
-    const team = T(side), pt = box.find(p => String(p.team) === String(team.id)), seen = new Map();
-    for (const gr of pt?.groups || []) for (const r of gr.rows || []){ if (!r.name || seen.has(r.name)) continue;
-      const stats = (gr.labels || []).slice(0, 5).map((l, i) => r.stats?.[i] ? `${l} ${r.stats[i]}` : "").filter(Boolean).join(" ");
-      seen.set(r.name, person(r.name, [r.pos, stats && `${gr.name ? gr.name.toLowerCase() + ": " : ""}${stats}`])); }
-    if (!seen.size){                                          // before the game: the team's roster from the nightly file
-      const R = ((await loadRosters())[lg] || []), k = tkey(team.name || "");
-      for (const p of R) if (k && (tkey(p.team) === k || k.endsWith(" " + tkey(p.team)) || tkey(p.team).endsWith(" " + k)) && !seen.has(p.name)) seen.set(p.name, person(p.name, [p.pos, p.num ? "#" + p.num : ""]));
-    }
-    if (seen.size) out.push(`${team.name || side} players (name, position, stats, initials): ${[...seen.values()].slice(0, 45).join("; ")}.`);
-  }
-  return out.join("\n");
-}
-function askContext(){
-  const out = [];
-  const fav = Object.entries(FAV).filter(([, a]) => a.length).map(([lg, a]) => `${LG_NAME[lg] || lg}: ${a.map(k => (LG_TEAMS(lg).find(t => tkey(t.name) === k) || {}).name || k).join(", ")}`);
-  out.push("Teams they follow: " + (fav.length ? fav.join("; ") : "none yet"));
-  out.push("Screen they're on: " + (SPORT === "universe" ? "Today (all leagues)" : SPORT === "following" ? "Following" : SPORT === "tennis" ? "Tennis" : `${LG_NAME[SPORT]} (${TT})`));
-  const games = (UNI || []).length ? UNI : Object.entries(SB).flatMap(([lg, d]) => (d?.games || []).map(g => ({ ...g, lg })));
-  const rows = games.slice(0, 60).map(g => {
-    const p = g.pred || withSport(g.lg, () => { const H = findTeam(g.home.name), A = findTeam(g.away.name); return H && A ? teamPredict(H, A, g.neutral, g) : null; });
-    if (!p) return null; const ex = pulseOf(g, g.lg, p);
-    return `${g.away.name} at ${g.home.name} (${LG_NAME[g.lg] || g.lg}): ${g.away.short || g.away.name} ${Math.round(p.away * 100)}%, ${g.home.short || g.home.name} ${Math.round(p.home * 100)}%${p.draw != null ? `, draw ${Math.round(p.draw * 100)}%` : ""}${ex != null ? `; excitement ${ex}/100` : ""}`;
-  }).filter(Boolean);
-  if (rows.length) out.push("Cosmo model win chances for games on today's scoreboards:\n- " + rows.join("\n- "));
-  for (const lg of Object.keys(LEAGUE_LABEL)){ const t = LG_TEAMS(lg).slice(0, 8).map((x, i) => `${i + 1}. ${x.name}`); if (t.length) out.push(`Cosmo power ratings, ${LEAGUE_LABEL[lg]}: ${t.join(", ")}`); }
-  const s = pickStats(); if (s.done.length) out.push(`Their picks: ${s.you}-${s.done.length - s.you}; the model on the same games: ${s.cosmo}-${s.done.length - s.cosmo}; current streak ${s.streak}.`);
-  return out.join("\n\n").slice(0, 7800);
-}
-const askFmt = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split(/\n{2,}/).map(par => {
-  const lines = par.split("\n"), items = lines.filter(l => /^\s*[-•]\s+/.test(l));
-  return items.length === lines.length ? `<ul>${items.map(l => `<li>${l.replace(/^\s*[-•]\s+/, "")}</li>`).join("")}</ul>` : `<p>${lines.join("<br>")}</p>`;
-}).join("");
-function askSuggestions(){
-  if ($("#gameDlg").open && G_LAST){ const g = G_LAST[0], live = g.status?.state === "in", pre = g.status?.state === "pre";
-    return pre ? ["Who wins this one?", "What should I watch for?", "How do these teams match up?"] : [live ? "What's happening in this game?" : "Summarize this game", "Why did the win chances swing?", "Who's been the best player?"]; }
-  return ["What should I watch tonight?", "How did my teams do?", "Who does the model like today?", "Which games are the closest calls?"];
-}
-function renderAsk(){
-  const box = $("#askMsgs"); if (!box) return;
-  box.innerHTML = ASK.length ? ASK.map(m => `<div class="amsg ${m.role}">${m.role === "assistant" ? `<span class="aav" aria-hidden="true"></span>` : ""}<div class="abody">${m.role === "assistant" ? (m.content ? askFmt(m.content) : `<span class="atyping"><i></i><i></i><i></i></span>`) : esc(m.content)}</div></div>`).join("")
-    : `<div class="aintro"><span class="aav big" aria-hidden="true"></span><b>Ask Cosmo anything</b><p>What's worth watching, how your teams are doing, why a game swung, what the model thinks. Answers use live scores and the Cosmo model.</p></div>`;
-  const asked = new Set(ASK.filter(m => m.role === "user").map(m => m.content));
-  $("#askSug").innerHTML = ASK_BUSY ? "" : askSuggestions().filter(q => !asked.has(q)).map(s => `<button type="button" class="asug">${esc(s)}</button>`).join("");
-  box.scrollTop = box.scrollHeight;
-}
-function openAsk(){
-  const dlg = $("#askDlg");
-  if (!dlg.open) dlg.showModal();
-  $("#askNote").hidden = HOSTED && !!ALERTS_URL;
-  renderAsk(); setTimeout(() => $("#askIn").focus(), 60);
-}
-async function sendAsk(q){
-  q = String(q || "").trim(); if (!q || ASK_BUSY) return;
-  if (!HOSTED || !ALERTS_URL){ toast("Ask Cosmo works in the installed app."); return; }
-  ASK.push({ role: "user", content: q.slice(0, 1000) }); const ans = { role: "assistant", content: "" }; ASK.push(ans);
-  ASK_BUSY = true; renderAsk(); $("#askIn").value = "";
-  try {
-    const r = await fetch(ALERTS_URL + "/ask", { method: "POST", headers: { "Content-Type": "application/json", ...(czKey() ? { Authorization: "Bearer " + czKey() } : {}) },
-      body: JSON.stringify({ messages: ASK.slice(0, -1).slice(-10), context: askContext(), focus: $("#gameDlg").open && G_LAST ? await gameFocus(G_LAST[0], G_LAST[1]) : "" }) });
-    if (!r.ok || !r.body){ const e = await r.json().catch(() => ({})); throw new Error(e.error || "unavailable"); }
-    const rd = r.body.getReader(), dec = new TextDecoder(); let last = 0;
-    for (;;){ const { value, done } = await rd.read(); if (done) break; ans.content += dec.decode(value, { stream: true });
-      if (performance.now() - last > 60){ last = performance.now(); const el = $("#askMsgs .amsg.assistant:last-child .abody"); if (el) el.innerHTML = askFmt(ans.content); $("#askMsgs").scrollTop = $("#askMsgs").scrollHeight; } }
-    if (!ans.content.trim()) ans.content = "Sorry, I didn't get an answer back. Try again in a moment.";
-  } catch (e) { ans.content = /too many/i.test(e.message) ? e.message : "Ask Cosmo isn't reachable right now. Check your connection and try again."; }
-  ASK_BUSY = false; saveAsk(); renderAsk();
-}
-$("#askFab").onclick = () => openAsk();
-$("#askClose").onclick = () => $("#askDlg").close();
-$("#askClear").onclick = () => { ASK = []; saveAsk(); renderAsk(); };
-$("#askForm").onsubmit = e => { e.preventDefault(); sendAsk($("#askIn").value); };
-$("#askSug").onclick = e => { const b = e.target.closest(".asug"); if (b) sendAsk(b.textContent); };
-$("#askDlg").addEventListener("click", e => { if (e.target.id === "askDlg") $("#askDlg").close(); });
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -7910,7 +7790,7 @@ function onbHtml(){
   const dots = `<div class="onbdots">${[0, 1, 2].map(i => `<i class="${i === ONB.step ? "on" : ""}"></i>`).join("")}</div>`;
   if (ONB.step === 0) return `<div class="onbhero"><span class="onbmark">${document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="o$1"').replace(/url\(#([^)]+)\)/g, "url(#o$1)").replace(/href="#([^"]+)"/g, 'href="#o$1"') || ""}</span>
     <h2>Welcome to Cosmo Sports</h2><p>Every game in the NFL, NBA, MLB, NHL, Premier League and tennis, in one place.</p>
-    <ul class="onblist"><li><b>Live scores and animated replays</b> of every play</li><li><b>Alerts</b> for your teams and close finishes</li><li><b>Ask Cosmo</b>, an AI that knows today's games</li><li><b>Games with real players:</b> Cosmo Showdown, six arcade games and collectible cards</li></ul></div>
+    <ul class="onblist"><li><b>Live scores and animated replays</b> of every play</li><li><b>Alerts</b> for your teams and close finishes</li><li><b>Games with real players:</b> Cosmo Showdown, six arcade games and collectible cards</li></ul></div>
     ${dots}<div class="onbbtns"><button class="btn" type="button" data-onb="skip">Skip</button><button class="btn primary" type="button" data-onb="next">Get started</button></div>`;
   if (ONB.step === 1){
     const lgs = Object.keys(LEAGUE_LABEL).filter(lg => LG_TEAMS(lg).length), n = Object.values(FAV).reduce((a, l) => a + l.length, 0);
@@ -8436,7 +8316,6 @@ document.addEventListener("pointerdown", e => {
   if (phone && tt && head){ const bar = document.createElement("div"); bar.className = "ttbar"; bar.appendChild(tt); head.after(bar); }
   // the league's long description folds to two lines; tap to read it all
   const sub = $("#lgSub"); if (sub) sub.addEventListener("click", () => sub.classList.toggle("open"));
-  const ask = $("#askTopBtn"); if (ask) ask.addEventListener("click", () => openAsk());
   const ignore = t => t.closest("input,select,textarea,.scroll,.tscroll,.seg,.czgrid,.lgstrip,.sportnav,canvas,svg,.gstage,.czrip,.czwh-wrap,dialog,.ggrid .gbtns,[data-noswipe]");
   // swipe left or right on a league page to move between its tabs
   let sx = 0, sy = 0, st = 0, ok = false;
@@ -8492,7 +8371,7 @@ document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", 
   $("#moreDlg").close(); const g = b.dataset.go;
   if (g === "getapp"){ if (INST.deferred){ INST.deferred.prompt(); INST.deferred = null; } else { $("#installHow").innerHTML = `<h2 id="iosTitle">Get Cosmo Sports</h2>${installCardHtml("sheet")}<div class="dlgfoot"><span></span><button class="btn" id="iosClose">Close</button></div>`; bindInstall($("#installHow")); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close(); } return; }
   if (g === "account"){ if (czKey()){ renderSettings(); $("#settingsDlg").showModal(); } else openSignIn(); return; }
-  if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
+  if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
   else if (g === "following" || g === "universe" || g === "play" || g === "comets" || g === "record" || g === "cosmic"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }
 }));
@@ -8544,7 +8423,6 @@ renderFeed();
   const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play", "comets", "record", "cosmic"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
   GATE.after = () => { maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); if (NATIVE) setTimeout(remSchedule, 4000); }; gateStart(); loadModels(); loadComets();
-  if (q.get("ask")) setTimeout(openAsk, 400);
   handleHash();                                                        // a shared link to a game or team
   if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut
   $("#teamDlg").addEventListener("close", () => { if (/^#team=/.test(location.hash)) history.replaceState(null, "", APP_URL()); });
