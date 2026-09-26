@@ -79,7 +79,7 @@ Not collected: contact info, location, health, financial info, browsing history,
 **Tracking**: No. There are no ads and no analytics.
 
 ## App Review information (paste into "Notes")
-Scores, predictions, Picks, Ask Cosmo and alerts work without an account. An account is needed only for Cosmic (play-money bets and cards) and to sync teams and settings. Anyone can create one in about ten seconds, and no demo account is needed: open Cosmic (bottom bar), type any name under "New to Cosmo Sports?", tap Create account, then confirm with Face ID, Touch ID or the device passcode. This creates a passkey, which works with the simulator's enrolled Face ID too.
+Scores, predictions, Picks, Ask Cosmo and alerts work without an account. An account is needed only for Cosmic (play-money bets and cards) and to sync teams and settings. Anyone can create one in about ten seconds, and no demo account is needed: open Cosmic (bottom bar), type any name under "New to Cosmo Sports?", tap Create account, then confirm with Face ID, Touch ID or the device passcode. This creates a passkey, which works with the simulator's enrolled Face ID too. Or, under the same heading, create the account with a name, email and password instead (no passkey needed).
 
 - Cosmic uses play money only. Cosmic Coins can't be bought with real money or exchanged for anything outside the app, and cards have no cash value. The odds for every card pack are shown on the Packs tab before opening.
 - Account deletion: Settings (gear icon, top right) > Account > Delete account, or the Delete account link at the bottom of the Cosmic page.

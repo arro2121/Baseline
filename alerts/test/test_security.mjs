@@ -127,6 +127,19 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   check("PW guessing one email is limited even from many addresses", locked >= 2, locked);
   check("PW remove needs the current password, then sign-in stops", (await call("/pw/remove", { current: "nope" }, dan.auth))[0] === 403
     && (await call("/pw/remove", { current: pw }, dan.auth))[0] === 200 && !data.get("cz:u:" + dan.auth.split(".")[0]).pw); }
+// a brand-new account with email and password only (no passkey at all), and it counts as a full account
+{ const [s1, r1] = await call("/pw/join", { name: "Emma", email: "emma@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.1" });
+  check("PWJ create an account with email and password", s1 === 200 && r1.created && r1.user.secured && !r1.user.passkey && r1.user.bal === 1000, r1);
+  check("PWJ the new account signs in right away", (await call("/me", null, r1.auth))[0] === 200);
+  check("PWJ the same email can't make a second account", (await call("/pw/join", { name: "Emma2", email: "EMMA@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.2" }))[0] === 409);
+  check("PWJ the same name can't be reused", (await call("/pw/join", { name: "emma", email: "other@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.3" }))[0] === 409);
+  check("PWJ weak password refused", (await call("/pw/join", { name: "Emmy", email: "emmy@example.com", password: "short" }, null, "POST", { ip: "11.0.0.4" }))[0] === 400);
+  const [, L2] = await call("/leaders"); check("PWJ email accounts appear on the leaderboards", L2.rich.some(r => r.name === "Emma"));
+  check("PWJ email accounts can report", (await call("/report", { name: "Bob", reason: "test" }, r1.auth))[0] === 200);
+  const [s3, r3] = await call("/pw/login", { email: "emma@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.5" });
+  check("PWJ sign in again later with email and password", s3 === 200 && r3.uid === r1.uid, [s3, r3]);
+  let n = 0; for (let i = 0; i < 7; i++) if ((await call("/pw/join", { name: "Flood" + i, email: `f${i}@example.com`, password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.9.9.9" }))[0] === 200) n++;
+  check("PWJ sign-ups limited to 5 an hour per address", n === 5, n); }
 // P6: the owner's unlimited-coins test account stays out of other players' coins and cards
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   for (const [uid, name] of [["O", "Owner"], ["S", "Seller"]]) await T({ act: "ident", sub: uid, uid, tok: "t", name });

@@ -1639,10 +1639,11 @@ export const CZ_BSPORT = {
 const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
 const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
-const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, email: u.emmask || null, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czSecured = u => !!(u && (u.ident || u.pw));                // signed in with a passkey or an email and password
+const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), email: u.emmask || null, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
-const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !u.ident || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 export async function czTx(st, a) {
@@ -1688,6 +1689,19 @@ export async function czTx(st, a) {
   if (a.act === "repdone") {                                         // the owner dismisses the reports about a name
     await st.put("cz:reports", (await get("cz:reports", [])).map(r => r.name.toLowerCase() === String(a.name).toLowerCase() && !r.done ? { ...r, done: a.now, action: "dismissed" } : r));
     return { ok: true };
+  }
+  if (a.act === "pwjoin") {                                          // a new account secured by email and password (no passkey needed)
+    const names = await get("cz:names", {}), key = a.name.toLowerCase();
+    if (names[key]) return { error: "That name is taken. Try another." };
+    if (await get("cz:em:" + a.emh, null)) return { error: "That email already has an account. Sign in with it instead." };
+    const u = { uid: a.uid, name: a.name, toks: [a.tok], emh: a.emh, emmask: a.mask, pw: a.pw, bal: CZ_START, created: a.now, bets: [], items: [], won: 0, lost: 0, profit: 0, streak: 0, freePack: true };
+    let bonus = 0;
+    if (a.ref && a.ref !== a.uid) { const r = await st.get("cz:u:" + a.ref);
+      if (r && (r.refs || 0) < CZ_REF_MAX) { r.bal += CZ_REF_BONUS; r.refs = (r.refs || 0) + 1; u.bal += CZ_REF_BONUS; u.refBy = r.uid; bonus = CZ_REF_BONUS;
+        r.refNote = [...(r.refNote || []), { name: a.name, at: a.now }].slice(-10); await st.put("cz:u:" + r.uid, r); await lb(r); } }
+    names[key] = a.uid; await st.put("cz:names", names); await st.put("cz:em:" + a.emh, { uid: a.uid }); await st.put("cz:u:" + a.uid, u); await lb(u);
+    await feed({ kind: "join", name: a.name });
+    return { user: czPublic(u), uid: a.uid, created: true, ...(bonus ? { bonus } : {}) };
   }
   if (a.act === "tester") {                                          // the site owner's testing switch: unlimited coins, off the leaderboards
     const u = await st.get("cz:u:" + a.uid); if (!u) return { error: "Account not found." };
@@ -1919,7 +1933,7 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), tid = names[String(a.name).toLowerCase()];
     if (!tid) return { error: "That player isn't in Cosmic any more." };
     if (tid === u.uid) return { error: "That's you." };
-    if (!u.ident) return { error: "Add a passkey to your account to report players." };
+    if (!czSecured(u)) return { error: "Secure your account with a passkey or an email and password to report players." };
     const R = await get("cz:reports", []);
     if (R.some(r => r.from === u.uid && r.uid === tid && a.now - r.at < CZ_REP_COOL)) return { ok: true, already: true };
     const counts = a.now - (u.created || a.now) >= CZ_REP_AGE_DAYS * 864e5;
@@ -2495,6 +2509,20 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (r.error) return json(r, 409);
     return json({ ...r, auth: `${u.uid}.${token}` });
   }
+  if (p === "/pw/join" && req.method === "POST") {                          // create an account with a name, email and password
+    if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
+    const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim(), email = czEmail(d.email), pw = String(d.password || "");
+    if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
+    if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
+    if (!czEmailOk(email)) return json({ error: "Enter a valid email address." }, 400);
+    const bad = czPwProblem(pw, email); if (bad) return json({ error: bad }, 400);
+    const uid = czRand(12), token = czRand(32), salt = b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
+    const r = await cz(env, { act: "pwjoin", uid, tok: await czHash(token), name, emh: await czHash("em:" + email), mask: czEmailMask(email), pw: { salt, hash: await czPwHash(pw, salt), iter: CZ_PW_ITER },
+      ref: /^[a-f0-9]{24}$/.test(String(d.ref || "")) ? d.ref : null, now });
+    if (r.error) return json(r, 409);
+    await rateOk(env, "join:" + ip, 5, 3600e3, "add");
+    return json({ ...r, auth: `${uid}.${token}` });
+  }
   if (p === "/join" && req.method === "POST") {
     if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
     if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
@@ -2663,7 +2691,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
   if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   // cards belong to accounts: only a signed-in account with a passkey can pull or buy them
-  if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !u.ident) return json({ error: "Create your Cosmo Sports account with a passkey to collect cards.", needPasskey: true }, 403);
+  if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !czSecured(u)) return json({ error: "Secure your account with a passkey or an email and password to collect cards.", needPasskey: true }, 403);
   if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/pack" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), want = String(d.pack || ""), E = want.startsWith("ev:") ? czEventsAt(now).find(e => e.pack === want) : null;
@@ -2760,7 +2788,7 @@ export default {
     if (url.pathname === "/ask" && req.method === "POST") {
       if (!(await askAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
       const raw = await req.json().catch(() => null), who = await czAuth(req, env).catch(() => null);
-      const body = raw && { ...raw, member: !!(who && who.ident) };                       // Claude answers only signed-in passkey accounts
+      const body = raw && { ...raw, member: czSecured(who) };                             // Claude answers only secured, signed-in accounts
       try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
       catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
     }
