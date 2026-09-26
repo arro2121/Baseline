@@ -1,0 +1,56 @@
+nba Victor Wembanyama img=https://a.espncdn.com/i/headshots/nba/players/full/5104157.png
+nba Luka Doncic img=https://a.espncdn.com/i/headshots/nba/players/full/3945274.png
+nba Anthony Edwards img=https://a.espncdn.com/i/headshots/nba/players/full/4594268.png
+nfl Patrick Mahomes img=https://a.espncdn.com/i/headshots/nfl/players/full/3139477.png
+nfl Josh Allen img=https://a.espncdn.com/i/headshots/nfl/players/full/3918298.png
+nfl Caleb Williams img=https://a.espncdn.com/i/headshots/nfl/players/full/4431611.png
+mlb Shohei Ohtani img=https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/660271/headshot/67/current
+mlb Elly De La Cruz img=https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/682829/headshot/67/current
+mlb Paul Skenes img=https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/694973/headshot/67/current
+nhl Connor McDavid img=https://assets.nhle.com/mugs/nhl/20262027/EDM/8478402.png
+nhl Macklin Celebrini img=https://assets.nhle.com/mugs/nhl/20262027/SJS/8484801.png
+nhl Connor Bedard img=https://assets.nhle.com/mugs/nhl/20262027/CHI/8484144.png
+epl Erling Haaland img=https://resources.premierleague.com/premierleague25/photos/players/110x140/223094.png
+epl Bukayo Saka img=https://resources.premierleague.com/premierleague25/photos/players/110x140/223340.png
+epl Cole Palmer img=https://resources.premierleague.com/premierleague25/photos/players/110x140/244851.png
+atp Carlos Alcaraz img=https://a.espncdn.com/i/headshots/tennis/players/full/3782.png
+atp Jannik Sinner img=https://a.espncdn.com/i/headshots/tennis/players/full/3623.png
+atp Novak Djokovic img=https://a.espncdn.com/i/headshots/tennis/players/full/296.png
+
+VICTOR WEMBANYAMA: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/5104157.png&w=260&h=190&scale=crop&cquality=80&location=origin
+LUKA DONCIC: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3945274.png&w=260&h=190&scale=crop&cquality=80&location=origin
+ANTHONY EDWARDS: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4594268.png&w=260&h=190&scale=crop&cquality=80&location=origin
+PATRICK MAHOMES: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3139477.png&w=260&h=190&scale=crop&cquality=80&location=origin
+JOSH ALLEN: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3918298.png&w=260&h=190&scale=crop&cquality=80&location=origin
+CALEB WILLIAMS: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431611.png&w=260&h=190&scale=crop&cquality=80&location=origin
+SHOHEI OHTANI: PHOTO 180x180 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/660271/headshot/silo/current
+ELLY DE LA CRUZ: PHOTO 180x180 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/682829/headshot/silo/current
+PAUL SKENES: PHOTO 180x180 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/694973/headshot/silo/current
+CONNOR MCDAVID: PHOTO 336x336 https://assets.nhle.com/mugs/nhl/20262027/EDM/8478402.png
+MACKLIN CELEBRINI: PHOTO 336x336 https://assets.nhle.com/mugs/nhl/20262027/SJS/8484801.png
+CONNOR BEDARD: PHOTO 336x336 https://assets.nhle.com/mugs/nhl/20262027/CHI/8484144.png
+ERLING HAALAND: PHOTO 220x280 https://resources.premierleague.com/premierleague25/photos/players/110x140/223094.png
+BUKAYO SAKA: PHOTO 220x280 https://resources.premierleague.com/premierleague25/photos/players/110x140/223340.png
+COLE PALMER: PHOTO 220x280 https://resources.premierleague.com/premierleague25/photos/players/110x140/244851.png
+CARLOS ALCARAZ: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/3782.png&w=260&h=190&scale=crop&cquality=80&location=origin
+JANNIK SINNER: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/3623.png&w=260&h=190&scale=crop&cquality=80&location=origin
+NOVAK DJOKOVIC: PHOTO 260x190 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/296.png&w=260&h=190&scale=crop&cquality=80&location=origin
+
+200 https://assets.nhle.com/mugs/nhl/20262027/EDM/8478402.png
+200 https://assets.nhle.com/mugs/nhl/20262027/SJS/8484801.png
+200 https://assets.nhle.com/mugs/nhl/20262027/CHI/8484144.png
+200 https://resources.premierleague.com/premierleague25/photos/players/110x140/223094.png
+200 https://resources.premierleague.com/premierleague25/photos/players/110x140/244851.png
+200 https://resources.premierleague.com/premierleague25/photos/players/110x140/223340.png
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/5104157.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3139477.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3918298.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/682829/headshot/silo/current
+200 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/694973/headshot/silo/current
+200 https://img.mlbstatic.com/mlb-photos/image/upload/w_180,q_auto:best/v1/people/660271/headshot/silo/current
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/3782.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/3945274.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/296.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4594268.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431611.png&w=260&h=190&scale=crop&cquality=80&location=origin
+200 https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/3623.png&w=260&h=190&scale=crop&cquality=80&location=origin
