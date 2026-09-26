@@ -1639,7 +1639,7 @@ export const CZ_BSPORT = {
 const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
 const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
-const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
+const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, email: u.emmask || null, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !u.ident || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
@@ -1746,6 +1746,16 @@ export async function czTx(st, a) {
   }
   const u = await st.get("cz:u:" + a.uid);
   if (!u) return { error: "Account not found." };
+  if (a.act === "pwset") {                                          // add or change the email and password on this account
+    const owner = (await get("cz:em:" + a.emh, null))?.uid; if (owner && owner !== u.uid) return { error: "That email is already used by another Cosmo Sports account." };
+    if (u.emh && u.emh !== a.emh) await (st.delete ? st.delete("cz:em:" + u.emh) : st.put("cz:em:" + u.emh, null));
+    u.emh = a.emh; u.emmask = a.mask; u.pw = a.pw; await st.put("cz:em:" + a.emh, { uid: u.uid }); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u) };
+  }
+  if (a.act === "pwdel") {
+    if (u.emh) await (st.delete ? st.delete("cz:em:" + u.emh) : st.put("cz:em:" + u.emh, null));
+    delete u.emh; delete u.emmask; delete u.pw; await st.put("cz:u:" + u.uid, u); return { user: czPublic(u) };
+  }
+  if (a.act === "addtok") { u.toks = [...(u.toks || []), a.tok].slice(-10); await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), uid: u.uid }; }
   if (a.act === "daily") {
     if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
     u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
@@ -1932,6 +1942,7 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
     const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
     if (u.ident) await del("cz:id:" + u.ident);
+    if (u.emh) await del("cz:em:" + u.emh);
     const S = await st.get("cz:support"); if (S) await st.put("cz:support", JSON.stringify((typeof S === "string" ? JSON.parse(S) : S).filter(x => x.uid !== u.uid)));
     await st.put("cz:reports", (await get("cz:reports", [])).filter(r => r.from !== u.uid && r.uid !== u.uid));
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
@@ -2260,6 +2271,28 @@ export function czSyncClean(d) {
     if (/^[\w-]{1,40}$/.test(k) && (prim(v) ? String(v).length <= 400 : Array.isArray(v) && v.length <= 100 && v.every(prim))) settings[k] = v;
   return { v: 1, ls, fav, settings };
 }
+// email and password sign-in (for computers): the password is kept only as a salted PBKDF2 hash, and the email only as a hash
+// for looking the account up plus a masked copy for display ("a•••@gmail.com"). Wrong guesses are limited per address and per email.
+const CZ_PW_ITER = 100000;                                   // Cloudflare Workers' PBKDF2 maximum
+const czEmail = e => String(e || "").trim().toLowerCase();
+const czEmailOk = e => e.length <= 254 && /^[^\s@]{1,64}@[^\s@]+\.[^\s@]{2,}$/.test(e);
+const czEmailMask = e => { const [n, d] = e.split("@"); return `${n[0]}•••@${d}`; };
+const CZ_PW_WEAK = ["password", "123456", "qwerty", "letmein", "iloveyou", "football", "baseball", "basketball", "welcome", "cosmosports", "abc123", "monkey", "dragon", "sunshine"];
+function czPwProblem(pw, email) {
+  if (typeof pw !== "string" || pw.length < 10) return "Use at least 10 characters.";
+  if (pw.length > 200) return "That password is too long.";
+  const low = pw.toLowerCase(); if (CZ_PW_WEAK.some(w => low.includes(w)) || /^(.)\1+$/.test(pw) || (email && low.includes(email.split("@")[0]))) return "That password is too easy to guess. Try a longer phrase.";
+  return null;
+}
+async function czPwHash(pw, salt, iter = CZ_PW_ITER) {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
+  return b64u.enc(new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64u.dec(salt), iterations: iter }, k, 256)));
+}
+async function czPwCheck(u, pw) {
+  if (!u || !u.pw || typeof pw !== "string") return false;
+  const h = await czPwHash(pw, u.pw.salt, u.pw.iter || CZ_PW_ITER); let d = h.length ^ u.pw.hash.length;
+  for (let i = 0; i < Math.min(h.length, u.pw.hash.length); i++) d |= h.charCodeAt(i) ^ u.pw.hash.charCodeAt(i); return d === 0;
+}
 const czTokHash = async req => { const m = /^Bearer\s+[a-f0-9]{24}\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); return m ? czHash(m[1]) : null; };
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
@@ -2452,6 +2485,16 @@ export async function cosmicRoute(req, env, ctx, url) {
       return json({ ...r, auth: `${r.uid}.${token}` });
     } catch (e) { return json({ error: e.message === "unknown passkey" ? "That passkey isn't linked to a Cosmic account. Create an account first." : "Sign-in didn't go through (" + e.message + "). Try again." }, 401); }
   }
+  if (p === "/pw/login" && req.method === "POST") {                         // sign in with email and password
+    const d = await req.json().catch(() => ({})), email = czEmail(d.email), emh = await czHash("em:" + email);
+    if (!(await rateOk(env, "pwip:" + ip, 20, 900e3)) || !(await rateOk(env, "pwem:" + emh, 10, 3600e3))) return json({ error: "Too many tries. Wait a while, or sign in with your passkey." }, 429);
+    const uid = czEmailOk(email) ? (await czRead(env, "cz:em:" + emh, null))?.uid : null, u = uid ? await czRead(env, "cz:u:" + uid, null) : null;
+    if (!u || !u.pw) await czPwHash(String(d.password || "x"), "AAAAAAAAAAAAAAAAAAAAAA");   // same work either way, so timing doesn't reveal which emails have accounts
+    if (!(await czPwCheck(u, String(d.password || "")))) return json({ error: "Wrong email or password." }, 401);
+    const token = czRand(32), r = await cz(env, { act: "addtok", uid: u.uid, tok: await czHash(token), now });
+    if (r.error) return json(r, 409);
+    return json({ ...r, auth: `${u.uid}.${token}` });
+  }
   if (p === "/join" && req.method === "POST") {
     if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
     if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
@@ -2488,6 +2531,22 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
+  if (p === "/pw/set" && req.method === "POST") {                           // add or change the email and password for signing in on a computer
+    const d = await req.json().catch(() => ({})), email = czEmail(d.email), pw = String(d.password || "");
+    if (!(await rateOk(env, "pwset:" + u.uid, 10, 3600e3))) return json({ error: "Too many tries. Wait a while." }, 429);
+    if (u.pw && !(await czPwCheck(u, String(d.current || "")))) return json({ error: "Your current password isn't right." }, 403);
+    if (!czEmailOk(email)) return json({ error: "Enter a valid email address." }, 400);
+    const bad = czPwProblem(pw, email); if (bad) return json({ error: bad }, 400);
+    const salt = b64u.enc(crypto.getRandomValues(new Uint8Array(16)));
+    const r = await cz(env, { act: "pwset", uid: u.uid, emh: await czHash("em:" + email), mask: czEmailMask(email), pw: { salt, hash: await czPwHash(pw, salt), iter: CZ_PW_ITER }, now });
+    return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/pw/remove" && req.method === "POST") {
+    const d = await req.json().catch(() => ({}));
+    if (!(await rateOk(env, "pwset:" + u.uid, 10, 3600e3))) return json({ error: "Too many tries. Wait a while." }, 429);
+    if (u.pw && !(await czPwCheck(u, String(d.current || "")))) return json({ error: "Your current password isn't right." }, 403);
+    const r = await cz(env, { act: "pwdel", uid: u.uid, now }); return json(r, r.error ? 409 : 200);
+  }
   if (p === "/signout" && req.method === "POST") {                           // this device's key stops working (or every key, with all)
     const d = await req.json().catch(() => ({})), r = await cz(env, { act: "signout", uid: u.uid, tok: await czTokHash(req), all: !!d.all, now }); return json({ ok: true, all: !!d.all && r.ok });
   }

@@ -71,6 +71,7 @@ Use Apple's standard EULA. Our own terms are at https://cosmosports.app/terms.ht
 ## App Privacy (the "nutrition label")
 Data collected and **linked to the user** (used only for app functionality, never for tracking or ads):
 - **Identifiers > User ID**: the account ID
+- **Contact Info > Email Address** (only if the person adds email sign-in; kept as a one-way hash plus a masked copy, used only to sign in)
 - **User Content > Other user content**: the display name, bets, cards and market listings (shown on public leaderboards)
 - **Other data > Other data types**: followed teams and settings, saved to the account so they sync
 
