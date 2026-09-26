@@ -1933,7 +1933,7 @@ export async function czTx(st, a) {
     // cards the first one pulled and isn't charged again
     if (a.rid && u.lastPack && u.lastPack.rid === a.rid) return { user: czPublic(u), cards: u.lastPack.cards, repeat: true };
     const tix = pk.ev ? 0 : (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
-    const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0, count = free ? 1 : Math.max(1, Math.min(CZ_PACK_MAX, Math.floor(+a.count) || 1));
+    const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0, count = free ? (welcome ? 3 : 1) : Math.max(1, Math.min(CZ_PACK_MAX, Math.floor(+a.count) || 1));   // the welcome gift is three Comet packs
     if (pk.ev && evUsed + count > (pk.max || CZ_EV_MAX)) return { error: evUsed >= (pk.max || CZ_EV_MAX) ? `You've opened all ${pk.max || CZ_EV_MAX} of your ${pk.label}s. It's a limited edition!` : `You have ${(pk.max || CZ_EV_MAX) - evUsed} ${pk.label}${(pk.max || CZ_EV_MAX) - evUsed === 1 ? "" : "s"} left.` };
     if (a.free && !free) return { error: "You don't have a free pack of that kind." };
     if (!free && u.bal < pk.price * count && !u.tester) return { error: count > 1 ? `${count} packs cost ${(pk.price * count).toLocaleString()} Cosmic Coins.` : "Not enough Cosmic Coins." };

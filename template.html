@@ -5495,7 +5495,7 @@ function czHomeHtml(){
   const A = czAchievements(me), nA = A.filter(a => a.done).length;
   const tix = Object.entries(me.tix || {}).filter(([, n]) => n > 0);
   return `${tix.map(([k, n]) => `<section class="czwelcome"><div><b>You have ${n} free ${k === "comet" ? "Comet" : k === "supernova" ? "Supernova" : k} pack${n === 1 ? "" : "s"}</b><small>Won on the daily wheel.</small></div><button type="button" class="btn primary" data-czfreepk="${esc(k)}">Open it free</button></section>`).join("")}
-    ${czEventBannerHtml()}${czWheelHtml()}${me.freePack ? `<section class="czwelcome"><div><b>Your welcome pack is ready</b><small>A free Comet pack: numbered cards from any league.</small></div><button type="button" class="btn primary" data-czfree>Open it free</button></section>` : ""}
+    ${czEventBannerHtml()}${czWheelHtml()}${me.freePack ? `<section class="czwelcome"><div><b>Your welcome pack is ready</b><small>Three free Comet packs: numbered cards from any league.</small></div><button type="button" class="btn primary" data-czfree>Open it free</button></section>` : ""}
     <div class="czacts">
       ${claimed ? tile('data-cztab="bet"', czIco("bet"), "Place a bet", games ? `${games} game${games === 1 ? "" : "s"} open` : "Games open the day before", false) : tile('data-cz="daily"', czIco("coin"), "Claim daily coins", "Free coins every day, more for a streak", true)}
       ${tile('data-cztab="packs"', czIco("pack"), "Open a pack", cheapest ? `${cheapest.label}: ${cheapest.price.toLocaleString()} coins` : "Packs from 100 coins", false)}

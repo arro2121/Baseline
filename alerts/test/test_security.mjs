@@ -182,4 +182,10 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
   check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000");
   check("TR1 three versions per card: a 1-of-1, /100 and /1000", W.CZ_TIERS.map(t => t[2]).join() === "1,100,1000" && W.CZ_PACKS.every(pk => pk.odds.length === 3 && Math.abs(pk.odds.reduce((a, b) => a + b) - 100) < .01)); }
+// WP1: the welcome gift is three Comet packs, free
+{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+  await T({ act: "ident", sub: "N", uid: "N", tok: "t", name: "Newbie" }); m.set("cz:u:N", { ...m.get("cz:u:N"), bal: 0, freePack: true, tix: { comet: 1 } });
+  const pool = Array.from({ length: 20 }, (_, i) => ({ id: `nba.p${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "P" + i, kind: "player" }));
+  const r = await T({ act: "pack", uid: "N", pack: W.CZ_PACKS[0], pool, free: true, rid: "ffffffffffffffff" }), U = m.get("cz:u:N");
+  check("WP1 the welcome gift is three free Comet packs", r.cards.length === 3 && U.bal === 0 && U.freePack === false && U.tix.comet === 1, { n: r.cards.length, bal: U.bal }); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
