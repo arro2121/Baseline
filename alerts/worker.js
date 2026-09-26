@@ -2349,7 +2349,8 @@ async function czCatalog(env, fetchImpl = fetch) {
   // Iconic Moments: the greatest moments in sports history, each a single 1-of-1 with its photo, numbered by rank
   { let R = {}; try { const r = await siteGet(env, "/rosters.json", fetchImpl); R = r.ok ? await r.json() : {}; } catch {}
     const photo = R.moments || {}, T = CZ_TIERS[0];
-    for (const M of MOMENTS) { const mult = Math.round((2.6 - (M.rank - 1) * .03) * 1000) / 1000, usd = czUsd(T[3], mult, "player", M.lg);
+    for (const M of MOMENTS) { if (Object.keys(photo).length && !photo[M.name]) continue;          // no photo, no card
+      const mult = Math.round((2.6 - (M.rank - 1) * .03) * 1000) / 1000, usd = czUsd(T[3], mult, "player", M.lg);
       items.push({ id: `${M.lg}.mo-${czSlug(M.name)}.${T[0]}`, lg: M.lg, kind: "player", moment: true, name: M.name, team: M.who, pos: M.year, year: M.year, tier: T[0], label: T[1], supply: 1,
         mult, usd, price: czCoins(usd), rank: M.rank, no: M.rank, img: photo[M.name] || undefined }); } }
   // card numbers, like a real set: each league's set (2026 Cosmic NBA...) runs teams first, then players by team and name.
@@ -2683,8 +2684,27 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   if (p === "/packs" && req.method === "GET") return json({ prices: (await czCatalog(env), czPackPrices()), ret: CZ_RETURN, now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)).map(e => ({ ...e, price: czEvPrice(e) })), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
+  // anyone's collection, by player name: their cards (rarest first) and a few public numbers. Nothing private (no coins,
+  // bets or account details), the same as what leaderboards and the Market already show.
+  if (p === "/collection" && req.method === "GET") { const nm = String(url.searchParams.get("name") || "").toLowerCase().slice(0, 40);
+    const uid = (await czRead(env, "cz:names", {}))[nm], who = uid ? await czRead(env, "cz:u:" + uid, null) : null;
+    if (!who) return json({ error: "That player isn't in Cosmic." }, 404);
+    await czCatalog(env); const order = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
+    const items = (who.items || []).map(i => { const c = CZ_CAT.byId.get(i.id) || {};
+      return { id: i.id, n: i.n, supply: i.supply, tier: i.tier, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num, rc: i.rc || c.rc,
+        legend: i.legend || c.legend, moment: i.moment || c.moment, rank: i.rank || c.rank, year: i.year || c.year, ch: i.ch, ink: i.ink, ev: i.ev, evl: i.evl, evc: i.evc, at: i.at, value: c.price || 0 }; })
+      .sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier) || !!b.ch - !!a.ch || b.value - a.value);
+    return json({ name: who.name, cards: items.length, value: items.reduce((s, i) => s + i.value, 0), packs: who.packs || 0, sets: (who.setsDone || []).length,
+      rank: who.sp && who.sp.season === czSeasonOf(now) ? czRankOf(who.sp.pts || 0)[1] : null, items: items.slice(0, 300) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/casehits" && req.method === "GET") { const items = await czCatalog(env), pick = n => items.find(i => i.name === n && i.tier === "pulsar");
-    const samples = ["Victor Wembanyama", "Patrick Mahomes", "Shohei Ohtani"].map(pick).filter(Boolean);             // what each insert looks like
+    // what each insert looks like: a different star on every design, from every league, reshuffled each day. Any card
+    // from any pack can come out as a case hit; these are just the previews
+    const STARS = ["Victor Wembanyama", "Patrick Mahomes", "Shohei Ohtani", "Connor McDavid", "Erling Haaland", "Carlos Alcaraz", "Aryna Sabalenka", "LeBron James",
+      "Josh Allen", "Aaron Judge", "Nathan MacKinnon", "Mohamed Salah", "Jannik Sinner", "Stephen Curry", "Lamar Jackson", "Paul Skenes", "Auston Matthews",
+      "Coco Gauff", "Shai Gilgeous-Alexander", "Justin Jefferson", "Bobby Witt Jr.", "Cole Palmer", "Luka Doncic", "Iga Swiatek", "Jayden Daniels", "Nikola Jokic"];
+    let h = Math.floor(Date.now() / 864e5); const pool = STARS.map(pick).filter(Boolean);
+    for (let i = pool.length - 1; i > 0; i--) { h = (h * 9301 + 49297) % 233280; const j = h % (i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const samples = pool.slice(0, CZ_CASE.inserts.length);
     return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, ink: CZ_INK, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/sets" && req.method === "GET") { const lg = url.searchParams.get("lg") || "all";
     if (!["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].includes(lg)) return json({ error: "Pick a league." }, 400);
