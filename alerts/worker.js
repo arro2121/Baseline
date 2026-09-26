@@ -1582,15 +1582,37 @@ export const CZ_TIERS = [["singularity", "Singularity", 1, 2500], ["supernova", 
 // superstar's cards sell for many times a role player's: value^2.2, so a 3.0 is worth about 11x a 1.0). Team cards sell for
 // far less than players' cards. Coins are 50 to the dollar (a coin is 2 cents).
 export const CZ_COINS_PER_USD = 50;
-export const czUsd = (base, mult, kind) => Math.round(base * Math.pow(Math.max(.3, mult), 2.2) * (kind === "team" ? .35 : 1) * 100) / 100;
+// each sport's card market, next to basketball and football (the biggest hobby markets): baseball a little smaller, soccer
+// and hockey smaller, tennis much smaller. A superstar in a small hobby is still worth a lot, just less than an NBA star.
+export const CZ_SPORT_MKT = { nba: 1, nfl: 1, mlb: .85, epl: .7, nhl: .6, atp: .3, wta: .3 };
+export const czUsd = (base, mult, kind, lg) => Math.round(base * Math.pow(Math.max(.3, mult), 2.2) * (kind === "team" ? .35 : 1) * (CZ_SPORT_MKT[lg] ?? 1) * 100) / 100;
 export const czCoins = usd => Math.max(10, Math.round(usd * CZ_COINS_PER_USD / 10) * 10);
 // packs: the chance (%) that each card is Singularity, Supernova, Quasar, Nebula, Pulsar, Stardust or Comet. Shown in the app.
+// Each pack's odds are tuned against the whole catalog so its cards are worth about 70% of its price on average, like real
+// hobby boxes: opening packs slowly takes coins out of the game, which keeps card prices from inflating.
 export const CZ_PACKS = [
-  { id: "comet", label: "Comet Pack", price: 250, cards: 3, odds: [0.01, 0.09, 0.4, 1.5, 5, 18, 75] },
-  { id: "nebula", label: "Nebula Pack", price: 1000, cards: 3, odds: [0.05, 0.45, 1.5, 6, 17, 35, 40] },
-  { id: "supernova", label: "Supernova Pack", price: 2750, cards: 3, odds: [0.2, 1.8, 6, 17, 30, 45, 0] },
-  { id: "singularity", label: "Singularity Pack", price: 5000, cards: 2, odds: [1, 5, 14, 30, 50, 0, 0] },
+  { id: "comet", label: "Comet Pack", price: 100, cards: 2, odds: [0.001, 0.01, 0.05, 0.3, 1.5, 8, 90.139] },
+  { id: "stardust", label: "Stardust Pack", price: 250, cards: 3, odds: [0.003, 0.03, 0.25, 1.2, 4, 20, 74.517] },
+  { id: "nebula", label: "Nebula Pack", price: 1000, cards: 4, odds: [0.03, 0.3, 2, 8, 14, 30, 45.67] },
+  { id: "supernova", label: "Supernova Pack", price: 5000, cards: 5, odds: [0.4, 2.5, 8, 20, 30, 39.1, 0] },
+  { id: "singularity", label: "Singularity Pack", price: 10000, cards: 5, odds: [1.1, 4.5, 15, 30, 49.4, 0, 0] },
+  { id: "galaxy", label: "Galaxy Pack", price: 100000, cards: 10, odds: [8, 30, 62, 0, 0, 0, 0] },
 ];
+export const CZ_PACK_MAX = 10;                                     // packs bought and opened at once
+// a pack's price in each league (and for teams-only or players-only packs) follows what that pool's cards are worth, so every
+// pack is worth about the same share of its price wherever it draws from. "Every league" packs keep their list prices.
+const czEvScope = e => e.lgs.includes("atp") ? "tennis" : e.lgs[0];     // an event pack's league, for its price
+export const czPackPrice = (price, m) => m === 1 ? price : price * m >= 1000 ? Math.round(price * m / 50) * 50 : Math.max(10, Math.round(price * m / 10) * 10);
+function czPackMults() {
+  if (CZ_CAT.pm) return CZ_CAT.pm;
+  const order = CZ_TIERS.map(t => t[0]), odds = CZ_PACKS.find(p => p.id === "nebula").odds, pm = {};
+  const ev = (lgs, kind) => { let s = 0; for (let k = 0; k < order.length; k++) { const l = CZ_CAT.v.filter(i => i.tier === order[k] && (!lgs || lgs.includes(i.lg)) && (kind === "all" || i.kind === kind));
+    if (l.length) s += odds[k] / 100 * l.reduce((a, i) => a + i.price, 0) / l.length; } return s; };
+  const base = ev(null, "all");
+  for (const [scope, lgs] of Object.entries(CZ_SCOPES)) for (const kind of ["all", "team", "player"])
+    pm[scope + "|" + kind] = scope === "all" && kind === "all" ? 1 : Math.round(Math.max(.3, Math.min(3, ev(lgs, kind) / base)) * 100) / 100;
+  return (CZ_CAT.pm = pm);
+}
 // event packs: limited-time packs for the big moments of the sports year. Each opens and closes on set dates (UTC), draws
 // only from its leagues with better odds than a Nebula pack, can be opened CZ_EV_MAX times per player, and every card pulled
 // from it keeps the event's edition (its frame and badge) for good, wherever the copy goes.
@@ -1609,10 +1631,10 @@ export const CZ_EVENTS = [
   { id: "nhlpo27", label: "Chase for the Cup", emoji: "🏒", color: "#0369a1", lgs: ["nhl"], start: "2027-04-17T15:00:00Z", end: "2027-05-02T08:00:00Z", blurb: "The NHL playoffs, in a playoff edition." },
   { id: "final27", label: "Final Day", emoji: "⚽", color: "#9333ea", lgs: ["epl"], start: "2027-05-19T15:00:00Z", end: "2027-05-25T08:00:00Z", blurb: "The Premier League's last matchday. Final Day edition cards." },
 ];
-export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_ODDS = [0.1, 0.9, 3, 10, 22, 34, 30];
+export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_CARDS = 4, CZ_EV_ODDS = [0.1, 0.9, 3, 10, 22, 34, 30];
 // the events as packs, with where each one stands at this moment: "soon", "live" or "over"
 export const czEventsAt = now => CZ_EVENTS.map(e => { const starts = Date.parse(e.start), ends = Date.parse(e.end);
-  return { ...e, id: e.id, pack: "ev:" + e.id, label: `${e.label} Pack`, price: CZ_EV_PRICE, cards: 3, odds: CZ_EV_ODDS, max: CZ_EV_MAX, starts, ends, status: now < starts ? "soon" : now < ends ? "live" : "over" }; });
+  return { ...e, id: e.id, pack: "ev:" + e.id, label: `${e.label} Pack`, price: CZ_EV_PRICE, cards: CZ_EV_CARDS, odds: CZ_EV_ODDS, max: CZ_EV_MAX, starts, ends, status: now < starts ? "soon" : now < ends ? "live" : "over" }; });
 const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"] }, CZ_KINDS = ["all", "team", "player", "rookie"];
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -1896,15 +1918,15 @@ export async function czTx(st, a) {
     // cards the first one pulled and isn't charged again
     if (a.rid && u.lastPack && u.lastPack.rid === a.rid) return { user: czPublic(u), cards: u.lastPack.cards, repeat: true };
     const tix = pk.ev ? 0 : (u.tix || {})[pk.id] || 0, welcome = u.freePack && pk.id === "comet", free = !!a.free && (welcome || tix > 0);
-    const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0;
-    if (pk.ev && evUsed >= (pk.max || CZ_EV_MAX)) return { error: `You've opened all ${pk.max || CZ_EV_MAX} of your ${pk.label}s. It's a limited edition!` };
+    const evUsed = pk.ev ? (u.evp || {})[pk.ev] || 0 : 0, count = free ? 1 : Math.max(1, Math.min(CZ_PACK_MAX, Math.floor(+a.count) || 1));
+    if (pk.ev && evUsed + count > (pk.max || CZ_EV_MAX)) return { error: evUsed >= (pk.max || CZ_EV_MAX) ? `You've opened all ${pk.max || CZ_EV_MAX} of your ${pk.label}s. It's a limited edition!` : `You have ${(pk.max || CZ_EV_MAX) - evUsed} ${pk.label}${(pk.max || CZ_EV_MAX) - evUsed === 1 ? "" : "s"} left.` };
     if (a.free && !free) return { error: "You don't have a free pack of that kind." };
-    if (!free && u.bal < pk.price && !u.tester) return { error: "Not enough Cosmic Coins." };
+    if (!free && u.bal < pk.price * count && !u.tester) return { error: count > 1 ? `${count} packs cost ${(pk.price * count).toLocaleString()} Cosmic Coins.` : "Not enough Cosmic Coins." };
     const ser = {}, order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     // one pack never repeats a player or team if it can help it (a team pack draws from a small pool, in every tier)
     const left = t => { const l = a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id)), fresh = l.filter(i => !pulled.some(x => x.lg === i.lg && x.name === i.name));
       return fresh.length ? fresh : l; };
-    for (let c = 0; c < pk.cards; c++) {
+    for (let c = 0; c < pk.cards * count; c++) {
       let r = rnd() * 100, tier = order[order.length - 1];
       for (let k = 0; k < order.length; k++) { r -= pk.odds[k]; if (r < 0) { tier = order[k]; break; } }
       let ti = order.indexOf(tier), cands = left(tier);
@@ -1922,9 +1944,10 @@ export async function czTx(st, a) {
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(ch ? { ch } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
-    if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price;
-    if (pk.ev) u.evp = { ...(u.evp || {}), [pk.ev]: evUsed + 1 };
-    czAddSp(u, 3, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + 1;
+    const opened = Math.max(1, Math.ceil(pulled.length / pk.cards));          // packs actually filled (charged for), in case supply ran short
+    if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price * opened;
+    if (pk.ev) u.evp = { ...(u.evp || {}), [pk.ev]: evUsed + opened };
+    czAddSp(u, 3 * opened, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + opened;
     if (a.rid) u.lastPack = { rid: a.rid, cards: pulled };
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
@@ -1933,7 +1956,7 @@ export async function czTx(st, a) {
     }
     for (const id in ser) await st.put("cz:ser:" + id, ser[id]);
     await st.put("cz:mint", mint); await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
-    return { user: czPublic(u), cards: pulled };
+    return { user: czPublic(u), cards: pulled, count: opened };
   }
   const card = id => (u.items || []).find(x => x.id === id);
   const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
@@ -2266,11 +2289,11 @@ async function czMarkets(env, lg, day, fetchImpl = fetch) {
   CZ_BOARD.set(k, { at: Date.now(), v }); if (CZ_BOARD.size > 40) CZ_BOARD.clear();
   return v;
 }
-// the collectibles: every team in the five leagues and the top 24 players on each tennis tour, in seven tiers, 1 of 1 up to 1 of 1,000.
+// the collectibles: every team in the five leagues and the top 100 players on each tennis tour, in seven tiers, 1 of 1 up to 1 of 1,000.
 // Better teams (by the model's rating) and higher-ranked players cost more.
 let CZ_CAT = null;
 export const czCatReset = () => { CZ_CAT = null; };                       // tests: rebuild the catalog on the next request
-// the catalog: every team (by the model's rating), the top 24 players on each tennis tour, and every player on every NFL, NBA,
+// the catalog: every team (by the model's rating), the top 100 players on each tennis tour, and every player on every NFL, NBA,
 // MLB, NHL and Premier League roster (docs/rosters.json, rebuilt nightly), each in all seven tiers. Stars (the league
 // leaders in docs/allstars.json) are valued higher than the rest of a roster.
 async function czCatalog(env, fetchImpl = fetch) {
@@ -2278,12 +2301,12 @@ async function czCatalog(env, fetchImpl = fetch) {
   const models = await trackModels(env, fetchImpl), items = [];
   // a player card's price follows his real cards' market (CZ_HOBBY) and this season's play (czMarketMult); a team's follows its
   // rating; each tier multiplies it
-  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, usd: czUsd(base, mult, kind), price: czCoins(czUsd(base, mult, kind)), ...extra }); };
+  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, usd: czUsd(base, mult, kind, lg), price: czCoins(czUsd(base, mult, kind, lg)), ...extra }); };
   for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo);
     const hi = names.length ? st[names[0]].elo : 0, lo = names.length ? st[names[names.length - 1]].elo : 0;
     names.forEach((n, i) => add(lg, "team", n, .6 + 1.1 * (hi > lo ? (st[n].elo - lo) / (hi - lo) : .5), { rank: i + 1, elo: Math.round(st[n].elo) }, czSlug(n))); }
   try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
-    for (const tour of ["atp", "wta"]) { const names = P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name);
+    for (const tour of ["atp", "wta"]) { const names = P.filter(p => p.tour === tour).slice(0, 100).map(p => p.name);     // the top 100 on each tour, like a full roster
       names.forEach((n, i) => { const d = czHobbyOf(tour, n);
         const play = 1 - (names.length > 1 ? i / (names.length - 1) : 0);
         add(tour, "player", n, czMarketMult(d, play), { rank: i + 1, hobby: d, form: d ? Math.round((czFormOf(play) - 1) * 100) : undefined }, czSlug(n)); }); } } catch {}
@@ -2446,7 +2469,7 @@ async function czSets(env, lg) {
 // team packs: 3 cards from one team (its players and its team card), with Nebula-pack odds. The price follows how valuable that
 // team's cards are: the average price level of its 8 most valuable players against the league's average team, so a pack of a
 // team full of stars costs more (from 600 up to 2,500 coins; an average team's is 1,000).
-export const CZ_TEAM_PACK = { cards: 3, base: 1000, odds: CZ_PACKS.find(p => p.id === "nebula").odds };
+export const CZ_TEAM_PACK = { cards: 4, base: 1000, odds: CZ_PACKS.find(p => p.id === "nebula").odds };
 export const czTeamPackPrice = idx => Math.round(CZ_TEAM_PACK.base * Math.max(.6, Math.min(2.5, idx)) / 50) * 50;
 async function czTeamPacks(env, lg) {
   await czCatalog(env); if (CZ_CAT.tp && CZ_CAT.tp[lg]) return CZ_CAT.tp[lg];
@@ -2470,7 +2493,7 @@ const czTrendOf = it => (CZ_CAT && CZ_CAT.trend[czLvlKey(it)]) || 0;         // 
 async function czItem(env, id) {
   await czCatalog(env); const it = CZ_CAT.byId.get(id); if (it) return it;
   const tier = CZ_TIERS.find(t => id.endsWith("." + t[0])); if (!tier) return null;
-  return { id, tier: tier[0], label: tier[1], supply: tier[2], usd: czUsd(tier[3], .6, "player"), price: czCoins(czUsd(tier[3], .6, "player")), lg: id.split(".")[0], name: "", kind: "player" };
+  return { id, tier: tier[0], label: tier[1], supply: tier[2], usd: czUsd(tier[3], .6, "player", id.split(".")[0]), price: czCoins(czUsd(tier[3], .6, "player", id.split(".")[0])), lg: id.split(".")[0], name: "", kind: "player" };
 }
 // the site owner's key (the COMETS_KEY secret), compared in constant time, with a lockout after repeated misses
 async function czOwnerCheck(req, env, ip) {
@@ -2621,7 +2644,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/levels" && req.method === "GET") { const [L, H] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
     return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
-  if (p === "/packs" && req.method === "GET") return json({ now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
+  if (p === "/packs" && req.method === "GET") return json({ mults: (await czCatalog(env), czPackMults()), now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)).map(e => ({ ...e, price: czPackPrice(e.price, czPackMults()[czEvScope(e) + "|all"] || 1) })), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p === "/casehits" && req.method === "GET") { const items = await czCatalog(env), pick = n => items.find(i => i.name === n && i.tier === "nebula");
     const samples = ["Victor Wembanyama", "Patrick Mahomes", "Shohei Ohtani"].map(pick).filter(Boolean);             // what each insert looks like
     return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
@@ -2881,11 +2904,12 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (E && E.status !== "live") return json({ error: E.status === "soon" ? `The ${E.label} opens soon. Check the countdown on the Packs tab.` : `The ${E.label} has ended.` }, 409);
     const TP = /^tp:(nfl|nba|mlb|nhl|epl):[a-z0-9-]{1,60}$/.test(want) ? (await czTeamPacks(env, want.split(":")[1])).find(t => t.id === want) : null;
     if (want.startsWith("tp:") && !TP) return json({ error: "That team pack isn't available." }, 404);
-    const pk = E ? { id: E.pack, label: E.label, price: E.price, cards: E.cards, odds: E.odds, max: E.max, ev: E.id, evl: `${E.emoji} ${E.label.replace(/ Pack$/, "")}`, evc: E.color }
+    let pk = E ? { id: E.pack, label: E.label, price: E.price, cards: E.cards, odds: E.odds, max: E.max, ev: E.id, evl: `${E.emoji} ${E.label.replace(/ Pack$/, "")}`, evc: E.color }
       : TP ? { id: TP.id, label: TP.label, price: TP.price, cards: CZ_TEAM_PACK.cards, odds: CZ_TEAM_PACK.odds }
       : CZ_PACKS.find(x => x.id === want), scope = E || TP ? "all" : Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
     const kind = !E && !TP && ["team", "player"].includes(d.kind) ? d.kind : "all", lgs = E ? E.lgs : TP ? [TP.lg] : CZ_SCOPES[scope];
     if (!pk) return json({ error: "That pack isn't available." }, 404);
+    if (!TP) { await czCatalog(env); const m = czPackMults()[(E ? czEvScope(E) : scope) + "|" + kind] || 1; if (m !== 1) pk = { ...pk, price: czPackPrice(pk.price, m) }; }
     const onTeam = i => !TP || (i.kind === "player" ? i.team === TP.team : czSlug(i.name) === czSlug(TP.team));
     // shortlist: up to 80 random cards per tier that still have copies out there and that this player doesn't own;
     // the Durable Object then re-checks them in one step, so nobody gets a copy that's already gone
@@ -2893,10 +2917,10 @@ export async function cosmicRoute(req, env, ctx, url) {
     const P = items.filter(i => (!lgs || lgs.includes(i.lg)) && (kind === "all" || i.kind === kind) && onTeam(i) && !mine.has(i.id) && (mint[i.id] || 0) - (ret[i.id] || []).length < i.supply);
     const byTier = {}; for (const i of P) (byTier[i.tier] ||= []).push(i);
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
-    for (const list of Object.values(byTier)) { const k = Math.min(80, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
+    for (const list of Object.values(byTier)) { const k = Math.min(160, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
       for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, no: i.no, num: i.num, ...(i.rc ? { rc: true } : {}) }); } }
     const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
-    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free, rid });
+    const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free, rid, count: d.count });
     return json(r, r.error ? 409 : 200);
   }
   return json({ error: "not found" }, 404);
