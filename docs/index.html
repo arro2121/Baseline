@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-lHyt6OsalpZ2DL+FqHz3mpU2L4exNpLPWI0okDPQ3fc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-NWrjW8gXVofBoeJXvP9Wv2Qr9l22Yl+9pj9YRG/fBc0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1493,6 +1493,9 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:0;background:#94a3b8}
 .czdot.t-singularity{background:#fcd34d;box-shadow:0 0 6px #fcd34d}.czdot.t-supernova{background:#fb923c}.czdot.t-quasar{background:#38bdf8}.czdot.t-nebula{background:#a78bfa}.czdot.t-pulsar{background:#34d399}.czdot.t-stardust{background:#cbd5e1}.czdot.t-comet{background:#64748b}
 .czopen{justify-content:center}.czownd{font-size:.72rem;color:#c084fc;text-align:center;font-weight:700}
+.czsellall{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:8px 0}.czsellall .sub{margin:0;flex:1 1 220px}.czsellall .btn{flex:none}
+.czkeep{display:flex;gap:8px;align-items:center;margin:10px 0;font-weight:600}.czkeep input{width:18px;height:18px;accent-color:#a855f7}
+.czsellsum{font-size:1.05rem;margin:10px 0;display:grid;gap:4px}.czsellsum small{color:var(--muted);font-size:.8rem}
 .czrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:14px 0;perspective:900px}
 .czflip{position:relative;aspect-ratio:5/7;border:0;padding:0;background:none;cursor:pointer;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
 .czflip.on{transform:rotateY(180deg);cursor:default}.czflip>span{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
@@ -6354,7 +6357,31 @@ function czCollHtml(){
   const sets = Object.keys(LEAGUE_LABEL).map(lg => { const total = LG_TEAMS(lg).length, have = new Set(all.filter(i => i.lg === lg && i.kind !== "player").map(i => i.name)).size; return { lg, total, have }; }).filter(x => x.total && x.have);
   return `<div class="cztiers" role="group" aria-label="Filter by tier"><button type="button" data-czct="all" aria-pressed="${ct === "all"}"><b>${all.length}</b>All</button>${CZ_ORDER.filter(t => n(t)).map(t => `<button type="button" class="t-${t}" data-czct="${t}" aria-pressed="${ct === t}"><b>${n(t)}</b>${esc(CZ_TIER_NAME[t])}</button>`).join("")}</div>
     ${sets.length ? `<div class="czsets">${sets.map(x => `<div class="czset"><span>${esc(LEAGUE_LABEL[x.lg])} teams</span><div class="czset-bar"><i style="width:${Math.max(3, x.have / x.total * 100).toFixed(1)}%"></i></div><small>${x.have}/${x.total}</small></div>`).join("")}</div>` : ""}
-    <p class="sub">Tap a card to sell it to the shop, list it for other players, or see who owns the other copies.</p><div class="czgrid">${items.map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<small>Minted ${esc(new Date(i.at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }))}</small></button>`).join("")}</div>`;
+    <div class="czsellall"><p class="sub">Tap a card to sell it to the shop, list it for other players, or see who owns the other copies.</p><button type="button" class="btn" data-czsellall>💰 Sell all${ct === "all" ? "" : " " + esc(CZ_TIER_NAME[ct])} (${items.length})</button></div><div class="czgrid">${items.map(i => `<button type="button" class="czown" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<small>Minted ${esc(new Date(i.at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }))}</small></button>`).join("")}</div>`;
+}
+// Sell all: every card in the current Collection filter goes to the shop at once. Cards on the market, in an auction or in a
+// battle stay put, and so do Supernovas and Singularities unless you untick the box.
+async function czSellAll(){
+  const ct = CZ.ctier || "all", all = (CZ.me.items || []).filter(i => ct === "all" || i.tier === ct), rare = all.filter(i => i.supply <= 10);
+  const pick = keep => all.filter(i => !(keep && i.supply <= 10)).map(i => i.id);
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">Sell all${ct === "all" ? "" : " " + esc(CZ_TIER_NAME[ct])} to the shop</h2>
+    <p class="sub">Coins right away. The copies go back into packs. This can't be undone.</p>
+    ${rare.length ? `<label class="czkeep"><input type="checkbox" id="czKeepRare" checked> Keep my ${rare.length} Supernova and Singularity card${rare.length === 1 ? "" : "s"}</label>` : ""}
+    <div class="czsellsum" id="czSellSum">${cosmoLoad("Adding it up…")}</div><p class="czerr" id="czErr" role="alert"></p>
+    <div class="pkfoot"><button class="btn" type="button" data-info="close">Cancel</button><button class="btn primary" type="button" id="czSellGo" disabled>Sell</button></div>`;
+  const d = $("#infoDlg"); if (!d.open) d.showModal();
+  const keep = () => { const k = $("#czKeepRare"); return !!(k && k.checked); }, go = $("#czSellGo");
+  const preview = async () => { go.disabled = true; const ids = pick(keep());
+    if (!ids.length) { $("#czSellSum").textContent = "Nothing to sell with these settings."; return; }
+    try { const p = await czApi("/sellmany", { items: ids, preview: true });
+      $("#czSellSum").innerHTML = p.count ? `<span><b>${p.count} card${p.count === 1 ? "" : "s"}</b> for ${czAmt(p.total)}</span>${p.busy ? `<small>${p.busy} on the market, in an auction or in a battle stay in your collection.</small>` : ""}` : "Every one of these cards is on the market, in an auction or in a battle.";
+      go.textContent = p.count ? `Sell ${p.count} for ${p.total.toLocaleString()} coins` : "Sell"; go.disabled = !p.count; } catch (e) { $("#czErr").textContent = e.message; } };
+  const k = $("#czKeepRare"); if (k) k.onchange = preview;
+  go.onclick = async () => { go.disabled = true; go.textContent = "Selling…";
+    try { const r = await czApi("/sellmany", { items: pick(keep()) }); CZ.me = r.user; CZ.ctier = "all"; d.close(); sfx("win"); czConfetti(40);
+      toast(`Sold ${r.sold} card${r.sold === 1 ? "" : "s"} for ${r.paid.toLocaleString()} coins`); drawCosmic(); czLoad(["vault", "market"]); }
+    catch (e) { $("#czErr").textContent = e.message; go.disabled = false; go.textContent = "Try again"; } };
+  preview();
 }
 async function czHistory(id, n){
   const own = (CZ.me.items || []).find(i => i.id === id); let owners = [], V = null;
@@ -6794,6 +6821,7 @@ function czBind(el){
     try { const r = await czApi("/buylisting", { lid: l.lid }); CZ.me = r.user; sfx("win"); czReveal({ ...l, label: CZ_TIER_NAME[l.tier] }, l.n); czLoad(["market"]); drawCosmic(); } catch (e) { toast(e.message); czLoad(["market", "me"]); } });
   el.querySelectorAll("[data-czscope]").forEach(b => b.onclick = () => { CZ.scope = b.dataset.czscope; lsSet("cz-scope", CZ.scope); drawCosmic(); });
   el.querySelectorAll("[data-czcard]").forEach(b => b.onclick = () => czHistory(b.dataset.czcard, +b.dataset.n));
+  el.querySelectorAll("[data-czsellall]").forEach(b => b.onclick = () => czSellAll());
   const f = el.querySelector("[data-czform=join]");
   if (f) f.onsubmit = async e => { e.preventDefault(); const name = f.name.value.trim(), btn = f.querySelector("button"); btn.disabled = true;
     try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmo Sports, ${r.user.name}. You have 1,000 Cosmic Coins.`); drawCosmic(); drawGate(); czLoad(["board", "vault", "lb"]); }

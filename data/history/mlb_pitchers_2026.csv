@@ -1,5 +1,5 @@
 id,name,season,ip,so,bb,hr,er,gs
-434378,Justin Verlander,2026,3.67,1,2,1,5,1
+434378,Justin Verlander,2026,6.67,4,3,1,5,2
 453286,Max Scherzer,2026,77.67,61,34,15,53,17
 476594,Robert Stock,2026,30.33,29,15,2,20,7
 500779,Jose Quintana,2026,45.0,22,18,8,27,10
@@ -165,7 +165,7 @@ id,name,season,ip,so,bb,hr,er,gs
 663559,Bailey Falter,2026,3.33,2,0,0,0,0
 663567,Peter Lambert,2026,153.67,153,59,17,66,28
 663568,Stephen Kolek,2026,54.0,34,12,8,27,10
-663623,Jake Irvin,2026,101.67,104,46,18,61,20
+663623,Jake Irvin,2026,104.67,108,46,18,61,20
 663738,Daniel Lynch IV,2026,80.67,54,26,9,37,9
 663776,Patrick Sandoval,2026,65.67,68,31,7,37,13
 663795,Justin Hagenman,2026,8.0,4,2,2,3,1
@@ -250,7 +250,7 @@ id,name,season,ip,so,bb,hr,er,gs
 669920,Jason Alexander,2026,18.33,14,8,4,19,2
 669923,George Kirby,2026,174.67,148,47,22,84,30
 669947,Jesse Scholtens,2026,44.67,34,14,10,20,2
-670990,Yohan Ramírez,2026,83.67,99,43,4,27,1
+670990,Yohan Ramírez,2026,84.33,100,44,4,27,1
 671096,Andrew Abbott,2026,166.0,131,76,26,85,32
 671106,Logan Allen,2026,16.67,16,6,3,11,2
 671111,Sammy Peralta,2026,21.33,23,7,4,16,1
@@ -447,7 +447,7 @@ id,name,season,ip,so,bb,hr,er,gs
 801403,Chase Dollander,2026,44.0,47,18,6,19,3
 802408,Brycen Mautz,2026,15.33,19,11,2,10,1
 804267,Zac Thornton,2026,84.33,63,18,14,32,15
-804636,Jonah Tong,2026,27.67,29,14,2,12,4
+804636,Jonah Tong,2026,30.67,34,14,2,13,4
 805074,Yunior Marte,2026,24.33,15,10,5,12,3
 805673,Zebby Matthews,2026,130.33,116,39,24,71,23
 806188,Cade Gibson,2026,49.67,43,21,4,30,1
@@ -457,8 +457,8 @@ id,name,season,ip,so,bb,hr,er,gs
 808825,Andrew Sears,2026,19.0,15,8,3,15,3
 808963,Roki Sasaki,2026,121.33,121,48,22,61,23
 808967,Yoshinobu Yamamoto,2026,185.0,182,42,20,52,28
-813349,Connelly Early,2026,93.67,93,34,15,35,18
+813349,Connelly Early,2026,94.67,94,34,15,35,18
 813349,Connelly Early,2026,91.67,93,34,15,35,17
-813349,Connelly Early,2026,2.0,0,0,0,0,1
+813349,Connelly Early,2026,3.0,1,0,0,0,1
 814490,Ethan Pecko,2026,31.33,21,14,5,15,5
 837227,Tatsuya Imai,2026,75.67,96,51,9,42,15
