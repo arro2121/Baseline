@@ -151,4 +151,18 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 // RC1 / TP1: rookie premium and team-pack prices
 check("RC1 rookie premium grows with play (10% to 45%)", W.czRookieX(0, null) === 1.1 && W.czRookieX(0, 0) === 1.15 && Math.abs(W.czRookieX(0, 1) - 1.45) < 1e-9 && W.czRookieX(8, 1) < 1.13);
 check("TP1 team pack price follows the team's card value, 600 to 2,500", W.czTeamPackPrice(1) === 1000 && W.czTeamPackPrice(.2) === 600 && W.czTeamPackPrice(9) === 2500 && W.czTeamPackPrice(1.33) === 1350);
+// SET1 / CH1: set checklists pay once when complete; case hits sell for 3 times the value
+{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+  await T({ act: "ident", sub: "K", uid: "K", tok: "t", name: "Keeper" });
+  const mk = (b, tier) => ({ id: `${b}.${tier}`, tier, supply: 100, n: 1, lg: "nba", name: b, kind: "player" }), set = { id: "stars:nba", label: "NBA Superstars", reward: 5000, members: ["nba.p1", "nba.p2"] };
+  m.set("cz:u:K", { ...m.get("cz:u:K"), bal: 0, items: [mk("nba.p1", "comet")] });
+  check("SET1 an unfinished set can't be claimed", /still need 1 card/.test((await T({ act: "setclaim", uid: "K", set })).error || ""));
+  m.set("cz:u:K", { ...m.get("cz:u:K"), items: [mk("nba.p1", "comet"), mk("nba.p2", "nebula")] });
+  const r = await T({ act: "setclaim", uid: "K", set });
+  check("SET1 a finished set pays its reward (any tier counts)", r.reward === 5000 && m.get("cz:u:K").bal === 5000);
+  check("SET1 a set pays only once", !!(await T({ act: "setclaim", uid: "K", set })).error && m.get("cz:u:K").bal === 5000);
+  m.set("cz:u:K", { ...m.get("cz:u:K"), bal: 0, items: [{ ...mk("nba.p3", "comet"), ch: "starfall" }, mk("nba.p4", "comet")] });
+  await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
+  check("CH1 a case hit sells for 3 times a regular copy", b1 === 1200 && m.get("cz:u:K").bal - b1 === 400, { b1, b2: m.get("cz:u:K").bal });
+  check("CH1 about 1 card in 300 is a case hit", Math.abs(W.CZ_CASE.rate - 1 / 300) < 1e-9 && W.CZ_CASE.inserts.length === 3); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
