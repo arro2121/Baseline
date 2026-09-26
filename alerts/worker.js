@@ -2308,14 +2308,16 @@ export function czProduction(list) {
 // line up with it, so a card of a hobby favorite costs more than one of an equally rated player collectors chase less.
 // Hand-kept from recent sales; players not listed are priced on this season's play alone, below the market favorites.
 export const CZ_HOBBY_SRC = {
-  nba: "Victor Wembanyama 10, Cooper Flagg 9.5, LeBron James 9, Stephen Curry 8.5, Luka Doncic 8.5, Anthony Edwards 8, " +
+  nba: "AJ Dybantsa 8.5, Darryn Peterson 8, Cameron Boozer 7.5, Caleb Wilson 5.5, Kingston Flemings 5, Mikel Brown Jr. 5, Nate Ament 5, Darius Acuff Jr. 4.5, Keaton Wagler 4, " + // 2026 rookies
+    "Victor Wembanyama 10, Cooper Flagg 9.5, LeBron James 9, Stephen Curry 8.5, Luka Doncic 8.5, Anthony Edwards 8, " +
     "Shai Gilgeous-Alexander 7.5, Giannis Antetokounmpo 7, Nikola Jokic 6.5, Kevin Durant 6, Ja Morant 5.5, Jayson Tatum 5.5, " +
     "Dylan Harper 5.5, Ace Bailey 5, Paolo Banchero 5, Tyrese Haliburton 4.5, Stephon Castle 4.5, Chet Holmgren 4.5, " +
     "Zion Williamson 4.5, Jalen Brunson 4.5, Devin Booker 4, Kyrie Irving 4, LaMelo Ball 4, Tyrese Maxey 4, Donovan Mitchell 4, " +
     "Cade Cunningham 4, Jalen Williams 3.5, Reed Sheppard 3.5, Amen Thompson 3.5, Bronny James 3.5, Joel Embiid 3.5, Anthony Davis 3.5, " +
     "VJ Edgecombe 3.5, Kon Knueppel 3.5, Scoot Henderson 3, Zaccharie Risacher 3, Alex Sarr 3, Kawhi Leonard 3, Jimmy Butler III 3, " +
     "Damian Lillard 3, James Harden 3, Tre Johnson 3",
-  nfl: "Patrick Mahomes 10, Jayden Daniels 8.5, Josh Allen 8.5, Joe Burrow 8, Caleb Williams 7.5, Lamar Jackson 7.5, Travis Hunter 7.5, " +
+  nfl: "Fernando Mendoza 7, Jeremiyah Love 6.5, Carnell Tate 5, Jordyn Tyson 5, Ty Simpson 5, Makai Lemon 4.5, Kenyon Sadiq 4.5, Arvell Reese 4, Caleb Downs 4, Carson Beck 4, " + // 2026 rookies
+    "Patrick Mahomes 10, Jayden Daniels 8.5, Josh Allen 8.5, Joe Burrow 8, Caleb Williams 7.5, Lamar Jackson 7.5, Travis Hunter 7.5, " +
     "Shedeur Sanders 7.5, C.J. Stroud 7, Drake Maye 7, Cam Ward 7, Ja'Marr Chase 7, Justin Jefferson/WR 7, Ashton Jeanty 6.5, " +
     "Malik Nabers 6.5, Justin Herbert 6, Bo Nix 6, Brock Bowers 6, CeeDee Lamb 6, Travis Kelce 6, Saquon Barkley 6, Bijan Robinson 6, " +
     "Jalen Hurts 6, Marvin Harrison Jr. 5.5, Puka Nacua 5.5, Jahmyr Gibbs 5.5, Tetairoa McMillan 5, Brian Thomas Jr. 5, " +
@@ -2325,7 +2327,8 @@ export const CZ_HOBBY_SRC = {
     "T.J. Watt 4, Davante Adams 4, Garrett Wilson 4, Nico Collins 4, Omarion Hampton 4, Matthew Golden 4, Sam LaPorta 4, " +
     "George Kittle 4, Tee Higgins 4, DK Metcalf 4, Matthew Stafford 4, Colston Loveland 3.5, Will Levis 3, Jake Ferguson 2.5, " +
     "Kirk Cousins 2.5",
-  mlb: "Shohei Ohtani 10, Aaron Judge 8.5, Paul Skenes 8, Elly De La Cruz 7.5, Bobby Witt Jr. 7.5, Juan Soto 7, Julio Rodriguez 7, " +
+  mlb: "Konnor Griffin 7, Kevin McGonigle 6, JJ Wetherholt 5.5, Max Clark 5.5, Samuel Basallo 5.5, Bubba Chandler 5, " + // 2026 rookies
+    "Shohei Ohtani 10, Aaron Judge 8.5, Paul Skenes 8, Elly De La Cruz 7.5, Bobby Witt Jr. 7.5, Juan Soto 7, Julio Rodriguez 7, " +
     "Roman Anthony 7, Gunnar Henderson 6.5, Mike Trout 6.5, Ronald Acuna Jr. 6.5, Jackson Holliday 6, Roki Sasaki 6, Jackson Chourio 6, " +
     "James Wood 6, Corbin Carroll 5.5, Fernando Tatis Jr. 5.5, Vladimir Guerrero Jr. 5.5, Pete Crow-Armstrong 5.5, Cal Raleigh 5.5, " +
     "Nick Kurtz 5.5, Junior Caminero 5.5, Wyatt Langford 5, Mookie Betts 5, Bryce Harper 5, Yoshinobu Yamamoto 5, Jacob Wilson 5, " +
