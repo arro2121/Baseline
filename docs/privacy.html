@@ -9,11 +9,9 @@
 
 <p>Cosmo Sports is a free sports app. Scores, predictions and alerts work without an account; a free account is needed only for Cosmic and to keep your teams and settings on every device. Accounts use passkeys: we never ask for or store your email address or a password. It has <b>no ads and no tracking or analytics</b>. We don't sell or share personal information, and we collect only what a feature needs to work, described below.</p>
 <h2>Data stored on your device</h2>
-<p>The teams you follow, your picks and Daily 3 results, your settings (such as the spoiler shield and sounds), your tennis watchlist and your current Ask Cosmo conversation are stored only in the app on your device. They are not sent to us, except as described under Notifications and Ask Cosmo. You can erase all of it at any time in Settings &gt; Your data &gt; Reset, or by removing the app.</p>
+<p>The teams you follow, your picks and Daily 3 results, your settings (such as the spoiler shield and sounds) and your tennis watchlist are stored only in the app on your device. They are not sent to us, except as described under Notifications. You can erase all of it at any time in Settings &gt; Your data &gt; Reset, or by removing the app.</p>
 <h2>Notifications</h2>
 <p>If you turn on notifications, your device gives the app a push address. Our live service (a Cloudflare Worker we run) stores that address together with the teams you follow, the games you tapped the bell on, the tennis players you watch and your alert choices, so it can send you the alerts you asked for, including the optional morning briefing. It stores nothing else about you. Turning notifications off, or resetting the app, deletes this record. Push messages are delivered by your browser or phone maker's push service (for example Apple, Google or Mozilla).</p>
-<h2>Ask Cosmo (the AI companion)</h2>
-<p>When you ask Cosmo a question, the text of your question, your recent messages in that conversation, and a summary of what's on your screen (for example the game you have open, the teams you follow and the model's predictions) are sent to our live service, which adds public scoreboard data and passes it to an AI model to write the answer: Cloudflare Workers AI, or Anthropic's Claude if the app's operator has enabled it. We don't store your questions or the answers. The AI provider processes them under its own terms and privacy policy. Please don't include personal information in your questions.</p>
 <h2>Listen Live</h2>
 <p>When you turn on Listen Live in a game, the text of each play (for example "Touchdown, Chiefs!") is sent to our live service on Cloudflare, which turns it into speech with Cloudflare's Workers AI and plays it back. Only public play text is sent; nothing about you is included, and the audio isn't kept beyond a short-lived cache. If you pick "Phone voice" in Settings, or the service is unavailable, your device's own text-to-speech voice is used instead.</p>
 <h2>Cosmic</h2>
@@ -33,13 +31,13 @@
 <li>The National Hockey League (api-web.nhle.com), as a backup for hockey scores.</li>
 <li>API-Tennis, through our live service: live tennis scores.</li>
 <li>Player photos in League Leaders load from ESPN, MLB, the NHL and the Premier League. Player stats are collected by our site once a night (from MLB's and the NHL's stats services, ESPN and Fantasy Premier League), so your device doesn't contact those stats services for them.</li>
-<li>Cloudflare: our live service for alerts, Ask Cosmo and cached scores.</li>
+<li>Cloudflare: our live service for alerts and cached scores.</li>
 <li>Google Fonts: the app's typeface.</li></ul>
 <p>Articles and videos you open on other sites are covered by those sites' policies.</p>
 <h2>Children</h2>
 <p>Cosmo Sports is intended for people aged 13 and over. It isn't directed to children under 13, and we don't knowingly collect information from them. If you believe a child under 13 has created an account, contact us through the Support page and we'll delete it.</p>
 <h2>Your choices</h2>
-<ul><li>Turn notifications on or off, and choose which alerts you get, in Settings.</li><li>Clear everything the app keeps with Settings &gt; Your data &gt; Reset.</li><li>Don't use Ask Cosmo if you prefer your questions not to be processed by an AI provider.</li></ul>
+<ul><li>Turn notifications on or off, and choose which alerts you get, in Settings.</li><li>Clear everything the app keeps with Settings &gt; Your data &gt; Reset.</li></ul>
 <h2>Changes</h2>
 <p>If this policy changes, the new version will be posted here with a new date.</p>
 <h2>Contact</h2>
