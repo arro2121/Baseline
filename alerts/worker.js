@@ -167,7 +167,7 @@ export class Store {
     if (d.op === "get") v = (await st.get(d.k)) ?? null;
     else if (d.op === "put") { await st.put(d.k, d.v); v = true; }
     else if (d.op === "many") v = Object.fromEntries(await st.get((d.ks || []).slice(0, 128)));
-    else if (d.op === "cz") v = d.a.act === "settle" ? await czSettleTx(st, d.a) : await czTx(st, d.a);
+    else if (d.op === "cz") v = d.a.act === "settle" ? await czSettleTx(st, d.a) : d.a.act === "legacy" ? await czLegacyTx(st, d.a) : await czTx(st, d.a);
     else if (d.op === "subs") v = [...(await st.list({ prefix: "sub:" })).values()];
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
@@ -1704,7 +1704,7 @@ const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
 const czSecured = u => !!(u && u.ident);                          // signed in with a passkey
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], setsDone: u.setsDone || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
-  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, legacyRefund: u.legacyRefund || null, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
@@ -2183,12 +2183,62 @@ export async function czSettleTx(st, a) {
   await st.put("cz:lb", L); await st.put("cz:feed", F.slice(0, 60));
   return { settled: done.size };
 }
+// the old tiers (Supernova, Quasar, Nebula, Stardust) are gone from the app: once, every copy is taken out of every
+// collection, the market, auctions, trades and open battles, and its owner gets its full value back in coins.
+// Phase "ids" lists the old cards people hold; phase "purge" removes them, paying the prices the worker worked out
+export const CZ_LEGACY_RE = /\.(supernova|quasar|nebula|stardust)$/;
+export async function czLegacyTx(st, a) {
+  const get = async (k, d) => (await st.get(k)) ?? d, old = id => CZ_LEGACY_RE.test(String(id || ""));
+  if (await st.get("cz:legacypurged")) return { done: true, already: true };
+  if (!st.list) return { done: false, reason: "no list" };
+  const users = await st.list({ prefix: "cz:u:" });
+  if (a.phase === "ids") { const ids = new Set(); for (const [, u] of users) for (const c of (u && u.items) || []) if (old(c.id)) ids.add(c.id);
+    for (const x of await get("cz:mkt", [])) if (old(x.id)) ids.add(x.id); for (const x of await get("cz:auc", [])) if (old(x.id)) ids.add(x.id); return { ids: [...ids] }; }
+  const price = a.prices || {}, now = a.now || Date.now(), touched = new Map(), U = async uid => touched.get(uid) || (await st.get("cz:u:" + uid)) || null;
+  const keep = (uid, u) => { if (u) touched.set(uid, u); };
+  // open battles holding an old card: called off, the stake goes back and the other cards are unlocked
+  const B = await get("cz:bat", []); let bats = 0;
+  for (const bt of B) if (bt.status === "open" && (bt.a || []).some(c => old(c.id))) { const A = await U(bt.from);
+    if (A) { if (!A.tester) A.bal += bt.stake || 0; for (const x of A.items || []) if (x.battle === bt.id) delete x.battle; keep(A.uid, A); }
+    bt.status = "cancelled"; bt.done = now; bats++; }
+  await st.put("cz:bat", B);
+  // auctions of old cards end with no sale; a held top bid goes back to its bidder
+  const AU = await get("cz:auc", []);
+  for (const x of AU.filter(v => old(v.id) && v.bidder && !v.bT)) { const by = await U(x.bidder); if (by) { by.bal += x.bid; keep(by.uid, by); } }
+  await st.put("cz:auc", AU.filter(v => !old(v.id)));
+  await st.put("cz:mkt", (await get("cz:mkt", [])).filter(x => !old(x.id)));
+  const TR = await get("cz:trades", []); for (const t of TR) if (t.status === "open" && [...(t.give || []), ...(t.get || [])].some(c => old(c.id))) { t.status = "void"; t.done = now; }
+  await st.put("cz:trades", TR);
+  // every collection: the old cards come out and are paid for at full value (case hits and ink at their multiple)
+  let cards = 0, coins = 0; const ids = new Set();
+  for (const [k, u0] of users) { if (!u0 || !u0.uid) continue; const u = touched.get(u0.uid) || u0, gone = (u.items || []).filter(c => old(c.id));
+    if (!gone.length) { if (touched.has(u.uid)) await st.put(k, u); continue; }
+    const pay = gone.reduce((t, c) => t + Math.max(1, Math.floor((+price[c.id] || 10) * czCopyMult(c))), 0);
+    u.items = u.items.filter(c => !old(c.id)); u.bal += pay; u.legacyRefund = { n: gone.length, coins: pay, at: now };
+    for (const c of gone) ids.add(c.id); cards += gone.length; coins += pay; touched.delete(u.uid); await st.put(k, u); }
+  for (const [uid, u] of touched) await st.put("cz:u:" + uid, u);
+  // their owner lists, serials and returned serials go with them, and they leave the feed and the case-hit log
+  for (const id of ids) for (const k of ["cz:own:" + id, "cz:ser:" + id]) { if (st.delete) await st.delete(k); else await st.put(k, null); }
+  const ret = await get("cz:ret", {}), mint = await get("cz:mint", {}); for (const k of Object.keys(ret)) if (old(k)) delete ret[k]; for (const k of Object.keys(mint)) if (old(k)) delete mint[k];
+  await st.put("cz:ret", ret); await st.put("cz:mint", mint);
+  await st.put("cz:feed", (await get("cz:feed", [])).filter(x => !CZ_LEGACY_TIERS.some(t => t[0] === x.tier)));
+  await st.put("cz:chlog", (await get("cz:chlog", [])).filter(x => !old(x.id)));
+  const L = await get("cz:lb", {}); for (const [, u] of await st.list({ prefix: "cz:u:" })) if (u && u.uid && L[u.uid]) L[u.uid] = czLbRow(u); await st.put("cz:lb", L);
+  await st.put("cz:legacypurged", now);
+  return { done: true, cards, coins, battles: bats };
+}
+async function czLegacy(env) {                                        // run from the cron until it has happened once
+  try { if (await czRead(env, "cz:legacypurged", null)) return 0;
+    const r = await cz(env, { act: "legacy", phase: "ids" }); if (!r || !r.ids) return r;
+    const prices = {}; for (const id of r.ids) { const it = await czItem(env, id); prices[id] = it ? it.price : 10; }
+    return await cz(env, { act: "legacy", phase: "purge", prices, now: Date.now() }); } catch (e) { return String(e.message || e); }
+}
 function czKv(env) {                                                         // KV stand-in for setups without the Durable Object (not atomic)
   return { get: async k => { const v = await env.KV.get(k); return v == null ? undefined : JSON.parse(v); }, put: (k, v) => env.KV.put(k, JSON.stringify(v)), delete: k => env.KV.delete ? env.KV.delete(k) : env.KV.put(k, "null") };
 }
 async function cz(env, a) {
   if (env.STORE) { const stub = env.STORE.get(env.STORE.idFromName("main")); const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "cz", a }) }); return (await r.json()).v; }
-  return a.act === "settle" ? czSettleTx(czKv(env), a) : czTx(czKv(env), a);
+  return a.act === "settle" ? czSettleTx(czKv(env), a) : a.act === "legacy" ? czLegacyTx(czKv(env), a) : czTx(czKv(env), a);
 }
 const czRead = async (env, k, d) => { const v = await store(env).get(k); return v == null ? d : typeof v === "string" ? JSON.parse(v) : v; };
 // the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
@@ -3108,6 +3158,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czLegacy(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
