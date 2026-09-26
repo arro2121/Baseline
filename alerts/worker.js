@@ -1622,7 +1622,14 @@ const czRoll = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
 // the daily wheel: eight slices, drawn with these weights (shown in the app)
 export const CZ_WHEEL = [{ coins: 100, w: 22 }, { pack: "comet", w: 15 }, { coins: 250, w: 16 }, { coins: 150, w: 18 }, { coins: 1000, w: 4 }, { coins: 300, w: 12 }, { pack: "supernova", w: 3 }, { coins: 500, w: 10 }];
 // seasons: a calendar month (US Eastern). Points for playing; the tier you finish on pays out when the next season starts
-export const CZ_RANKS = [["bronze", "Bronze", 0, 0], ["silver", "Silver", 150, 500], ["gold", "Gold", 400, 1500], ["platinum", "Platinum", 800, 3000], ["diamond", "Diamond", 1500, 6000], ["cosmic", "Cosmic", 2500, 10000]];
+// 21 ranks: Bronze to Diamond in three divisions each, then Master, Grandmaster, Nova, Galaxy, Cosmic and Eternal at the top
+export const CZ_RANKS = [["bronze", "Bronze I", 0, 0], ["bronze-2", "Bronze II", 75, 150], ["bronze-3", "Bronze III", 150, 300],
+  ["silver", "Silver I", 250, 500], ["silver-2", "Silver II", 375, 700], ["silver-3", "Silver III", 500, 900],
+  ["gold", "Gold I", 700, 1200], ["gold-2", "Gold II", 950, 1500], ["gold-3", "Gold III", 1250, 1900],
+  ["platinum", "Platinum I", 1600, 2400], ["platinum-2", "Platinum II", 2000, 3000], ["platinum-3", "Platinum III", 2500, 3600],
+  ["diamond", "Diamond I", 3100, 4400], ["diamond-2", "Diamond II", 3800, 5200], ["diamond-3", "Diamond III", 4600, 6000],
+  ["master", "Master", 5600, 7500], ["grandmaster", "Grandmaster", 7000, 9000], ["nova", "Nova", 8800, 11000],
+  ["galaxy", "Galaxy", 11000, 13500], ["cosmic", "Cosmic", 14000, 16000], ["eternal", "Eternal", 18000, 20000]];
 export const czSeasonOf = t => etDay(new Date(t).getTime()).slice(0, 6);                 // "202609"
 export const czRankOf = pts => { let r = CZ_RANKS[0]; for (const x of CZ_RANKS) if (pts >= x[2]) r = x; return r; };
 export function czSeasonRoll(u, now) {                  // a new month: pay last season's tier, start again at zero
