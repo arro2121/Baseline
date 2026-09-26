@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-WlXVkZiKviYR9JbwLooC76F7tc38DlKu8X0vmcb+DdU='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Gbp0VTelr+wI1Ndyy5rAVvQmovaqTPflSAqJZBjkoBM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -6233,13 +6233,15 @@ const czTrendChip = t => t ? `<em class="cztr ${t > 0 ? "up" : "dn"}" title="Pri
 function czPriceWhy(V){
   if (!V) return ""; const bits = [];
   if (V.kind === "team") bits.push(V.rank ? `#${V.rank} in the Cosmo ratings right now` : "the team's current rating");
+  else if (V.hobby) { bits.push(`real-card demand ${V.hobby}/10 — ${V.hobby >= 8.5 ? "one of the hottest names in the hobby" : V.hobby >= 6 ? "a top seller among collectors" : V.hobby >= 4 ? "steady demand from collectors" : "a collector favorite"}`);
+    if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? ` (${esc(V.line)})` : ""}`); else if (V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings`); }
   else if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? ` (${esc(V.line)})` : ""}`);
   else if (["atp", "wta"].includes(V.lg) && V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings`);
   else bits.push("a depth player without a season rating yet");
   if (V.level > 1) bits.push(`level ${V.level} from big games (+${(V.level - 1) * 15}%)`);
   if (V.hot) bits.push("hot from a big game (+10%)");
   if (V.scarce) bits.push(`${V.scarce >= 25 ? "sold out" : "copies being pulled"} (+${V.scarce}%)`);
-  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices follow real play and update every night: ${bits.join(", ")}.</p>`;
+  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices track what each player's real cards sell for next to other players, adjusted nightly for real play: ${bits.join(", ")}.</p>`;
 }
 function czVaultHtml(){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
