@@ -2293,6 +2293,8 @@ async function czCatalog(env, fetchImpl = fetch) {
         if (!prev || o > prev.ovr) stars.set(k, { ovr: o, raw: +p.ovr || 0, line: p.line || "" }); } } } catch {}
   const rated = new Set([...stars.keys()].map(k => k.split(":")[0]));    // leagues with this season's stats
   try { const r = await siteGet(env, "/rosters.json", fetchImpl); const R = r.ok ? await r.json() : {};
+    const TP = R.tennis || {}, nk = n => String(n || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
+    for (const i of items) if ((i.lg === "atp" || i.lg === "wta") && !i.img && TP[nk(i.name)]) i.img = TP[nk(i.name)];      // tennis players' photos
     for (const [lg, list] of Object.entries(R.leagues || {})) for (const p of list) { const S = stars.get(lg + ":" + czSlug(p.name));
       const d = czHobbyOf(lg, p.name, p.pos), off = d && !S && rated.has(lg), play = S ? czPlayPct(S.ovr) : off ? CZ_OFF_FORM : null, rx = p.rc ? czRookieX(d, S ? play : null) : 1;
       add(lg, "player", p.name, czMarketMult(d, play, lg === "nfl" && p.pos === "QB" ? .6 : .5) * rx, { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined,
@@ -2736,7 +2738,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     let user = czPublic(u);
     if (!u.sp || u.sp.season !== czSeasonOf(now)) { const r = await cz(env, { act: "season", uid: u.uid, now }); if (r.user) user = r.user; }
     const pxAlerts = await czPriceAlerts(env, u.items || []);
-    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => !i.rc && CZ_CAT.byId.get(i.id)?.rc ? { ...i, rc: true } : i) };   // rookie cards pulled before RC labels
+    // cards pulled before RC labels or before their player's photo was known
+    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => { const c = CZ_CAT.byId.get(i.id); return c && ((!i.rc && c.rc) || (!i.img && c.img)) ? { ...i, rc: i.rc || c.rc || undefined, img: i.img || c.img } : i; }) };
     return json({ user, pxAlerts }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/season/seen" && req.method === "POST") { const r = await cz(env, { act: "seasonseen", uid: u.uid, now }); return json(r, r.error ? 409 : 200); }
