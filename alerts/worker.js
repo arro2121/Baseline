@@ -2244,22 +2244,58 @@ let CZ_CAT = null;
 async function czCatalog(env, fetchImpl = fetch) {
   if (CZ_CAT && Date.now() - CZ_CAT.at < 6 * 3600e3) return CZ_CAT.v;
   const models = await trackModels(env, fetchImpl), items = [];
-  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, price: Math.max(10, Math.round(base * mult / 10) * 10), ...extra }); };
+  // every card's price follows how its player or team is doing right now (see czPlayMult); each tier multiplies it
+  const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, price: Math.max(10, Math.round(base * mult / 10) * 10), ...extra }); };
   for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo);
-    names.forEach((n, i) => add(lg, "team", n, 1.5 - .9 * (names.length > 1 ? i / (names.length - 1) : 0), { rank: i + 1 }, czSlug(n))); }
+    const hi = names.length ? st[names[0]].elo : 0, lo = names.length ? st[names[names.length - 1]].elo : 0;
+    names.forEach((n, i) => add(lg, "team", n, .6 + 1.1 * (hi > lo ? (st[n].elo - lo) / (hi - lo) : .5), { rank: i + 1, elo: Math.round(st[n].elo) }, czSlug(n))); }
   try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
     for (const tour of ["atp", "wta"]) { const names = P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name);
       names.forEach((n, i) => add(tour, "player", n, 1.5 - .9 * (names.length > 1 ? i / (names.length - 1) : 0), { rank: i + 1 }, czSlug(n))); } } catch {}
-  const stars = new Set();
+  const stars = new Map();                                          // league:player -> { ovr, line }: this season's rating and stat line
   try { const r = await siteGet(env, "/allstars.json", fetchImpl); const A = r.ok ? await r.json() : {};
-    for (const [lg, pools] of Object.entries(A.sports || {})) for (const l of Object.values(pools)) if (Array.isArray(l)) for (const p of l) stars.add(lg + ":" + czSlug(p.name)); } catch {}
+    for (const [lg, pools] of Object.entries(A.sports || {})) for (const l of Object.values(pools)) if (Array.isArray(l)) { const prod = czProduction(l);
+      for (const p of l) { const k = lg + ":" + czSlug(p.name), o = (+p.ovr || 0) + (p.ovr ? (prod.get(p) - .5) * 1.8 : 0), prev = stars.get(k);   // ties broken by this season's numbers
+        if (!prev || o > prev.ovr) stars.set(k, { ovr: o, raw: +p.ovr || 0, line: p.line || "" }); } } } catch {}
   try { const r = await siteGet(env, "/rosters.json", fetchImpl); const R = r.ok ? await r.json() : {};
-    for (const [lg, list] of Object.entries(R.leagues || {})) for (const p of list)
-      add(lg, "player", p.name, stars.has(lg + ":" + czSlug(p.name)) ? 1.2 : .55, { team: p.team, pos: p.pos, num: p.num, img: p.img, star: stars.has(lg + ":" + czSlug(p.name)) || undefined }, "p" + p.id); } catch {}
+    for (const [lg, list] of Object.entries(R.leagues || {})) for (const p of list) { const S = stars.get(lg + ":" + czSlug(p.name));
+      add(lg, "player", p.name, czPlayMult(S && S.ovr, p.pos, lg), { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined }, "p" + p.id); } } catch {}
   const byId = new Map(items.map(i => [i.id, i]));
-  CZ_CAT = { at: Date.now(), v: items, byId }; return items;
+  CZ_CAT = { at: Date.now(), v: items, byId, trend: {} };
+  // once a day, the price level of every rated card is saved; the app shows how it moved over the last week
+  try { const day = etDay(Date.now()), db = store(env), last = await czRead(env, "cz:pxlast", null), snap = {};
+    for (const i of items) if (i.tier === "comet" && (i.star || i.kind === "team" || i.rank)) snap[czLvlKey(i)] = i.mult;
+    if (last !== day) { await db.put("cz:px:" + day, JSON.stringify(snap)); await db.put("cz:pxlast", JSON.stringify(day)); }
+    let old = null; for (let k = 7; k >= 1 && !old; k--) old = await czRead(env, "cz:px:" + etDay(Date.now() - k * 864e5), null);
+    if (old) for (const [k, m] of Object.entries(snap)) if (old[k]) { const t = Math.round((m / old[k] - 1) * 1000) / 10; if (t) CZ_CAT.trend[k] = t; } } catch {}
+  return items;
+}
+// how much a player's current play is worth: this season's overall rating (0-99, from the nightly stats) on a curve,
+// so a 99 is worth about four times a 60 and every rated player gets his own price. Unrated depth players get a floor by position.
+// how productive each player in a group (the league's hitters, quarterbacks...) has been this season, as a percentile 0-1:
+// every stat is scaled by the group's best, lower-is-better stats (ERA, interceptions...) are flipped, and the average is ranked
+const CZ_LOWER = new Set(["era", "whip", "gaa", "int", "l", "bb", "to", "ga"]);
+export function czProduction(list) {
+  const keys = new Set(); for (const p of list) for (const [k, v] of Object.entries(p.s || {})) if (typeof v === "number" && isFinite(v)) keys.add(k);
+  const hi = {}, lo = {}; for (const k of keys) { const vs = list.map(p => p.s && p.s[k]).filter(v => typeof v === "number" && isFinite(v)); hi[k] = Math.max(...vs); lo[k] = Math.min(...vs); }
+  const score = p => { let t = 0, n = 0; for (const k of keys) { const v = p.s && p.s[k]; if (typeof v !== "number" || !isFinite(v) || hi[k] === lo[k]) continue;
+    const x = (v - lo[k]) / (hi[k] - lo[k]); t += CZ_LOWER.has(k) ? 1 - x : x; n++; } return n ? t / n : .5; };
+  const sorted = list.map(p => [p, score(p)]).sort((a, b) => a[1] - b[1]), out = new Map();
+  sorted.forEach(([p], i) => out.set(p, sorted.length > 1 ? i / (sorted.length - 1) : .5)); return out;
+}
+export function czPlayMult(ovr, pos, lg) {
+  if (ovr > 0) { const x = Math.max(0, Math.min(1, (ovr - 55) / 44)); return Math.round((.6 + Math.pow(x, 1.6) * 2.05) * 1000) / 1000; }
+  return lg === "nfl" && pos === "QB" ? .6 : .5;
+}
+// a copy's value right now: the catalog price (current play), + 15% per level from big games, + 10% while it's hot from a
+// big game in the last day, and up to + 25% as its run sells out (scarcity)
+export function czValueOf(it, { xp = 0, hot = false, held = 0 } = {}) {
+  const lv = czLevelOf(xp, it.kind === "team"), scarce = it.supply > 1 ? .25 * Math.min(1, held / it.supply) : .25;
+  const v = Math.round(it.price * (1 + .15 * (lv - 1)) * (hot ? 1.1 : 1) * (1 + scarce) / 10) * 10;
+  return { value: Math.max(10, v), level: lv, hot, scarce: Math.round(scarce * 100) };
 }
 // a card by id, even one whose player has since left the rosters (valued as an ordinary player card of its tier)
+const czTrendOf = it => (CZ_CAT && CZ_CAT.trend[czLvlKey(it)]) || 0;         // % change in the card's price level over the last week
 async function czItem(env, id) {
   await czCatalog(env); const it = CZ_CAT.byId.get(id); if (it) return it;
   const tier = CZ_TIERS.find(t => id.endsWith("." + t[0])); if (!tier) return null;
@@ -2420,15 +2456,16 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/vault" && req.method === "GET") {
     const q = url.searchParams, lg = q.get("lg") || "all", tier = q.get("tier") || "all", kind = q.get("kind") || "all", term = czSlug(q.get("q") || "");
     const off = Math.max(0, +q.get("offset") || 0), lim = Math.min(96, Math.max(1, +q.get("limit") || 48));
-    const [items, mint0, ret] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]);
+    const [items, mint0, ret, XP, HOT] = await Promise.all([czCatalog(env), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {}), czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
     const held = id => (mint0[id] || 0) - (ret[id] || []).length;
+    const val = i => czValueOf(i, { xp: XP[czLvlKey(i)] || 0, hot: !!(HOT[czLvlKey(i)] && now - HOT[czLvlKey(i)].at < 30 * 3600e3), held: held(i.id) });
     const scope = CZ_SCOPES[lg] || null;
     let list = items.filter(i => (!scope || scope.includes(i.lg)) && (tier === "all" || i.tier === tier) && (kind === "all" || i.kind === kind) && (!term || czSlug(`${i.name} ${i.team || ""}`).includes(term)));
     list.sort((a, b) => (held(a.id) >= a.supply) - (held(b.id) >= b.supply) || a.supply - b.supply || (a.kind === "team" ? 0 : 1) - (b.kind === "team" ? 0 : 1) || b.price - a.price);
     const page = list.slice(off, off + lim), owners = {};
     for (const i of page) if (i.supply === 1 && held(i.id)) { const o = await czRead(env, "cz:own:" + i.id, []); if (o[0]) owners[i.id] = o[0].name; }
     return json({ tiers: CZ_TIERS.map(([id, label, supply, price]) => ({ id, label, supply, price })), total: list.length, offset: off, cards: items.length,
-      items: page.map(i => ({ ...i, value: i.price, shop: Math.max(1, Math.floor(i.price * CZ_SHOP)), minted: held(i.id), owner: owners[i.id] || undefined })), shop: CZ_SHOP, fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
+      items: page.map(i => { const V = val(i); return { ...i, value: V.value, shop: Math.max(1, Math.floor(V.value * CZ_SHOP)), trend: czTrendOf(i) || undefined, minted: held(i.id), owner: owners[i.id] || undefined }; }), shop: CZ_SHOP, fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/auctions" && req.method === "GET") { await czAuctionTick(env).catch(() => {}); return json({ auctions: (await czRead(env, "cz:auc", [])).map(x => ({ ...x, bT: undefined })), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/levels" && req.method === "GET") { const [L, H] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
@@ -2436,8 +2473,10 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
   if (p === "/packs" && req.method === "GET") return json({ now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   if (p.startsWith("/card/") && req.method === "GET") { const id = decodeURIComponent(p.slice(6)), it = await czItem(env, id);
-    const xp = it ? (await czRead(env, "cz:lvl", {}))[czLvlKey(it)] || 0 : 0, lv = it ? czLevelOf(xp, it.kind === "team") : 1, val = it ? Math.round(it.price * (1 + .15 * (lv - 1))) : 0;
-    return json({ owners: await czRead(env, "cz:own:" + id, []), item: it && { ...it, value: val, shop: Math.max(1, Math.floor(val * CZ_SHOP)), level: lv, xp } }); }
+    if (!it) return json({ owners: await czRead(env, "cz:own:" + id, []), item: null });
+    const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), k = czLvlKey(it);
+    const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[id] || 0) - (ret[id] || []).length });
+    return json({ owners: await czRead(env, "cz:own:" + id, []), item: { ...it, value: V.value, shop: Math.max(1, Math.floor(V.value * CZ_SHOP)), level: V.level, xp: XP[k] || 0, hot: V.hot, scarce: V.scarce, trend: czTrendOf(it) } }); }
   if (p === "/leaders" && req.method === "GET") {
     const wk = czWeek(now), last = czWeek(now - 7 * 864e5);
     if (!(await czRead(env, "cz:wkdone", [])).includes(last)) await cz(env, { act: "weekaward", week: last, now }).catch(() => {});     // pay last week's prizes once
@@ -2677,8 +2716,9 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/sell" && req.method === "POST") {
     const d = await req.json().catch(() => ({})), it = await czItem(env, String(d.item || ""));
     if (!it) return json({ error: "That card isn't in Cosmic." }, 404);
-    const lv = czLevelOf((await czRead(env, "cz:lvl", {}))[czLvlKey(it)], it.kind === "team");
-    const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: Math.round(it.price * (1 + .15 * (lv - 1))) }); return json(r, r.error ? 409 : 200);
+    const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), k = czLvlKey(it);
+    const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[it.id] || 0) - (ret[it.id] || []).length });
+    const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: V.value }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/trades" && req.method === "GET") { const TR = await czRead(env, "cz:trades", []); return json({ trades: TR.filter(t => t.from === u.uid || t.to === u.uid).slice(0, 40) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!await rateOk(env, "tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
