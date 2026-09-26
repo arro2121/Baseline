@@ -1496,6 +1496,44 @@ html.native .webonly,html.native #installBtn{display:none!important}
 /* ---- card designs: twelve original frames (the .czdz layer and the name plate), all in the team's colors ---- */
 .czdz{position:absolute;inset:0;z-index:-1;pointer-events:none}.czdz i,.czdz b{position:absolute;display:block}
 .czscene{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
+/* ==== card design system: foil frame by tier, bright team-color stock, a framed art window, one name bar ==== */
+.czcard{--tf:linear-gradient(135deg,#e2e8f0,#94a3b8 40%,#f8fafc 60%,#64748b);--wl:7%;--wt:12.5%;--wb:24%;
+  border:4px solid transparent;padding:9px 9px 8px;border-radius:14px;
+  background:linear-gradient(165deg,color-mix(in srgb,var(--c1) 82%,#fff 18%),var(--c1) 42%,color-mix(in srgb,var(--c1) 55%,var(--c2)) 74%,color-mix(in srgb,var(--c2) 75%,#000)) padding-box,var(--tf) border-box;
+  box-shadow:0 12px 28px -14px rgba(0,0,0,.85),0 2px 0 rgba(255,255,255,.08)}
+.czcard.t-stardust{--tf:linear-gradient(135deg,#fff,#e0e7ff 30%,#fbcfe8 55%,#fff 75%,#c7d2fe)}
+.czcard.t-pulsar{--tf:linear-gradient(135deg,#6ee7b7,#10b981 35%,#a7f3d0 55%,#22d3ee)}
+.czcard.t-nebula{--tf:linear-gradient(135deg,#c4b5fd,#8b5cf6 35%,#f0abfc 60%,#7c3aed)}
+.czcard.t-quasar{--tf:linear-gradient(135deg,#7dd3fc,#0ea5e9 35%,#c7d2fe 58%,#6366f1)}
+.czcard.t-supernova{--tf:linear-gradient(135deg,#fde68a,#fb923c 30%,#f43f5e 60%,#fbbf24)}
+.czcard.t-singularity{--tf:conic-gradient(from 30deg,#fde68a,#f472b6,#a78bfa,#38bdf8,#34d399,#fde68a)}
+.czcard.t-singularity,.czcard.t-supernova,.czcard.t-quasar,.czcard.t-nebula,.czcard.t-pulsar{box-shadow:0 12px 28px -14px rgba(0,0,0,.85),0 0 18px -6px color-mix(in srgb,var(--c2) 60%,#fff)}
+.czcard.t-singularity{box-shadow:0 0 0 1px #fde68a,0 0 26px -4px #fde68a,0 12px 28px -14px #000}
+/* the printed stock: fine foil lines and a soft top sheen */
+.czc-stock{position:absolute;inset:0;z-index:-3;pointer-events:none;background:radial-gradient(120% 55% at 30% 0,rgba(255,255,255,.28),transparent 60%),repeating-linear-gradient(115deg,rgba(255,255,255,.07) 0 2px,transparent 2px 7px),linear-gradient(0deg,rgba(0,0,0,.35),transparent 40%)}
+.czc-sky{display:none}
+/* the art window: the scene and the tier's cosmic effect live inside it */
+.czcard.czcard .czdz,.czcard.czcard .czfx,.czcard .czc-win{position:absolute;inset:auto;left:var(--wl);right:var(--wl);top:var(--wt);bottom:var(--wb);border-radius:10px;overflow:hidden}
+.czcard.czcard .czdz{z-index:-2;background:linear-gradient(180deg,color-mix(in srgb,var(--c2) 30%,#0b0420),color-mix(in srgb,var(--c1) 40%,#07021a))}
+.czcard.czcard .czfx{z-index:-1;mix-blend-mode:screen;opacity:.9}
+.czc-win{z-index:-1;pointer-events:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75),inset 0 0 0 3px color-mix(in srgb,var(--c1) 70%,#000),inset 0 -18px 24px -12px rgba(0,0,0,.55),0 6px 16px -6px rgba(0,0,0,.6)}
+.czcard .czscene{opacity:1}.czcard.t-supernova .czscene,.czcard.t-singularity .czscene{opacity:.85}.czcard.t-supernova .czfx,.czcard.t-singularity .czfx{opacity:.8}
+/* the headshot and logo sit in the window */
+.czcard .czc-mid .czhs{box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--c1),0 8px 20px rgba(0,0,0,.55)}
+/* one name bar for every design: dark glass, team stripe on top, bold uppercase name */
+.czcard.czcard .czc-plate{clip-path:none;transform:none;border:0;border-radius:8px;margin:0 -2px -1px;padding:6px 8px 5px;text-align:left;box-shadow:inset 0 3px 0 var(--c1),inset 0 4px 0 var(--c2),0 4px 10px -4px rgba(0,0,0,.6);
+  background:linear-gradient(180deg,rgba(10,10,22,.92),rgba(10,10,22,.78));backdrop-filter:none;font-family:inherit}
+.czcard.czcard .czc-plate>*{transform:none}
+.czcard.czcard .czc-plate .czc-name{text-transform:uppercase;font-style:normal;font-weight:900;letter-spacing:.02em;color:#fff;-webkit-text-stroke:0;font-stretch:condensed}
+.czcard.czcard .czc-plate .czc-lg{color:color-mix(in srgb,var(--c2) 45%,#fff);opacity:.95}
+/* the tier pill and serial read like foil stamping */
+.czcard .czc-top span{box-shadow:0 2px 6px rgba(0,0,0,.35)}.czcard .czc-top em{text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.czcard.t-comet .czc-top span{background:linear-gradient(90deg,#e2e8f0,#94a3b8);color:#0f172a;border:0}.czcard.t-stardust .czc-top span{background:linear-gradient(90deg,#fff,#e0e7ff);color:#312e81;border:0}
+.czpocket .czcard{border-width:2.5px}
+.czcard.czcard .czc-plate.long .czc-name{font-size:.78em;letter-spacing:0}.czcard.czcard .czc-plate.xlong .czc-name{font-size:.66em;letter-spacing:-.01em}
+.czcard.czcard[class*=" d-"]{clip-path:none;border-radius:14px}
+.czcard.d-0.d-0,.czcard.d-3.d-3{box-shadow:0 12px 28px -14px rgba(0,0,0,.85)}
+
 .czcard.t-supernova .czscene,.czcard.t-singularity .czscene{opacity:.8}.czcard.t-supernova .czfx,.czcard.t-singularity .czfx{opacity:.7}
 .czscene .bolt{animation:czbolt 4s steps(1) infinite}.czscene .b2{animation-delay:1.3s}@keyframes czbolt{0%,86%{opacity:.75}88%,92%{opacity:1}90%{opacity:.5}}
 .czscene .flame{transform-origin:50% 100%;animation:czflick 1.6s ease-in-out infinite alternate}.czscene .f2{animation-duration:1.2s}.czscene .f3{animation-duration:.9s}@keyframes czflick{to{transform:scaleY(1.06) skewX(1.5deg)}}
@@ -5079,11 +5117,11 @@ function czCard(it, ed, big){
   const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null, hot = czHotOf(it);
   const dz = czDesign(it);
   return `<div class="czcard t-${esc(it.tier)} d-${dz} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
-    ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-sky"></div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czdz" aria-hidden="true">${it.ch ? "<i></i><b></b>" : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czc-foil"></div>${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
+    ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? "<i></i><b></b>" : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div><div class="czc-foil"></div>${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid ${player && faces.length ? "pl" : ""}">${player && faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
-    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate"><div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
+    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name">${esc(it.name)}</div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
 }
 // a player's photo: the one saved with the card, then the league's own photo by player id (older cards and players
 // whose photo wasn't in the roster), and finally the team's logo, large, instead of an empty card
