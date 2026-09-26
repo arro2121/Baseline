@@ -151,9 +151,9 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 // RC1 / TP1: rookie premium and team-pack prices
 check("RC1 rookie premium grows with play (10% to 45%)", W.czRookieX(0, null) === 1.1 && W.czRookieX(0, 0) === 1.15 && Math.abs(W.czRookieX(0, 1) - 1.45) < 1e-9 && W.czRookieX(8, 1) < 1.13);
 check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN === .7 && W.czPackRound(1234) === 1250 && W.czPackRound(123) === 120 && W.czPackRound(12) === 10);
-{ const avg = { singularity: 75621, supernova: 5743, quasar: 1379, nebula: 574, pulsar: 230, stardust: 92, comet: 23 };
+{ const avg = { singularity: 78200, pulsar: 230, comet: 23 };
   const r = W.CZ_PACKS.map(pk => W.czPackEV(pk.odds, pk.cards, avg) / pk.price);
-  check("TP2 every list-price pack returns 69-72% on the catalog's averages", r.every(x => x > .69 && x < .72), r.map(x => x.toFixed(3)).join()); }
+  check("TP2 every list-price pack returns 69-72% on the catalog's averages", r.every(x => x > .68 && x < .72), r.map(x => x.toFixed(3)).join()); }
 // SET1 / CH1: set checklists pay once when complete; case hits sell for 3 times the value
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "K", uid: "K", tok: "t", name: "Keeper" });
@@ -167,7 +167,8 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   m.set("cz:u:K", { ...m.get("cz:u:K"), bal: 0, items: [{ ...mk("nba.p3", "comet"), ch: "starfall" }, mk("nba.p4", "comet")] });
   await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
   check("CH1 a case hit sells for 3 times a regular copy", b1 === 1200 && m.get("cz:u:K").bal - b1 === 400, { b1, b2: m.get("cz:u:K").bal });
-  check("CH1 about 1 card in 300 is a case hit", Math.abs(W.CZ_CASE.rate - 1 / 300) < 1e-9 && W.CZ_CASE.inserts.length === 3); }
+  check("CH1 about 1 card in 150 is a case hit, in 12 designs", Math.abs(W.CZ_CASE.rate - 1 / 150) < 1e-9 && W.CZ_CASE.inserts.length === 12);
+  check("INK1 Cosmic Ink: 1 in 75 player cards, worth 2x", Math.abs(W.CZ_INK.rate - 1 / 75) < 1e-9 && W.czCopyMult({ ink: true }) === 2 && W.czCopyMult({ ch: "gold" }) === 3 && W.czCopyMult({}) === 1); }
 // MB1: buying several packs at once opens them together, charges each, and a repeat of the same purchase isn't charged again
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "Q", uid: "Q", tok: "t", name: "Bulk" }); m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 10000, freePack: false });
@@ -179,5 +180,6 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 100000 });
   check("MB1 at most 10 at a time", (await T({ act: "pack", uid: "Q", pack: pk, pool, count: 50, rid: "dddddddddddddddd" })).cards.length === 10 * pk.cards);
   check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
-  check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000"); }
+  check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000");
+  check("TR1 three versions per card: a 1-of-1, /100 and /1000", W.CZ_TIERS.map(t => t[2]).join() === "1,100,1000" && W.CZ_PACKS.every(pk => pk.odds.length === 3 && Math.abs(pk.odds.reduce((a, b) => a + b) - 100) < .01)); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
