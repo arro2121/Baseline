@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-nrHhJD55HeWZ8lrHnR3/YVPHFs8APkE6GGVpqx4YOx4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-zHDDuhOxtCW7GahIN1nHYk0It2tfrA0eXX2eAep+mvs='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1261,6 +1261,8 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .czauthtabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:10px 0 12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
 .czauthtabs button{border:0;border-radius:10px;padding:10px;font:inherit;font-weight:750;background:none;color:var(--muted);cursor:pointer}
 .czauthtabs button[aria-selected="true"]{background:var(--ink);color:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.cztr{font-style:normal;font-weight:800;font-size:.72rem;margin-left:6px;padding:1px 6px;border-radius:999px;white-space:nowrap}.cztr.up{color:#4ade80;background:rgba(74,222,128,.12)}.cztr.dn{color:#f87171;background:rgba(248,113,113,.12)}
+.czwhy{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:.86rem;color:var(--muted)}.czwhy b{display:block;color:var(--ink);margin-bottom:2px}
 .czor{display:flex;align-items:center;gap:10px;margin:12px 0 4px;color:var(--muted);font-size:.8rem}.czor::before,.czor::after{content:"";flex:1;height:1px;background:var(--line)}
 .czemail{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.czemail summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .czpwf{display:grid;gap:8px;margin:10px 0 4px}.czpwf .field{width:100%;box-sizing:border-box;text-align:left}.czpwf.col label{display:grid;gap:4px;font-size:.85rem;font-weight:650}
@@ -1324,8 +1326,8 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czc-sky{position:absolute;inset:0;z-index:-1;opacity:.85;background-image:radial-gradient(1px 1px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 72% 14%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 60%,#f5d0fe,transparent),radial-gradient(1px 1px at 85% 55%,#fff,transparent),radial-gradient(1px 1px at 25% 85%,#e0e7ff,transparent),radial-gradient(1.2px 1.2px at 60% 88%,#fff,transparent),radial-gradient(60% 40% at 50% 45%,rgba(168,85,247,.35),transparent 70%)}
 .czc-foil{position:absolute;inset:0;z-index:-1;mix-blend-mode:screen;opacity:.35;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.55) 45%,rgba(232,121,249,.4) 52%,transparent 62%);background-size:250% 100%;animation:czfoil 5s linear infinite}
 @keyframes czfoil{0%{background-position:120% 0}100%{background-position:-120% 0}}
-.czc-top{display:flex;justify-content:space-between;align-items:center;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.czc-top span{padding:3px 7px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}.czc-top em{font-style:normal;font-size:.8rem;letter-spacing:0;text-shadow:0 0 8px rgba(232,121,249,.8)}
+.czc-top{display:flex;justify-content:space-between;align-items:center;gap:4px;min-width:0;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.czc-top span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 7px;border-radius:99px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}.czc-top em{flex-shrink:0;white-space:nowrap;font-style:normal;font-size:.8rem;letter-spacing:0;text-shadow:0 0 8px rgba(232,121,249,.8)}
 .czc-mid{display:grid;place-items:center}.czc-mid img{width:58%;max-width:120px;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55)) drop-shadow(0 0 16px color-mix(in srgb,var(--c1) 60%,transparent))}
 .czc-mid b{font-size:2.2rem;font-stretch:112%;text-shadow:0 0 18px rgba(232,121,249,.8)}
 .czc-name{font-weight:800;font-size:.92rem;line-height:1.15}.czc-lg{font-size:.66rem;opacity:.75;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
@@ -1407,8 +1409,8 @@ html.native .webonly,html.native #installBtn{display:none!important}
 @keyframes vtIn{from{opacity:0;transform:translateY(16px) scale(1.01);filter:blur(5px)}}
 .bottombar{view-transition-name:bottombar}header.top{view-transition-name:topbar}
 ::view-transition-group(bottombar),::view-transition-group(topbar){animation:none}
-.btn,.czopen,[data-nav],.sheetrow,.urow,.gcard,.czown,.czhero,.czevban,.stkrow,.fcrow{transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .2s,background-color .2s,filter .2s}
-.btn:active:not(:disabled),.czopen:active:not(:disabled),[data-nav]:active,.sheetrow:active,.urow:active,.czown:active,.czhero:active,.czevban:active,.stkrow:active,.fcrow:active{transform:scale(.965)}
+.btn,.czopen,[data-nav],.sheetrow,.urow,.gcard,.czown,.czheroitem,.czevban,.stkrow,.fcrow{transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .2s,background-color .2s,filter .2s}
+.btn:active:not(:disabled),.czopen:active:not(:disabled),[data-nav]:active,.sheetrow:active,.urow:active,.czown:active,.czheroitem:active,.czevban:active,.stkrow:active,.fcrow:active{transform:scale(.965)}
 .ripple{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.35),rgba(255,255,255,0) 60%);transform:scale(0);animation:ripple .6s ease-out forwards}
 @keyframes ripple{to{transform:scale(1);opacity:0}}
 .gcard{position:relative}
@@ -1446,7 +1448,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czevlim{margin:0;font-size:.82rem;color:var(--muted)}.czevlim b{color:var(--ink)}
 .czevban{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid color-mix(in srgb,var(--ev) 60%,var(--line));border-radius:14px;padding:12px 14px;margin:0 0 12px;cursor:pointer;color:var(--ink);font:inherit;
   background:linear-gradient(100deg,color-mix(in srgb,var(--ev) 30%,var(--surface)),var(--surface) 70%)}
-.czevban>span:nth-child(2){flex:1;min-width:0;display:grid}.czevban small{color:var(--muted);font-size:.78rem}.czevban .czev-emoji{font-size:1.6rem}
+.czevban{flex-wrap:wrap}.czevban>span:nth-child(2){flex:1 1 150px;min-width:0;display:grid}.czevban .czcd{margin-left:auto}.czevban small{color:var(--muted);font-size:.78rem}.czevban .czev-emoji{font-size:1.6rem}
 .czcard.evcard{box-shadow:0 0 0 2px var(--ev,#f59e0b),0 0 18px color-mix(in srgb,var(--ev,#f59e0b) 55%,transparent)}
 .czev{position:absolute;z-index:4;left:50%;bottom:-1px;transform:translateX(-50%);max-width:92%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.56rem;font-weight:800;letter-spacing:.02em;
   padding:2px 8px;border-radius:8px 8px 0 0;color:#fff;background:var(--ev,#f59e0b);text-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -1467,9 +1469,9 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.big .czhot{font-size:.78rem;top:74px;padding:3px 12px}
 .czhotnote{margin:6px 0 0;padding:8px 12px;border-radius:12px;background:linear-gradient(90deg,rgba(253,224,71,.14),rgba(249,115,22,.14));border:1px solid rgba(251,146,60,.45);font-size:.88rem}
 .czheroes .czherolist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.czhero{display:grid;grid-template-columns:86px 1fr;gap:12px;align-items:center;text-align:left;background:linear-gradient(100deg,rgba(249,115,22,.14),transparent 70%);border:1px solid rgba(251,146,60,.35);border-radius:14px;padding:8px;color:var(--ink);font:inherit;cursor:pointer}
-.czhero .czcard{padding:6px;border-radius:10px}.czhero .czcard .czc-name,.czhero .czcard .czc-lg,.czhero .czcard .czhot{display:none}
-.czhero span{display:grid;gap:2px;min-width:0}.czhero em{font-style:normal;font-weight:800;color:#fdba74}.czhero small{color:var(--muted);font-size:.75rem}
+.czheroitem{display:grid;grid-template-columns:86px 1fr;gap:12px;align-items:center;text-align:left;background:linear-gradient(100deg,rgba(249,115,22,.14),transparent 70%);border:1px solid rgba(251,146,60,.35);border-radius:14px;padding:8px;color:var(--ink);font:inherit;cursor:pointer}
+.czheroitem .czcard{padding:6px;border-radius:10px}.czheroitem .czcard .czc-name,.czheroitem .czcard .czc-lg,.czheroitem .czcard .czhot{display:none}
+.czheroitem>span{display:grid;gap:2px;min-width:0}.czheroitem em{font-style:normal;font-weight:800;color:#fdba74}.czheroitem>span small{color:var(--muted);font-size:.75rem}
 /* the level-up ceremony */
 .czlvup{position:relative;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px 0;overflow:hidden;margin:-6px -6px 4px;border-radius:16px;background:radial-gradient(60% 55% at 50% 45%,rgba(253,224,71,.28),rgba(124,58,237,.18) 55%,transparent 75%)}
 .czlvup-rays{position:absolute;inset:-40%;background:repeating-conic-gradient(from 0deg,rgba(253,224,71,.16) 0 7deg,transparent 7deg 20deg);animation:czspin 14s linear infinite;mask:radial-gradient(circle,#000 20%,transparent 65%)}
@@ -1661,7 +1663,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
   background:radial-gradient(120% 90% at 10% 0%,#7c3aed,transparent 60%),radial-gradient(90% 80% at 100% 100%,#0e7490,transparent 60%),linear-gradient(160deg,#1e0b3a,#07021a);box-shadow:0 14px 40px -18px rgba(124,58,237,.9),inset 0 0 0 1px rgba(233,213,255,.2)}
 .czhero-sky{position:absolute;inset:0;z-index:-1;opacity:.9;background-image:radial-gradient(1px 1px at 12% 30%,#fff,transparent),radial-gradient(1.4px 1.4px at 28% 70%,#f5d0fe,transparent),radial-gradient(1px 1px at 46% 20%,#fff,transparent),radial-gradient(1.2px 1.2px at 64% 58%,#e0e7ff,transparent),radial-gradient(1px 1px at 82% 26%,#fff,transparent),radial-gradient(1.4px 1.4px at 90% 80%,#fff,transparent),radial-gradient(40% 60% at 80% 20%,rgba(232,121,249,.25),transparent 70%);animation:czsky 30s linear infinite alternate}
 @keyframes czsky{to{background-position:30px -20px,-20px 10px,10px 20px,-10px -10px,20px 10px,-30px 0,0 0}}
-.czhero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.czhero-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.czhero-top .czwho{flex:1 1 140px;min-width:0;display:grid}.czhero-top .czwho b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .czavatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:1.3rem;background:radial-gradient(circle at 35% 30%,#f5d0fe,#a855f7 45%,#4c1d95);box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 20px rgba(192,132,252,.8)}
 .czwho{display:grid;flex:1;min-width:0}.czwho b{font-size:1.1rem}.czwho small{opacity:.8;font-size:.78rem}
 .czhero .czdaily.done{font-size:.78rem;opacity:.85}.czdaily.glow{}.czdaily.glow .czamt b{font-weight:800}
@@ -1678,7 +1680,13 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czact{display:grid;gap:3px;justify-items:start;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:inherit;font:inherit;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
 .czact:hover{transform:translateY(-2px)}.czact-i{font-size:1.4rem}.czact small{color:var(--muted);font-size:.74rem}
 .czact.hot{border-color:rgba(167,139,250,.55);background:rgba(109,60,232,.16)}
-.czshow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.czshow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+/* small cards (the showcase, tonight's heroes) scale their labels down so nothing runs into the next card */
+.czshow .czcard,.czheroitem .czcard{padding:7px}
+.czshow .czc-top,.czheroitem .czc-top{font-size:.5rem;letter-spacing:.02em}.czshow .czc-top span,.czheroitem .czc-top span{display:none}.czshow .czc-top,.czheroitem .czc-top{justify-content:flex-end}
+.czshow .czc-top em,.czheroitem .czc-top em{font-size:.6rem}.czshow .czc-name{font-size:.72rem;line-height:1.15}.czshow .czc-lg{font-size:.5rem;letter-spacing:.04em}
+.czshow .czlv,.czheroitem .czlv{top:24px;right:6px;font-size:.5rem;padding:1px 5px}.czshow .czhot{top:40px;font-size:.5rem;padding:1px 6px}
+.czshow .czev,.czheroitem .czev{font-size:.45rem;padding:1px 5px}
 .czedge{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 12px;margin-top:8px;border-radius:12px;border:1px solid rgba(52,211,153,.35);background:linear-gradient(90deg,rgba(16,185,129,.12),transparent);color:inherit;font:inherit;cursor:pointer}
 .czedge span{display:grid;min-width:0}.czedge small{color:var(--muted);font-size:.74rem}.czedge em{font-style:normal;font-weight:800;display:grid;justify-items:end}.czedge em i{font-style:normal;font-size:.7rem;color:#34d399}
 .czpick.value{border-color:rgba(52,211,153,.6)}.czval{font-style:normal;font-size:.64rem;font-weight:800;color:#34d399;margin-top:1px}
@@ -5674,7 +5682,7 @@ function czHeroesHtml(){
   const seen = new Set(), mine = (CZ.me.items || []).filter(i => czHotOf(i) && !seen.has(czLvKey(i)) && seen.add(czLvKey(i)));
   if (!mine.length) return "";
   return `<section class="card czheroes"><h2>🔥 Tonight's heroes</h2><p class="sub">Your cards whose real ${mine.length === 1 ? "player or team" : "players and teams"} had a big game. They glow for a day, and big games level them up.</p>
-    <div class="czherolist">${mine.slice(0, 8).map(i => { const h = czHotOf(i); return `<button type="button" class="czhero" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<span><b>${esc(i.name)}</b><em>${esc(h.line)}</em><small>${esc(h.game || "")}</small></span></button>`; }).join("")}</div></section>`;
+    <div class="czherolist">${mine.slice(0, 8).map(i => { const h = czHotOf(i); return `<button type="button" class="czheroitem" data-czcard="${esc(i.id)}" data-n="${i.n}">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<span><b>${esc(i.name)}</b><em>${esc(h.line)}</em><small>${esc(h.game || "")}</small></span></button>`; }).join("")}</div></section>`;
 }
 // a card levelled up since you last looked: a short ceremony (the first time, levels are just noted)
 function czLevelUps(){
@@ -6259,12 +6267,25 @@ function czMineHtml(){
     ${bets.length ? "" : `<div class="teamnote"><b>No bets yet</b>Pick a side in the Bet tab. Wins pay out automatically after the final.</div>`}`;
 }
 // ---- Vault
+// a card's price follows current play: ▲ or ▼ is how its price level moved over the last week
+const czTrendChip = t => t ? `<em class="cztr ${t > 0 ? "up" : "dn"}" title="Price change over the last week">${t > 0 ? "▲" : "▼"}${Math.abs(t).toFixed(t >= 10 || t <= -10 ? 0 : 1)}%</em>` : "";
+function czPriceWhy(V){
+  if (!V) return ""; const bits = [];
+  if (V.kind === "team") bits.push(V.rank ? `#${V.rank} in the Cosmo ratings right now` : "the team's current rating");
+  else if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? ` (${esc(V.line)})` : ""}`);
+  else if (["atp", "wta"].includes(V.lg) && V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings`);
+  else bits.push("a depth player without a season rating yet");
+  if (V.level > 1) bits.push(`level ${V.level} from big games (+${(V.level - 1) * 15}%)`);
+  if (V.hot) bits.push("hot from a big game (+10%)");
+  if (V.scarce) bits.push(`${V.scarce >= 25 ? "sold out" : "copies being pulled"} (+${V.scarce}%)`);
+  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices follow real play and update every night: ${bits.join(", ")}.</p>`;
+}
 function czVaultHtml(){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
   const mine = new Set((CZ.me.items || []).map(i => i.id));
   const tile = i => { const left = i.supply - i.minted, own = mine.has(i.id);
     return `<div class="czitem">${i.minted > 0 && !own ? `<button type="button" class="czown czopen-o" data-czcard="${esc(i.id)}" data-n="0" aria-label="See who owns ${esc(i.name)} and trade">${czCard(i)}</button>` : czCard(i)}<div class="czinfo"><span class="czleft">${left <= 0 ? (i.owner ? `Owned by ${esc(i.owner)}` : "All pulled") : i.supply === 1 ? "Only one exists" : `${left} of ${i.supply} left`}</span>
-      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Shop value ${czAmt(i.value || i.price)}</span>`}</div></div>`; };
+      ${own ? `<span class="czownd">In your collection</span>` : `<span class="czleft">Value ${czAmt(i.value || i.price)}${czTrendChip(i.trend)}</span>`}</div></div>`; };
   return `<p class="sub czvnote">Every team and player comes in seven tiers. A Comet card has 1,000 numbered copies, a Pulsar 100, and so on down to a Singularity, the only tier with just one copy. The rarest are listed first.</p><div class="czvf"><div class="seg trseg" role="group" aria-label="League">${["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].map(l => `<button type="button" data-czvlg="${l}" aria-pressed="${CZ.vlg === l}">${l === "all" ? "All" : l === "tennis" ? "Tennis" : CZ_LG[l]}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams"], ["player", "Players"]].map(([k, l]) => `<button type="button" data-czvk="${k}" aria-pressed="${(CZ.vkind || "all") === k}">${l}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Tier">${["all", ...V.tiers.map(t => t.id)].map(t => `<button type="button" data-czvt="${t}" aria-pressed="${CZ.vtier === t}">${t === "all" ? "Every tier" : `${CZ_TIER_NAME[t]} 1/${V.tiers.find(x => x.id === t).supply}`}</button>`).join("")}</div>
@@ -6351,6 +6372,7 @@ async function czHistory(id, n){
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
   $("#infoBody").innerHTML = `<div class="czreveal">${czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true)}<h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+    ${czPriceWhy(V)}
     ${czHotOf(it) ? `<p class="czhotnote">🔥 <b>${esc(czHotOf(it).line)}</b>${czHotOf(it).game ? ` · ${esc(czHotOf(it).game)}` : ""}. Every copy glows for a day after a big game.</p>` : ""}
     <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
     ${lv > 1 || V ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
@@ -6359,7 +6381,7 @@ async function czHistory(id, n){
       <div><b>Sell to other players</b><small>Set your price. You get it minus 5%, which is retired (taken out of the game) to keep card prices steady.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
       <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (you get it minus the 5% that's retired). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
     ${owners.length ? `<h3 class="plh">Who owns the ${it.supply === 1 ? "card" : "copies"}</h3>${it.supply > 1 ? `<p class="sub czlvnote">Each copy has its own serial number, from #1 to #${it.supply.toLocaleString()}. It's not how many someone owns.</p>` : ""}<div class="czown-list">${owners.slice().sort((a, b) => a.n - b.n).map(o => `<div class="${o.uid === CZ.me.uid ? "me" : ""}"><b>${it.supply === 1 ? "1 of 1" : `#${o.n} <small>of ${it.supply.toLocaleString()}</small>`}</b><span>${esc(o.name)}</span><small>${esc(new Date(o.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small>${o.uid !== CZ.me.uid && !own ? `<button type="button" class="btn czbuy" data-cztrade="${esc(o.name)}">Trade</button>` : ""}</div>`).join("")}</div>` : `<p class="sub">Nobody owns a copy yet.</p>`}
-    <p class="czerr" id="czErr" role="alert"></p><div class="pkfoot"><small>Worth about ${czAmt(value || 0)} in the shop's book.</small>${own ? `<button class="btn" type="button" data-czshare>Share image</button>` : ""}<button class="btn primary" type="button" data-info="close">Close</button></div>`;
+    <p class="czerr" id="czErr" role="alert"></p><div class="pkfoot"><small>Worth ${czAmt(value || 0)} right now${V && V.trend ? ` ${czTrendChip(V.trend)}` : ""}.</small>${own ? `<button class="btn" type="button" data-czshare>Share image</button>` : ""}<button class="btn primary" type="button" data-info="close">Close</button></div>`;
   const body = $("#infoBody"), done = (msg, r) => { if (r && r.user) CZ.me = r.user; $("#infoDlg").close(); toast(msg); drawCosmic(); czLoad(["vault", "market"]); };
   const fail = e => { $("#czErr").textContent = e.message; };
   const shopBtn = body.querySelector('[data-czact="shop"]'); if (shopBtn) shopBtn.onclick = async () => { if (!confirm(`Sell ${it.name} ${CZ_TIER_NAME[it.tier]} ${n}/${it.supply} to the shop for ${shop.toLocaleString()} coins? It goes back into packs.`)) return;
