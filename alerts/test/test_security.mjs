@@ -109,6 +109,24 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 { const c = W.czSyncClean({ v: 1, ls: { picks: { a: 1 }, evil: "<x>", spoil: "x".repeat(5000) }, fav: { nfl: ["Chiefs", 5], "../x": ["y"] }, settings: { theme: "dark", obj: { deep: 1 } }, extra: 1 });
   check("S11 synced data keeps only known keys within their size caps", JSON.stringify(c) === '{"v":1,"ls":{"picks":{"a":1}},"fav":{"nfl":["Chiefs"]},"settings":{"theme":"dark"}}', c);
   check("S11 junk is refused", (await call("/data", "not an object", dan.auth, "PUT"))[0] === 400); }
+// email and password sign-in (for computers)
+{ const pw = "orbit-lamp-canyon-42", em = "Dan.Player@Example.com";
+  check("PW sign-in fails before it's set up", (await call("/pw/login", { email: em, password: pw }, null, "POST", { ip: "10.0.0.1" }))[0] === 401);
+  check("PW weak passwords are refused", (await call("/pw/set", { email: em, password: "password123" }, dan.auth))[0] === 400);
+  check("PW bad email is refused", (await call("/pw/set", { email: "nope", password: pw }, dan.auth))[0] === 400);
+  const [s1, r1] = await call("/pw/set", { email: em, password: pw }, dan.auth);
+  check("PW set from a signed-in device, shown masked", s1 === 200 && r1.user.email === "d•••@example.com", r1);
+  const U = data.get("cz:u:" + dan.auth.split(".")[0]), raw = JSON.stringify(U) + JSON.stringify([...data.keys()]);
+  check("PW neither the email nor the password is stored readable", !/dan\.player|example\.com"|orbit-lamp/i.test(raw.replace("d•••@example.com", "")) && U.pw.hash && U.pw.hash !== pw);
+  const [s2, r2] = await call("/pw/login", { email: " dan.player@example.com ", password: pw }, null, "POST", { ip: "10.0.0.2" });
+  check("PW sign in with email and password (any case)", s2 === 200 && r2.user.name === "Dan" && (await call("/me", null, r2.auth))[0] === 200, [s2, r2.error]);
+  check("PW wrong password refused", (await call("/pw/login", { email: em, password: pw + "x" }, null, "POST", { ip: "10.0.0.3" }))[0] === 401);
+  check("PW another account can't take the same email", (await call("/pw/set", { email: em, password: "another-long-phrase-9" }, np.auth))[0] === 409);
+  check("PW changing needs the current password", (await call("/pw/set", { email: em, password: "a-new-long-phrase-7" }, dan.auth))[0] === 403);
+  let locked = 0; for (let i = 0; i < 12; i++) if ((await call("/pw/login", { email: em, password: "guess" + i }, null, "POST", { ip: "10.1.0." + i }))[0] === 429) locked++;
+  check("PW guessing one email is limited even from many addresses", locked >= 2, locked);
+  check("PW remove needs the current password, then sign-in stops", (await call("/pw/remove", { current: "nope" }, dan.auth))[0] === 403
+    && (await call("/pw/remove", { current: pw }, dan.auth))[0] === 200 && !data.get("cz:u:" + dan.auth.split(".")[0]).pw); }
 // P6: the owner's unlimited-coins test account stays out of other players' coins and cards
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   for (const [uid, name] of [["O", "Owner"], ["S", "Seller"]]) await T({ act: "ident", sub: uid, uid, tok: "t", name });
