@@ -1237,6 +1237,7 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .gate{position:fixed;inset:0;z-index:48;overflow-y:auto;background:radial-gradient(120% 80% at 50% 0%,#2a1766 0%,#0B0826 55%,#05030F 100%);padding:max(28px,env(safe-area-inset-top,0px)) 16px calc(28px + env(safe-area-inset-bottom,0px))}
 .gate-sky{position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(1.2px 1.2px at 12% 18%,#fff8,transparent),radial-gradient(1px 1px at 72% 12%,#fff9,transparent),radial-gradient(1.4px 1.4px at 40% 70%,#e9d5ff99,transparent),radial-gradient(1px 1px at 88% 60%,#fff7,transparent),radial-gradient(1.1px 1.1px at 22% 88%,#a5f3fc88,transparent),radial-gradient(1px 1px at 60% 40%,#fff6,transparent)}
 .gate-in{position:relative;max-width:460px;margin:0 auto}
+.gate-x{position:absolute;top:0;right:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-weight:650;font-size:.85rem;cursor:pointer;z-index:2}
 .gate-brand{text-align:center;margin:10px 0 18px}.gate-brand img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 40px #7c3aed66}
 .gate-brand h1{margin:12px 0 4px;font-size:1.7rem}.gate-brand p{margin:0 auto;color:var(--muted);max-width:360px}
 .gate-perks{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:6px;color:var(--muted);font-size:.9rem}.gate-perks li{display:flex;gap:8px}
@@ -1802,8 +1803,7 @@ dialog.onb p{margin:0 0 12px}
         <div class="oddsRow"><label for="ob" id="lb"></label><input class="field" id="ob" inputmode="decimal" placeholder="+130" autocomplete="off"></div>
       </div>
       <div class="settings">
-        <label>Bankroll ($)<input class="field" id="bankroll" type="number" min="0" value="1000"></label>
-        <label>Minimum edge to bet (%)<input class="field" id="thresh" type="number" min="0" step="0.5" value="3"></label>
+        <label>Flag a value pick from an edge of (%)<input class="field" id="thresh" type="number" min="0" step="0.5" value="3"></label>
       </div>
       <div class="verdicts" id="verdicts"></div>
     </section>
@@ -1906,8 +1906,7 @@ dialog.onb p{margin:0 0 12px}
             <p class="sub">Enter the bookmaker's prices. American (−150, +130) or decimal (1.67) both work.</p>
             <div class="oddsIn" id="tOddsIn"></div>
             <div class="settings">
-              <label>Bankroll ($)<input class="field" id="tBank" type="number" min="0" value="1000"></label>
-              <label>Minimum edge to bet (%)<input class="field" id="tThresh" type="number" min="0" step="0.5" value="3"></label>
+              <label>Flag a value pick from an edge of (%)<input class="field" id="tThresh" type="number" min="0" step="0.5" value="3"></label>
             </div>
             <div class="verdicts" id="tVerdicts"></div>
           </section>
@@ -1966,7 +1965,7 @@ dialog.onb p{margin:0 0 12px}
     <li><i>🎲</i><span><b>Season odds.</b> The rest of every season is played out 10,000 times each night: playoff, division and title chances for every team, charted over time, plus what each team's next game is worth. In the new Odds tab of every league.</span></li>
     <li><i>🔥</i><span><b>Most at stake.</b> The games that swing the playoff races most, on Today and in each Odds tab, with luck (wins above what the scoring says) and the toughest schedules left.</span></li>
     <li><i>🏈</i><span><b>NFL leaders for 2026,</b> now with rushing, sacks, tackles and interceptions.</span></li>
-    <li><i>📈</i><span><b>Track record.</b> Every pick the model makes is now locked in before the game and graded after it, with its record in each league, how it compares with the betting favorites, and what $100 bets would have made. In the Record tab.</span></li>
+    <li><i>📈</i><span><b>Track record.</b> Every pick the model makes is now locked in before the game and graded after it, with its record in each league, how it compares with the betting favorites, and how it does against the odds. In the Record tab.</span></li>
     <li><i>🧠</i><span><b>A real model for every league.</b> The NFL, NBA, MLB, NHL and Premier League now get the tennis treatment: Elo, opponent-adjusted margin, offense and defense, form, rest and a factor for each sport (starting pitchers, quarterbacks, shots).</span></li>
     <li><i>📊</i><span><b>A Model tab in every league.</b> Accuracy on seasons it never saw, against Elo and the betting market, a calibration chart and what each factor is worth.</span></li>
     <li><i>🔎</i><span><b>Why the model leans that way.</b> Every matchup and game page shows each factor's push, a projected score, fair spread and total, form, rating trends and the last meetings.</span></li>
@@ -1992,10 +1991,11 @@ dialog.onb p{margin:0 0 12px}
     <div class="grab"></div>
     <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
     <button class="sheetrow" data-go="cosmic"><b>🪐 Cosmic</b><span>Bet free Cosmic Coins on real games and collect limited-edition team and player cards</span></button>
-    <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and what betting them would have made</span></button>
+    <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and how it does against the odds</span></button>
     <button class="sheetrow" data-go="comets"><b>📰 Comets</b><span>Articles and takes from Cosmo Sports</span></button>
     <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
     <button class="sheetrow" data-go="ask"><b>Ask Cosmo</b><span>Your AI sports companion: what to watch, how your teams did, what the model thinks</span></button>
+    <button class="sheetrow" data-go="account"><b id="moreAcct">👤 Sign in</b><span>Your Cosmic account: coins, cards, and your teams and settings on every device</span></button>
     <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
     <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
     <button class="sheetrow" data-go="search"><b>Find a team</b><span>Any NFL, NBA, MLB, NHL or Premier League team</span></button>
@@ -2021,7 +2021,7 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Last page</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option><option value="cfb">College Football</option><option value="cbb">College Basketball</option></select></div>
-    <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
+    <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn primary" type="button" id="acctIn" hidden>Sign in</button><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
     <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about a player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" data-ui="close search">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
@@ -2077,7 +2077,7 @@ dialog.onb p{margin:0 0 12px}
     <h3 id="h-picks">Picks</h3>
     <p>The <b>Daily 3</b> is the day's three closest calls. Pick a winner in each before they start, keep a streak, and send your picks to a friend. Every pick you make anywhere is graded and compared with the model's.</p>
     <h3 id="h-bet">Betting terms</h3>
-    <p><b>Bookmaker's cut:</b> the margin built into the odds; Cosmo Sports removes it to find the market's true view. <b>Edge:</b> how much higher the model's chance is than the market's. <b>¼ Kelly:</b> a cautious stake size based on your edge and bankroll. <b>Closing line value:</b> whether the odds moved your way before the match started, the most reliable early sign of a real edge.</p>
+    <p><b>Bookmaker's cut:</b> the margin built into the odds; Cosmo Sports removes it to find the market's true view. <b>Edge:</b> how much higher the model's chance is than the market's. <b>Fair price:</b> the odds that match the model's own chance. <b>Closing line value:</b> whether the odds moved your way before the match started, the most reliable early sign of a real edge.</p>
     <h3>Privacy</h3>
     <p>Your settings are stored only on your device. There are no accounts, ads or tracking.</p>
     <h3>Please bet responsibly</h3>
@@ -2247,29 +2247,28 @@ function renderOdds(A, B, p){
   $("#la").textContent = A.name; $("#lb").textContent = B.name;
   const da = parseOdds(st.odds.a), db = parseOdds(st.odds.b), out = $("#verdicts");
   if (!da || !db){
-    out.innerHTML = `<div class="hint">Add both prices to see the market's true probability once the bookmaker's cut is removed, your edge on each side and a suggested stake.</div>`;
+    out.innerHTML = `<div class="hint">Add both prices to see the market's true probability once the bookmaker's cut is removed, and how far the model differs from it on each side.</div>`;
     return;
   }
   const ia = 1/da, ib = 1/db, over = ia + ib, fa = ia/over, fb = ib/over;
-  const bank = +$("#bankroll").value || 0, th = (+$("#thresh").value || 0)/100;
+  const th = (+$("#thresh").value || 0)/100;
   const card = (P, prob, fair, dec) => {
     const edge = prob - fair, ev = prob*dec - 1;
-    const kelly = Math.max(0, (prob*dec - 1)/(dec - 1)) / 4;
     const bet = edge >= th && ev > 0;
     return `<div class="verdict ${bet?"bet":""}">
-      <div class="vh"><span>${esc(P.name)} <span class="muted" style="font-weight:500">${fmtOdds(dec)}</span></span><span class="chip">${bet ? "Value bet" : edge > 0 ? "Edge too small" : "No edge"}</span></div>
+      <div class="vh"><span>${esc(P.name)} <span class="muted" style="font-weight:500">${fmtOdds(dec)}</span></span><span class="chip">${bet ? "Value pick" : edge > 0 ? "Small edge" : "No edge"}</span></div>
       <div class="kv">
         <div>Model<b>${(prob*100).toFixed(1)}%</b></div>
         <div>Market<b>${(fair*100).toFixed(1)}%</b></div>
         <div>Edge<b class="${edge>=0?"pos":"neg"}">${edge>=0?"+":"−"}${Math.abs(edge*100).toFixed(1)}%</b></div>
-        <div>${bet ? "Stake (¼ Kelly)" : "Per $100 bet"}<b class="${bet?"":ev>=0?"pos":"neg"}">${bet ? "$"+Math.round(bank*kelly).toLocaleString() : (ev>=0?"+":"−")+"$"+Math.abs(ev*100).toFixed(2)}</b></div>
+        <div>Model's fair price<b>${fmtOdds(1/Math.max(prob, .001))}</b></div>
       </div></div>`;
   };
   out.innerHTML = card(A, p, fa, da) + card(B, 1-p, fb, db) + `<div class="margin">Bookmaker's cut on this match: ${((over-1)*100).toFixed(1)}%</div>`;
 
 }
 ["oa","ob"].forEach(id => $("#"+id).addEventListener("input", e => { st.odds[id==="oa"?"a":"b"] = e.target.value; update(); }));
-["bankroll","thresh"].forEach(id => $("#"+id).addEventListener("input", update));
+["thresh"].forEach(id => $("#"+id).addEventListener("input", update));
 
 /* ---------- main render ---------- */
 function update(){
@@ -2513,7 +2512,9 @@ function renderSettings(){
   document.querySelectorAll("[data-vkind]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.vkind === voiceKind()); b.hidden = b.dataset.vkind !== "device" && !ALERTS_URL; });
   ["#voiceRow", "#voiceRow2"].forEach(id => { const r = $(id); if (r) r.hidden = !canListen(); });
   $("#startSel").value = lsGet("startSport", "");
-  { const on = typeof GATE_ON !== "undefined" && GATE_ON && !!czKey(); $("#acctRow").hidden = !on; if (on) $("#acctSummary").textContent = CZ.me ? `Signed in as ${CZ.me.name}${CZ.me.passkey ? " with a passkey" : ""}` : "Signed in";
+  { const gate = typeof GATE_ON !== "undefined" && GATE_ON, on = gate && !!czKey(); $("#acctRow").hidden = !gate; $("#acctIn").hidden = on; $("#acctOut").hidden = !on; $("#acctDel").hidden = !on;
+    $("#acctSummary").textContent = !on ? "Not signed in. Sign in for Cosmic and to keep your teams and settings on every device." : CZ.me ? `Signed in as ${CZ.me.name}${CZ.me.passkey ? " with a passkey" : ""}` : "Signed in";
+    $("#acctIn").onclick = () => { $("#settingsDlg").close(); openSignIn(); };
     $("#acctOut").onclick = async () => { if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; $("#settingsDlg").close(); await czSignOut(); };
     $("#acctDel").onclick = () => { $("#settingsDlg").close(); czDeleteAccount(); }; }
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
@@ -3284,7 +3285,7 @@ function renderModelTab(){
   const imp = Object.entries(m.ablation).sort((a, b) => b[1] - a[1]), mx = Math.max(1e-5, ...imp.map(x => Math.abs(x[1])));
   const tested = (m.dropped || []).filter(k => k !== "elo_d");
   el.innerHTML = `<div class="metrics">${metrics.map(([n, l]) => `<div class="metric"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
-    ${isCollege(lg) ? "" : `<button type="button" class="trlink" data-ui="record" data-lg="${lg}"><b>📈 Live track record</b><span>Every ${LEAGUE_LABEL[lg]} pick since launch, locked in before the game, and what $100 bets would have made</span><i>→</i></button>`}
+    ${isCollege(lg) ? "" : `<button type="button" class="trlink" data-ui="record" data-lg="${lg}"><b>📈 Live track record</b><span>Every ${LEAGUE_LABEL[lg]} pick since launch, locked in before the game, and how it does against the odds</span><i>→</i></button>`}
     <div class="grid" style="margin-top:0">
       <section class="card"><h2>Backtest on unseen seasons</h2><p class="sub">Fitted on ${m.seasons.split("–")[0]}–${m.test_seasons[0] - 1} (${m.train_games.toLocaleString()} ${soccer ? "matches" : "games"}), then tested on ${m.test_seasons.join(", ")} (${m.test_games.toLocaleString()}). Every rating and stat was built only from games played before each one.</p>
         <div class="scroll"><table class="cmp"><thead><tr><th>Method</th><th>Accuracy</th><th>Log-loss</th><th>Brier</th></tr></thead><tbody>${Object.entries(bt).map(([k, v]) => `<tr class="${k === "Full model (all factors)" ? "best" : ""}"><td>${esc(names[k] || k)}${k.includes("same games") || k.startsWith("Betting") ? ` <small>(${v.n})</small>` : ""}</td><td>${pct1(v.acc)}</td><td>${v.logloss.toFixed(3)}</td><td>${v.brier.toFixed(3)}</td></tr>`).join("")}</tbody></table></div>
@@ -3405,18 +3406,18 @@ function renderTeamPredict(){
     oin.querySelectorAll("input").forEach(i => i.addEventListener("input", () => { st_.odds[i.dataset.o] = i.value; renderTeamPredict(); }));
   }
   const decs = outs.map(o => parseOdds(st_.odds[o[0]])), vout = $("#tVerdicts");
-  if (decs.some(d => !d)){ vout.innerHTML = `<div class="hint">Add ${soccer ? "all three prices" : "both prices"} to see the market's true probability once the bookmaker's cut is removed, your edge on each side and a suggested stake.</div>`; return; }
-  const imp = decs.map(d => 1/d), over = imp.reduce((x,y) => x+y, 0), bank = +$("#tBank").value || 0, th = (+$("#tThresh").value || 0)/100;
+  if (decs.some(d => !d)){ vout.innerHTML = `<div class="hint">Add ${soccer ? "all three prices" : "both prices"} to see the market's true probability once the bookmaker's cut is removed, and how far the model differs from it on each side.</div>`; return; }
+  const imp = decs.map(d => 1/d), over = imp.reduce((x,y) => x+y, 0), th = (+$("#tThresh").value || 0)/100;
   vout.innerHTML = outs.map(([k, T, prob, sty, lab], i) => {
-    const dec = decs[i], fair = imp[i]/over, edge = prob - fair, ev = prob*dec - 1, kelly = Math.max(0, (prob*dec - 1)/(dec - 1))/4, bet = edge >= th && ev > 0;
-    return `<div class="verdict teamcard ${bet?"bet":""}"><div class="vh"><span>${T ? logoChip(T, "sm") : ""}${esc(lab)} <span class="muted" style="font-weight:500">${fmtOdds(dec)}</span></span><span class="chip">${bet ? "Value bet" : edge > 0 ? "Edge too small" : "No edge"}</span></div>
+    const dec = decs[i], fair = imp[i]/over, edge = prob - fair, ev = prob*dec - 1, bet = edge >= th && ev > 0;
+    return `<div class="verdict teamcard ${bet?"bet":""}"><div class="vh"><span>${T ? logoChip(T, "sm") : ""}${esc(lab)} <span class="muted" style="font-weight:500">${fmtOdds(dec)}</span></span><span class="chip">${bet ? "Value pick" : edge > 0 ? "Small edge" : "No edge"}</span></div>
       <div class="kv"><div>Model<b>${(prob*100).toFixed(1)}%</b></div><div>Market<b>${(fair*100).toFixed(1)}%</b></div><div>Edge<b class="${edge>=0?"pos":"neg"}">${edge>=0?"+":"−"}${Math.abs(edge*100).toFixed(1)}%</b></div>
-      <div>${bet ? "Stake (¼ Kelly)" : "Per $100 bet"}<b class="${bet?"":ev>=0?"pos":"neg"}">${bet ? "$"+Math.round(bank*kelly).toLocaleString() : (ev>=0?"+":"−")+"$"+Math.abs(ev*100).toFixed(2)}</b></div></div></div>`;
+      <div>Model's fair price<b>${fmtOdds(1/Math.max(prob, .001))}</b></div></div></div>`;
   }).join("") + `<div class="margin">Bookmaker's cut on this ${soccer ? "match" : "game"}: ${((over-1)*100).toFixed(1)}%</div>`;
 }
 document.querySelectorAll("[data-venue]").forEach(b => b.addEventListener("click", () => { const t = TP[SPORT]; if (!t) return; t.neutral = b.dataset.venue === "neutral"; renderTeamPredict(); }));
 $("#tSwap").addEventListener("click", () => { const t = TP[SPORT]; if (!t) return; [t.a, t.b] = [t.b, t.a]; t.odds = {}; $("#tOddsIn").dataset.key = ""; renderTeamPredict(); });
-["#tBank","#tThresh"].forEach(i => $(i).addEventListener("input", () => renderTeamPredict()));
+["#tThresh"].forEach(i => $(i).addEventListener("input", () => renderTeamPredict()));
 /* which day's games: "" is today, otherwise YYYYMMDD */
 const GDATE = {};
 const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
@@ -5125,25 +5126,29 @@ function drawInstallSpots(){
   const t = document.getElementById("instToday"); if (t){ t.innerHTML = installCardHtml("today"); bindInstall(t); }
   const g = document.getElementById("instGate"); if (g){ g.innerHTML = installCardHtml("gate"); bindInstall(g); }
 }
-// ---- one account for all of Cosmo Sports: the app opens behind a sign-in screen until you're signed in with a passkey
-const GATE_ON = HOSTED && !!ALERTS_URL, GATE = { sig: "", open: false, after: null };
-{ const ref = new URLSearchParams(location.search).get("ref"); if (/^[a-f0-9]{24}$/.test(ref || "")) lsSet("cz-ref", ref); }   // an invite link
+// ---- one account for all of Cosmo Sports. Scores, predictions, Picks and alerts work without one; the sign-in screen opens
+// when someone asks for it (Settings, More, an invite link) and Cosmic signs you in on its own page
+const GATE_ON = HOSTED && !!ALERTS_URL, GATE = { sig: "", open: false, after: null, want: false };
+{ const ref = new URLSearchParams(location.search).get("ref"); if (/^[a-f0-9]{24}$/.test(ref || "")){ lsSet("cz-ref", ref); if (!lsGet("cz-auth", "")) GATE.want = true; } }   // an invite link
 function gateNeeded(){
-  if (!GATE_ON) return false;
-  if (!CZ.me) return !czKey();                                        // a saved session opens straight away (and works offline); the server check follows
-  return !CZ.me.passkey && czPkSupported();                          // old device-key accounts add a passkey first
+  if (!GATE_ON || !GATE.want) return false;
+  if (!CZ.me) return !czKey();
+  return !CZ.me.passkey && czPkSupported();                          // old device-key accounts can add a passkey here
 }
+function openSignIn(){ if (!GATE_ON){ toast("Accounts work in the installed app."); return; } GATE.want = true; GATE.sig = ""; drawGate(); if (!gateNeeded()) toast(CZ.me ? `Signed in as ${CZ.me.name}` : "Signing you in…"); }
+function closeSignIn(){ GATE.want = false; drawGate(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && GATE.open) closeSignIn(); });
 function drawGate(){
   const g = $("#gate"); if (!g) return;
   const need = gateNeeded(); document.body.classList.toggle("gated", need);
-  if (!need){ if (GATE.open || !g.hidden){ g.hidden = true; GATE.open = false; GATE.sig = ""; } if (GATE.after){ const f = GATE.after; GATE.after = null; f(); } return; }
+  if (!need){ if (GATE.open || !g.hidden){ g.hidden = true; GATE.open = false; GATE.sig = ""; } if (CZ.me) GATE.want = false; if (GATE.after){ const f = GATE.after; GATE.after = null; f(); } return; }
   const P = CZ.pk || {}, link = !!CZ.me, pk = czPkSupported(), sig = `${link}|${pk}|${P.err || ""}`;
   g.hidden = false; GATE.open = true; if (sig === GATE.sig) return; GATE.sig = sig;
-  $("#gateBody").innerHTML = `<div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to open the app."}</p></div>
+  $("#gateBody").innerHTML = `<button type="button" class="gate-x" id="gateClose" aria-label="Close">Not now</button><div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to play Cosmic and keep your teams and settings on every device. Scores and predictions work without one."}</p></div>
     ${link ? "" : `${lsGet("cz-ref", null) ? `<p class="gate-inv">A friend invited you: you'll both get 500 bonus coins when you join.</p>` : ""}<ul class="gate-perks"><li>📈 Live scores, predictions and the model's track record for every league</li><li>🪐 Cosmic: free play coins, bets and limited-edition cards, down to 1 of 1</li><li>☁️ Your teams, cards and settings saved to your account on every device</li></ul>`}
     <div id="instGate">${installCardHtml("gate")}</div>
     ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free, no password, no email. By creating an account you agree to the <a href="terms.html">Terms of Use</a>. <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>`;
-  czBind($("#gateBody")); czPkBind($("#gateBody")); bindInstall($("#gateBody"));
+  czBind($("#gateBody")); czPkBind($("#gateBody")); bindInstall($("#gateBody")); $("#gateClose").onclick = closeSignIn;
 }
 function gateStart(){
   if (!GATE_ON){ GATE.after && GATE.after(); GATE.after = null; return; }
@@ -5807,7 +5812,7 @@ const cmDate = s => { try { return new Date(s).toLocaleDateString([], { month: "
 const cmMins = w => Math.max(1, Math.round((w || 0) / 220));
 /* ---------- Track record: every pick the model made since launch, locked in before the game and graded after it ----------
    The alerts service saves the model's win chances and the bookmaker's moneyline for each game shortly before it starts, and
-   the result when it ends (alerts/worker.js, trackTick). Here the app works out the record and what $100 bets would have made. */
+   the result when it ends (alerts/worker.js, trackTick). Here the app works out the record and how the picks score against the odds, in units. */
 const TR = { data: null, at: 0, err: false, loading: false, lg: "all", show: 15 };
 const TR_LEAGUES = ["nfl", "nba", "mlb", "nhl", "epl"];
 async function loadTrack(force){
@@ -5822,7 +5827,7 @@ async function loadTrack(force){
 }
 const trDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
 const trMl = ml => ml == null ? "" : ml > 0 ? "+" + ml : "−" + Math.abs(ml);
-// one pick, graded: the model's side, the market's favourite, and the $100 bets it would have placed
+// one pick, graded: the model's side, the market's favourite, and how it scores against the odds
 function trGrade(k){
   const outs = k.p.length === 3 ? ["home", "draw", "away"] : ["home", "away"], two = outs.length === 2;
   const pi = k.p.indexOf(Math.max(...k.p)), side = outs[pi];
@@ -5851,7 +5856,8 @@ function trSum(rows){
     mn: m.length, macc: m.length ? m.filter(r => r.mhit).length / m.length : null, mboth: m.length ? m.filter(r => r.hit).length / m.length : null,
     every: trBank(rows.filter(r => r.done && r.every && r.every.pl != null).map(r => r.every)), value: trBank(rows.flatMap(r => r.done ? r.bets.filter(b => b.pl != null) : [])) };
 }
-const trMoney = v => (v > 0 ? "+" : v < 0 ? "−" : "") + "$" + Math.abs(Math.round(v)).toLocaleString();
+// the record against the odds, in units: one unit is a flat stake on a pick at the price when it locked (a yardstick, not advice)
+const trMoney = v => (v > 0 ? "+" : v < 0 ? "−" : "") + (Math.abs(v) / 100).toFixed(Math.abs(v) >= 1000 ? 0 : 1) + "u";
 const trCls = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
 function trTeam(lg, T){ return LG_TEAMS(lg).find(t => tkey(t.name) === tkey(T.name)) || { name: T.name, abbr: T.abbr }; }
 const TR_TWO = /(Red Sox|White Sox|Blue Jays|Trail Blazers|Maple Leafs|Red Wings|Blue Jackets|Golden Knights)$/;
@@ -5873,7 +5879,7 @@ function trChart(rows){
     ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t)}" y2="${Y(t)}" class="${t === 0 ? "zero" : "ax"}"/><text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${trMoney(t)}</text>`).join("")}
     <path d="${path(pe)}" class="le"/><path d="${path(pv)}" class="lv"/>
     <text x="${L}" y="${H - 6}">${esc(day(done[0].k.start))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(done[done.length - 1].k.start))}</text></svg>
-    <div class="tlegend"><span><i class="le"></i>$100 on every pick</span><span><i class="lv"></i>$100 on each value bet</span></div>`;
+    <div class="tlegend"><span><i class="le"></i>Every pick</span><span><i class="lv"></i>Value picks only</span></div>`;
 }
 function trBuckets(rows){
   const g = rows.filter(r => r.done && r.hit != null); if (g.length < 10) return "";
@@ -5893,7 +5899,7 @@ function trRow(r, pending){
   const score = k.score ? `${trShort(lg, k.away)} ${k.score[1]}, ${trShort(lg, k.home)} ${k.score[0]}` : pending ? when.toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : r.void ? "Postponed" : "";
   const pl = !pending && r.done && r.every && r.every.pl != null ? r.every.pl : null;
   return `<div class="trpick">${res}<div class="trmid"><div class="trm">${logoChip(A, "sm", lg)}<b>${esc(trShort(lg, k.away))}</b><span class="muted">at</span>${logoChip(H, "sm", lg)}<b>${esc(trShort(lg, k.home))}</b><em>${LEAGUE_LABEL[lg] === "Premier League" ? "EPL" : LEAGUE_LABEL[lg]}</em></div>
-    <div class="trd">Pick: <b>${pickT ? esc(trShort(lg, pickT)) : "Draw"}</b> ${pct1(r.conf)}${odds ? ` · ${odds}` : " · no line"}${vb ? ` · <span class="trvb">Value bet: ${esc(vb)}</span>` : ""}</div>
+    <div class="trd">Pick: <b>${pickT ? esc(trShort(lg, pickT)) : "Draw"}</b> ${pct1(r.conf)}${odds ? ` · ${odds}` : " · no line"}${vb ? ` · <span class="trvb">Value pick: ${esc(vb)}</span>` : ""}</div>
     <div class="trd muted">${esc(when.toLocaleDateString([], { month: "short", day: "numeric" }))}${score ? " · " + esc(score) : ""}</div></div>
     <div class="trpl ${pl == null ? "" : trCls(pl)}">${pl == null ? "" : trMoney(pl)}</div></div>`;
 }
@@ -5922,25 +5928,25 @@ function drawTrack(){
     h += `<div class="metrics">
       <div class="metric"><div class="n">${S.w}–${S.l}</div><div class="l">Record, ${esc(lgName)}</div></div>
       <div class="metric"><div class="n">${pct1(S.acc)}</div><div class="l">Winners picked${S.macc != null ? ` · betting favorites: ${pct1(S.macc)}` : ""}</div></div>
-      <div class="metric"><div class="n ${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</div><div class="l">$100 on every pick${S.every.n ? ` · ROI ${sgn(S.every.roi * 100)}%` : ""}</div></div>
-      <div class="metric"><div class="n ${trCls(S.value.pl)}">${S.value.n ? trMoney(S.value.pl) : "—"}</div><div class="l">Value bets only${S.value.n ? ` · ROI ${sgn(S.value.roi * 100)}%` : " · none yet"}</div></div></div>`;
-    const bank = (t, B, note) => `<div class="trbank"><h3>${t}</h3><p class="sub">${note}</p><div class="kv"><div>Profit<b class="${trCls(B.pl)}">${B.n ? trMoney(B.pl) : "—"}</b></div><div>Staked<b>$${(B.n * 100).toLocaleString()}</b></div><div>ROI<b class="${trCls(B.pl)}">${B.n ? sgn(B.roi * 100) + "%" : "—"}</b></div><div>Bets won<b>${B.won}–${B.lost}${B.push ? "–" + B.push : ""}</b></div></div></div>`;
-    h += `<div class="grid" style="margin-top:0"><section class="card"><h2>If you'd bet it</h2><p class="sub">Flat $100 bets on the moneyline, at the price the bookmaker offered when the pick locked. A tie in a two-way market is a push: the stake comes back.</p>
-      <div class="trbanks">${bank("Every pick", S.every, "$100 on the model's side in every game with a betting line.")}${bank("Value bets", S.value, "$100 only where the model's chance beats the market's by 3+ points, once the bookmaker's cut is removed. The same rule as the Predict tab.")}</div>
+      <div class="metric"><div class="n ${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</div><div class="l">Every pick vs the odds${S.every.n ? ` · return ${sgn(S.every.roi * 100)}%` : ""}</div></div>
+      <div class="metric"><div class="n ${trCls(S.value.pl)}">${S.value.n ? trMoney(S.value.pl) : "—"}</div><div class="l">Value picks only${S.value.n ? ` · return ${sgn(S.value.roi * 100)}%` : " · none yet"}</div></div></div>`;
+    const bank = (t, B, note) => `<div class="trbank"><h3>${t}</h3><p class="sub">${note}</p><div class="kv"><div>Result<b class="${trCls(B.pl)}">${B.n ? trMoney(B.pl) : "—"}</b></div><div>Picks<b>${B.n.toLocaleString()}</b></div><div>Return<b class="${trCls(B.pl)}">${B.n ? sgn(B.roi * 100) + "%" : "—"}</b></div><div>Won<b>${B.won}–${B.lost}${B.push ? "–" + B.push : ""}</b></div></div></div>`;
+    h += `<div class="grid" style="margin-top:0"><section class="card"><h2>Against the odds</h2><p class="sub">A standard way to test a model against the betting market: each pick is scored at the price offered when it locked, in units (one unit per pick), so beating the odds shows as a plus. A tie in a two-way market counts as zero. This measures the model; it isn't betting advice.</p>
+      <div class="trbanks">${bank("Every pick", S.every, "One unit on the model's side in every game with a betting line.")}${bank("Value picks", S.value, "Only where the model's chance beats the market's by 3+ points, once the bookmaker's cut is removed. The same rule as the Predict tab.")}</div>
       ${trChart(rows)}</section>
       <section class="card"><h2>Model vs the betting market</h2><p class="sub">The betting favorite is the side the bookmaker's prices make most likely. Beating it over a season is hard: the market knows about injuries and lineups.</p>
       <div class="kv"><div>Model<b>${pct1(S.acc)}</b></div><div>Favorites<b>${S.macc != null ? pct1(S.macc) : "—"}</b></div><div>Games with a line<b>${S.mn}</b></div><div>Avg confidence<b>${pct1(S.conf)}</b></div></div>
       ${S.mn ? `<p class="sub" style="margin:12px 0 0">On the ${S.mn} games with a line, the model agreed with the favorite ${pct1(rows.filter(r => r.done && r.mhit != null && r.hit != null && r.side === r.mkt).length / S.mn)} of the time.</p>` : ""}</section></div>`;
     if (TR.lg === "all"){
-      h += `<section class="card"><h2>By league</h2><div class="scroll"><table class="cmp trtab"><thead><tr><th>League</th><th>Record</th><th>Won</th><th>Every pick</th><th>Value bets</th></tr></thead><tbody>${TR_LEAGUES.map(lg => { const s = trSum(all.filter(r => r.k.lg === lg));
-        return `<tr data-trlg="${lg}"><td>${lg === "epl" ? "EPL" : esc(LEAGUE_LABEL[lg])}</td><td>${s.n ? `${s.w}–${s.l}` : "—"}</td><td>${s.n ? pct1(s.acc) : "—"}</td><td class="${trCls(s.every.pl)}">${s.every.n ? trMoney(s.every.pl) : "—"}</td><td class="${trCls(s.value.pl)}">${s.value.n ? `${trMoney(s.value.pl)}<small>${s.value.n} bets</small>` : "—"}</td></tr>`; }).join("")}
-        <tr class="trall"><td>All</td><td>${S.w}–${S.l}</td><td>${pct1(S.acc)}</td><td class="${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</td><td class="${trCls(S.value.pl)}">${S.value.n ? `${trMoney(S.value.pl)}<small>${S.value.n} bets</small>` : "—"}</td></tr></tbody></table></div></section>`;
+      h += `<section class="card"><h2>By league</h2><div class="scroll"><table class="cmp trtab"><thead><tr><th>League</th><th>Record</th><th>Won</th><th>Every pick</th><th>Value picks</th></tr></thead><tbody>${TR_LEAGUES.map(lg => { const s = trSum(all.filter(r => r.k.lg === lg));
+        return `<tr data-trlg="${lg}"><td>${lg === "epl" ? "EPL" : esc(LEAGUE_LABEL[lg])}</td><td>${s.n ? `${s.w}–${s.l}` : "—"}</td><td>${s.n ? pct1(s.acc) : "—"}</td><td class="${trCls(s.every.pl)}">${s.every.n ? trMoney(s.every.pl) : "—"}</td><td class="${trCls(s.value.pl)}">${s.value.n ? `${trMoney(s.value.pl)}<small>${s.value.n} picks</small>` : "—"}</td></tr>`; }).join("")}
+        <tr class="trall"><td>All</td><td>${S.w}–${S.l}</td><td>${pct1(S.acc)}</td><td class="${trCls(S.every.pl)}">${S.every.n ? trMoney(S.every.pl) : "—"}</td><td class="${trCls(S.value.pl)}">${S.value.n ? `${trMoney(S.value.pl)}<small>${S.value.n} picks</small>` : "—"}</td></tr></tbody></table></div></section>`;
     }
     h += trBuckets(rows);
   }
   if (pend.length) h += `<section class="card"><h2>Locked in</h2><p class="sub">Picks already saved for games that haven't finished. They can't change once the game starts.</p><div class="trlist">${pend.map(r => trRow(r, true)).join("")}</div></section>`;
-  if (done.length) h += `<section class="card"><h2>Results</h2><p class="sub">Newest first. The amount on the right is the $100 bet on the model's pick.</p><div class="trlist">${done.slice(0, TR.show).map(r => trRow(r, false)).join("")}</div>${done.length > TR.show ? `<button class="btn" type="button" data-tr="more" style="margin-top:12px">Show more</button>` : ""}</section>`;
-  h += `<p class="cmfoot">Odds come from ESPN's betting feed (DraftKings for most games), taken at the last check before the start. Preseason games aren't counted. Past results don't promise future ones. For entertainment: if you bet, bet responsibly.</p>`;
+  if (done.length) h += `<section class="card"><h2>Results</h2><p class="sub">Newest first. The number on the right is the pick scored against the odds, in units.</p><div class="trlist">${done.slice(0, TR.show).map(r => trRow(r, false)).join("")}</div>${done.length > TR.show ? `<button class="btn" type="button" data-tr="more" style="margin-top:12px">Show more</button>` : ""}</section>`;
+  h += `<p class="cmfoot">Odds come from ESPN's betting feed (DraftKings for most games), taken at the last check before the start. Preseason games aren't counted. Past results don't promise future ones. For information and entertainment, not betting advice.</p>`;
   el.innerHTML = h; trBind(el);
 }
 function trBind(el){
@@ -6669,7 +6675,7 @@ function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTime
 // bottom bar: Today, Scores (the league you last looked at), Picks, Following, More
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
   const n = b.dataset.nav; sfx("tap");
-  if (n === "more"){ $("#moreDlg").showModal(); return; }
+  if (n === "more"){ const a = $("#moreAcct"); if (a) a.textContent = czKey() && CZ.me ? `👤 ${CZ.me.name}` : "👤 Sign in"; $("#moreDlg").showModal(); return; }
   if (b.getAttribute("aria-current") === "page"){ window.scrollTo({ top: 0, behavior: "smooth" }); if (n === "scores" && SPORT !== "tennis" && TT !== "games") setTT("games"); return; }
   if (n !== "scores"){ if (SPORT !== n) setSport(n); return; }
   if (n === "scores"){ const lg = ["universe", "following", "play", "comets", "record", "cosmic"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
@@ -6680,6 +6686,7 @@ $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $(
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
   if (g === "getapp"){ if (INST.deferred){ INST.deferred.prompt(); INST.deferred = null; } else { $("#installHow").innerHTML = `<h2 id="iosTitle">Get Cosmo Sports</h2>${installCardHtml("sheet")}<div class="dlgfoot"><span></span><button class="btn" id="iosClose">Close</button></div>`; bindInstall($("#installHow")); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close(); } return; }
+  if (g === "account"){ if (czKey()){ renderSettings(); $("#settingsDlg").showModal(); } else openSignIn(); return; }
   if (g === "ask") openAsk(); else if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
   else if (g === "following" || g === "universe" || g === "play" || g === "comets" || g === "record" || g === "cosmic"){ setSport(g); window.scrollTo({ top: 0, behavior: "smooth" }); } else if (g === "search") openSearch();
   else if (g === "about") $("#aboutDlg").showModal(); else { if (SPORT !== "tennis") setSport("tennis"); goTab(g); }

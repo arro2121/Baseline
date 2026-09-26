@@ -66,7 +66,7 @@ Use Apple's standard EULA. Our own terms are at https://cosmosports.app/terms.ht
 - Unrestricted web access: **No**
 - Gambling (real money): **No**
 - Loot boxes: **Yes**. Pack odds are shown in the app before every pack.
-- Expected result: **17+** (because of simulated gambling)
+- Expected result: Apple's top age rating (17+/18+) because of frequent simulated gambling and loot boxes. This is set by Apple's questionnaire, separately from our own policy (13 and over), and it's the rating that decides who can download the app. Answer the questionnaire honestly; understating Cosmic's betting and packs is a common rejection reason.
 
 ## App Privacy (the "nutrition label")
 Data collected and **linked to the user** (used only for app functionality, never for tracking or ads):
@@ -78,11 +78,11 @@ Not collected: contact info, location, health, financial info, browsing history,
 **Tracking**: No. There are no ads and no analytics.
 
 ## App Review information (paste into "Notes")
-Cosmo Sports needs an account. Anyone can create one in about ten seconds, and no demo account is needed: on the first screen, type any name under "New to Cosmo Sports?", tap Create account, then confirm with Face ID, Touch ID or the device passcode. This creates a passkey, which works with the simulator's enrolled Face ID too.
+Scores, predictions, Picks, Ask Cosmo and alerts work without an account. An account is needed only for Cosmic (play-money bets and cards) and to sync teams and settings. Anyone can create one in about ten seconds, and no demo account is needed: open Cosmic (bottom bar), type any name under "New to Cosmo Sports?", tap Create account, then confirm with Face ID, Touch ID or the device passcode. This creates a passkey, which works with the simulator's enrolled Face ID too.
 
 - Cosmic uses play money only. Cosmic Coins can't be bought with real money or exchanged for anything outside the app, and cards have no cash value. The odds for every card pack are shown on the Packs tab before opening.
 - Account deletion: Settings (gear icon, top right) > Account > Delete account, or the Delete account link at the bottom of the Cosmic page.
-- Leaderboard names are public (user-generated content). Offensive names are refused at sign-up. Any player's name can be tapped to **Report name** or **Block** (on the leaderboard, Market and live feed). Reports go to the developer's inbox, and a name reported by three players is replaced automatically. The Terms of Use (linked on the sign-in screen) prohibit objectionable content and abusive users.
+- Leaderboard names are public (user-generated content). Offensive names are refused at sign-up. Any player's name can be tapped to **Report name** or **Block** (on the leaderboard, Market and live feed). Reports go to the developer's in-app inbox, where each one is reviewed and the name replaced if it breaks the rules. The Terms of Use (linked on the sign-in screen) prohibit objectionable content and abusive users.
 - Native features: passkey sign-in (Associated Domains), game reminders and a daily coins reminder scheduled as local notifications (Settings), haptic feedback, the native share sheet, links to cosmosports.app opening in the app, the App Store rating prompt, and an offline screen.
 
 Contact: <your email and phone, which App Store Connect asks for separately>
