@@ -1692,6 +1692,32 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard.moment .czc-name{color:#e0f2fe;font-size:8.5cqw}.czcard.czcard.czcard.moment .czc-name .fn{font-size:1em;color:#e0f2fe}.czcard.czcard.czcard.moment .czc-lg{color:#93c5fd;text-transform:none;letter-spacing:0}
 .czcard.moment .czposb{display:none}.czcard.czcard.moment .czc-mid .czhs{object-position:50% 35%}
 @media (prefers-reduced-motion:reduce){.czcard.ch .czdz i{animation:none!important}}
+/* ==== the three versions look clearly different, and the rarer the card the more special it looks ==== */
+/* Comet /1000, the base card: a plain matte silver border, flatter art, no shine */
+.czcard.czcard.t-comet{border-width:3px;--tf:linear-gradient(135deg,#cbd5e1,#94a3b8);box-shadow:0 10px 24px -14px rgba(0,0,0,.85)}
+.czcard.t-comet .czc-foil{display:none}.czcard.t-comet .czscene{filter:saturate(.7) brightness(.9)}.czcard.t-comet .czfx{display:none}.czcard.t-comet .czscene *{animation:none!important}
+/* Pulsar /100, a refractor: a shimmering emerald foil frame, a rainbow holo sweep and a teal glow */
+@keyframes czfoilmove{to{background-position:200% 0,0 0}}
+.czcard.czcard.t-pulsar{border-width:4.5px;--tf:linear-gradient(110deg,#6ee7b7,#22d3ee 25%,#a7f3d0 50%,#10b981 75%,#6ee7b7);background-size:auto,200% 100%;animation:czfoilmove 5s linear infinite;
+  box-shadow:0 0 0 1px rgba(110,231,183,.5),0 0 18px -4px rgba(34,211,238,.7),0 12px 28px -14px #000}
+.czcard.czcard.t-pulsar .czc-foil{display:block;opacity:.8;mix-blend-mode:color-dodge;background:linear-gradient(115deg,transparent 25%,rgba(255,0,170,.45) 38%,rgba(0,255,255,.45) 46%,rgba(255,255,0,.45) 54%,transparent 66%),repeating-linear-gradient(60deg,rgba(255,0,170,.16) 0 5px,rgba(0,255,255,.16) 5px 10px,rgba(255,255,0,.14) 10px 15px,rgba(120,80,255,.16) 15px 20px);background-size:260% 100%,auto;animation:czfoil 4s linear infinite}
+.czcard.czcard.czcard.t-pulsar .czc-plate{box-shadow:inset 0 3px 0 #22d3ee,inset 0 4px 0 #6ee7b7,0 0 12px -4px #22d3ee}
+/* Singularity 1-of-1, a superfractor: the whole card goes black and gold, with an animated gold-rainbow frame, a pulsing gold glow and a 1 OF 1 medallion */
+.czcard.czcard.t-singularity:not(.legend):not(.ch){--c1:#d4a017!important;--c2:#1c1206!important;border-width:6px;
+  --tf:linear-gradient(115deg,#fde68a,#f59e0b 15%,#fff7d6 25%,#f472b6 35%,#a78bfa 45%,#fde68a 55%,#b45309 70%,#fff7d6 85%,#fde68a);background-size:auto,300% 100%;
+  animation:czfoilmove 6s linear infinite,czsuper 2.6s ease-in-out infinite}
+@keyframes czsuper{0%,100%{box-shadow:0 0 0 1px #fde68a,0 0 18px -2px rgba(253,230,138,.7),0 12px 28px -14px #000}50%{box-shadow:0 0 0 1px #fff7d6,0 0 32px 2px rgba(253,230,138,.95),0 12px 28px -14px #000}}
+.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-stock{background:radial-gradient(120% 70% at 50% 0,rgba(253,230,138,.35),transparent 60%),repeating-linear-gradient(115deg,rgba(253,230,138,.1) 0 2px,transparent 2px 7px),linear-gradient(170deg,#1c1206,#050302 70%)}
+.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-foil{display:block;opacity:.7;mix-blend-mode:screen;background:linear-gradient(115deg,transparent 30%,rgba(255,247,214,.7) 45%,rgba(253,230,138,.4) 52%,transparent 62%);background-size:250% 100%;animation:czfoil 3s linear infinite}
+.czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-plate{background:linear-gradient(180deg,#fde68a,#d97706 55%,#92400e);box-shadow:inset 0 0 0 .6cqw #fff7d6,0 4px 12px -4px #000}
+.czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-name{color:#1c1206;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-name .fn{color:#422006}.czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-lg{color:#422006;opacity:.9}
+.czcard.t-singularity:not(.legend):not(.ch):not(.moment) .czc-top em{visibility:hidden}
+.czone{position:absolute;display:grid;place-items:center;right:3cqw;top:2cqw;z-index:5;width:19cqw;aspect-ratio:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#fff7d6,#fbbf24 45%,#92400e);box-shadow:0 0 0 .6cqw #fff7d6,0 0 14px rgba(253,230,138,.9),0 3px 8px rgba(0,0,0,.6);color:#1c1206;
+  font:900 6.5cqw/.8 Archivo,system-ui,sans-serif;font-stretch:75%;grid-auto-flow:column;gap:.6cqw;align-content:center}
+.czone small{font:800 3cqw/1 Archivo,system-ui,sans-serif;text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){.czcard.czcard.t-pulsar,.czcard.czcard.t-singularity,.czcard.czcard.t-pulsar .czc-foil,.czcard.czcard.t-singularity .czc-foil{animation:none}}
 .czchgal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.czchitem{display:grid;gap:6px;justify-items:center;text-align:center}.czchitem .czcard{width:100%}
 /* flip a card to its back */
 .czflipcard{position:relative;max-width:260px;margin:0 auto;perspective:1200px}
@@ -5312,7 +5338,8 @@ function czCard(it, ed, big){
   const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), fn = parts.length > 1 ? parts[0] : "", ln = parts.length > 1 ? parts.slice(1).join(" ") : it.name;
   const abbr = player ? simShort(it.lg, it.team) : (T && simShort(it.lg, T.name)) || initials, bigTxt = L === 1 ? ln : L === 3 ? (player ? (it.num || abbr) : "#" + (it.rank || 1)) : L === 2 ? abbr : "";
   const setLg = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "PL", atp: "ATP", wta: "WTA" }[it.lg] || "";
-  const extra = (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
+  const extra = (it.tier === "singularity" && !it.legend && !it.moment && !it.ch ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
+    + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
     + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
