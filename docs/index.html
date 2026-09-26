@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-2MTmVShPwsFyiQJWeJuSaGaHm7GHutYIhraaFQPwWiw='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-FTsIUxjHE2VQ/ZWisLtSTXBRFXK785oYqXodhJ67zOM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1863,7 +1863,8 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czflip.shake{animation:czshake .12s linear infinite}.czflip.shake2{animation:czshake2 .09s linear infinite}
 @keyframes czshake{25%{transform:translate(-2px,1px) rotate(-1deg)}75%{transform:translate(2px,-1px) rotate(1deg)}}
 @keyframes czshake2{25%{transform:translate(-4px,2px) rotate(-2deg) scale(1.03)}75%{transform:translate(4px,-2px) rotate(2deg) scale(1.03)}}
-.czflip.on.t-supernova,.czflip.on.t-singularity{filter:drop-shadow(0 0 18px var(--aura))}
+/* the rare-pull glow sits on the card face: a filter on the flipping card itself would flatten the 3D flip and show the card from behind (mirrored) */
+.czflip.on.t-supernova .czfront .czcard,.czflip.on.t-singularity .czfront .czcard{box-shadow:0 0 22px 4px var(--aura),0 12px 28px -14px #000}
 .czflash{position:fixed;inset:0;z-index:110;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle,rgba(253,230,138,.95),rgba(245,158,11,.55) 35%,rgba(15,8,40,.85) 75%);animation:czflashin .5s ease-out both}
 .czflash.t-supernova{background:radial-gradient(circle,rgba(251,146,60,.95),rgba(219,39,119,.55) 35%,rgba(15,8,40,.85) 75%)}
 .czflash.out{opacity:0;transition:opacity .6s}.czflash.casehit{background:radial-gradient(circle,rgba(253,230,138,.98),rgba(124,58,237,.7) 40%,rgba(15,8,40,.9) 75%)}
@@ -6676,8 +6677,7 @@ function czVaultInner(vv){
 const CZ_ORDER = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
 const czOddsPct = v => v === 0 ? "—" : v < .1 ? v.toFixed(2) + "%" : v < 1 ? v.toFixed(1) + "%" : Math.round(v * 10) / 10 + "%";
 // a pack's price in the league and card type you picked (from the server's multipliers; "Every league" is the list price)
-const czPkRound = (price, m) => m === 1 ? price : price * m >= 1000 ? Math.round(price * m / 50) * 50 : Math.max(10, Math.round(price * m / 10) * 10);
-const czPk = pk => { const m = (CZ.packs && CZ.packs.mults || {})[`${CZ.scope || "all"}|${CZ.kind || "all"}`] || 1; return m === 1 ? pk : { ...pk, price: czPkRound(pk.price, m) }; };
+const czPk = pk => { const p = ((CZ.packs && CZ.packs.prices || {})[pk.id] || {})[`${CZ.scope || "all"}|${CZ.kind || "all"}`]; return p ? { ...pk, price: p } : pk; };
 // buy several of a pack at once: 1, 5 or 10, then open them all together
 const czQty = id => (CZ.qty && CZ.qty[id]) || 1;
 function czQtyHtml(pk, attr = "data-czpack", max = 10){
@@ -6714,7 +6714,7 @@ function czTeamPacksHtml(P, bar, perPack){
     return `<div class="cztp">${Tm ? logoChip(Tm, "sm", t.lg) : ""}<span><b>${esc(t.team)}</b><small>${t.stars.map(esc).join(", ")}</small></span>
       <button type="button" class="btn ${can ? "primary" : ""}" data-cztp="${esc(t.id)}" ${can ? "" : "disabled"}>${czAmt(t.price)}</button></div>`; }).join("");
   return `<section class="cztps"><h2 class="czevh">${esc(name[CZ.scope])} team packs</h2>
-    <p class="sub">${T.cards} cards from one team, with Nebula-pack odds (${czOddsPct(perPack(pk) * 100)} chance of a Quasar or rarer). Teams with bigger stars cost more: an average team is ${czAmt(1000)}.</p>${bar(pk)}
+    <p class="sub">${T.cards} cards from one team, with Nebula-pack odds (${czOddsPct(perPack(pk) * 100)} chance of a Quasar or rarer). Each is priced from that team's own cards, so a team full of stars costs more.</p>${bar(pk)}
     <div class="cztplist">${rows}</div></section>`;
 }
 // ---- event packs: limited-time packs for big moments, with a countdown to when they open and when they close
