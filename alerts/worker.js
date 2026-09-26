@@ -2230,14 +2230,16 @@ let CZ_CAT = null;
 async function czCatalog(env, fetchImpl = fetch) {
   if (CZ_CAT && Date.now() - CZ_CAT.at < 6 * 3600e3) return CZ_CAT.v;
   const models = await trackModels(env, fetchImpl), items = [];
-  // every card's price follows how its player or team is doing right now (see czPlayMult); each tier multiplies it
+  // a player card's price follows his real cards' market (CZ_HOBBY) and this season's play (czMarketMult); a team's follows its
+  // rating; each tier multiplies it
   const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, price: Math.max(10, Math.round(base * mult / 10) * 10), ...extra }); };
   for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo);
     const hi = names.length ? st[names[0]].elo : 0, lo = names.length ? st[names[names.length - 1]].elo : 0;
     names.forEach((n, i) => add(lg, "team", n, .6 + 1.1 * (hi > lo ? (st[n].elo - lo) / (hi - lo) : .5), { rank: i + 1, elo: Math.round(st[n].elo) }, czSlug(n))); }
   try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
     for (const tour of ["atp", "wta"]) { const names = P.filter(p => p.tour === tour).slice(0, 24).map(p => p.name);
-      names.forEach((n, i) => add(tour, "player", n, 1.5 - .9 * (names.length > 1 ? i / (names.length - 1) : 0), { rank: i + 1 }, czSlug(n))); } } catch {}
+      names.forEach((n, i) => { const d = czHobbyOf(tour, n);
+        add(tour, "player", n, czMarketMult(d, 1 - (names.length > 1 ? i / (names.length - 1) : 0)), { rank: i + 1, hobby: d }, czSlug(n)); }); } } catch {}
   const stars = new Map();                                          // league:player -> { ovr, line }: this season's rating and stat line
   try { const r = await siteGet(env, "/allstars.json", fetchImpl); const A = r.ok ? await r.json() : {};
     for (const [lg, pools] of Object.entries(A.sports || {})) for (const l of Object.values(pools)) if (Array.isArray(l)) { const prod = czProduction(l);
@@ -2245,19 +2247,18 @@ async function czCatalog(env, fetchImpl = fetch) {
         if (!prev || o > prev.ovr) stars.set(k, { ovr: o, raw: +p.ovr || 0, line: p.line || "" }); } } } catch {}
   try { const r = await siteGet(env, "/rosters.json", fetchImpl); const R = r.ok ? await r.json() : {};
     for (const [lg, list] of Object.entries(R.leagues || {})) for (const p of list) { const S = stars.get(lg + ":" + czSlug(p.name));
-      add(lg, "player", p.name, czPlayMult(S && S.ovr, p.pos, lg), { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined }, "p" + p.id); } } catch {}
+      const d = czHobbyOf(lg, p.name, p.pos);
+      add(lg, "player", p.name, czMarketMult(d, czPlayPct(S && S.ovr), lg === "nfl" && p.pos === "QB" ? .6 : .5), { team: p.team, pos: p.pos, num: p.num, img: p.img, star: S ? true : undefined, ovr: S && S.raw || undefined, line: S && S.line || undefined, hobby: d }, "p" + p.id); } } catch {}
   const byId = new Map(items.map(i => [i.id, i]));
   CZ_CAT = { at: Date.now(), v: items, byId, trend: {} };
   // once a day, the price level of every rated card is saved; the app shows how it moved over the last week
-  try { const day = etDay(Date.now()), db = store(env), last = await czRead(env, "cz:pxlast", null), snap = {};
-    for (const i of items) if (i.tier === "comet" && (i.star || i.kind === "team" || i.rank)) snap[czLvlKey(i)] = i.mult;
-    if (last !== day) { await db.put("cz:px:" + day, JSON.stringify(snap)); await db.put("cz:pxlast", JSON.stringify(day)); }
-    let old = null; for (let k = 7; k >= 1 && !old; k--) old = await czRead(env, "cz:px:" + etDay(Date.now() - k * 864e5), null);
+  try { const day = etDay(Date.now()), db = store(env), last = await czRead(env, "cz:pxlast2", null), snap = {};
+    for (const i of items) if (i.tier === "comet" && (i.star || i.kind === "team" || i.rank || i.hobby)) snap[czLvlKey(i)] = i.mult;
+    if (last !== day) { await db.put("cz:px2:" + day, JSON.stringify(snap)); await db.put("cz:pxlast2", JSON.stringify(day)); }
+    let old = null; for (let k = 7; k >= 1 && !old; k--) old = await czRead(env, "cz:px2:" + etDay(Date.now() - k * 864e5), null);
     if (old) for (const [k, m] of Object.entries(snap)) if (old[k]) { const t = Math.round((m / old[k] - 1) * 1000) / 10; if (t) CZ_CAT.trend[k] = t; } } catch {}
   return items;
 }
-// how much a player's current play is worth: this season's overall rating (0-99, from the nightly stats) on a curve,
-// so a 99 is worth about four times a 60 and every rated player gets his own price. Unrated depth players get a floor by position.
 // how productive each player in a group (the league's hitters, quarterbacks...) has been this season, as a percentile 0-1:
 // every stat is scaled by the group's best, lower-is-better stats (ERA, interceptions...) are flipped, and the average is ranked
 const CZ_LOWER = new Set(["era", "whip", "gaa", "int", "l", "bb", "to", "ga"]);
@@ -2269,10 +2270,69 @@ export function czProduction(list) {
   const sorted = list.map(p => [p, score(p)]).sort((a, b) => a[1] - b[1]), out = new Map();
   sorted.forEach(([p], i) => out.set(p, sorted.length > 1 ? i / (sorted.length - 1) : .5)); return out;
 }
-export function czPlayMult(ovr, pos, lg) {
-  if (ovr > 0) { const x = Math.max(0, Math.min(1, (ovr - 55) / 44)); return Math.round((.6 + Math.pow(x, 1.6) * 2.05) * 1000) / 1000; }
-  return lg === "nfl" && pos === "QB" ? .6 : .5;
+// the card market: how much each player's real trading cards sell for next to the other players in his sport, on a 1-10 scale
+// (10 = the most sought-after cards in the hobby, e.g. Wembanyama, Mahomes, Ohtani, McDavid, Haaland, Alcaraz). Cosmic prices
+// line up with it, so a card of a hobby favorite costs more than one of an equally rated player collectors chase less.
+// Hand-kept from recent sales; players not listed are priced on this season's play alone, below the market favorites.
+export const CZ_HOBBY_SRC = {
+  nba: "Victor Wembanyama 10, Cooper Flagg 9.5, LeBron James 9, Stephen Curry 8.5, Luka Doncic 8.5, Anthony Edwards 8, " +
+    "Shai Gilgeous-Alexander 7.5, Giannis Antetokounmpo 7, Nikola Jokic 6.5, Kevin Durant 6, Ja Morant 5.5, Jayson Tatum 5.5, " +
+    "Dylan Harper 5.5, Ace Bailey 5, Paolo Banchero 5, Tyrese Haliburton 4.5, Stephon Castle 4.5, Chet Holmgren 4.5, " +
+    "Zion Williamson 4.5, Jalen Brunson 4.5, Devin Booker 4, Kyrie Irving 4, LaMelo Ball 4, Tyrese Maxey 4, Donovan Mitchell 4, " +
+    "Cade Cunningham 4, Jalen Williams 3.5, Reed Sheppard 3.5, Amen Thompson 3.5, Bronny James 3.5, Joel Embiid 3.5, Anthony Davis 3.5, " +
+    "VJ Edgecombe 3.5, Kon Knueppel 3.5, Scoot Henderson 3, Zaccharie Risacher 3, Alex Sarr 3, Kawhi Leonard 3, Jimmy Butler III 3, " +
+    "Damian Lillard 3, James Harden 3, Tre Johnson 3",
+  nfl: "Patrick Mahomes 10, Jayden Daniels 8.5, Josh Allen 8.5, Joe Burrow 8, Caleb Williams 7.5, Lamar Jackson 7.5, Travis Hunter 7.5, " +
+    "Shedeur Sanders 7.5, C.J. Stroud 7, Drake Maye 7, Cam Ward 7, Ja'Marr Chase 7, Justin Jefferson/WR 7, Ashton Jeanty 6.5, " +
+    "Malik Nabers 6.5, Justin Herbert 6, Bo Nix 6, Brock Bowers 6, CeeDee Lamb 6, Travis Kelce 6, Saquon Barkley 6, Bijan Robinson 6, " +
+    "Jalen Hurts 6, Marvin Harrison Jr. 5.5, Puka Nacua 5.5, Jahmyr Gibbs 5.5, Tetairoa McMillan 5, Brian Thomas Jr. 5, " +
+    "Amon-Ra St. Brown 5, Christian McCaffrey 5, Derrick Henry 5, Jordan Love 5, Trevor Lawrence 5, Aaron Rodgers 5, Dak Prescott 5, " +
+    "Jaxson Dart 5, Micah Parsons 5, Jaxon Smith-Njigba 5, J.J. McCarthy 5, Brock Purdy 5, Tua Tagovailoa 4.5, Kyler Murray 4.5, " +
+    "Ladd McConkey 4.5, Emeka Egbuka 4.5, Rome Odunze 4.5, Michael Penix Jr. 4.5, Baker Mayfield 4.5, Jared Goff 4.5, Tyler Warren 4, " +
+    "T.J. Watt 4, Davante Adams 4, Garrett Wilson 4, Nico Collins 4, Omarion Hampton 4, Matthew Golden 4, Sam LaPorta 4, " +
+    "George Kittle 4, Tee Higgins 4, DK Metcalf 4, Matthew Stafford 4, Colston Loveland 3.5, Will Levis 3, Jake Ferguson 2.5, " +
+    "Kirk Cousins 2.5",
+  mlb: "Shohei Ohtani 10, Aaron Judge 8.5, Paul Skenes 8, Elly De La Cruz 7.5, Bobby Witt Jr. 7.5, Juan Soto 7, Julio Rodriguez 7, " +
+    "Roman Anthony 7, Gunnar Henderson 6.5, Mike Trout 6.5, Ronald Acuna Jr. 6.5, Jackson Holliday 6, Roki Sasaki 6, Jackson Chourio 6, " +
+    "James Wood 6, Corbin Carroll 5.5, Fernando Tatis Jr. 5.5, Vladimir Guerrero Jr. 5.5, Pete Crow-Armstrong 5.5, Cal Raleigh 5.5, " +
+    "Nick Kurtz 5.5, Junior Caminero 5.5, Wyatt Langford 5, Mookie Betts 5, Bryce Harper 5, Yoshinobu Yamamoto 5, Jacob Wilson 5, " +
+    "Jasson Dominguez 5, Tarik Skubal 5, Jackson Merrill 5, Jacob Misiorowski 5, Francisco Lindor 4.5, Freddie Freeman 4.5, " +
+    "Kyle Tucker 4.5, Kristian Campbell 4.5, Jac Caglianone 4.5, Dylan Crews 4.5, Yordan Alvarez 4.5, Rafael Devers 4.5, " +
+    "Chase Burns 4.5, Anthony Volpe 4, Adley Rutschman 4, Spencer Strider 4, Evan Carter 4, Riley Greene 4, Jose Altuve 4, " +
+    "Manny Machado 4, Pete Alonso 4, Kyle Schwarber 4, Matt McLain 3.5, Colt Keith 3, Jordan Walker 3",
+  nhl: "Connor McDavid 10, Connor Bedard 9, Macklin Celebrini 8.5, Sidney Crosby 7.5, Ivan Demidov 7, Auston Matthews 7, " +
+    "Matvei Michkov 6.5, Nathan MacKinnon 6.5, Alex Ovechkin 6.5, Lane Hutson 6, Cale Makar 6, Matthew Schaefer 6, Leon Draisaitl 5.5, " +
+    "Jack Hughes 5.5, Nikita Kucherov 5, David Pastrnak 5, Quinn Hughes 5, Matthew Tkachuk 5, Kirill Kaprizov 5, Brady Tkachuk 4.5, " +
+    "Cole Caufield 4.5, Adam Fantilli 4.5, Leo Carlsson 4.5, Cutter Gauthier 4.5, Mitch Marner 4.5, Mikko Rantanen 4.5, Jack Eichel 4.5, " +
+    "Juraj Slafkovsky 4, Logan Cooley 4, Will Smith 4, Zeev Buium 4, Jason Robertson 4, Igor Shesterkin 4, Artemi Panarin 4, " +
+    "Tim Stutzle 4, Shane Wright 3.5, Andrei Vasilevskiy 3.5, Tage Thompson 3.5, Elias Pettersson/C 3.5, Trevor Zegras 3.5",
+  epl: "Erling Haaland 10, Cole Palmer 8, Bukayo Saka 8, Florian Wirtz 7.5, Phil Foden 6.5, Alexander Isak 6.5, Declan Rice 5.5, " +
+    "Martin Ødegaard 5.5, Kobbie Mainoo 5.5, Viktor Gyokeres 5.5, Estevao 5.5, Bruno Fernandes 5, Virgil van Dijk 5, Hugo Ekitike 5, " +
+    "Rayan Cherki 5, Alejandro Garnacho 4.5, Myles Lewis-Skelly 4.5, Enzo Fernandez 4.5, Joao Pedro 4.5, Liam Delap 4.5, " +
+    "Benjamin Sesko 4.5, Marcus Rashford 4, Bryan Mbeumo 4, Moises Caicedo 4, Dominik Szoboszlai 4, Alexis Mac Allister 4, " +
+    "William Saliba 4, Omar Marmoush 4, Morgan Rogers 4, Eberechi Eze 4, Matheus Cunha 4, Kai Havertz 4, Jack Grealish 4, " +
+    "Cody Gakpo 3.5, Jeremy Doku 3.5, Josko Gvardiol 3.5, Ruben Dias 3.5, Nicolas Jackson 3.5, Alisson Becker 3.5, Mason Mount 3, " +
+    "Dejan Kulusevski 3, James Maddison 3, Micky van de Ven 3, Pedro Neto 3, David Raya 3",
+  atp: "Carlos Alcaraz 10, Jannik Sinner 9.5, Novak Djokovic 9, Joao Fonseca 7, Ben Shelton 6, Alexander Zverev 5, Taylor Fritz 5, " +
+    "Jack Draper 5, Daniil Medvedev 4.5, Holger Rune 4.5, Frances Tiafoe 4.5, Jakub Mensik 4.5, Arthur Fils 4.5, Learner Tien 4.5, " +
+    "Stefanos Tsitsipas 4, Lorenzo Musetti 4, Tommy Paul 4, Alex de Minaur 4, Casper Ruud 3.5, Andrey Rublev 3.5",
+  wta: "Coco Gauff 9, Aryna Sabalenka 8.5, Iga Swiatek 8, Mirra Andreeva 7, Emma Raducanu 7, Naomi Osaka 6.5, Amanda Anisimova 6, " +
+    "Qinwen Zheng 5.5, Alexandra Eala 5.5, Madison Keys 5, Jessica Pegula 5, Elena Rybakina 5, Victoria Mboko 5, Jasmine Paolini 4.5, " +
+    "Iva Jovic 4.5, Emma Navarro 4.5, Paula Badosa 4, Belinda Bencic 3.5, Clara Tauson 3.5, Ekaterina Alexandrova 3",
+};
+export const CZ_HOBBY = (() => { const o = {}; for (const [lg, s] of Object.entries(CZ_HOBBY_SRC)) { o[lg] = {};
+  for (const e of s.split(/,\s*/)) { const m = /^(.+?)(?:\/([A-Z]+))?\s+([\d.]+)$/.exec(e.trim()); if (m) o[lg][czSlug(m[1]) + (m[2] ? "/" + m[2] : "")] = +m[3]; } } return o; })();
+// "Name/POS" in the list picks one of two players with the same name
+const czHobbyOf = (lg, name, pos) => { const H = CZ_HOBBY[lg]; if (!H) return undefined; const k = czSlug(name);
+  return pos && H[k + "/" + pos] || (Object.hasOwn(H, k) ? H[k] : undefined); };
+// a player card's price multiplier: the card market sets the order (1.2 at 1 up to 3.0 at 10), and this season's play moves it
+// within about ±10% (play: 0-1, or null with no rating yet). Players off the market list follow play only, from 0.5 up to 1.5.
+export function czMarketMult(demand, play, floor = .5) {
+  if (demand > 0) return Math.round((1 + .2 * Math.min(10, demand)) * (play == null ? 1 : .9 + .2 * play) * 1000) / 1000;
+  return play == null ? floor : Math.round((.6 + .9 * play) * 1000) / 1000;
 }
+// this season's play as 0-1 from the overall rating (55 or lower = 0, 99 = 1); null when the player has no rating yet
+const czPlayPct = ovr => ovr > 0 ? Math.max(0, Math.min(1, (ovr - 55) / 44)) : null;
 // a copy's value right now: the catalog price (current play), + 15% per level from big games, + 10% while it's hot from a
 // big game in the last day, and up to + 25% as its run sells out (scarcity)
 export function czValueOf(it, { xp = 0, hot = false, held = 0 } = {}) {
