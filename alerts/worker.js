@@ -170,14 +170,42 @@ export class Store {
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
     else if (d.op === "subDel") { await st.delete("sub:" + await subId(d.e)); v = true; }
+    else if (d.op === "rate") v = await this.rate(d);
+    else if (d.op === "gc") v = await this.gc();
     return new Response(JSON.stringify({ v }), { headers: { "Content-Type": "application/json" } });
   }
+  // attempt limits (sign-ups, owner-key misses, reports, Ask…) for every copy of the worker at once. Short windows are counted
+  // in this one object's memory; windows of 15 minutes or more are also saved, so a restart doesn't reset them.
+  // mode "hit": check and count; "peek": check only; "add": count only (a failed owner-key try). True means allowed.
+  async rate(d) {
+    const now = Date.now(), win = Math.min(Math.max(+d.win || 60e3, 1e3), 7 * 864e5), max = +d.max || 1, keep = win >= 900e3, k = "rl:" + String(d.k).slice(0, 160);
+    const m = this.rl || (this.rl = new Map());
+    let l = m.get(k) ?? (keep ? (await this.state.storage.get(k)) || [] : []);
+    l = l.filter(t => now - t < win); const ok = l.length < max, count = d.mode === "add" || (d.mode !== "peek" && ok);
+    if (count) l.push(now);
+    if (m.size > 20000) m.clear(); m.set(k, l);
+    if (keep && count) await this.state.storage.put(k, l);
+    return ok;
+  }
+  async gc() {                                               // hourly: drop old attempt counts and support messages past their time
+    const st = this.state.storage, now = Date.now(); let n = 0;
+    for (const [k, l] of await st.list({ prefix: "rl:" })) if (!Array.isArray(l) || !l.some(t => now - t < 7 * 864e5)) { await st.delete(k); this.rl?.delete(k); n++; }
+    const S = await st.get("cz:support"); if (S) { const L = typeof S === "string" ? JSON.parse(S) : S, keep = L.filter(x => now - x.at < CZ_SUPPORT_DAYS * 864e5); if (keep.length !== L.length) await st.put("cz:support", JSON.stringify(keep)); }
+    return n;
+  }
 }
+const RATE_LOCAL = new Map();
+export async function rateOk(env, k, max, win, mode = "hit") {
+  if (env.STORE) { try { const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "rate", k, max, win, mode }) }); if (r.ok) return !!(await r.json()).v; } catch {} }
+  const now = Date.now(), l = (RATE_LOCAL.get(k) || []).filter(t => now - t < win), ok = l.length < max;   // no Store: this copy's memory only
+  if (mode === "add" || (mode !== "peek" && ok)) l.push(now); if (RATE_LOCAL.size > 20000) RATE_LOCAL.clear(); RATE_LOCAL.set(k, l); return ok;
+}
+async function storeGc(env) { if (!env.STORE || new Date().getUTCMinutes() >= 2) return 0; return (await store(env).gc?.()) ?? 0; }
 export function store(env) {
   if (env.STORE) {
     const stub = env.STORE.get(env.STORE.idFromName("main"));
     const call = async (op, a = {}) => { const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op, ...a }) }); if (!r.ok) throw new Error("store " + r.status); return (await r.json()).v; };
-    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), many: ks => call("many", { ks }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }) };
+    return { durable: true, get: k => call("get", { k }), put: (k, v) => call("put", { k, v }), many: ks => call("many", { ks }), subs: () => call("subs"), subGet: e => call("subGet", { e }), subPut: rec => call("subPut", { rec }), subDel: e => call("subDel", { e }), gc: () => call("gc") };
   }
   const all = async () => JSON.parse(await env.KV.get("subs") || "[]");
   return { durable: false, get: k => env.KV.get(k), put: (k, v) => env.KV.put(k, v), subs: all,
@@ -190,7 +218,6 @@ export function store(env) {
 /* ---------------- Comets: articles from the site's owner, for everyone ----------------
    Anyone can read. Writing needs the owner's key (the COMETS_KEY secret, set from the GitHub secret of the same name).
    Each article is its own record ("cm:<id>"), with a small index ("comets") of titles for the list. */
-const COMETS_FAIL = new Map();
 async function cometsAuthed(req, env) {
   const key = env.COMETS_KEY, got = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!key || !got) return false;
@@ -198,8 +225,9 @@ async function cometsAuthed(req, env) {
   const x = new Uint8Array(a), y = new Uint8Array(b); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];     // same time whatever matches
   return diff === 0;
 }
-function cometsTooManyFails(ip) { const now = Date.now(), l = (COMETS_FAIL.get(ip) || []).filter(t => now - t < 900e3); COMETS_FAIL.set(ip, l); return l.length >= 8; }
-function cometsFail(ip) { const l = COMETS_FAIL.get(ip) || []; l.push(Date.now()); COMETS_FAIL.set(ip, l); if (COMETS_FAIL.size > 5000) COMETS_FAIL.clear(); }
+// wrong owner keys: eight misses from one address in 15 minutes locks it out for the rest of that window
+const cometsTooManyFails = async (env, ip) => !(await rateOk(env, "own:" + ip, 8, 900e3, "peek"));
+const cometsFail = (env, ip) => rateOk(env, "own:" + ip, 8, 900e3, "add");
 export function cometClean(d, old = {}) {
   const s = (v, n) => String(v ?? "").replace(/\r\n?/g, "\n").slice(0, n);
   const title = s(d.title ?? old.title, 160).trim(), body = s(d.body ?? old.body, 60000).trim();
@@ -216,8 +244,8 @@ async function cometsRoute(req, env, ctx, url, db) {
   if (!m) return null;
   const [, id] = m;
   if (url.pathname === "/comets/auth" && req.method === "POST") {
-    if (cometsTooManyFails(ip)) return json({ ok: false, error: "Too many tries. Wait 15 minutes." }, 429);
-    const ok = await cometsAuthed(req, env); if (!ok) cometsFail(ip);
+    if (await cometsTooManyFails(env, ip)) return json({ ok: false, error: "Too many tries. Wait 15 minutes." }, 429);
+    const ok = await cometsAuthed(req, env); if (!ok) await cometsFail(env, ip);
     return json({ ok, configured: !!env.COMETS_KEY }, ok ? 200 : 401);
   }
   if (req.method === "GET") {
@@ -226,8 +254,8 @@ async function cometsRoute(req, env, ctx, url, db) {
     return json(typeof v === "string" ? JSON.parse(v) : v, 200, { "Cache-Control": "public, max-age=30" });
   }
   // everything else writes
-  if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait 15 minutes." }, 429);
-  if (!(await cometsAuthed(req, env))) { cometsFail(ip); return json({ error: env.COMETS_KEY ? "Wrong writer key" : "Posting isn't set up yet: add the COMETS_KEY secret" }, 401); }
+  if (await cometsTooManyFails(env, ip)) return json({ error: "Too many tries. Wait 15 minutes." }, 429);
+  if (!(await cometsAuthed(req, env))) { await cometsFail(env, ip); return json({ error: env.COMETS_KEY ? "Wrong writer key" : "Posting isn't set up yet: add the COMETS_KEY secret" }, 401); }
   const d = await req.json().catch(() => ({}));
   let list = await cometsIndex(db);
   if (req.method === "DELETE" && id) {
@@ -749,7 +777,8 @@ function attachPlayers(plays, d, lg) {
 // ESPN's highlight clips for the game
 function gameVideos(d) {
   return (d.videos || []).map(v => ({ id: String(v.id), title: v.headline || "", thumb: v.thumbnail || null, dur: v.duration || null,
-    mp4: v.links?.source?.HD?.href || v.links?.source?.href || null, web: v.links?.web?.href || null,
+    // hls: the adaptive stream (quality follows the connection); mp4 is the fixed-quality file, the fallback
+    hls: v.links?.source?.HLS?.href || v.links?.source?.HLS?.HD?.href || null, mp4: v.links?.source?.HD?.href || v.links?.source?.href || null, web: v.links?.web?.href || null,
     geo: v.geoRestrictions?.type === "whitelist" ? v.geoRestrictions.countries || null : null })).filter(v => v.mp4).slice(0, 20);
 }
 // match a clip to the play it shows: players named in the headline, the kind of play, and "2nd"/"4th" when a player did it more than once
@@ -950,8 +979,9 @@ export function normMlbGame(feed, wp, content) {
   // video: MLB's own clips, matched to the plays they show
   const videos = ((content?.highlights?.highlights?.items) || []).map(v => {
     const mp4 = (v.playbacks || []).find(p => p.name === "mp4Avc") || (v.playbacks || []).find(p => /\.mp4/.test(p.url || ""));
+    const hls = (v.playbacks || []).find(p => /\.m3u8/.test(p.url || ""));
     const cut = (v.image?.cuts || []).find(c => c.width <= 800) || (v.image?.cuts || [])[0];
-    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), mp4: mp4?.url || null, web: null, geo: null };
+    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), hls: hls?.url || null, mp4: mp4?.url || null, web: null, geo: null };
   }).filter(v => v.mp4).slice(0, 20);
   const roster = Object.values({ ...(row("home").players || {}), ...(row("away").players || {}) }).map(p => ({ name: p.person?.fullName || "" }));
   linkVideos(plays, videos, roster);
@@ -1166,9 +1196,12 @@ export function normStandings(d, lg) {
   walk(d, d.name);
   return { league: lg, cols: cols.map(c => c[1]), groups, season: d.seasons?.[0]?.displayName || null };
 }
-export async function espnStandings(lg, fetchImpl = fetch) {
-  return normStandings(await firstOf([() => getJSON(`https://site.web.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings`, fetchImpl),
-    () => getJSON(`https://site.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings`, fetchImpl)]), lg);
+// view "div": divisions (ESPN's level=3: 8 NFL, 6 NBA, 6 MLB, 4 NHL); otherwise ESPN's default, conferences (MLB: leagues)
+export const STAND_DIV = ["nfl", "nba", "mlb", "nhl"];
+export async function espnStandings(lg, fetchImpl = fetch, view = "") {
+  const q = view === "div" && STAND_DIV.includes(lg) ? "?level=3" : "";
+  return normStandings(await firstOf([() => getJSON(`https://site.web.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings${q}`, fetchImpl),
+    () => getJSON(`https://site.api.espn.com/apis/v2/sports/${LEAGUES[lg]}/standings${q}`, fetchImpl)]), lg);
 }
 /* ---- news ---- */
 export function normNews(d) {
@@ -1205,7 +1238,8 @@ export function normTeam(t, sched, roster, lg) {
   for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].players.length) groups.splice(i, 1);
   return { league: lg, id: String(t.id || ""), name: t.displayName || "", short: t.shortDisplayName || "", abbr: t.abbreviation || "", logo,
     color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null,
-    record: t.record?.items?.[0]?.summary || null, standing: t.standingSummary || null, games, roster: groups,
+    // before a team has played ("0-0") ESPN still says "1st in Atlantic Division"; there's no standing until games are played
+    record: t.record?.items?.[0]?.summary || null, standing: /[1-9]/.test(t.record?.items?.[0]?.summary || "") ? t.standingSummary || null : null, games, roster: groups,
     coach: roster?.coach?.[0] ? `${roster.coach[0].firstName || ""} ${roster.coach[0].lastName || ""}`.trim() : null };
 }
 export async function espnTeam(lg, id, fetchImpl = fetch) {
@@ -1247,22 +1281,15 @@ export function normTennis(e, resolve = n => n) {
  * Answers questions about games, teams and the model from live data. Runs on Cloudflare Workers AI (free daily
  * allowance, no key needed) or, when the ANTHROPIC_API_KEY secret is set, on Claude for sharper answers. */
 const ASK_CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const ASK_CLAUDE_MODEL = "claude-opus-5";
-const ASK_RATE = new Map();                          // per-visitor limit, kept in memory
-function askAllowed(ip) {
-  const now = Date.now(), list = (ASK_RATE.get(ip) || []).filter(t => now - t < 600e3);
-  if (list.length >= 20) return false;
-  list.push(now); ASK_RATE.set(ip, list); if (ASK_RATE.size > 5000) ASK_RATE.clear(); return true;
-}
+const ASK_CLAUDE_MODEL = "claude-opus-5";             // the battle judge
+// Ask on Claude (only when ANTHROPIC_API_KEY is set): a smaller model, short answers, signed-in passkey accounts only, and a daily
+// cap (ASK_CLAUDE_DAILY, default 300 questions) after which Ask carries on with the free Workers AI model
+const ASK_MODEL = "claude-sonnet-5", ASK_MAX_TOKENS = 1200;
+const askAllowed = (env, ip) => rateOk(env, "ask:" + ip, 20, 600e3);             // 20 questions per visitor per 10 minutes
 /* ---- Listen Live: a natural human voice for play calls (Workers AI text to speech, free daily allowance) ----
    Deepgram's Aura voices sound like a real announcer; MeloTTS is the low-cost backup. The app falls back to the phone's own
    voice if this is unavailable. Identical lines (the same play heard by many listeners) come from Cloudflare's cache. */
-const TTS_RATE = new Map();
-function ttsAllowed(ip) {
-  const now = Date.now(), list = (TTS_RATE.get(ip) || []).filter(t => now - t < 600e3);
-  if (list.length >= 120) return false;
-  list.push(now); TTS_RATE.set(ip, list); if (TTS_RATE.size > 5000) TTS_RATE.clear(); return true;
-}
+const ttsAllowed = (env, ip) => rateOk(env, "tts:" + ip, 120, 600e3);
 const TTS_MODELS = [
   { m: "@cf/deepgram/aura-2-en", premium: true, input: (text, v) => ({ text, speaker: v === "female" ? "thalia" : "apollo", encoding: "mp3" }) },
   { m: "@cf/deepgram/aura-1", premium: true, input: (text, v) => ({ text, speaker: v === "female" ? "asteria" : "orion", encoding: "mp3" }) },
@@ -1313,6 +1340,8 @@ How to answer:
 - Ground every claim about scores, schedules, standings or predictions in the LIVE DATA and APP CONTEXT sections. Today's scoreboards show games scheduled or played today; yesterday's results are listed separately. Keep leagues straight: never call a hockey game a baseball game. If what's asked isn't there, say you don't have it right now instead of guessing, and suggest where in the app to look.
 - The app has its own prediction model; when you quote its win chances, call them "the Cosmo model" and remember they're probabilities, not certainties.
 - Betting: you may explain lines and compare them with the model, but don't tell people to bet or promise outcomes.
+- The FOCUS section, when there is one, is the game open on the person's screen. Assume questions are about that game unless they clearly name something else. Match names, initials and nicknames (like "PCA") against the FOCUS rosters first; the roster lists the usual initials for each player.
+- If a name or reference is still unclear, ask one short clarifying question instead of guessing. Never switch to another league or sport to find a match.
 - Plain text only. You may use **bold** for a name or number and "- " bullets. No headings, tables or links.`;
 export async function askCosmo(env, body, fetchImpl = fetch) {
   const history = (Array.isArray(body?.messages) ? body.messages : []).slice(-10)
@@ -1322,13 +1351,14 @@ export async function askCosmo(env, body, fetchImpl = fetch) {
   if (!history.length || history[history.length - 1].role !== "user") throw new Error("no question");
   const today = new Date().toLocaleString("en-US", { timeZone: "America/New_York", weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
   const y = etParts(new Date(Date.now() - 864e5)), [board, yboard] = await Promise.all([askBoard(fetchImpl), askBoard(fetchImpl, `${y.year}${y.month}${y.day}`)]);
-  const context = `Current time (US Eastern): ${today}\n\nLIVE DATA - TODAY'S SCOREBOARDS:\n${board}\n\nLIVE DATA - YESTERDAY'S RESULTS:\n${yboard}\n\nAPP CONTEXT (from the person's app):\n${String(body?.context || "none").slice(0, 8000)}`;
+  const focus = String(body?.focus || "").trim().slice(0, 9000);
+  const context = `${focus ? `FOCUS: the person is viewing this game right now. Questions are about it unless they clearly say otherwise.\n${focus}\n\n` : ""}Current time (US Eastern): ${today}\n\nLIVE DATA - TODAY'S SCOREBOARDS:\n${board}\n\nLIVE DATA - YESTERDAY'S RESULTS:\n${yboard}\n\nAPP CONTEXT (from the person's app):\n${String(body?.context || "none").slice(0, 8000)}`;
   const enc = new TextEncoder();
-  if (env.ANTHROPIC_API_KEY) {
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  if (env.ANTHROPIC_API_KEY && body.member === true && await rateOk(env, "askc:" + etDay(Date.now()), +env.ASK_CLAUDE_DAILY || 300, 864e5)) {
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, fetch: fetchImpl === fetch ? undefined : fetchImpl });
     // server-side fallbacks: if the model declines, the API retries on a fallback model in the same call
     const stream = client.beta.messages.stream({
-      model: ASK_CLAUDE_MODEL, max_tokens: 4000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+      model: ASK_MODEL, max_tokens: ASK_MAX_TOKENS, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
       output_config: { effort: "low" },
       system: [{ type: "text", text: ASK_SYSTEM }, { type: "text", text: context }],
       messages: history,
@@ -1584,11 +1614,13 @@ export const CZ_BSPORT = {
   epl: { name: "Premier League", lgs: ["epl"], game: "a Premier League soccer match. Attackers, midfield control, defending and the goalkeeper matter, and a team card is that whole club" },
   tennis: { name: "Tennis", lgs: ["atp", "wta"], game: "a tennis team contest: the players meet in singles rubbers, stronger players usually win their matches" },
 };
+const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
+const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, trades: u.trades || 0, sold: u.sold || 0, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
-const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !u.ident || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 export async function czTx(st, a) {
@@ -1613,6 +1645,27 @@ export async function czTx(st, a) {
     await feed({ kind: "join", name: a.name });
     if (bonus) return { user: czPublic(u), uid: a.uid, created: true, bonus };
     return { user: czPublic(u), uid: a.uid, created: true };
+  }
+  if (a.act === "signout") {                                         // forget this device's key, every key, or swap them all for a new one
+    const u = await st.get("cz:u:" + a.uid); if (!u) return { ok: true };
+    if (a.all) { u.tok = null; u.toks = []; } else { if (u.tok === a.tok) u.tok = null; u.toks = (u.toks || []).filter(t => t !== a.tok); }
+    if (a.newTok) u.toks = [a.newTok];
+    await st.put("cz:u:" + u.uid, u); return { ok: true, user: czPublic(u) };
+  }
+  if (a.act === "rename") {                                          // the owner replaces a reported name after reviewing it
+    const names = await get("cz:names", {}), tid = names[String(a.name).toLowerCase()], t = tid && await st.get("cz:u:" + tid);
+    if (!t) return { error: "No player has that name." };
+    const old = t.name; let nn; do nn = "Player " + czRand(2).toUpperCase(); while (names[nn.toLowerCase()]);
+    delete names[old.toLowerCase()]; names[nn.toLowerCase()] = tid; t.name = nn; t.renamed = a.now;
+    await st.put("cz:names", names); await st.put("cz:u:" + tid, t); await lb(t);
+    await st.put("cz:feed", (await get("cz:feed", [])).map(f => ({ ...f, name: f.name === old ? nn : f.name, seller: f.seller === old ? nn : f.seller })));
+    await st.put("cz:mkt", (await get("cz:mkt", [])).map(l => l.uid === tid ? { ...l, seller: nn } : l));
+    await st.put("cz:reports", (await get("cz:reports", [])).map(r => r.uid === tid && !r.done ? { ...r, done: a.now, action: "renamed" } : r));
+    return { ok: true, name: nn };
+  }
+  if (a.act === "repdone") {                                         // the owner dismisses the reports about a name
+    await st.put("cz:reports", (await get("cz:reports", [])).map(r => r.name.toLowerCase() === String(a.name).toLowerCase() && !r.done ? { ...r, done: a.now, action: "dismissed" } : r));
+    return { ok: true };
   }
   if (a.act === "tester") {                                          // the site owner's testing switch: unlimited coins, off the leaderboards
     const u = await st.get("cz:u:" + a.uid); if (!u) return { error: "Account not found." };
@@ -1645,7 +1698,7 @@ export async function czTx(st, a) {
   }
   if (a.act === "weekaward") {
     const W = await get("cz:wkdone", []); if (W.includes(a.week)) return { ok: true, already: true };
-    const L = await get("cz:lb", {}), top = Object.values(L).filter(r => !r.tester && r.wkp && r.wkp[a.week] > 0).sort((x, y) => y.wkp[a.week] - x.wkp[a.week]).slice(0, 3), winners = [];
+    const L = await get("cz:lb", {}), top = Object.values(L).filter(r => !r.tester && !r.nopk && r.wkp && r.wkp[a.week] > 0).sort((x, y) => y.wkp[a.week] - x.wkp[a.week]).slice(0, 3), winners = [];
     for (const [i, r] of top.entries()) { const w = await st.get("cz:u:" + r.uid); if (!w) continue;
       w.bal += CZ_WEEK_PRIZE[i]; w.trophies = [...(w.trophies || []), { week: a.week, place: i + 1, profit: Math.round(r.wkp[a.week]), prize: CZ_WEEK_PRIZE[i] }];
       await st.put("cz:u:" + w.uid, w); await lb(w); winners.push({ name: w.name, place: i + 1, prize: CZ_WEEK_PRIZE[i] }); }
@@ -1718,6 +1771,7 @@ export async function czTx(st, a) {
     const stake = Math.floor(+a.stake || 0);
     if (!(stake >= 0 && stake <= CZ_BAT_MAX)) return { error: `Stakes are 0 to ${CZ_BAT_MAX.toLocaleString()} coins.` };
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins for that stake." };
+    if (u.tester && !a.house) return { error: TESTER_NO };            // unlimited coins stay out of other players' pockets
     if (!CZ_BSPORT[a.sport]) return { error: "Pick a sport for the battle." };
     const sc = await snapCards(a.cards, a.sport); if (sc.error) return sc;
     const B = await get("cz:bat", []);
@@ -1735,6 +1789,7 @@ export async function czTx(st, a) {
     const B = await get("cz:bat", []), bt = B.find(x => x.id === a.id);
     if (!bt || bt.status !== "open") return { error: "That challenge isn't open any more." };
     if (bt.from === u.uid) return { error: "That's your own challenge." };
+    if (u.tester) return { error: TESTER_NO };
     if (bt.to && bt.to !== u.uid) return { error: "That challenge is for someone else." };
     if (a.now - bt.at > CZ_BAT_TTL) return { error: "That challenge has expired." };
     if (bt.stake > u.bal && !u.tester) return { error: `You need ${bt.stake.toLocaleString()} coins to match the stake.` };
@@ -1821,20 +1876,16 @@ export async function czTx(st, a) {
   const card = id => (u.items || []).find(x => x.id === id);
   const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
   if (a.act === "report") {
-    // reports are kept for the owner; a name reported by three different players is replaced right away
+    // reports wait for the owner to review (Owner inbox in the app); nothing is renamed automatically. Only reports from
+    // passkey accounts at least CZ_REP_AGE_DAYS old count toward a name's total, and each player can report a name once a week.
     const names = await get("cz:names", {}), tid = names[String(a.name).toLowerCase()];
     if (!tid) return { error: "That player isn't in Cosmic any more." };
     if (tid === u.uid) return { error: "That's you." };
-    const R = await get("cz:reports", []); R.unshift({ at: a.now, from: u.uid, fromName: u.name, uid: tid, name: a.name, reason: a.reason }); await st.put("cz:reports", R.slice(0, 500));
-    const by = await get("cz:rep:" + tid, []); if (!by.includes(u.uid)) by.push(u.uid); await st.put("cz:rep:" + tid, by);
-    if (by.length >= 3) {
-      const t = await st.get("cz:u:" + tid);
-      if (t) { const old = t.name; let nn; do nn = "Player " + czRand(2).toUpperCase(); while (names[nn.toLowerCase()]);
-        delete names[old.toLowerCase()]; names[nn.toLowerCase()] = tid; t.name = nn; t.renamed = a.now;
-        await st.put("cz:names", names); await st.put("cz:u:" + tid, t); await lb(t); await st.put("cz:rep:" + tid, []);
-        await st.put("cz:feed", (await get("cz:feed", [])).map(f => ({ ...f, name: f.name === old ? nn : f.name, seller: f.seller === old ? nn : f.seller })));
-        await st.put("cz:mkt", (await get("cz:mkt", [])).map(l => l.uid === tid ? { ...l, seller: nn } : l)); }
-    }
+    if (!u.ident) return { error: "Add a passkey to your account to report players." };
+    const R = await get("cz:reports", []);
+    if (R.some(r => r.from === u.uid && r.uid === tid && a.now - r.at < CZ_REP_COOL)) return { ok: true, already: true };
+    const counts = a.now - (u.created || a.now) >= CZ_REP_AGE_DAYS * 864e5;
+    R.unshift({ at: a.now, from: u.uid, fromName: u.name, uid: tid, name: a.name, reason: a.reason, counts }); await st.put("cz:reports", R.slice(0, 500));
     return { ok: true };
   }
   if (a.act === "delete") {
@@ -1853,6 +1904,8 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
     const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
     if (u.ident) await del("cz:id:" + u.ident);
+    const S = await st.get("cz:support"); if (S) await st.put("cz:support", JSON.stringify((typeof S === "string" ? JSON.parse(S) : S).filter(x => x.uid !== u.uid)));
+    await st.put("cz:reports", (await get("cz:reports", [])).filter(r => r.from !== u.uid && r.uid !== u.uid));
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
     return { deleted: true };
   }
@@ -1863,6 +1916,7 @@ export async function czTx(st, a) {
     const o = await get("cz:own:" + c.id, []); await st.put("cz:own:" + c.id, [...o.filter(x => x.uid !== from.uid), { n: c.n, uid: to.uid, name: to.name, at: a.now, ...(extra && extra.bought ? { price: extra.bought } : {}) }]);
   };
   if (a.act === "toffer") {                                          // offer a trade: your cards (and coins) for someone else's cards
+    if (u.tester) return { error: TESTER_NO };
     const names = await get("cz:names", {}), tid0 = names[String(a.to || "").toLowerCase()];
     if (!tid0) return { error: "That player isn't in Cosmic." }; if (tid0 === u.uid) return { error: "That's you." };
     const t = await st.get("cz:u:" + tid0); if (!t) return { error: "That player isn't in Cosmic." };
@@ -1887,6 +1941,7 @@ export async function czTx(st, a) {
     if (!a.accept) { tr.status = "declined"; tr.done = a.now; await st.put("cz:trades", TR); return { user: czPublic(u) }; }
     const f = await st.get("cz:u:" + tr.from); if (!f) { tr.status = "void"; await st.put("cz:trades", TR); return { error: "That player has left Cosmic." }; }
     const fail = async msg => { tr.status = "void"; tr.done = a.now; await st.put("cz:trades", TR); return { error: msg }; };
+    if (f.tester || u.tester) return fail(TESTER_NO);
     for (const g of tr.give) { const c = (f.items || []).find(x => x.id === g.id); if (!c || busy(c)) return fail(`${f.name} no longer has one of the cards on offer, so the trade was called off.`); if (card(g.id)) return fail("You already own a copy of one of those cards."); }
     for (const g of tr.get) { const c = card(g.id); if (!c) return fail("You no longer have one of the cards they asked for."); const b = busy(c); if (b) return { error: b }; }
     if (tr.coins > f.bal && !f.tester) return fail(`${f.name} doesn't have the coins any more, so the trade was called off.`);
@@ -1911,7 +1966,7 @@ export async function czTx(st, a) {
   }
   if (a.act === "aucbid") {
     const AU = await get("cz:auc", []), x = AU.find(v => v.aid === a.aid); if (!x || x.ends <= a.now) return { error: "That auction has ended." };
-    if (x.seller === u.uid) return { error: "That's your own auction." }; if (card(x.id)) return { error: "You already own a copy of this card." };
+    if (x.seller === u.uid) return { error: "That's your own auction." }; if (u.tester) return { error: TESTER_NO }; if (card(x.id)) return { error: "You already own a copy of this card." };
     const min = x.bid ? Math.max(x.bid + 1, Math.ceil(x.bid * 1.05)) : x.start, amt = Math.floor(+a.amount);
     if (!(amt >= min)) return { error: `The lowest bid now is ${min.toLocaleString()} coins.`, min };
     if (x.bidder === u.uid) return { error: "You're already the highest bidder." };
@@ -1958,6 +2013,7 @@ export async function czTx(st, a) {
   if (a.act === "buyl") {                                            // buy another player's card: coins to them (less the market fee), the card to you
     const M = await get("cz:mkt", []), l = M.find(x => x.lid === a.lid); if (!l) return { error: "Someone else got there first. That card is no longer for sale." };
     if (l.uid === u.uid) return { error: "That's your own listing." };
+    if (u.tester) return { error: TESTER_NO };
     if (card(l.id)) return { error: "You already own a copy of this card." };
     if (u.bal < l.price && !u.tester) return { error: "Not enough Cosmic Coins." };
     const s = await st.get("cz:u:" + l.uid); if (!s) return { error: "The seller's account is gone." };
@@ -2147,18 +2203,29 @@ async function czItem(env, id) {
 async function czOwnerCheck(req, env, ip) {
   const key = env.COMETS_KEY, got = req.headers.get("X-Owner-Key") || "";
   if (!key) return json({ error: "The owner key (COMETS_KEY) isn't set up on the live service." }, 503);
-  if (cometsTooManyFails(ip)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
+  if (await cometsTooManyFails(env, ip)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
   const [x, y] = await Promise.all([czHash(key), czHash(got)]); let diff = 0; for (let i = 0; i < x.length; i++) diff |= x.charCodeAt(i) ^ y.charCodeAt(i);
-  if (diff) { cometsFail(ip); return json({ error: "That isn't the owner key." }, 403); }
+  if (diff) { await cometsFail(env, ip); return json({ error: "That isn't the owner key." }, 403); }
   return null;
 }
+// what an account may keep in sync (the app's CZ_SYNC_LS list, followed teams and settings), each capped in size
+export const CZ_SYNC_KEYS = { picks: 60000, daily: 20000, duels: 20000, spoil: 4000, sounds: 100, startSport: 100, voiceKind: 100, voiceRate: 100, rankView: 100, onboarded: 100 };
+export function czSyncClean(d) {
+  if (!d || typeof d !== "object" || Array.isArray(d) || d.v !== 1) return null;
+  const ls = {}, fav = {}, settings = {}, prim = v => v === null || ["string", "number", "boolean"].includes(typeof v);
+  for (const [k, cap] of Object.entries(CZ_SYNC_KEYS)) if (d.ls && typeof d.ls === "object" && k in d.ls) { const j = JSON.stringify(d.ls[k]); if (j !== undefined && j.length <= cap) ls[k] = d.ls[k]; }
+  for (const [lg, l] of Object.entries(d.fav && typeof d.fav === "object" ? d.fav : {}).slice(0, 20)) if (/^[a-z]{2,8}$/.test(lg) && Array.isArray(l)) fav[lg] = l.filter(x => typeof x === "string" && x.length <= 80).slice(0, 80);
+  for (const [k, v] of Object.entries(d.settings && typeof d.settings === "object" && !Array.isArray(d.settings) ? d.settings : {}).slice(0, 60))
+    if (/^[\w-]{1,40}$/.test(k) && (prim(v) ? String(v).length <= 400 : Array.isArray(v) && v.length <= 100 && v.every(prim))) settings[k] = v;
+  return { v: 1, ls, fav, settings };
+}
+const czTokHash = async req => { const m = /^Bearer\s+[a-f0-9]{24}\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); return m ? czHash(m[1]) : null; };
 async function czAuth(req, env) {
   const m = /^Bearer\s+([a-f0-9]{24})\.([a-f0-9]{64})$/i.exec(req.headers.get("Authorization") || ""); if (!m) return null;
   const u = await czRead(env, "cz:u:" + m[1], null); if (!u) return null;
   const h = await czHash(m[2]);
-  return u.tok === h || (u.toks || []).includes(h) ? u : null;
+  return (u.tok && u.tok === h) || (u.toks || []).includes(h) ? u : null;
 }
-const CZ_JOIN = new Map();
 /* ---- passkeys (WebAuthn): sign in with Face ID, a fingerprint or the device's passcode. No passwords and no outside service:
    the device makes a key pair, keeps the private half, and signs a one-time challenge from us; we check the signature with the
    public half saved when the passkey was created. Stored: "cz:pk:<credential id>" {uid, jwk, alg, count}. */
@@ -2193,11 +2260,10 @@ function derToRaw(sig) {                                  // ECDSA signatures co
   let i = 2; const part = () => { i++; const n = sig[i++]; let v = sig.slice(i, i + n); i += n; while (v.length > 32 && v[0] === 0) v = v.slice(1); const o = new Uint8Array(32); o.set(v, 32 - v.length); return o; };
   const r = part(), s = part(), out = new Uint8Array(64); out.set(r); out.set(s, 32); return out;
 }
-const CZ_RATE = new Map();
-function czAllowed(key, max, win) { const now = Date.now(), l = (CZ_RATE.get(key) || []).filter(t => now - t < win); if (l.length >= max) return false; l.push(now); CZ_RATE.set(key, l); if (CZ_RATE.size > 20000) CZ_RATE.clear(); return true; }
+
 const sha256 = async b => new Uint8Array(await crypto.subtle.digest("SHA-256", typeof b === "string" ? new TextEncoder().encode(b) : b));
 const eqBytes = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
-function pkOrigins(env) { const o = new Set(); for (const u of [env.SITE_URL, env.SITE_FALLBACK, env.PK_EXTRA_ORIGIN]) { try { if (u) o.add(new URL(u).origin); } catch {} } return o; }
+function pkOrigins(env) { const o = new Set(); for (const u of [env.SITE_URL, env.PK_EXTRA_ORIGIN]) { try { if (u) o.add(new URL(u).origin); } catch {} } return o; }
 async function pkChallenge(env, kind, extra = {}) {
   const c = b64u.enc(crypto.getRandomValues(new Uint8Array(32)));
   await store(env).put("cz:pkc:" + c, JSON.stringify({ kind, exp: Date.now() + 5 * 60e3, ...extra })); return c;
@@ -2255,6 +2321,7 @@ export async function czJudge(env, bt, fetchImpl = fetch) {
 async function czFinish(env, bt, uid, fetchImpl) { const v = await czJudge(env, bt, fetchImpl); return cz(env, { act: "bdone", uid, id: bt.id, ...v, now: Date.now() }); }
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
+  if (!env.STORE) return json({ error: "Cosmic isn't set up on this server (it needs the STORE Durable Object)." }, 503);
   const today = etDayStr(now), tomorrow = etDayStr(now + 864e5);
   if (p === "/board" && req.method === "GET") return cached(req, ctx, 60, async () => {
     const out = [];
@@ -2286,7 +2353,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const wk = czWeek(now), last = czWeek(now - 7 * 864e5);
     if (!(await czRead(env, "cz:wkdone", [])).includes(last)) await cz(env, { act: "weekaward", week: last, now }).catch(() => {});     // pay last week's prizes once
     const [L, F] = await Promise.all([czRead(env, "cz:lb", {}), czRead(env, "cz:feed", [])]);
-    const rows = Object.values(L).filter(r => !r.tester), slim = r => ({ ...r, wkp: undefined });
+    const rows = Object.values(L).filter(r => !r.tester && !r.nopk), slim = r => ({ ...r, wkp: undefined });
     const week = rows.filter(r => r.wkp && r.wkp[wk]).sort((a, b) => b.wkp[wk] - a.wkp[wk]).slice(0, 25).map(r => ({ ...slim(r), week: Math.round(r.wkp[wk]) }));
     const lastWin = (F.find(f => f.kind === "week" && f.week === last) || {}).winners || [];
     return json({ week, weekStart: wk, weekEnds: Date.parse(wk + "T04:00:00Z") + 7 * 864e5, prizes: CZ_WEEK_PRIZE, lastWinners: lastWin,
@@ -2298,7 +2365,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/config" && req.method === "GET") return json({ passkeys: true });
   if (p === "/pk/start" && req.method === "POST") {                          // a challenge to create or use a passkey
     const d = await req.json().catch(() => ({})), kind = d.kind === "reg" ? "reg" : "auth", name = String(d.name || "").replace(/\s+/g, " ").trim();
-    if (!czAllowed("pk:" + ip, 30, 3600e3)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
+    if (!await rateOk(env, "pk:" + ip, 30, 3600e3)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
     if (kind === "reg") {
       const linker = d.link ? await czAuth(req, env) : null;
       if (!linker) { if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
@@ -2314,6 +2381,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     try {
       const { ch, rpIdHash } = await pkClient(env, d.clientDataJSON, "reg"), att = cbor(b64u.dec(d.attestationObject)).v, ad = authData(att.get("authData"));
       if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up || !ad.credId) throw new Error("bad passkey");
+      if (!ad.uv) throw new Error("Face ID, fingerprint or passcode wasn't checked");
       const { alg, jwk } = coseJwk(ad.cose), credId = b64u.enc(ad.credId), token = czRand(32), sub = await czHash("pk:" + ch.handle);
       if (await czRead(env, "cz:pk:" + credId, null)) throw new Error("already saved");
       const r = await cz(env, { act: "ident", sub, uid: czRand(12), tok: await czHash(token), name: ch.link ? "" : ch.name, linkUid: ch.link, ref: ch.link ? null : ch.ref || null, now });
@@ -2328,6 +2396,7 @@ export async function cosmicRoute(req, env, ctx, url) {
       const cred = await czRead(env, "cz:pk:" + String(d.id || ""), null); if (!cred) throw new Error("unknown passkey");
       const { raw, rpIdHash } = await pkClient(env, d.clientDataJSON, "auth"), adRaw = b64u.dec(d.authenticatorData), ad = authData(adRaw);
       if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up) throw new Error("bad passkey");
+      if (!ad.uv) throw new Error("Face ID, fingerprint or passcode wasn't checked");
       const signed = new Uint8Array([...adRaw, ...await sha256(raw)]), sig = b64u.dec(d.signature);
       const ok = cred.alg === -7
         ? await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, await crypto.subtle.importKey("jwk", cred.jwk, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]), derToRaw(sig), signed)
@@ -2343,30 +2412,47 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/join" && req.method === "POST") {
     if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
-    const l = (CZ_JOIN.get(ip) || []).filter(t => now - t < 3600e3); if (l.length >= 5) return json({ error: "Too many new accounts from here. Try again later." }, 429);
+    if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
     const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
     if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
     const uid = czRand(12), token = czRand(32);
     const r = await cz(env, { act: "join", uid, tok: await czHash(token), name, now });
     if (r.error) return json(r, 409);
-    l.push(now); CZ_JOIN.set(ip, l); if (CZ_JOIN.size > 5000) CZ_JOIN.clear();
+    await rateOk(env, "join:" + ip, 5, 3600e3, "add");
     return json({ ...r, auth: `${uid}.${token}` });
   }
   if (p === "/support" && req.method === "POST") {                           // the contact form on the Support page
-    if (!czAllowed("sup:" + ip, 5, 3600e3)) return json({ error: "Too many messages. Try again later." }, 429);
+    if (!await rateOk(env, "sup:" + ip, 5, 3600e3)) return json({ error: "Too many messages. Try again later." }, 429);
     const d = await req.json().catch(() => ({})), message = String(d.message || "").trim().slice(0, 3000), contact = String(d.contact || "").trim().slice(0, 200);
     if (message.length < 5) return json({ error: "Write a message first." }, 400);
-    const who = await czAuth(req, env), L = await czRead(env, "cz:support", []);
-    L.unshift({ at: now, message, contact, uid: who ? who.uid : null, name: who ? who.name : null }); await store(env).put("cz:support", JSON.stringify(L.slice(0, 300)));
+    const who = await czAuth(req, env), L = (await czRead(env, "cz:support", [])).filter(x => now - x.at < CZ_SUPPORT_DAYS * 864e5);   // kept 180 days
+    L.unshift({ id: czRand(6), at: now, message, contact, uid: who ? who.uid : null, name: who ? who.name : null }); await store(env).put("cz:support", JSON.stringify(L.slice(0, 300)));
     return json({ ok: true });
   }
   if (p === "/owner/inbox" && req.method === "GET") {                        // reports and support messages, for the site's owner
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
-    return json({ reports: await czRead(env, "cz:reports", []), support: await czRead(env, "cz:support", []) }, 200, { "Cache-Control": "no-store" });
+    return json({ reports: await czRead(env, "cz:reports", []), support: await czRead(env, "cz:support", []), supportDays: CZ_SUPPORT_DAYS }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/owner/review" && req.method === "POST") {                      // the owner acts on reports: rename the player or dismiss
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    const d = await req.json().catch(() => ({})), name = String(d.name || "").slice(0, 40);
+    const r = await cz(env, { act: d.action === "rename" ? "rename" : "repdone", name, now }); return json(r, r.error ? 409 : 200);
+  }
+  if (p === "/owner/support/delete" && req.method === "POST") {              // the owner clears a support message once it's handled
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    const d = await req.json().catch(() => ({})), L = await czRead(env, "cz:support", []);
+    await store(env).put("cz:support", JSON.stringify(L.filter(x => (x.id || String(x.at)) !== String(d.id || "")))); return json({ ok: true });
   }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
+  if (p === "/signout" && req.method === "POST") {                           // this device's key stops working (or every key, with all)
+    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "signout", uid: u.uid, tok: await czTokHash(req), all: !!d.all, now }); return json({ ok: true, all: !!d.all && r.ok });
+  }
+  if (p === "/key/new" && req.method === "POST") {                           // a new account key; every other device is signed out
+    const token = czRand(32), r = await cz(env, { act: "signout", uid: u.uid, all: true, newTok: await czHash(token), now });
+    return json({ ...r, auth: `${u.uid}.${token}` });
+  }
   if (p === "/me" && req.method === "GET") {
     if (!u.sp || u.sp.season !== czSeasonOf(now)) { const r = await cz(env, { act: "season", uid: u.uid, now }); if (r.user) return json({ user: r.user }, 200, { "Cache-Control": "no-store" }); }
     return json({ user: czPublic(u) }, 200, { "Cache-Control": "no-store" });
@@ -2396,12 +2482,12 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ mine: B.filter(mine).slice(0, 40), open: B.filter(bt => bt.status === "open" && bt.from !== u.uid && !bt.to && now - bt.at < CZ_BAT_TTL).slice(0, 30), max: CZ_BAT_MAX, house: CZ_HOUSE_DAY }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/battle/new" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const d = await req.json().catch(() => ({})); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
     const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), sport: String(d.sport || ""), cards: (d.cards || []).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
     return json(r, r.error ? 409 : 200);
   }
   if (p === "/battle/house" && req.method === "POST") {                      // play Cosmo: a lineup of the same tiers, dealt at random
-    const d = await req.json().catch(() => ({})), ids = (d.cards || []).map(String); if (!czAllowed("bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const d = await req.json().catch(() => ({})), ids = (d.cards || []).map(String); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
     const S = CZ_BSPORT[String(d.sport || "")]; if (!S) return json({ error: "Pick a sport for the battle." }, 400);
     const mineC = ids.map(id => (u.items || []).find(x => x.id === id)).filter(Boolean), items = (await czCatalog(env)).filter(i => S.lgs.includes(i.lg)), by = {};
     for (const i of items) (by[i.tier] ||= []).push(i);
@@ -2422,7 +2508,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json(r, r.error ? 409 : 200);
   }
   if (p === "/report" && req.method === "POST") {                            // report a player's name; three reports rename it automatically
-    if (!czAllowed("rep:" + u.uid, 20, 86400e3)) return json({ error: "You've sent a lot of reports today. Thanks, we'll look at them." }, 429);
+    if (!await rateOk(env, "rep:" + u.uid, 20, 86400e3)) return json({ error: "You've sent a lot of reports today. Thanks, we'll look at them." }, 429);
     const d = await req.json().catch(() => ({})), name = String(d.name || "").slice(0, 40), reason = String(d.reason || "").slice(0, 300);
     const r = await cz(env, { act: "report", uid: u.uid, name, reason, now }); return json(r, r.error ? 409 : 200);
   }
@@ -2434,7 +2520,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
   if (p === "/data" && req.method === "PUT") {
     const raw = await req.text(); if (raw.length > 100000) return json({ error: "Too much data." }, 413);
-    let d; try { d = JSON.parse(raw); } catch { return json({ error: "bad data" }, 400); }
+    let d; try { d = czSyncClean(JSON.parse(raw)); } catch { d = null; } if (!d) return json({ error: "bad data" }, 400);
     await store(env).put("cz:data:" + u.uid, JSON.stringify({ ...d, at: now })); return json({ ok: true, at: now });
   }
   if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
@@ -2466,7 +2552,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: Math.round(it.price * (1 + .15 * (lv - 1))) }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/trades" && req.method === "GET") { const TR = await czRead(env, "cz:trades", []); return json({ trades: TR.filter(t => t.from === u.uid || t.to === u.uid).slice(0, 40) }, 200, { "Cache-Control": "no-store" }); }
-  if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!czAllowed("tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
+  if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!await rateOk(env, "tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
     const r = await cz(env, { act: "toffer", uid: u.uid, now, to: String(d.to || ""), give: (d.give || []).map(String), get: (d.get || []).map(String), coins: d.coins }); return json(r, r.error ? 409 : 200); }
   if (p === "/trade/respond" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tresp", uid: u.uid, now, tid: String(d.tid || ""), accept: !!d.accept }); return json(r, r.error ? 409 : 200); }
   if (p === "/trade/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tcancel", uid: u.uid, now, tid: String(d.tid || "") }); return json(r, r.error ? 409 : 200); }
@@ -2543,7 +2629,7 @@ export default {
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl)\/injuries$/)))
         return await cached(req, ctx, 900, async () => injuries(env, m[1]));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/standings$/)))
-        return await cached(req, ctx, 600, async () => espnStandings(m[1]));
+        return await cached(req, ctx, 600, async () => espnStandings(m[1], fetch, url.searchParams.get("view") === "div" ? "div" : ""));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/news$/)))
         return await cached(req, ctx, 300, async () => espnNews(m[1], url.searchParams.get("team")));
       if ((m = url.pathname.match(/^\/sports\/(nfl|nba|mlb|nhl|epl|cfb|cbb)\/team\/(\d+)$/)))
@@ -2568,14 +2654,15 @@ export default {
     if (url.pathname === "/track") return await cached(req, ctx, 120, () => trackAll(db)).catch(e => json({ error: String(e.message || e) }, 503));
     if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
     if (url.pathname === "/ask" && req.method === "POST") {
-      if (!askAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
-      const body = await req.json().catch(() => null);
+      if (!(await askAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "Too many questions. Try again in a few minutes." }, 429);
+      const raw = await req.json().catch(() => null), who = await czAuth(req, env).catch(() => null);
+      const body = raw && { ...raw, member: !!(who && who.ident) };                       // Claude answers only signed-in passkey accounts
       try { return new Response(await askCosmo(env, body), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", ...cors } }); }
       catch (e) { return json({ error: String(e.message || e) === "no question" ? "Ask a question." : "Ask Cosmo isn't available right now." }, String(e.message || e) === "no question" ? 400 : 503); }
     }
     if (url.pathname === "/tts" && req.method === "POST") {
       if (!env.AI) return json({ error: "no voice" }, 503);
-      if (!ttsAllowed(req.headers.get("CF-Connecting-IP") || "anon")) return json({ error: "slow down" }, 429);
+      if (!(await ttsAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "slow down" }, 429);
       const d = await req.json().catch(() => ({}));
       const text = String(d.text || "").replace(/\s+/g, " ").trim().slice(0, 420), voice = d.voice === "female" ? "female" : "male";
       if (!text) return json({ error: "no text" }, 400);
@@ -2625,6 +2712,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true, ask: env.ANTHROPIC_API_KEY ? "claude" : env.AI ? "workers-ai" : "off" });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
