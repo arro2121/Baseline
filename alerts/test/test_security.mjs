@@ -109,37 +109,15 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 { const c = W.czSyncClean({ v: 1, ls: { picks: { a: 1 }, evil: "<x>", spoil: "x".repeat(5000) }, fav: { nfl: ["Chiefs", 5], "../x": ["y"] }, settings: { theme: "dark", obj: { deep: 1 } }, extra: 1 });
   check("S11 synced data keeps only known keys within their size caps", JSON.stringify(c) === '{"v":1,"ls":{"picks":{"a":1}},"fav":{"nfl":["Chiefs"]},"settings":{"theme":"dark"}}', c);
   check("S11 junk is refused", (await call("/data", "not an object", dan.auth, "PUT"))[0] === 400); }
-// email and password sign-in (for computers)
-{ const pw = "orbit-lamp-canyon-42", em = "Dan.Player@Example.com";
-  check("PW sign-in fails before it's set up", (await call("/pw/login", { email: em, password: pw }, null, "POST", { ip: "10.0.0.1" }))[0] === 401);
-  check("PW weak passwords are refused", (await call("/pw/set", { email: em, password: "password123" }, dan.auth))[0] === 400);
-  check("PW bad email is refused", (await call("/pw/set", { email: "nope", password: pw }, dan.auth))[0] === 400);
-  const [s1, r1] = await call("/pw/set", { email: em, password: pw }, dan.auth);
-  check("PW set from a signed-in device, shown masked", s1 === 200 && r1.user.email === "d•••@example.com", r1);
-  const U = data.get("cz:u:" + dan.auth.split(".")[0]), raw = JSON.stringify(U) + JSON.stringify([...data.keys()]);
-  check("PW neither the email nor the password is stored readable", !/dan\.player|example\.com"|orbit-lamp/i.test(raw.replace("d•••@example.com", "")) && U.pw.hash && U.pw.hash !== pw);
-  const [s2, r2] = await call("/pw/login", { email: " dan.player@example.com ", password: pw }, null, "POST", { ip: "10.0.0.2" });
-  check("PW sign in with email and password (any case)", s2 === 200 && r2.user.name === "Dan" && (await call("/me", null, r2.auth))[0] === 200, [s2, r2.error]);
-  check("PW wrong password refused", (await call("/pw/login", { email: em, password: pw + "x" }, null, "POST", { ip: "10.0.0.3" }))[0] === 401);
-  check("PW another account can't take the same email", (await call("/pw/set", { email: em, password: "another-long-phrase-9" }, np.auth))[0] === 409);
-  check("PW changing needs the current password", (await call("/pw/set", { email: em, password: "a-new-long-phrase-7" }, dan.auth))[0] === 403);
-  let locked = 0; for (let i = 0; i < 12; i++) if ((await call("/pw/login", { email: em, password: "guess" + i }, null, "POST", { ip: "10.1.0." + i }))[0] === 429) locked++;
-  check("PW guessing one email is limited even from many addresses", locked >= 2, locked);
-  check("PW remove needs the current password, then sign-in stops", (await call("/pw/remove", { current: "nope" }, dan.auth))[0] === 403
-    && (await call("/pw/remove", { current: pw }, dan.auth))[0] === 200 && !data.get("cz:u:" + dan.auth.split(".")[0]).pw); }
-// a brand-new account with email and password only (no passkey at all), and it counts as a full account
-{ const [s1, r1] = await call("/pw/join", { name: "Emma", email: "emma@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.1" });
-  check("PWJ create an account with email and password", s1 === 200 && r1.created && r1.user.secured && !r1.user.passkey && r1.user.bal === 1000, r1);
-  check("PWJ the new account signs in right away", (await call("/me", null, r1.auth))[0] === 200);
-  check("PWJ the same email can't make a second account", (await call("/pw/join", { name: "Emma2", email: "EMMA@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.2" }))[0] === 409);
-  check("PWJ the same name can't be reused", (await call("/pw/join", { name: "emma", email: "other@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.3" }))[0] === 409);
-  check("PWJ weak password refused", (await call("/pw/join", { name: "Emmy", email: "emmy@example.com", password: "short" }, null, "POST", { ip: "11.0.0.4" }))[0] === 400);
-  const [, L2] = await call("/leaders"); check("PWJ email accounts appear on the leaderboards", L2.rich.some(r => r.name === "Emma"));
-  check("PWJ email accounts can report", (await call("/report", { name: "Bob", reason: "test" }, r1.auth))[0] === 200);
-  const [s3, r3] = await call("/pw/login", { email: "emma@example.com", password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.0.0.5" });
-  check("PWJ sign in again later with email and password", s3 === 200 && r3.uid === r1.uid, [s3, r3]);
-  let n = 0; for (let i = 0; i < 7; i++) if ((await call("/pw/join", { name: "Flood" + i, email: `f${i}@example.com`, password: "comet-tail-harbor-8" }, null, "POST", { ip: "11.9.9.9" }))[0] === 200) n++;
-  check("PWJ sign-ups limited to 5 an hour per address", n === 5, n); }
+// email and password sign-in was removed: no routes, and a one-time purge erases anything it stored
+{ check("NOPW email sign-in is gone", (await call("/pw/login", { email: "a@b.co", password: "whatever-long-1" }, null, "POST", { ip: "12.0.0.1" }))[0] >= 400);
+  check("NOPW email sign-up is gone", (await call("/pw/join", { name: "Nope", email: "n@b.co", password: "whatever-long-1" }, null, "POST", { ip: "12.0.0.2" }))[0] >= 400);
+  const uid = dan.auth.split(".")[0], U = data.get("cz:u:" + uid); U.pw = { salt: "x", hash: "y" }; U.emh = "h"; U.emmask = "d•••@x.com"; data.set("cz:u:" + uid, U); data.set("cz:em:h", { uid }); data.set("rl:pwem:h", [1]);
+  const r1 = await (await env.STORE.get().fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "pwpurge" }) })).json();
+  const U2 = data.get("cz:u:" + uid);
+  check("NOPW purge erases email hashes, masked emails and password hashes", r1.v.done && !U2.pw && !U2.emh && !U2.emmask && !data.has("cz:em:h") && !data.has("rl:pwem:h"), r1.v);
+  check("NOPW purge runs only once", (await (await env.STORE.get().fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "pwpurge" }) })).json()).v.already === true);
+  check("NOPW the account still works with its existing key", (await call("/me", null, dan.auth))[0] === 200); }
 // P6: the owner's unlimited-coins test account stays out of other players' coins and cards
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   for (const [uid, name] of [["O", "Owner"], ["S", "Seller"]]) await T({ act: "ident", sub: uid, uid, tok: "t", name });

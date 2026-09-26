@@ -1244,8 +1244,6 @@ svg.trend{width:100%;height:auto;display:block;margin:4px 0 4px;color:var(--mute
 .cztr{font-style:normal;font-weight:800;font-size:.72rem;margin-left:6px;padding:1px 6px;border-radius:999px;white-space:nowrap}.cztr.up{color:#4ade80;background:rgba(74,222,128,.12)}.cztr.dn{color:#f87171;background:rgba(248,113,113,.12)}
 .czwhy{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:.86rem;color:var(--muted)}.czwhy b{display:block;color:var(--ink);margin-bottom:2px}
 .czor{display:flex;align-items:center;gap:10px;margin:12px 0 4px;color:var(--muted);font-size:.8rem}.czor::before,.czor::after{content:"";flex:1;height:1px;background:var(--line)}
-.czemail{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.czemail summary{cursor:pointer;font-weight:700;color:var(--muted)}
-.czpwf{display:grid;gap:8px;margin:10px 0 4px}.czpwf .field{width:100%;box-sizing:border-box;text-align:left}.czpwf.col label{display:grid;gap:4px;font-size:.85rem;font-weight:650}
 .gate-x{position:absolute;top:0;right:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-weight:650;font-size:.85rem;cursor:pointer;z-index:2}
 .gate-brand{text-align:center;margin:10px 0 18px}.gate-brand img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 40px #7c3aed66}
 .gate-brand h1{margin:12px 0 4px;font-size:1.7rem}.gate-brand p{margin:0 auto;color:var(--muted);max-width:360px}
@@ -2126,7 +2124,7 @@ dialog.onb p{margin:0 0 12px}
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
     <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Last page</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option><option value="cfb">College Football</option><option value="cbb">College Basketball</option></select></div>
-    <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn primary" type="button" id="acctIn" hidden>Sign in</button><button class="btn" type="button" id="acctPw" hidden>Email &amp; password</button><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
+    <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn primary" type="button" id="acctIn" hidden>Sign in</button><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
     <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about a player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
     <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" data-ui="close search">Manage</button></div>
     <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
@@ -2618,10 +2616,8 @@ function renderSettings(){
   ["#voiceRow", "#voiceRow2"].forEach(id => { const r = $(id); if (r) r.hidden = !canListen(); });
   $("#startSel").value = lsGet("startSport", "");
   { const gate = typeof GATE_ON !== "undefined" && GATE_ON, on = gate && !!czKey(); $("#acctRow").hidden = !gate; $("#acctIn").hidden = on; $("#acctOut").hidden = !on; $("#acctDel").hidden = !on;
-    $("#acctSummary").textContent = !on ? "Not signed in. Sign in for Cosmic and to keep your teams and settings on every device." : CZ.me ? `Signed in as ${CZ.me.name}${CZ.me.passkey ? " with a passkey" : CZ.me.email ? " with email and password" : ""}` : "Signed in";
+    $("#acctSummary").textContent = !on ? "Not signed in. Sign in for Cosmic and to keep your teams and settings on every device." : CZ.me ? `Signed in as ${CZ.me.name}${CZ.me.passkey ? " with a passkey" : ""}` : "Signed in";
     $("#acctIn").onclick = () => { $("#settingsDlg").close(); openSignIn(); };
-    $("#acctPw").hidden = !(on && CZ.me); $("#acctPw").onclick = () => { $("#settingsDlg").close(); czPwDialog(); };
-    if (on && CZ.me && CZ.me.email) $("#acctSummary").textContent += ` · email sign-in: ${CZ.me.email}`;
     $("#acctOut").onclick = async () => { if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; $("#settingsDlg").close(); await czSignOut(); };
     $("#acctDel").onclick = () => { $("#settingsDlg").close(); czDeleteAccount(); }; }
   const nf = Object.values(FAV).reduce((n, a) => n + a.length, 0); $("#favSummary").textContent = nf ? `${nf} team${nf === 1 ? "" : "s"} followed` : "No teams yet";
@@ -5012,7 +5008,7 @@ function drawCosmic(){
   const tabs = [["home", "", "Home"], ["bet", "", "Bet"], ["battle", "", "Battles" + (nBat ? ` (${nBat})` : "")], ["mine", "", "My bets"], ["packs", "", "Packs"], ["market", "", "Market"], ["trades", "", "Trades" + (nIn ? ` (${nIn})` : "")], ["coll", "", "Collection"], ["check", "", "Checklist"], ["lb", "", "Leaders"]];
   el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</nav>`
     + ({ home: czHomeHtml, bet: czBetHtml, battle: czBattleHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, trades: czTradesHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)() + czParlayBar()
-    + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.secured ? `${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · ` : ""}<button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="pw">${CZ.me.email ? "Email &amp; password" : "Add email &amp; password"}</button> · <button type="button" class="linkbtn" data-cz="signoutall">Sign out everywhere</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button>${cmKey() ? ` · <button type="button" class="linkbtn" data-cz="inbox">Owner inbox</button>` : ""}</div>
+    + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.secured ? `${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · ` : ""}<button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="signoutall">Sign out everywhere</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button>${cmKey() ? ` · <button type="button" class="linkbtn" data-cz="inbox">Owner inbox</button>` : ""}</div>
       <details><summary>About Cosmic Coins</summary><p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed.${CZ.me.passkey ? " Your account, cards, followed teams, settings and picks are saved and follow you to any device where you sign in." : ""}</p></details></footer>`;
   czBind(el); czAnimBal(); czSeasonNote();
   const t = el.querySelector('.cztabs [aria-pressed="true"]'); if (t && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center" });
@@ -5095,31 +5091,25 @@ function czHomeHtml(){
       <section class="card"><h2>Recent activity</h2>${L && L.feed.length ? `<div class="czfeed">${L.feed.slice(0, 6).map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet. Be the first to pull a rare one.</p>`}</section>
     </div>`;
 }
-// a new account from a name, email and password, for devices where passkeys don't work
-function czPwJoinHtml(){
-  return `<form data-czpw="join" class="czpwf"><input class="field" name="name" maxlength="20" placeholder="Your name (shown on leaderboards)" autocomplete="nickname" required>
-    <input class="field" name="email" type="email" autocomplete="username" placeholder="Email" required><input class="field" name="password" type="password" autocomplete="new-password" minlength="10" placeholder="Password (10+ characters)" required>
-    <input class="field" name="confirm" type="password" autocomplete="new-password" minlength="10" placeholder="Type the password again" required><button class="btn primary" type="submit">Create account</button></form>`;
-}
-// signing in or joining: two tabs. Email and password work everywhere; a passkey (Face ID, fingerprint, passcode) is the quicker option where it works.
-function czAuthHtml(pkOk){
+// signing in or joining with a passkey (Face ID, a fingerprint or the device's passcode): two tabs
+function czAuthHtml(){
   const P = CZ.pk || (CZ.pk = {}), last = lsGet("cz-lastname", ""), tab = P.tab || (last ? "in" : "new");
   const tabs = `<div class="czauthtabs" role="tablist">${[["new", "Create account"], ["in", "Sign in"]].map(([k, l]) => `<button type="button" role="tab" data-czauth="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}</div>`;
-  const joinBody = `<p class="sub">Free. Pick a name for the leaderboards and you start with ${czAmt(1000)} plus a free pack.</p>${czPwJoinHtml()}
-    ${pkOk ? `<p class="czor"><span>or use a passkey instead of a password</span></p><form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn" type="submit">${czPkIcon()}Create with a passkey</button></form>` : ""}`;
-  const inBody = `<p class="sub">Your coins, cards and teams come right back.</p>
-    <form data-czpw="login" class="czpwf"><input class="field" name="email" type="email" autocomplete="username" placeholder="Email" required><input class="field" name="password" type="password" autocomplete="current-password" placeholder="Password" required><button class="btn primary" type="submit">Sign in</button></form>
-    ${pkOk ? `<p class="czor"><span>or</span></p><button type="button" class="btn czpkbtn" data-czpk="login">${czPkIcon()}Sign in with a passkey</button>` : ""}
-    <p class="sub" style="font-size:.8rem;margin-top:10px">Made your account with a passkey? You can add an email and password in Settings, Account, on a device where you're signed in. Forgot your password? Sign in there and choose a new one.</p>`;
-  return `<section class="card czjoin czauth"><h2>${tab === "new" ? "Create your account" : last ? `Welcome back, ${esc(last)}` : "Sign in"}</h2>${tabs}
-    ${tab === "new" ? joinBody : inBody}
-    <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p><p class="sub" style="margin:10px 0 0;font-size:.8rem">Have an old Cosmic key? <button type="button" class="linkbtn" data-cz="usekey">Use it here</button>.</p></section>`;
+  const body = tab === "new"
+    ? `<p class="sub">Free. Pick a name for the leaderboards, then create your passkey with Face ID, your fingerprint or your device's passcode. No email and no password. You start with ${czAmt(1000)} plus a free pack.</p>
+      <form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn primary" type="submit">${czPkIcon()}Create account</button></form>`
+    : `<p class="sub">Sign in with your passkey: Face ID, your fingerprint or your passcode. Your coins, cards and teams come right back.</p>
+      <button type="button" class="btn primary czpkbtn" data-czpk="login">${czPkIcon()}Sign in with a passkey</button>`;
+  return `<section class="card czjoin czauth"><h2>${tab === "new" ? "Create your account" : last ? `Welcome back, ${esc(last)}` : "Sign in"}</h2>${tabs}${body}
+    <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p><p class="sub" style="margin:10px 0 0;font-size:.8rem">Have a Cosmic account key? <button type="button" class="linkbtn" data-cz="usekey">Use it here</button>.</p></section>`;
 }
 function czJoinHtml(){
-  if (!CZ.preview && !CZ.previewing){ CZ.previewing = true; czApi("/vault?tier=singularity&kind=team&limit=4").then(d => { CZ.preview = d.items; if (!CZ.me && SPORT === "cosmic") drawCosmic(); }).catch(() => {}); }
-  const ones = (CZ.preview || []).slice(0, 4);
-  return czAuthHtml(false) + `
-    ${ones.length ? `<section class="card"><h2>In the vault</h2><p class="sub">Every team and every player in the NFL, NBA, MLB, NHL and Premier League, plus the top tennis players, in seven tiers from 1 of 1,000 to 1 of 1. Only one Singularity card of each will ever exist.</p><div class="czgrid">${ones.map(i => czCard(i)).join("")}</div></section>` : ""}`;
+  const P = CZ.pk || {};
+  return `<section class="card czjoin"><h2>Join Cosmic</h2><p class="sub">This browser can't make passkeys. You can still play: pick a name and your account is kept by its account key on this device. No email, nothing personal.</p>
+    <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button></form>
+    <p class="sub" style="margin:10px 0 0">Until you add a passkey from a phone or computer that supports them, this account stays off the leaderboards and can't collect cards or report players. Save your account key (Cosmic, Account key) so you don't lose it.</p>
+    <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p>
+    <p class="sub" style="margin:10px 0 0">Already playing on another device? <button type="button" class="linkbtn" data-cz="usekey">Use your Cosmic key</button></p></section>`;
 }
 // ---- passkeys: sign in with Face ID, a fingerprint or the device's passcode. Old device-key accounts add a passkey once.
 const czPkSupported = () => typeof window.PublicKeyCredential === "function" && !!(navigator.credentials && navigator.credentials.create);
@@ -5128,13 +5118,13 @@ const b64uD = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") 
 function czPkHtml(link){
   const P = CZ.pk || (CZ.pk = {});
   if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmo Sports accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets, followed teams and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
-    <button type="button" class="btn primary czpkbtn" data-czpk="link">${czPkIcon()}Create a passkey</button><p class="czor"><span>or</span></p><button type="button" class="btn" data-cz="pw">Use an email and password instead</button><p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p></section>`;
-  return czAuthHtml(true);
+    <button type="button" class="btn primary czpkbtn" data-czpk="link">${czPkIcon()}Create a passkey</button><p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p></section>`;
+  return czAuthHtml();
 }
 const czPkIcon = () => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:6px"><circle cx="8" cy="8" r="4"/><path d="M11 11l8 8M16 16l2-2M18.5 18.5l2-2"/></svg>`;
 function czPkErr(e){
-  if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return "The passkey didn't go through. Try again, or use your email and password instead.";
-  if (e && (e.name === "NotSupportedError" || e.name === "SecurityError")) return "Passkeys don't work on this device. Use an email and password instead.";
+  if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) return "The passkey didn't go through. Try again when you're ready.";
+  if (e && (e.name === "NotSupportedError" || e.name === "SecurityError")) return "Passkeys don't work in this browser. Try Safari or Chrome, or another device.";
   if (e && /name is taken/i.test(e.message || "")) return "That name is taken. If it's your account, use the Sign in tab.";
   if (e && e.name === "InvalidStateError") return "This device already has a Cosmic passkey. Use Sign in with a passkey.";
   return (e && e.message) || "Something went wrong. Try again.";
@@ -5158,11 +5148,6 @@ function czPkBind(el){
   el.querySelectorAll("[data-czpk=link]").forEach(b => b.onclick = () => run(b, () => czPkCreate("", true)));
   el.querySelectorAll("[data-czpk=add]").forEach(b => b.onclick = async () => { try { await czPkCreate("", true); toast("Passkey added on this device"); } catch (e) { toast(czPkErr(e)); } });
   el.querySelectorAll("[data-czauth]").forEach(b => b.onclick = () => { P.tab = b.dataset.czauth; P.err = ""; redraw(); GATE.sig = ""; drawGate(); const f = document.querySelector(GATE.open ? "#gate .czauth input" : "#cosmicView .czauth input"); if (f) f.focus(); });
-  el.querySelectorAll("form[data-czpw=join]").forEach(jf => jf.onsubmit = e => { e.preventDefault();
-    if (jf.password.value !== jf.confirm.value){ P.err = "The two passwords don't match."; const er = el.querySelector("#czPkErr"); if (er) er.textContent = P.err; return; }
-    P.newOpen = true; run(jf.querySelector("button"), () => czApi("/pw/join", { name: jf.name.value.trim(), email: jf.email.value.trim(), password: jf.password.value, ref: lsGet("cz-ref", null) })); });
-  const pf = el.querySelector("form[data-czpw=login]"); if (pf) pf.onsubmit = e => { e.preventDefault(); const email = pf.email.value.trim(), password = pf.password.value;
-    P.pwOpen = true; run(pf.querySelector("button"), () => czApi("/pw/login", { email, password })); };
   const f = el.querySelector("form[data-czpk=new]"); if (f) f.onsubmit = e => { e.preventDefault(); P.name = f.name.value.trim(); P.newOpen = true; run(f.querySelector("button"), () => czPkCreate(P.name, false)); };
 }
 // ---- the owner's inbox: reports wait here for review (nothing is renamed automatically) and support messages are kept 180 days
@@ -5182,30 +5167,6 @@ async function czInbox(){
   $("#infoBody").querySelectorAll("[data-ind]").forEach(b => b.onclick = () => act("/owner/review", { name: b.dataset.ind, action: "dismiss" }, "Reports dismissed"));
   $("#infoBody").querySelectorAll("[data-ins]").forEach(b => b.onclick = () => act("/owner/support/delete", { id: b.dataset.ins }, "Message cleared"));
   if (!$("#infoDlg").open) $("#infoDlg").showModal();
-}
-// ---- email and password, for signing in on a computer. Set up from a device that's already signed in.
-function czPwDialog(){
-  if (!CZ.me) return; const has = !!CZ.me.email;
-  $("#infoBody").innerHTML = `<h2 id="infoTitle">Email &amp; password</h2>
-    <p class="sub">${has ? `You can sign in on a computer with <b>${esc(CZ.me.email)}</b> and your password. Change either one below.` : "Add an email and password to sign in on a computer (or any device without your passkey). Your passkey keeps working too."}</p>
-    <form class="czpwf col" id="czPwForm">
-      <label>Email<input class="field" name="email" type="email" autocomplete="username" required placeholder="you@example.com"></label>
-      <label>${has ? "New password" : "Password"}<input class="field" name="password" type="password" autocomplete="new-password" minlength="10" required placeholder="At least 10 characters"></label>
-      <label>Type it again<input class="field" name="confirm" type="password" autocomplete="new-password" minlength="10" required></label>
-      ${has ? `<label>Current password<input class="field" name="current" type="password" autocomplete="current-password" required></label>` : ""}
-      <p class="czerr" id="czPwErr" role="alert"></p>
-      <div class="pkfoot">${has ? `<button class="btn" type="button" id="czPwRemove">Remove</button>` : "<span></span>"}<button class="btn primary" type="submit">${has ? "Save changes" : "Add email & password"}</button></div></form>
-    <p class="sub" style="font-size:.8rem;margin-top:10px">We keep only a scrambled form of your email (to find your account) and of your password. We never send you email, so if you forget the password, sign in with your passkey and set a new one here.</p>`;
-  const f = $("#czPwForm"), err = t => { $("#czPwErr").textContent = t; };
-  f.onsubmit = async e => { e.preventDefault(); err("");
-    if (f.password.value !== f.confirm.value) return err("The two passwords don't match.");
-    const b = f.querySelector("button[type=submit]"); b.disabled = true;
-    try { const r = await czApi("/pw/set", { email: f.email.value.trim(), password: f.password.value, current: f.current ? f.current.value : undefined }); CZ.me = r.user; $("#infoDlg").close(); toast(`Saved. Sign in on your computer with ${r.user.email}.`); drawCosmic(); renderSettings(); }
-    catch (x) { err(x.message); b.disabled = false; } };
-  const rm = $("#czPwRemove"); if (rm) rm.onclick = async () => { err(""); if (!f.current.value) return err("Enter your current password to remove it.");
-    if (!confirm("Remove email and password sign-in? You'll sign in with your passkey only.")) return;
-    try { const r = await czApi("/pw/remove", { current: f.current.value }); CZ.me = r.user; $("#infoDlg").close(); toast("Email and password removed"); drawCosmic(); renderSettings(); } catch (x) { err(x.message); } };
-  if (!$("#infoDlg").open) $("#infoDlg").showModal(); setTimeout(() => f.email.focus(), 50);
 }
 // ---- report and block: tap any player's name on the leaderboard, the Market or the feed
 const czBlocked = () => lsGet("cz-blocked", []);
@@ -5330,7 +5291,7 @@ function drawGate(){
   $("#gateBody").innerHTML = `<button type="button" class="gate-x" id="gateClose" aria-label="Close">Not now</button><div class="gate-brand"><img src="icon-192.png" alt="" width="84" height="84"><h1 id="gateTitle">Cosmo Sports</h1><p>${link ? "One quick step to keep your account safe." : "Sign in or create a free account to play Cosmic and keep your teams and settings on every device. Scores and predictions work without one."}</p></div>
     ${link ? "" : `${lsGet("cz-ref", null) ? `<p class="gate-inv">A friend invited you: you'll both get 500 bonus coins when you join.</p>` : ""}<ul class="gate-perks"><li>📈 Live scores, predictions and the model's track record for every league</li><li>🪐 Cosmic: free play coins, bets and limited-edition cards, down to 1 of 1</li><li>☁️ Your teams, cards and settings saved to your account on every device</li></ul>`}
     <div id="instGate">${installCardHtml("gate")}</div>
-    ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free. Sign in with a passkey, or with an email and password once you've added one. By creating an account you agree to the <a href="terms.html">Terms of Use</a>. <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>`;
+    ${pk ? czPkHtml(link) : czJoinHtml()}<p class="sub" style="text-align:center;margin-top:14px;font-size:.8rem">Free. No email, no password: you sign in with a passkey. By creating an account you agree to the <a href="terms.html">Terms of Use</a>. <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></p>`;
   czBind($("#gateBody")); czPkBind($("#gateBody")); bindInstall($("#gateBody")); $("#gateClose").onclick = closeSignIn;
 }
 function gateStart(){
@@ -5976,7 +5937,6 @@ function czBind(el){
     if (k === "signout"){ if (!confirm("Sign out of Cosmo Sports on this device? Your account stays saved; sign back in any time with your passkey.")) return; await czSignOut(); return; }
     if (k === "signoutall"){ if (!confirm("Sign out everywhere? Every phone and computer signed in to your account, this one included, is signed out, and any copy of your account key stops working. Sign back in with your passkey.")) return; await czSignOut(true); toast("Signed out everywhere"); return; }
     if (k === "inbox"){ czInbox(); return; }
-    if (k === "pw"){ czPwDialog(); return; }
     if (k === "owner"){                                               // the site owner's testing switch, unlocked with the Comets writer key
       let key = cmKey();
       if (!key && !CZ.me.tester){ key = (prompt("Owner only: paste your owner key (the COMETS_KEY you set up for Comets) to give this account unlimited coins for testing.") || "").trim(); if (!key) return; }
