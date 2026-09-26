@@ -1516,9 +1516,14 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czrk i{width:40%;height:40%;border-radius:50%;background:rgba(255,255,255,.55)}
 .czrk.sm{width:20px;height:20px;vertical-align:-5px}.czrk.xl{width:84px;height:84px}
 .rk-silver{--c:#cbd5e1}.rk-gold{--c:#fbbf24}.rk-platinum{--c:#67e8f9}.rk-diamond{--c:#a5b4fc}.rk-cosmic{--c:#f0abfc;animation:czrkglow 2.4s ease-in-out infinite}
+.rk-master{--c:#f87171}.rk-grandmaster{--c:#ef4444;box-shadow:0 0 16px #ef4444}.rk-nova{--c:#fb923c;animation:czrkglow 3s ease-in-out infinite}.rk-galaxy{--c:#818cf8;animation:czrkglow 2.8s ease-in-out infinite}
+.rk-eternal{--c:#fde68a;animation:czrkglow 1.6s ease-in-out infinite;box-shadow:0 0 22px #fde68a,0 0 44px #f0abfc}
+.czrk{position:relative}.czdiv{position:absolute;bottom:6%;left:0;right:0;text-align:center;font:900 9px/1 system-ui;color:#fff;text-decoration:none;letter-spacing:-1px;text-shadow:0 0 3px #000}
+.czrk.sm .czdiv{font-size:7px;bottom:2%}.czrk.xl .czdiv{font-size:22px;letter-spacing:0}
+@media (prefers-reduced-motion:reduce){.rk-nova,.rk-galaxy,.rk-eternal{animation:none}}
 @keyframes czrkglow{50%{filter:hue-rotate(60deg) brightness(1.2)}}
-.czranks{display:grid;gap:6px;margin:12px 0}.czrankrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-2)}
-.czrankrow.me{border-color:#c084fc;box-shadow:0 0 0 1px #c084fc inset}.czrankrow.done{opacity:.6}.czrankrow span{color:var(--muted);font-size:.84rem}.czrankrow em{font-style:normal;font-weight:700;color:#fde68a;font-size:.84rem}
+.czranks{display:grid;gap:4px;margin:12px 0}.czrankrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:5px 10px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-2)}
+.czrankrow{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"bd nm co" "bd pt co";gap:0 10px}.czrankrow>*{white-space:nowrap}.czrankrow>.czrk{grid-area:bd}.czrankrow>b{grid-area:nm;line-height:1.15}.czrankrow>span{grid-area:pt;font-size:.76rem!important;line-height:1.1}.czrankrow>em{grid-area:co}.czrankrow.me{border-color:#c084fc;box-shadow:0 0 0 1px #c084fc inset}.czrankrow.done{opacity:.6}.czrankrow span{color:var(--muted);font-size:.84rem}.czrankrow em{font-style:normal;font-weight:700;color:#fde68a;font-size:.84rem}
 .czhowpts{margin:6px 0 12px;padding-left:18px;color:var(--muted);font-size:.88rem;display:grid;gap:4px}.czhowpts b{color:var(--ink)}
 .czsnote{text-align:center;display:grid;justify-items:center;gap:8px;padding:10px 0}
 .czwheel{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:16px;align-items:center}
@@ -5629,9 +5634,17 @@ function czTilt(root){
 }
 try { new MutationObserver(() => czTilt($("#infoBody"))).observe($("#infoBody"), { childList: true, subtree: true }); } catch {}
 /* ---- Seasons: a calendar month of points from betting, packs, spins and battles; the tier you finish on pays out ---- */
-const CZ_RANKS = [["bronze", "Bronze", 0, 0], ["silver", "Silver", 150, 500], ["gold", "Gold", 400, 1500], ["platinum", "Platinum", 800, 3000], ["diamond", "Diamond", 1500, 6000], ["cosmic", "Cosmic", 2500, 10000]];
+const CZ_RANKS = [["bronze", "Bronze I", 0, 0], ["bronze-2", "Bronze II", 75, 150], ["bronze-3", "Bronze III", 150, 300],
+  ["silver", "Silver I", 250, 500], ["silver-2", "Silver II", 375, 700], ["silver-3", "Silver III", 500, 900],
+  ["gold", "Gold I", 700, 1200], ["gold-2", "Gold II", 950, 1500], ["gold-3", "Gold III", 1250, 1900],
+  ["platinum", "Platinum I", 1600, 2400], ["platinum-2", "Platinum II", 2000, 3000], ["platinum-3", "Platinum III", 2500, 3600],
+  ["diamond", "Diamond I", 3100, 4400], ["diamond-2", "Diamond II", 3800, 5200], ["diamond-3", "Diamond III", 4600, 6000],
+  ["master", "Master", 5600, 7500], ["grandmaster", "Grandmaster", 7000, 9000], ["nova", "Nova", 8800, 11000],
+  ["galaxy", "Galaxy", 11000, 13500], ["cosmic", "Cosmic", 14000, 16000], ["eternal", "Eternal", 18000, 20000]];
 function czSeasonInfo(pts){ let i = 0; CZ_RANKS.forEach((r, k) => { if (pts >= r[2]) i = k; }); const cur = CZ_RANKS[i], nx = CZ_RANKS[i + 1]; return { cur, nx, i, pct: nx ? (pts - cur[2]) / (nx[2] - cur[2]) : 1 }; }
-const czRkBadge = (id, cls = "") => `<span class="czrk rk-${id} ${cls}" aria-hidden="true"><i></i></span>`;
+// a rank's badge: its tier's color, with one to three pips for the division (Gold I, II, III)
+const czRkBadge = (id, cls = "") => { const [base, div] = String(id).split("-");
+  return `<span class="czrk rk-${esc(base)} ${cls}" aria-hidden="true"><i></i>${div ? `<u class="czdiv">${"•".repeat(+div || 1)}</u>` : ""}</span>`; };
 const czSeasonEnd = () => { const d = czToday(), y = +d.slice(0, 4), m = +d.slice(4, 6); return Date.UTC(m === 12 ? y + 1 : y, m % 12, 1, 4); };
 const czSeasonName = s => new Date(Date.UTC(+String(s).slice(0, 4), +String(s).slice(4, 6) - 1, 15)).toLocaleDateString([], { month: "long", year: "numeric" });
 function czSeasonChip(){
@@ -5641,7 +5654,8 @@ function czSeasonChip(){
 function czSeasonDlg(){
   const sp = (CZ.me.sp && CZ.me.sp.season === czToday().slice(0, 6)) ? CZ.me.sp.pts || 0 : 0, info = czSeasonInfo(sp), top = (CZ.lb && CZ.lb.season) || [];
   $("#infoBody").innerHTML = `<h2 id="infoTitle">${czSeasonName(czToday().slice(0, 6))} season</h2><p class="sub">Earn points all month. When the season ends you're paid for the tier you finished on, and everyone starts again at Bronze. Ends in ${czLeft(czSeasonEnd() - Date.now())}.</p>
-    <div class="czranks">${CZ_RANKS.map((r, k) => `<div class="czrankrow ${k === info.i ? "me" : k < info.i ? "done" : ""}">${czRkBadge(r[0], "sm")}<b>${r[1]}</b><span>${r[2].toLocaleString()} pts</span><em>${r[3] ? "+" + r[3].toLocaleString() + " coins" : "—"}</em></div>`).join("")}</div>
+    <p class="sub czrankkey">21 ranks, from Bronze I to Eternal. Each row shows the points to reach it and the coins it pays when the season ends.</p>
+    <div class="czranks">${CZ_RANKS.map((r, k) => `<div class="czrankrow ${k === info.i ? "me" : k < info.i ? "done" : ""}">${czRkBadge(r[0], "sm")}<b>${r[1]}</b><span>${r[2].toLocaleString()} pts</span><em>${r[3] ? "+" + r[3].toLocaleString() : "—"}</em></div>`).join("")}</div>
     <h3 class="subh">How to earn points</h3><ul class="czhowpts"><li><b>Win a bet</b> 10 points plus 1 for every 25 coins of profit</li><li><b>Hit a parlay</b> 25 points plus 1 for every 25 coins of profit</li><li><b>Win a battle</b> 30 points (8 for a loss)</li><li><b>Spin the wheel or claim daily coins</b> 5 points each</li><li><b>Open a pack</b> 3 points · <b>Lose a bet</b> 2 points</li></ul>
     ${top.length ? `<h3 class="subh">Top of the season</h3>${top.slice(0, 10).map((r, i) => { const x = czSeasonInfo(r.sp.pts); return `<div class="czlbr ${r.uid === CZ.me.uid ? "me" : ""}"><span class="ldn">${i + 1}</span>${czRkBadge(x.cur[0], "sm")}${czWhoBtn(r.name)}<span>${r.sp.pts.toLocaleString()} pts</span></div>`; }).join("")}` : ""}
     ${(CZ.me.seasons || []).length ? `<h3 class="subh">Your past seasons</h3>${CZ.me.seasons.slice().reverse().map(s => `<div class="czlbr">${czRkBadge(s.tier, "sm")}<b>${esc(czSeasonName(s.season))}</b><span>${esc(s.label)} · ${s.pts.toLocaleString()} pts · +${s.reward.toLocaleString()}</span></div>`).join("")}` : ""}
