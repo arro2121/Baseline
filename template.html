@@ -5442,14 +5442,17 @@ function czPriceWhy(V){
   if (!V) return ""; const bits = [];
   if (V.kind === "team") bits.push(V.rank ? `#${V.rank} in the Cosmo ratings right now` : "the team's current rating");
   else if (V.hobby) { bits.push(`real-card demand ${V.hobby}/10 — ${V.hobby >= 8.5 ? "one of the hottest names in the hobby" : V.hobby >= 6 ? "a top seller among collectors" : V.hobby >= 4 ? "steady demand from collectors" : "a collector favorite"}`);
-    if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? ` (${esc(V.line)})` : ""}`); else if (V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings`); }
+    const f = V.form ? ` (${V.form > 0 ? "+" : "−"}${Math.abs(V.form)}%)` : "";
+    if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? `, ${esc(V.line)}` : ""}${f}`);
+    else if (V.off) bits.push(`not among this season's league leaders${f}`);
+    else if (V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings${f}`); }
   else if (V.ovr) bits.push(`rated ${V.ovr} on this season's play${V.line ? ` (${esc(V.line)})` : ""}`);
   else if (["atp", "wta"].includes(V.lg) && V.rank) bits.push(`#${V.rank} in the ${V.lg.toUpperCase()} rankings`);
   else bits.push("a depth player without a season rating yet");
   if (V.level > 1) bits.push(`level ${V.level} from big games (+${(V.level - 1) * 15}%)`);
   if (V.hot) bits.push("hot from a big game (+10%)");
   if (V.scarce) bits.push(`${V.scarce >= 25 ? "sold out" : "copies being pulled"} (+${V.scarce}%)`);
-  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices track what each player's real cards sell for next to other players, adjusted nightly for real play: ${bits.join(", ")}.</p>`;
+  return `<p class="czwhy"><b>Why ${czAmt(V.value)}${czTrendChip(V.trend)}</b> Prices track what each player's real cards sell for next to other players, and rise or fall every night with how he's playing this season: ${bits.join(", ")}.</p>`;
 }
 function czVaultHtml(){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
