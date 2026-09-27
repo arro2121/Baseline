@@ -9,7 +9,7 @@ Everything to paste into App Store Connect (My Apps > Cosmo Sports). Character l
 - **SKU**: cosmosports-ios
 - **Primary category**: Sports
 - **Secondary category**: Entertainment
-- **Content rights**: Doesn't contain, show or access third-party content that needs rights. (Scores and stats are facts from public sports data; team logos are shown only to identify teams.)
+- **Content rights**: Doesn't contain, show or access third-party content that needs rights. (Scores and stats are facts from public sports data. The app shows no team logos, player photos, league marks or video clips; teams appear as their names, colours and short codes.)
 - **Privacy policy URL**: https://cosmosports.app/privacy.html
 - **Support URL**: https://cosmosports.app/support.html (FAQ and a contact form)
 - **Marketing URL**: https://cosmosports.app/

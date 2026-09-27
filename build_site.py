@@ -45,15 +45,6 @@ MANIFEST = {
         {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
         {"src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png"},
         {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
-    "screenshots": [
-        {"src": "screenshots/phone-universe.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Universe: every live game at once, ranked by excitement"},
-        {"src": "screenshots/phone-ask.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Ask Cosmo, your AI sports companion"},
-        {"src": "screenshots/phone-play.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Daily 3 picks against the Cosmo model"},
-        {"src": "screenshots/phone-games.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Live games with logos and win chances"},
-        {"src": "screenshots/phone-pbp.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Animated play-by-play and real replays"},
-        {"src": "screenshots/phone-box.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Full box scores"},
-        {"src": "screenshots/phone-team.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Team pages with schedule and roster"},
-        {"src": "screenshots/desktop.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "The Universe on a computer"}],
     "shortcuts": [
         {"name": "Today: every game", "short_name": "Today", "url": "./?sport=universe", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         {"name": "Ask Cosmo", "short_name": "Ask", "url": "./?ask=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
@@ -203,8 +194,6 @@ def main(hosted=True, out="docs/index.html"):
     live = json.load(open(live_path)) if os.path.exists(live_path) else {"asof": "1970-01-01T00:00:00Z", "matches": []}
     tpl = open("template.html", encoding="utf-8").read()
     sports = json.load(open("sports.json")) if os.path.exists("sports.json") else {"built": "", "leagues": {}}
-    if hosted:
-        local_logos(sports, os.path.dirname(out))
     html = (tpl.replace("/*LIVE*/", json.dumps(live)).replace("/*SPORTS*/", json.dumps(sports, separators=(",", ":"))).replace("/*TEAMCOLORS*/", open("team_colors.json").read()).replace("/*FLAGFONT*/", font).replace("/*FLAGS*/", json.dumps(flags))
                .replace("/*HOSTED*/false", "true" if hosted else "false")
                .replace("/*ALERTS_URL*/", alerts_url() if hosted else "")
