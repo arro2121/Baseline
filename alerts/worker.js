@@ -1605,9 +1605,10 @@ const CZ_SHOP = .4, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, 
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
 // tiers: [id, name, copies, real-card price in US dollars of an average starter's card in that tier]. Like real parallels: a base
 // card is about $1, a /250 about $4, a /50 about $25, a /10 about $250 and a 1-of-1 about $2,500, before the player's value
-// rarities are the planets: the farther from the Sun, the rarer (ids stay as they were; Neptune is the Grail)
-export const CZ_TIERS = [["singularity", "Uranus", 1, 2500], ["supernova", "Saturn", 10, 250], ["quasar", "Jupiter", 25, 60], ["nebula", "Mars", 50, 25],
-  ["pulsar", "Earth", 100, 10], ["stardust", "Venus", 250, 4], ["comet", "Mercury", 1000, 1]];
+// each rarity is a body in the solar system: Jupiter /1000, Venus /250, Neptune /100, Mars /50, Earth /25, the Moon /10
+// and the Sun 1/1 (ids stay as they were)
+export const CZ_TIERS = [["singularity", "Sun", 1, 2500], ["supernova", "Moon", 10, 250], ["quasar", "Earth", 25, 60], ["nebula", "Mars", 50, 25],
+  ["pulsar", "Neptune", 100, 10], ["stardust", "Venus", 250, 4], ["comet", "Jupiter", 1000, 1]];
 // what a card would sell for as a real card: the tier's price times the player's value, curved the way the real market is (a
 // superstar's cards sell for many times a role player's: value^2.2, so a 3.0 is worth about 11x a 1.0). Team cards sell for
 // far less than players' cards. Coins are 50 to the dollar (a coin is 2 cents).
@@ -1623,11 +1624,11 @@ export const czCoins = usd => Math.max(10, Math.round(usd * CZ_COINS_PER_USD / 1
 // ch: the chance that each card comes out as a case hit. Pricier packs hit more often: 1 in 150 cards in a Comet pack up
 // to 1 in 30 in a Galaxy pack (a case hit averages about 2.9x the card, so this adds a little to what the big packs return)
 export const CZ_PACKS = [
-  { id: "comet", label: "Mercury Pack", price: 100, cards: 1, odds: [0.001, 0.02, 0.2, 1.5, 7, 30, 61.279], ch: 1 / 150 },
+  { id: "comet", label: "Jupiter Pack", price: 100, cards: 1, odds: [0.001, 0.02, 0.2, 1.5, 7, 30, 61.279], ch: 1 / 150 },
   { id: "stardust", label: "Venus Pack", price: 250, cards: 1, odds: [0.007, 0.09, 1.1, 7.5, 26, 45, 20.303], ch: 1 / 125 },
   { id: "nebula", label: "Mars Pack", price: 1000, cards: 2, odds: [0.027, 0.38, 3.8, 23, 42, 30.793, 0], ch: 1 / 100 },
-  { id: "supernova", label: "Saturn Pack", price: 5000, cards: 2, odds: [0.88, 8, 25, 40, 26.12, 0, 0], ch: 1 / 70 },
-  { id: "singularity", label: "Uranus Pack", price: 10000, cards: 2, odds: [2.45, 15, 40, 42.55, 0, 0, 0], ch: 1 / 50 },
+  { id: "supernova", label: "Moon Pack", price: 5000, cards: 2, odds: [0.88, 8, 25, 40, 26.12, 0, 0], ch: 1 / 70 },
+  { id: "singularity", label: "Sun Pack", price: 10000, cards: 2, odds: [2.45, 15, 40, 42.55, 0, 0, 0], ch: 1 / 50 },
   { id: "galaxy", label: "Solar System Pack", price: 100000, cards: 3, odds: [26.5, 50, 23.5, 0, 0, 0, 0], ch: 1 / 30 },
 ];
 export const CZ_PACK_MAX = 10;                                     // packs bought and opened at once
