@@ -105,7 +105,11 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 // S11
 { const c = W.czSyncClean({ v: 1, ls: { picks: { a: 1 }, evil: "<x>", spoil: "x".repeat(5000) }, fav: { nfl: ["Chiefs", 5], "../x": ["y"] }, settings: { theme: "dark", obj: { deep: 1 } }, extra: 1 });
   check("S11 synced data keeps only known keys within their size caps", JSON.stringify(c) === '{"v":1,"ls":{"picks":{"a":1}},"fav":{"nfl":["Chiefs"]},"settings":{"theme":"dark"}}', c);
-  check("S11 junk is refused", (await call("/data", "not an object", dan.auth, "PUT"))[0] === 400); }
+  check("S11 junk is refused", (await call("/data", "not an object", dan.auth, "PUT"))[0] === 400);
+  // A17 (round 2): an oversized known part is refused, and the saved copy keeps it rather than losing it silently
+  await call("/data", { v: 1, ls: { picks: { a: 1 } } }, dan.auth, "PUT");
+  const big = await call("/data", { v: 1, ls: { picks: { a: "x".repeat(70000) } } }, dan.auth, "PUT"), kept = JSON.parse(data.get("cz:data:" + dan.auth.split(".")[0]));
+  check("A17 oversized synced picks are refused with 413 and the saved picks stay", big[0] === 413 && kept.ls.picks && kept.ls.picks.a === 1, big); }
 // email and password sign-in was removed: no routes, and a one-time purge erases anything it stored
 { check("NOPW email sign-in is gone", (await call("/pw/login", { email: "a@b.co", password: "whatever-long-1" }, null, "POST", { ip: "12.0.0.1" }))[0] >= 400);
   check("NOPW email sign-up is gone", (await call("/pw/join", { name: "Nope", email: "n@b.co", password: "whatever-long-1" }, null, "POST", { ip: "12.0.0.2" }))[0] >= 400);

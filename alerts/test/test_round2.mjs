@@ -2,7 +2,7 @@
 // Run: node alerts/test/test_round2.mjs
 import * as W0 from "../worker.js";
 // functions added by these fixes are stubbed on older code so every check still runs (and fails) there
-const W = { ...W0, isOff: W0.isOff || (() => false), sportsDay: W0.sportsDay || (() => ""), normInjuries: W0.normInjuries || (() => ({})), czNanFixTx: W0.czNanFixTx || (async () => ({})), dayBefore: W0.dayBefore || (() => ""), dayAfter: W0.dayAfter || (() => "") };
+const W = { ...W0, mlbEspnMatch: W0.mlbEspnMatch || (() => null), dhWaiting: W0.dhWaiting || (() => false), isOff: W0.isOff || (() => false), sportsDay: W0.sportsDay || (() => ""), normInjuries: W0.normInjuries || (() => ({})), czNanFixTx: W0.czNanFixTx || (async () => ({})), dayBefore: W0.dayBefore || (() => ""), dayAfter: W0.dayAfter || (() => "") };
 let fails = 0;
 const check = (name, ok, got) => { console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  (got " + JSON.stringify(got)?.slice(0, 200) + ")"}`); if (!ok) fails++; };
 const mem = () => { const m = new Map(); return { m, st: { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k), list: async ({ prefix = "" } = {}) => new Map([...m].filter(([k]) => k.startsWith(prefix))) } }; };
@@ -120,4 +120,13 @@ check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse
 // A9: the injury report can be computed from ESPN's data by the page itself
 { const r = W.normInjuries("nba", { injuries: [{ displayName: "Lakers", injuries: [{ athlete: { displayName: "Star Guy", position: { abbreviation: "G" } }, status: "Out" }] }] }, new Map([["star guy", { pool: "guards", rank: 0, size: 50 }]]));
   check("A9 injuries are computed from ESPN's report without the alerts service", r.teams && r.teams.Lakers && r.teams.Lakers.pen > 0, r); }
+
+// ---- batch 3 ----
+// A10: doubleheader game 2 gets game 2's line and waits for game 1 to finish
+{ const tm = (h, a) => ({ home: { name: h }, away: { name: a } });
+  const espn = [{ ...tm("New York Yankees", "Baltimore Orioles"), date: "2026-09-25T17:05Z", odds: { details: "G1" } }, { ...tm("New York Yankees", "Baltimore Orioles"), date: "2026-09-25T23:05Z", odds: { details: "G2" } }];
+  const g1 = { ...tm("New York Yankees", "Baltimore Orioles"), date: "2026-09-25T17:05Z", gnum: 1, dh: "Y", status: { state: "in" } };
+  const g2 = { ...tm("New York Yankees", "Baltimore Orioles"), date: "2026-09-25T17:05Z", gnum: 2, dh: "Y", status: { state: "pre" } };   // placeholder time
+  check("A10 game 2 of a doubleheader gets game 2's line", W.mlbEspnMatch(espn, g2)?.odds?.details === "G2" && W.mlbEspnMatch(espn, g1)?.odds?.details === "G1", W.mlbEspnMatch(espn, g2));
+  check("A10 game 2 isn't locked while game 1 is still going", W.dhWaiting(g2, [g1, g2]) === true && W.dhWaiting(g2, [{ ...g1, status: { state: "post" } }, g2]) === false); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
