@@ -2083,6 +2083,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czins-in{position:relative;display:grid;justify-items:center;gap:10px;text-align:center;width:min(92vw,380px)}
 .czins-kick{font-size:.72rem;font-weight:850;letter-spacing:.3em;text-transform:uppercase;color:var(--pl);opacity:0;animation:czcluein .5s .45s forwards}
 .czins-kick.lv-mythic{color:#f0abfc;text-shadow:0 0 10px #d946ef}.czins-kick.lv-legendary{color:#fcd34d;text-shadow:0 0 10px #f59e0b}
+.czolist li.czchodds{grid-column:1/-1;border-top:1px dashed rgba(233,213,255,.25);padding-top:4px;margin-top:2px}.czdot.ch{background:conic-gradient(#f0abfc,#fcd34d,#7dd3fc,#a78bfa,#f0abfc)}
 .czlvh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:var(--lv)}.czlvh small{color:var(--muted);font-weight:600;font-size:.8rem}
 .czins-title{margin:0;font-size:clamp(1.8rem,9vw,2.9rem);font-weight:900;line-height:1.05;text-transform:uppercase}
 .czins-title span{display:inline-block;background:var(--chf);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 12px var(--gl));opacity:0;animation:czinsletter .5s cubic-bezier(.2,1.6,.4,1) forwards,czfoilmove 4s linear infinite;animation-delay:calc(.65s + var(--i) * 50ms),0s}
@@ -6127,9 +6128,9 @@ function czCaseHitsHtml(){
   const fb = (CZ.vault && CZ.vault.items || []).find(i => i.kind === "player") || { id: "nba.x.pulsar", name: "Cosmic Star", kind: "player", lg: "nba", tier: "pulsar", supply: 100 }, sample = k => (C.samples || [])[k % Math.max(1, (C.samples || []).length)] || fb;
   const ins = C.inserts.map(([id, name]) => ({ id, name, lv: czChLv(id) }));
   let k = 0; const group = l => { const g = ins.filter(i => i.lv.id === l); if (!g.length) return "";
-    return `<h3 class="subh czlvh" style="--lv:${CZ_LV_COL[l]}">${esc(CZ_LV_NAME[l])} <small>${g[0].lv.x}× the card · about 1 in ${czChEvery(g[0].id).toLocaleString()} cards each</small></h3>
+    return `<h3 class="subh czlvh" style="--lv:${CZ_LV_COL[l]}">${esc(CZ_LV_NAME[l])} <small>${g[0].lv.x}× the card · about 1 in ${czChEvery(g[0].id).toLocaleString()} cards each in a Nebula Pack</small></h3>
       <div class="czchgal">${g.map(i => `<div class="czchitem">${czCard({ ...sample(k++), ch: i.id, label: CZ_TIER_NAME[sample(k - 1).tier] }, 1)}<b>${esc(i.name)}</b></div>`).join("")}</div>`; };
-  return `<p class="sub">Case hits are the rarest inserts in the set: about <b>1 in every ${Math.round(1 / C.rate)}</b> cards from any pack comes out as one, in one of ${C.inserts.length} designs. Any player or team from any pack can hit one. It's the same player and serial, in an insert frame. The designs come in four levels: the rarer the design, the more it's worth, from <b>2×</b> the regular card for a Rare up to <b>8×</b> for a Mythic.</p>
+  return `<p class="sub">Case hits are the rarest inserts in the set, and pricier packs hit them more often: ${(C.packs || []).length ? (C.packs || []).map(([l, r], i) => `<b>1 in ${Math.round(1 / r)}</b> ${i ? "" : "cards "}in a ${esc(l)}`).join(", ") : `about <b>1 in every ${Math.round(1 / C.rate)}</b> cards`}. Each is one of ${C.inserts.length} designs. Any player or team from any pack can hit one. It's the same player and serial, in an insert frame. The designs come in four levels: the rarer the design, the more it's worth, from <b>2×</b> the regular card for a Rare up to <b>8×</b> for a Mythic.</p>
     ${["mythic", "legendary", "epic", "rare"].map(group).join("")}
     <h3 class="subh">✍️ Cosmic Ink</h3><p class="sub">A signed-style insert: about <b>1 in every ${Math.round(1 / ((C.ink && C.ink.rate) || 1 / 75))}</b> player cards comes out with the player's name inked across it in gold, worth <b>${(C.ink && C.ink.mult) || 2}×</b> the regular card.</p>
     <div class="czchgal">${[0, 1, 2].map(k => `<div class="czchitem">${czCard({ ...sample(k), ink: true, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>Cosmic Ink</b></div>`).join("")}</div>
@@ -6158,6 +6159,8 @@ function czVaultInner(vv){
 }
 // ---- Packs
 const CZ_ORDER = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
+// a pack's case-hit line under its odds: pricier packs hit more often
+const czChLine = pk => pk && pk.ch ? `<li class="czchodds"><i class="czdot ch" aria-hidden="true"></i>💎 Case hit <small>per card</small><b>1 in ${Math.round(1 / pk.ch)}</b></li>` : "";
 const czOddsPct = v => v === 0 ? "—" : v < .1 ? v.toFixed(2) + "%" : v < 1 ? v.toFixed(1) + "%" : Math.round(v * 10) / 10 + "%";
 // a pack's price in the league and card type you picked (from the server's multipliers; "Every league" is the list price)
 const czPk = pk => { const p = ((CZ.packs && CZ.packs.prices || {})[pk.id] || {})[`${CZ.scope || "all"}|${CZ.kind || "all"}`]; return p ? { ...pk, price: p } : pk; };
@@ -6182,7 +6185,7 @@ function czPacksHtml(){
       <div class="czpack p-${esc(pk.id)}"><div class="czpk-crimp"></div><div class="czpk-sky"></div><div class="czpk-shine"></div>${czCoin("pk")}<b>${esc(pk.label)}</b><small>${pk.cards} cards · ${esc(scopeName[CZ.scope])}${CZ.kind === "team" ? " teams" : CZ.kind === "player" ? " players" : ""}</small><div class="czpk-crimp b"></div></div>
       <div class="czpk-body"><div class="czpk-hl"><b>${czOddsPct(perPack(pk) * 100)}</b><span>chance of a Quasar or rarer in this pack</span></div>
         ${bar(pk)}
-        <ul class="czolist">${P.tiers.map((t, i) => pk.odds[i] ? `<li><i class="czdot t-${t.id}"></i>${esc(CZ_TIER_NAME[t.id])} <small>1/${t.supply}</small><b>${czOddsPct(pk.odds[i])}</b></li>` : "").join("")}</ul>
+        <ul class="czolist">${P.tiers.map((t, i) => pk.odds[i] ? `<li><i class="czdot t-${t.id}"></i>${esc(CZ_TIER_NAME[t.id])} <small>1/${t.supply}</small><b>${czOddsPct(pk.odds[i])}</b></li>` : "").join("")}${czChLine(pk)}</ul>
         ${(CZ.me.tix || {})[pk.id] ? `<button type="button" class="btn primary czopen glow" data-czfreepk="${esc(pk.id)}">Open free (${CZ.me.tix[pk.id]} from the wheel)</button>` : ""}
         ${czQtyHtml(pk)}</div></article>`; }).join("")}</div>
     ${czTeamPacksHtml(P, bar, perPack)}
@@ -6197,7 +6200,7 @@ function czTeamPacksHtml(P, bar, perPack){
     return `<div class="cztp">${Tm ? logoChip(Tm, "sm", t.lg) : ""}<span><b>${esc(t.team)}</b><small>${t.stars.map(esc).join(", ")}</small></span>
       <button type="button" class="btn ${can ? "primary" : ""}" data-cztp="${esc(t.id)}" ${can ? "" : "disabled"}>${czAmt(t.price)}</button></div>`; }).join("");
   return `<section class="cztps"><h2 class="czevh">${esc(name[CZ.scope])} team packs</h2>
-    <p class="sub">${T.cards} cards from one team, with Nebula-pack odds (${czOddsPct(perPack(pk) * 100)} chance of a Quasar or rarer). Each is priced from that team's own cards, so a team full of stars costs more.</p>${bar(pk)}
+    <p class="sub">${T.cards} cards from one team, with Nebula-pack odds (${czOddsPct(perPack(pk) * 100)} chance of a Quasar or rarer${T.ch ? `, and a case hit in about 1 in ${Math.round(1 / T.ch)} cards` : ""}). Each is priced from that team's own cards, so a team full of stars costs more.</p>${bar(pk)}
     <div class="cztplist">${rows}</div></section>`;
 }
 // ---- event packs: limited-time packs for big moments, with a countdown to when they open and when they close
@@ -6214,7 +6217,7 @@ function czEventPacksHtml(P, bar, perPack){
       <div class="czpack p-event"><div class="czpk-crimp"></div><div class="czpk-sky"></div><div class="czpk-shine"></div><span class="czev-emoji" aria-hidden="true">${esc(e.emoji)}</span><b>${esc(e.label)}</b><small>${e.cards} cards · ${esc([...new Set(e.lgs.map(l => lgName[l] || l))].join(" and "))} · event edition</small>${czCd(e, true)}<div class="czpk-crimp b"></div></div>
       <div class="czpk-body"><p class="sub" style="margin:0">${esc(e.blurb)}</p>
         <div class="czpk-hl"><b>${czOddsPct(perPack(e) * 100)}</b><span>chance of a Quasar or rarer in this pack</span></div>${bar(e)}
-        <ul class="czolist">${P.tiers.map((t, i) => e.odds[i] ? `<li><i class="czdot t-${t.id}"></i>${esc(CZ_TIER_NAME[t.id])} <small>1/${t.supply}</small><b>${czOddsPct(e.odds[i])}</b></li>` : "").join("")}</ul>
+        <ul class="czolist">${P.tiers.map((t, i) => e.odds[i] ? `<li><i class="czdot t-${t.id}"></i>${esc(CZ_TIER_NAME[t.id])} <small>1/${t.supply}</small><b>${czOddsPct(e.odds[i])}</b></li>` : "").join("")}${czChLine(e)}</ul>
         <p class="czevlim">${live ? `Limited: <b>${left} of ${e.max}</b> left for you` : `Limited to ${e.max} per player`}. Every card keeps the ${esc(e.label.replace(/ Pack$/, ""))} frame for good.</p>
         ${live ? (left ? czQtyHtml({ ...e, id: e.pack }, "data-czpack", left) : `<button type="button" class="btn czopen" disabled>All opened</button>`)
           : `<button type="button" class="btn czopen" disabled>Opens ${esc(new Date(e.starts).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }))}</button>`}</div></article>`; }).join("")}</div></section>`;
