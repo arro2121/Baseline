@@ -2,7 +2,7 @@
 
 # Cosmo Sports
 
-**Every game, every league, one app.** Live scores, animated play-by-play with real highlight replays, box scores,
+**Every game, every league, one app.** Live scores, animated play-by-play, box scores,
 standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
@@ -13,7 +13,7 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   Today and an optional alert to everyone when you publish. Only the holder of the writer key can post (setup below).
 * **Getting around:** a five-stop bottom bar (Today, Scores, Picks, Following, More), an in-app **Guide** (More ›
   Guide), a one-time What's new screen after big updates, and an offline notice.
-* **League leaders:** a Leaders tab in every league with the real stat leaders and their headshots, updated nightly.
+* **League leaders:** a Leaders tab in every league with the real stat leaders, updated nightly.
   Tap a player for their season stats and how they rank against the league's best.
 * **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
   changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
@@ -34,11 +34,10 @@ It installs on iPhone, Android, Windows and Mac, updates itself every night, and
   shareable score images.**
 
 **What's in it**
-* **Games:** today's scores (or any other day) with team logos, win chances, betting lines and live situations;
+* **Games:** today's scores (or any other day) with team colours, win chances, betting lines and live situations;
   follow teams with ☆ to pin their games first; add upcoming games to your calendar.
-* **Play-by-play:** readable plays grouped by inning, quarter or period, with player photos, labels for the big
-  moments, and an animated field for every sport that replays each play. ESPN's real highlight clips play inside
-  the app, matched to the play they show.
+* **Play-by-play:** readable plays grouped by inning, quarter or period, with labels for the big
+  moments, and an animated field for every sport that replays each play.
 * **Box scores:** line scores, team stat comparisons and full player tables for every sport, plus top performers.
 * **Game info and previews:** Cosmo's prediction, the betting line, injuries, recent form, venue, weather,
   officials and news.
@@ -220,7 +219,7 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
 * **Name:** Cosmo Sports
 * **Short description:** Live scores, replays, box scores and predictions for every game.
 * **Full description:** Every game, every league, one app. Cosmo Sports brings the NFL, NBA, MLB, NHL, Premier
-  League and tennis together: live scores, animated replays of every play, real highlight clips, full box scores,
+  League and tennis together: live scores, animated replays of every play, full box scores,
   standings, team pages and news. Every game
   gets a prediction from a multi-factor model with the reasons behind it, tested on seasons it never saw. Play the
   Daily 3 and see how your picks stack up against the model. Tap Listen in a live game to
@@ -245,9 +244,8 @@ an offline mode, a [privacy policy](docs/privacy.html) and [terms of use](docs/t
    publish, so the web address reads better. Do it before anyone installs the app, because installed copies
    are tied to the old address.
 
-**Before you publish, know this:** the scores, clips, photos and logos come from ESPN's public data and belong to
-ESPN, the leagues and the teams. That's fine for a free personal app, but stores may ask whether you have the
-rights to them, and ESPN doesn't officially license this data. Keep the app free and ad-free, and consider a
+**Before you publish, know this:** the app shows no logos, photos or clips, but the scores and stats come from
+ESPN's public data, and ESPN doesn't officially license it. Stores may ask whether you have the rights to it. Keep the app free and ad-free, and consider a
 licensed sports-data provider if you ever want to charge for it or run ads.
 
 ## Files
