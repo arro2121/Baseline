@@ -188,6 +188,14 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
   check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000");
   check("TR1 seven tiers per card: 1, 10, 25, 50, 100, 250 and 1,000 copies", W.CZ_TIERS.map(t => t[2]).join() === "1,10,25,50,100,250,1000" && [...W.CZ_PACKS, { odds: W.CZ_EV_ODDS }].every(pk => pk.odds.length === 7 && Math.abs(pk.odds.reduce((a, b) => a + b) - 100) < .01)); }
+// CHP1: pricier packs hit case hits more often, and a pack's own rate is what's rolled
+check("CHP1 case-hit odds rise with the pack's price (Comet 1/150 up to Galaxy 1/30)", W.CZ_PACKS.every((p, i, A) => p.ch > 0 && (!i || (p.price > A[i - 1].price && p.ch > A[i - 1].ch))) && Math.round(1 / W.CZ_PACKS[0].ch) === 150 && Math.round(1 / W.CZ_PACKS[5].ch) === 30 && W.CZ_TEAM_PACK.ch === W.CZ_PACKS[2].ch && W.czEventsAt(0)[0].ch === W.CZ_EV_CH);
+{ const hits = async ch => { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
+    await T({ act: "ident", sub: "H", uid: "H", tok: "t", name: "Hitter" }); m.set("cz:u:H", { ...m.get("cz:u:H"), bal: 1e9, freePack: false });
+    const pool = Array.from({ length: 4000 }, (_, i) => ({ id: `nba.h${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "H" + i, kind: "player" }));
+    let n = 0; for (let k = 0; k < 30; k++) { const r = await T({ act: "pack", uid: "H", pack: { id: "t", label: "T", price: 1, cards: 100, odds: [0, 0, 0, 0, 0, 0, 100], ch }, pool, count: 1, rid: (k.toString(16) + "0".repeat(16)).slice(0, 16) }); n += r.cards.filter(c => c.ch).length; } return n; };
+  const hi = await hits(1 / 10), lo = await hits(1 / 150);
+  check("CHP2 a pack's own case-hit rate is used (1/10 vs 1/150 over 3,000 cards)", hi > 200 && hi < 400 && lo < 60, { hi, lo }); }
 // WP1: the welcome gift is three Comet packs, free
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "N", uid: "N", tok: "t", name: "Newbie" }); m.set("cz:u:N", { ...m.get("cz:u:N"), bal: 0, freePack: true, tix: { comet: 1 } });
