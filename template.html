@@ -2107,10 +2107,34 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czolist li.czchodds{grid-column:1/-1;border-top:1px dashed rgba(233,213,255,.25);padding-top:4px;margin-top:2px}.czdot.ch{background:conic-gradient(#f0abfc,#fcd34d,#7dd3fc,#a78bfa,#f0abfc)}
 .czslab{display:grid;gap:8px;width:min(72vw,260px);margin:0 auto;padding:10px 10px 12px;border-radius:14px;background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.35);box-shadow:inset 0 0 0 4px rgba(255,255,255,.06),0 18px 40px -18px #000}
 .czslab>.czcard{width:100%;max-width:none}
+/* (the slab box itself is sized in %: container units on a container refer to its parent) */
+.czslabbed{position:relative;aspect-ratio:5/7;container-type:inline-size;display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;padding:4% 4.5% 4.5%;border-radius:6% / 4.3%;
+  background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.08) 40%,rgba(255,255,255,.16));border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 0 0 3px rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.6),0 14px 28px -16px #000}
+.czslabbed.big{max-width:260px;margin:0 auto}
+.czslabbed>.czcard{height:100%;width:auto;max-width:100%;margin:0 auto;aspect-ratio:5/7}
+.czsl-lab{display:flex;align-items:center;justify-content:space-between;gap:2cqw;padding:1.6cqw 2.6cqw;margin-bottom:3.5cqw;border-radius:2cqw;background:linear-gradient(180deg,#fff,#e2e8f0);color:#0f172a;min-width:0}
+.czsl-lab span{display:grid;min-width:0;text-align:left}.czsl-lab span b{font:800 3.6cqw/1.2 Archivo,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase}
+.czsl-lab span small{font:600 3.4cqw/1.2 Archivo,system-ui,sans-serif;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.czsl-lab em{display:grid;justify-items:center;font-style:normal;flex:none}.czsl-lab em b{font:900 8cqw/1 Archivo,system-ui,sans-serif;color:#1e293b}.czsl-lab em small{font:800 2.8cqw/1 Archivo,system-ui,sans-serif;letter-spacing:.08em;color:#475569}
+.czslabbed.g10 .czsl-lab{background:linear-gradient(180deg,#fff,#fee2e2)}.czslabbed.g10 .czsl-lab em b,.czslabbed.g10 .czsl-lab em small{color:#b91c1c}
+@container (max-width:115px){.czsl-lab span{display:none}.czsl-lab{justify-content:center}}
 .czslab-lab{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;background:linear-gradient(180deg,#fff,#e2e8f0);color:#0f172a;text-align:left}
 .czslab-lab span{display:grid;min-width:0}.czslab-lab b{font-size:.62rem;letter-spacing:.2em}.czslab-lab small{font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#475569}
 .czslab-lab em{font:900 1.9rem/1 Archivo,system-ui,sans-serif;font-style:normal;color:#334155;min-width:1.4em;text-align:center}.czslab-lab em.in{animation:czstamp .5s cubic-bezier(.2,1.8,.4,1)}.czslab-lab em.g10{color:#b91c1c}
 .czdrops{margin-bottom:18px}.czdrop-line{display:grid;gap:1px;min-width:0}.czdrop-line b{font-size:.82rem;line-height:1.2}.czdrop-line em{font-style:normal;font-weight:800;font-size:.78rem;color:#fcd34d}.czdrop-line small{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the Grail card: black and gold, a spotlight on the trophy, a serif name plate */
+.czcard.czcard.czcard.czgrail{--tf:linear-gradient(150deg,#fff4c2,#c9971f 30%,#5c3d0a 55%,#f5c542 78%,#7a520f);border-width:5px;grid-template-rows:auto minmax(0,1fr) auto;padding:7% 6% 5%;gap:0;
+  background:radial-gradient(70% 52% at 50% 46%,rgba(245,197,66,.22),transparent 70%),repeating-linear-gradient(90deg,rgba(255,244,194,.035) 0 1px,transparent 1px 3cqw),linear-gradient(180deg,#0d0a05,#000) padding-box,var(--tf) border-box;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 22px -6px rgba(245,197,66,.55),0 14px 30px -14px #000}
+.czgrail::before{content:"";position:absolute;inset:2.4cqw;border:1px solid rgba(245,197,66,.45);border-radius:1.6cqw;pointer-events:none}
+.czg-top{display:flex;justify-content:space-between;align-items:center;position:relative;font:800 5.2cqw/1 Archivo,system-ui,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#f5c542}
+.czg-top em{font-style:normal;letter-spacing:.12em;color:#fff4c2}
+.czg-art{width:100%;height:100%;min-height:0;filter:drop-shadow(0 1.2cqw 1.6cqw rgba(0,0,0,.8))}
+.czg-plate{position:relative;display:grid;gap:1cqw;text-align:center;padding:2.6cqw 2cqw;border-top:1px solid rgba(245,197,66,.5)}
+.czg-plate small{font:700 3.8cqw/1.1 Archivo,system-ui,sans-serif;letter-spacing:.3em;text-transform:uppercase;color:#c9971f}
+.czg-plate b{font:700 8cqw/1.12 Georgia,"Times New Roman",serif;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(180deg,#fff4c2,#f5c542 50%,#a8741a);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance}
+@container (max-width:115px){.czg-plate small{display:none}.czg-plate b{font-size:9.5cqw}.czg-top{font-size:7cqw;letter-spacing:.12em}}
+.czgrails .czgrid .czitem.owned .czinfo .czleft{color:#f5c542}
 .czlvh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:var(--lv)}.czlvh small{color:var(--muted);font-weight:600;font-size:.8rem}
 .czins-title{margin:0;font-size:clamp(1.8rem,9vw,2.9rem);font-weight:900;line-height:1.05;text-transform:uppercase}
 .czins-title span{display:inline-block;background:var(--chf);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 12px var(--gl));opacity:0;animation:czinsletter .5s cubic-bezier(.2,1.6,.4,1) forwards,czfoilmove 4s linear infinite;animation-delay:calc(.65s + var(--i) * 50ms),0s}
@@ -5332,6 +5356,7 @@ async function czLoad(what = ["me", "board", "vault", "lb", "rookies", "teampack
     if (w === "rookies"){ CZ.rookies = await czApi("/rookies"); return; }
     if (w === "sets"){ const lg = CZ.setlg || "all"; const r = await czApi("/sets?lg=" + lg); (CZ.sets ||= {})[lg] = r.sets; return; }
     if (w === "drops"){ CZ.drops = await czApi("/drops"); return; }
+    if (w === "grails"){ CZ.grails = (await czApi("/grails")).grails; return; }
     if (w === "teampacks"){ const lg = ["nfl", "nba", "mlb", "nhl", "epl"].includes(CZ.scope) ? CZ.scope : null; CZ.tpacks = lg ? { lg, ...(await czApi("/teampacks?lg=" + lg)) } : null; return; }
     if (w === "me" && czKey()){ const M = await czApi("/me"); CZ.me = M.user; CZ.pxAlerts = M.pxAlerts || []; CZ.meErr = false; lsSet("cz-lastname", CZ.me.name);
       const ob = (CZ.me.outbid || []).filter(o => o.at > lsGet("cz-ob-seen", 0)), wa = (CZ.me.wonAuc || []).filter(o => o.at > lsGet("cz-wa-seen", 0));
@@ -5515,7 +5540,36 @@ function czLayout(it){ const s = "L" + String(it.id || it.name || "").replace(/\
 function czDesign(it){ const s = String(it.id || it.name || "").replace(/\.[a-z]+$/, ""); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % CZ_DESIGNS.length; }
 const CZ_SCENE_LIFT = [0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1];        // scenes drawn low are raised so the name plate doesn't cover them
 const CZ_SCENE_SVG = CZ_SCENES.map((f, i) => CZ_SCENE_LIFT[i] ? `<g transform="translate(0,-28) scale(1,1.2)">${f()}</g>` : f());               // drawn once; team colors come from each card's CSS variables
+// the Grails: each league's championship trophy, drawn in gold on black, as the one card worth more than any other
+const CZ_GRAIL_X = 3;                                              // the worker's CZ_GRAIL_X
+const CZ_GRAIL_LG = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League", atp: "Tennis", wta: "Tennis" };
+const CZ_TROPHY = (() => {
+  const base = `<path d="M30 112h40v6H30z"/><path d="M35 104h30l3 8H32z" opacity=".9"/>`, ln = `fill="none" stroke="#5c3d0a" stroke-width=".7"`;
+  return {
+    nfl: `${base}<path d="M44 104L47.6 60H52.4L56 104Z"/><ellipse cx="50" cy="60" rx="5" ry="1.6"/><g transform="rotate(-32 50 42)"><ellipse cx="50" cy="42" rx="17" ry="10.5"/><path d="M40 42H60M44 39.5V44.5M48 39.5V44.5M52 39.5V44.5M56 39.5V44.5" ${ln}/><path d="M36 38Q50 30 64 38M36 46Q50 54 64 46" ${ln} opacity=".6"/></g>`,
+    nba: `${base}<path d="M43 104L46.5 72H53.5L57 104Z"/><path d="M38 68L42 54H58L62 68Z" opacity=".85"/><path d="M40 61H60M42 54L45 68M46 54L48 68M50 54V68M54 54L52 68M58 54L55 68" ${ln}/><ellipse cx="50" cy="54" rx="11" ry="2.2"/><circle cx="50" cy="38" r="12"/><path d="M38 38H62M50 26V50M41 29.5Q46 38 41 46.5M59 29.5Q54 38 59 46.5" ${ln}/>`,
+    mlb: `${base}<path d="M33 104h34V92q-17 -5 -34 0z"/>${Array.from({ length: 13 }, (_, i) => { const x = 31 + i * 3.17, top = 30 + Math.abs(6 - i) * 2.4; return `<path d="M${x.toFixed(1)} 92V${top.toFixed(1)}" stroke="url(#czgg)" stroke-width="1.1"/><path d="M${x.toFixed(1)} ${top.toFixed(1)}l${i < 6 ? -4 : 4} 3 ${i < 6 ? 4 : -4} 3z"/>`; }).join("")}<circle cx="50" cy="66" r="8.5"/><path d="M44 61Q48 66 44 71M56 61Q52 66 56 71" ${ln}/>`,
+    nhl: `${base}<path d="M35 32h30c0 11 -6.5 17 -15 17s-15 -6 -15 -17z"/><ellipse cx="50" cy="32" rx="15" ry="2.6" fill="#fff4c2"/><path d="M46 49h8v5h-8z"/><path d="M42 54h16v12H42z"/><path d="M38 66h24v14H38z"/><path d="M34 80h32v24H34z"/><path d="M42 58h16M42 62h16M38 70h24M38 75h24M34 85h32M34 90h32M34 95h32M34 100h32" ${ln} opacity=".7"/>`,
+    epl: `${base}<path d="M45 104L47 80H53L55 104Z"/><path d="M34 40h32c0 19 -7 32 -16 34 -9 -2 -16 -15 -16 -34z"/><path d="M34 44q-10 2 -8 12t12 10M66 44q10 2 8 12t-12 10" fill="none" stroke="url(#czgg)" stroke-width="2.6"/><path d="M40 40l3 -9 4 5 3 -8 3 8 4 -5 3 9z"/><circle cx="50" cy="27" r="1.8" fill="#fff4c2"/><path d="M38 52h24" ${ln}/>`,
+    atp: `${base}<path d="M45 104L47 82H53L55 104Z"/><path d="M36 46h28c0 18 -6 30 -14 32 -8 -2 -14 -14 -14 -32z"/><path d="M36 46q2 -12 14 -12t14 12z"/><circle cx="50" cy="30" r="3"/><path d="M36 50q-11 0 -11 10t12 8M64 50q11 0 11 10t-12 8" fill="none" stroke="url(#czgg)" stroke-width="2.4"/><path d="M38 56h24M40 62h20" ${ln} opacity=".7"/>`,
+  };
+})();
+function czGrailCard(it, ed, big){
+  const lg = it.lg === "wta" ? "atp" : it.lg, name = CZ_GRAIL_LG[it.lg] || "";
+  return `<div class="czcard czgrail ${big ? "big" : ""}">
+    <div class="czg-top"><span>Grail</span><em>${ed ? "1 of 1" : "1 exists"}</em></div>
+    <svg class="czg-art" viewBox="18 18 64 104" aria-hidden="true"><defs><linearGradient id="czgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff4c2"/><stop offset=".35" stop-color="#f5c542"/><stop offset=".7" stop-color="#a8741a"/><stop offset="1" stop-color="#5c3d0a"/></linearGradient></defs><g fill="url(#czgg)">${CZ_TROPHY[lg] || CZ_TROPHY.nba}</g></svg>
+    <div class="czg-plate"><small>The Grail · ${esc(name)}</small><b>${esc(it.name)}</b></div>
+  </div>`;
+}
+// a graded copy lives in its slab: a clear case the same size as a card, with the grading label across the top
 function czCard(it, ed, big){
+  if (!it.gr || it.grail) return czCard0(it, ed, big);
+  const g = czGr(+it.gr) || [it.gr, ""];
+  return `<div class="czslabbed ${big ? "big" : ""} g${+it.gr}"><div class="czsl-lab"><span><b>Cosmic Grading</b><small>${esc(it.name)} · ${esc(CZ_TIER_NAME[it.tier] || "")}${ed ? ` ${ed}/${it.supply}` : ""}</small></span><em><b>${+it.gr}</b><small>${esc(czGrShort(+it.gr))}</small></em></div>${czCard0({ ...it, gr: 0 }, ed, big)}</div>`;
+}
+function czCard0(it, ed, big){
+  if (it.grail) return czGrailCard(it, ed, big);
   const player = it.kind === "player" && it.team, T = czTeam(it.lg, player ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null, logo = T ? teamLogo(T, it.lg) : null;
   const initials = it.name.split(/\s+/).filter(w => /^[A-Z]/.test(w)).map(w => w[0]).join("").slice(0, 3);
   const faces = it.kind === "player" ? czFaces(it) : [];                 // tennis players have no team but do have photos
@@ -6183,7 +6237,7 @@ function czPacksHtml(){
   const bar = pk => { const w = pk.odds.map(o => o ? Math.max(2.5, Math.sqrt(o) * 10) : 0), tot = w.reduce((a, b) => a + b, 0);       // square-root widths so the rare tiers are still visible
     return `<div class="czobar" aria-hidden="true">${P.tiers.map((t, i) => w[i] ? `<i class="t-${t.id}" style="flex-basis:${(w[i] / tot * 100).toFixed(2)}%"></i>` : "").join("")}</div>`; };
   const rareOdds = pk => pk.odds.slice(0, 3).reduce((a, b) => a + b, 0), perPack = pk => 1 - Math.pow(1 - rareOdds(pk) / 100, pk.cards);     // the chance of a Quasar or rarer in the pack
-  return czDropsHtml() + czEventPacksHtml(P, bar, perPack) + `<p class="sub czlead">Choose where your cards come from, then rip a pack. Every card is numbered, and supply is shared by every player.</p>
+  return czDropsHtml() + czGrailsHtml() + czEventPacksHtml(P, bar, perPack) + `<p class="sub czlead">Choose where your cards come from, then rip a pack. Every card is numbered, and supply is shared by every player.</p>
     <div class="czfilters"><div class="seg trseg" role="group" aria-label="League">${P.scopes.map(k => `<button type="button" data-czscope="${k}" aria-pressed="${CZ.scope === k}">${esc(scopeName[k] || k)}</button>`).join("")}</div>
     <div class="seg trseg" role="group" aria-label="Cards">${[["all", "Teams and players"], ["team", "Teams only"], ["player", "Players only"]].map(([k, l]) => `<button type="button" data-czkind="${k}" aria-pressed="${CZ.kind === k}">${l}</button>`).join("")}</div></div>
     <div class="czpacks">${P.packs.map(czPk).map(pk => { const can = czBal() >= pk.price;
@@ -6211,6 +6265,22 @@ function czDropsHtml(){
     <p class="sub">Last night's best performances, as special cards: ${dd.length ? `${dd[0].supply} numbered copies each, one per collector, on sale until the next drop at 6 am Eastern.` : "a new drop comes every morning at 6 am Eastern after a night of games."}</p>
     ${dd.length ? `<div class="czgrid">${dd.map(tile).join("")}</div>` : `<div class="teamnote"><b>No drop right now</b>There were no big games last night. Check back tomorrow morning.</div>`}
     ${ms.length ? `<h2 class="czevh">🏆 Milestones</h2><p class="sub">A one-off card for a rare feat: ${ms[0].supply} copies each, on sale for 48 hours.</p><div class="czgrid">${ms.map(tile).join("")}</div>` : ""}</section>`;
+}
+// the Grails: one per league, the most valuable cards in the game, sold once each
+function czGrailsHtml(){
+  const G = CZ.grails; if (!G || !G.length) return "";
+  const mine = new Set((CZ.me.items || []).map(i => i.id));
+  const tile = g => { const own = mine.has(g.id), can = !g.owner && czBal() >= g.price;
+    return `<div class="czitem ${g.owner ? "owned" : ""}">${czCard(g)}<div class="czinfo"><span class="czleft">${esc(CZ_GRAIL_LG[g.lg] || "")} · worth ${czAmt(g.price)}</span>
+      ${own ? `<span class="czownd">In your collection</span>` : g.owner ? `<span class="czleft">Owned by ${czWhoBtn(g.owner)}</span>` : `<button type="button" class="btn ${can ? "primary" : ""} czbuy" data-czgrail="${esc(g.lg)}" ${can ? "" : "disabled"}>${can ? `Buy ${czAmt(g.price)}` : `Need ${czAmt(g.price)}`}</button>`}</div></div>`; };
+  return `<section class="czgrails"><h2 class="czevh">🏆 The Grails</h2><p class="sub">One card for each league: its championship trophy, the single most valuable card in the game. Only one of each exists, and once it's bought it can only change hands on the Market or in an auction.</p><div class="czgrid">${G.map(tile).join("")}</div></section>`;
+}
+async function czBuyGrail(lg){
+  const g = (CZ.grails || []).find(x => x.lg === lg); if (!g) return;
+  if (!confirm(`Buy the ${g.name} Grail, the only one in existence, for ${g.price.toLocaleString()} Cosmic Coins?`)) return;
+  const rid = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, "0")).join("");
+  try { const r = await czApi("/pack", { pack: "grail:" + lg, count: 1, rid }); CZ.me = r.user; czRip({ label: `${g.name} Grail` }, r.cards); czLoad(["grails", "vault"]).then(drawCosmic); drawCosmic(); }
+  catch (e) { toast(e.message); czLoad(["grails"]).then(drawCosmic); }
 }
 async function czBuyDrop(id){
   const x = [...((CZ.drops || {}).drops || []), ...((CZ.drops || {}).ms || [])].find(v => v.id === id); if (!x) return;
@@ -6364,7 +6434,7 @@ function czCardBack(it){
   const pos = it.kind === "player" ? ((CZ_POSN[it.lg] || {})[it.pos] || it.pos || "") : "Team card";
   const rows = [["Team", it.kind === "player" ? it.team || CZ_LG[it.lg] : it.name], ["Position", pos], it.num ? ["Number", "#" + it.num] : null, it.ovr ? ["Rating", `${it.ovr} this season`] : null, it.rank ? [it.kind === "team" ? "Ratings rank" : "Tour rank", "#" + it.rank] : null].filter(Boolean);
   const dt = it.drop && it.drop.at ? new Date(it.drop.at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "";
-  const blurb = it.drop ? (it.drop.kind === "ms" ? `Milestone: ${it.drop.title}. ${it.drop.line}, ${it.drop.game}, ${dt}. Only ${it.supply} were made.` : `Daily Drop: ${it.drop.line}, ${it.drop.game}, ${dt}. One of the night's best games, and only ${it.supply} were made.`) : it.moment ? `Iconic Moment No. ${it.rank}: ${it.name}, ${it.year}. ${it.team || ""}. The only copy of this card in existence.` : it.ink ? `Cosmic Ink: a signed-style insert, about 1 in every 75 player cards, worth twice the regular card.` : it.legend ? `No. ${it.rank} of the All-Time 200: one of the greatest players ever, and the only copy of this card in existence.` : it.ch ? `A ${czChLv(it.ch).name} case hit, ${esc(CZ_CASE_NAME[it.ch] || "")}: worth ${czChLv(it.ch).x}× the regular card, and about 1 in every ${czChEvery(it.ch).toLocaleString()} cards comes out as one.` : it.rc ? `Rookie card. ${it.name}'s first season, the card collectors chase first.` : it.line ? `This season: ${it.line}.` : it.kind === "team" ? `${it.name} team card from ${setName}.` : `Part of ${setName}.`;
+  const blurb = it.grail ? `The ${CZ_GRAIL_LG[it.lg] || ""} Grail: the ${it.name}, the single most valuable card in Cosmic. There is only one.` : it.drop ? (it.drop.kind === "ms" ? `Milestone: ${it.drop.title}. ${it.drop.line}, ${it.drop.game}, ${dt}. Only ${it.supply} were made.` : `Daily Drop: ${it.drop.line}, ${it.drop.game}, ${dt}. One of the night's best games, and only ${it.supply} were made.`) : it.moment ? `Iconic Moment No. ${it.rank}: ${it.name}, ${it.year}. ${it.team || ""}. The only copy of this card in existence.` : it.ink ? `Cosmic Ink: a signed-style insert, about 1 in every 75 player cards, worth twice the regular card.` : it.legend ? `No. ${it.rank} of the All-Time 200: one of the greatest players ever, and the only copy of this card in existence.` : it.ch ? `A ${czChLv(it.ch).name} case hit, ${esc(CZ_CASE_NAME[it.ch] || "")}: worth ${czChLv(it.ch).x}× the regular card, and about 1 in every ${czChEvery(it.ch).toLocaleString()} cards comes out as one.` : it.rc ? `Rookie card. ${it.name}'s first season, the card collectors chase first.` : it.line ? `This season: ${it.line}.` : it.kind === "team" ? `${it.name} team card from ${setName}.` : `Part of ${setName}.`;
   return `<div class="czcbk t-${esc(it.tier)}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
     <div class="czbk-head"><b>#${String(it.no || 0).padStart(3, "0")}</b><span>${esc(it.name)}</span>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : ""}</div>
     <div class="czbk-sub">${esc(pos)}${it.rc ? ' · <i class="czrc-s">RC</i>' : ""}</div>
@@ -6382,13 +6452,13 @@ async function czHistory(id, n){
   if (V && own && (own.ch || own.ink || own.gr)) { const x = (own.ch ? czChLv(own.ch).x : own.ink ? 2 : 1) * czGrMult(own.gr); V = { ...V, value: Math.round(V.value * x), shop: Math.round(V.shop * x) }; }       // a case hit is worth 2x to 8x the card by its level, an ink card 2x, times its grade
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
   const face = czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true), back = czCardBack({ ...it, ...(V || {}), ch: it.ch, n: n || it.n, label: CZ_TIER_NAME[it.tier] });
-  $("#infoBody").innerHTML = `<div class="czreveal"><div class="czflipcard" id="czFlipCard"><div class="czfc-f">${face}</div><div class="czfc-b">${back}</div></div><button type="button" class="btn czflipbtn" id="czFlipBtn">↻ Flip card</button><h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
-    ${czPriceWhy(V)}
+  $("#infoBody").innerHTML = `<div class="czreveal"><div class="czflipcard" id="czFlipCard"><div class="czfc-f">${face}</div><div class="czfc-b">${back}</div></div><button type="button" class="btn czflipbtn" id="czFlipBtn">↻ Flip card</button><h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.grail ? `The ${esc(CZ_GRAIL_LG[it.lg] || "")} Grail · the only one in existence${own ? " · it's yours" : ""}</p><p class="sub" hidden>` : ""}${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
+    ${it.grail ? `<p class="sub czlvnote">Each league has one Grail: its championship trophy, worth ${CZ_GRAIL_X}× the most valuable card in the game, so it's always the top card in Cosmic. It never comes out of packs, and it isn't graded.</p>` : czPriceWhy(V)}
     ${czHotOf(it) ? `<p class="czhotnote">🔥 <b>${esc(czHotOf(it).line)}</b>${czHotOf(it).game ? ` · ${esc(czHotOf(it).game)}` : ""}. Every copy glows for a day after a big game.</p>` : ""}
-    <p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>
-    ${lv > 1 || V ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
+    ${it.grail ? "" : `<p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>`}
+    ${!it.grail && (lv > 1 || V) ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
     ${!own ? "" : `<div class="czsell">${it.auction ? `<p>Up for auction. Follow it in Market, Auctions.</p>` : it.listed ? `<p>On the market. <button type="button" class="btn" data-czact="unlist">Take it off the market</button></p>` : `
-      ${it.gr ? `<div><b>Graded ${+it.gr} · ${esc(czGr(+it.gr) ? czGr(+it.gr)[1] : "")}</b><small>Worth ${czGrMult(+it.gr)}× an ungraded copy. A card is graded once.</small></div>` : `<div><b>Grade it</b><small>Send it in once for a grade from 4 to 10. A Gem Mint 10 is worth 3×, a 9 1.5×, a low grade less. <a href="#" data-czgrodds>See the odds</a></small><button type="button" class="btn" data-czact="grade" ${value ? "" : "disabled"}>Grade for ${czAmt(Math.max(50, Math.round((value || 0) * .2)))}</button></div>`}
+      ${it.grail ? "" : it.gr ? `<div><b>Graded ${+it.gr} · ${esc(czGr(+it.gr) ? czGr(+it.gr)[1] : "")}</b><small>Worth ${czGrMult(+it.gr)}× an ungraded copy. A card is graded once.</small></div>` : `<div><b>Grade it</b><small>Send it in once for a grade from 4 to 10. A Gem Mint 10 is worth 3×, a 9 1.5×, a low grade less. <a href="#" data-czgrodds>See the odds</a></small><button type="button" class="btn" data-czact="grade" ${value ? "" : "disabled"}>Grade for ${czAmt(Math.max(50, Math.round((value || 0) * .2)))}</button></div>`}
       <div><b>Sell to the shop</b><small>Coins right away. The copy goes back into packs.</small><button type="button" class="btn" data-czact="shop" ${shop ? "" : "disabled"}>Sell for ${shop ? czAmt(shop) : "…"}</button></div>
       <div><b>Sell to other players</b><small>Set your price. You get it minus 5%, which is retired (taken out of the game) to keep card prices steady.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
       <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (you get it minus the 5% that's retired). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
@@ -6816,7 +6886,7 @@ function czFlash(c){
 }
 function czBind(el){
   czTilt(el);
-  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "home" ? ["me", "board", "lb", "market", "trades", "bat", "rookies"] : CZ.tab === "battle" ? ["bat", "me", "lb"] : CZ.tab === "bet" ? ["board", "me"] : CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "trades" ? ["trades", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : CZ.tab === "packs" ? ["vault", "me", "teampacks", "drops"] : ["check", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
+  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "home" ? ["me", "board", "lb", "market", "trades", "bat", "rookies"] : CZ.tab === "battle" ? ["bat", "me", "lb"] : CZ.tab === "bet" ? ["board", "me"] : CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "trades" ? ["trades", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : CZ.tab === "packs" ? ["vault", "me", "teampacks", "drops", "grails"] : ["check", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
   el.querySelectorAll("[data-czlg]").forEach(b => b.onclick = () => { CZ.lg = b.dataset.czlg; drawCosmic(); });
   el.querySelectorAll("[data-czlbv]").forEach(b => b.onclick = () => { CZ.lbv = b.dataset.czlbv; drawCosmic(); });
   el.querySelectorAll("[data-czct]").forEach(b => b.onclick = () => { CZ.ctier = b.dataset.czct; drawCosmic(); });
@@ -6876,6 +6946,7 @@ function czBind(el){
   el.querySelectorAll("[data-czrookies]").forEach(b => b.onclick = async () => { CZ.vkind = "rookie"; CZ.vtier = "all"; CZ.tab = "check"; drawCosmic(); try { await czVault(); } catch (e) { toast(e.message); } drawCosmic(); });
   el.querySelectorAll("[data-cztp]").forEach(b => b.onclick = () => czOpen(b.dataset.cztp));
   el.querySelectorAll("[data-czdrop]").forEach(b => b.onclick = () => czBuyDrop(b.dataset.czdrop));
+  el.querySelectorAll("[data-czgrail]").forEach(b => b.onclick = () => czBuyGrail(b.dataset.czgrail));
   const f = el.querySelector("[data-czform=join]");
   if (f) f.onsubmit = async e => { e.preventDefault(); const name = f.name.value.trim(), btn = f.querySelector("button"); btn.disabled = true;
     try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmo Sports, ${r.user.name}. You have 1,000 Cosmic Coins.`); drawCosmic(); drawGate(); czLoad(["board", "vault", "lb"]); }

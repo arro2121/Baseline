@@ -52,4 +52,20 @@ const pf = (i, score, x = {}) => ({ k: `nba:player ${i}`, lg: "nba", at: now - 1
 // the big-game scan keeps each performance's score and feats
 check("DD6 feats and scores from a box score", W.czFeats("nhl", { G: 3, A: 2 }).map(f => f[0]).join() === "hat,5pt" && W.czFeats("nba", { PTS: 12, REB: 11, AST: 10 })[0][0] === "tdbl" && W.czFeats("mlb", { "batting:HR": 1 }).length === 0 && W.czPerfScore("nba", { PTS: 40, REB: 10, AST: 5 }) === 59.5);
 
+// GL1-GL4: the Grails
+{ const cat = [{ id: "nba.p1.singularity", price: 2e6 }, { id: "nba.at-x.singularity", price: 1.5e6 }, { id: "nfl.p2.comet", price: 30 }], G = W.czGrails(cat);
+  check("GL1 one Grail per league, each worth 3x the most valuable card in the game", G.length === 6 && new Set(G.map(g => g.lg)).size === 6 && G.every(g => g.price >= 6e6 && g.supply === 1 && g.grail && g.tier === "singularity"), G.map(g => g.price));
+  check("GL2 a Grail is valued at exactly its price (no level, hot or scarcity bonus)", W.czValueOf(G[0], { xp: 99, hot: true, held: 1 }).value === G[0].price); }
+{ const { m, st } = mem(), T = a => W.czTx(st, { now, ...a });
+  await T({ act: "ident", sub: "G", uid: "G", tok: "t", name: "Grailer" }); m.set("cz:u:G", { ...m.get("cz:u:G"), bal: 1e8, freePack: false });
+  const pk = { id: "grail:nba", label: "Grail", price: 6e6, cards: 1, odds: W.CZ_TIERS.map(t => t[0] === "singularity" ? 100 : 0), ch: 0 }, pool = [{ id: "nba.grail.singularity", tier: "singularity", supply: 1, lg: "nba", name: "Larry O'Brien Trophy", kind: "grail", grail: true }];
+  const r = await T({ act: "pack", uid: "G", pack: pk, pool, rid: "aaaaaaaaaaaaaaaa" }), c = r.cards && r.cards[0];
+  check("GL3 buying a Grail gives the one copy, never a case hit or ink", c && c.grail && c.n === 1 && !c.ch && !c.ink && m.get("cz:u:G").bal === 1e8 - 6e6, r);
+  check("GL3 a Grail can't be graded", /isn't graded/.test((await T({ act: "grade", uid: "G", id: "nba.grail.singularity", value: 6e6 })).error || ""));
+  await T({ act: "ident", sub: "H", uid: "H", tok: "t", name: "Second" }); m.set("cz:u:H", { ...m.get("cz:u:H"), bal: 1e8, freePack: false });
+  const r2 = await T({ act: "pack", uid: "H", pack: pk, pool, rid: "bbbbbbbbbbbbbbbb" });
+  check("GL4 once it's owned nobody else can buy it", !!r2.error && m.get("cz:u:H").bal === 1e8, r2);
+  let hits = 0; for (let k = 0; k < 40; k++) { const { m: m2, st: s2 } = mem(); await W.czTx(s2, { now, act: "ident", sub: "Z", uid: "Z", tok: "t", name: "Z" }); m2.set("cz:u:Z", { ...m2.get("cz:u:Z"), bal: 1e8, freePack: false });
+    const rr = await W.czTx(s2, { now, act: "pack", uid: "Z", pack: pk, pool, rid: "cccccccccccccccc" }); if (rr.cards[0].ch || rr.cards[0].ink) hits++; }
+  check("GL4 a pack with ch: 0 never rolls a case hit (40 tries)", hits === 0, hits); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
