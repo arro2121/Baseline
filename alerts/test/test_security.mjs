@@ -169,7 +169,12 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
   check("CH1 a case hit sells for 3 times a regular copy", b1 === 1200 && m.get("cz:u:K").bal - b1 === 400, { b1, b2: m.get("cz:u:K").bal });
   check("CH1 about 1 card in 100 is a case hit, in 12 designs", Math.abs(W.CZ_CASE.rate - 1 / 100) < 1e-9 && W.CZ_CASE.inserts.length === 12);
-  check("INK1 Cosmic Ink: 1 in 75 player cards, worth 2x", Math.abs(W.CZ_INK.rate - 1 / 75) < 1e-9 && W.czCopyMult({ ink: true }) === 2 && W.czCopyMult({ ch: "gold" }) === 3 && W.czCopyMult({}) === 1); }
+  { const I = W.CZ_CASE.inserts, t = I.reduce((x, i) => x + i[4], 0), avg = I.reduce((x, i) => x + i[3] * i[4], 0) / t, n = {};
+    for (let k = 0; k < 2000; k++) { const c = W.czCasePick(k / 2000); n[c] = (n[c] || 0) + 1; }
+    check("CHL1 four levels: Mythic 8x, Legendary 5x, Epic 3x, Rare 2x, and a case hit averages close to 3x", W.czCopyMult({ ch: "crown" }) === 8 && W.czCopyMult({ ch: "gold" }) === 5 && W.czCopyMult({ ch: "rift" }) === 3 && W.czCopyMult({ ch: "neon" }) === 2 && avg > 2.7 && avg < 3.1, avg.toFixed(3));
+    check("CHL2 rarer designs come out less often (Mythic 1/6 as often as Rare)", Math.abs(n.crown - 2000 * 2 / t) <= 1 && Math.abs(n.frost - 2000 * 12 / t) <= 1 && Math.abs(n.gold - 2000 * 4 / t) <= 1, n);
+    check("CHL3 every design is picked and none is unknown", I.every(i => n[i[0]] > 0) && Object.keys(n).length === 12); }
+  check("INK1 Cosmic Ink: 1 in 75 player cards, worth 2x", Math.abs(W.CZ_INK.rate - 1 / 75) < 1e-9 && W.czCopyMult({ ink: true }) === 2 && W.czCopyMult({ ch: "rift" }) === 3 && W.czCopyMult({}) === 1); }
 // MB1: buying several packs at once opens them together, charges each, and a repeat of the same purchase isn't charged again
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "Q", uid: "Q", tok: "t", name: "Bulk" }); m.set("cz:u:Q", { ...m.get("cz:u:Q"), bal: 10000, freePack: false });
