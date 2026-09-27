@@ -168,7 +168,7 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   m.set("cz:u:K", { ...m.get("cz:u:K"), bal: 0, items: [{ ...mk("nba.p3", "comet"), ch: "starfall" }, mk("nba.p4", "comet")] });
   await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
   check("CH1 a case hit sells for 3 times a regular copy", b1 === 1200 && m.get("cz:u:K").bal - b1 === 400, { b1, b2: m.get("cz:u:K").bal });
-  check("CH1 about 1 card in 150 is a case hit, in 12 designs", Math.abs(W.CZ_CASE.rate - 1 / 150) < 1e-9 && W.CZ_CASE.inserts.length === 12);
+  check("CH1 about 1 card in 100 is a case hit, in 12 designs", Math.abs(W.CZ_CASE.rate - 1 / 100) < 1e-9 && W.CZ_CASE.inserts.length === 12);
   check("INK1 Cosmic Ink: 1 in 75 player cards, worth 2x", Math.abs(W.CZ_INK.rate - 1 / 75) < 1e-9 && W.czCopyMult({ ink: true }) === 2 && W.czCopyMult({ ch: "gold" }) === 3 && W.czCopyMult({}) === 1); }
 // MB1: buying several packs at once opens them together, charges each, and a repeat of the same purchase isn't charged again
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });

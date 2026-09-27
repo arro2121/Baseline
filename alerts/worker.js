@@ -2537,9 +2537,9 @@ export function czValueOf(it, { xp = 0, hot = false, held = 0 } = {}) {
   const v = Math.round(it.price * (1 + .15 * (lv - 1)) * (hot ? 1.1 : 1) * (1 + scarce) / 10) * 10;
   return { value: Math.max(10, v), level: lv, hot, scarce: Math.round(scarce * 100) };
 }
-// case hits: about 1 card in 300 from any pack comes out as a case hit, one of three ultra-rare insert designs. It's the same card
+// case hits: about 1 card in 100 from any pack comes out as a case hit, in one of 12 insert designs. It's the same card
 // and serial, but worth 3 times as much, and everyone sees it in the activity feed.
-export const CZ_CASE = { rate: 1 / 150, mult: 3, inserts: [["horizon", "Event Horizon"], ["starfall", "Starfall"], ["crown", "Galaxy Crown"], ["flame", "Hall of Flame"],
+export const CZ_CASE = { rate: 1 / 100, mult: 3, inserts: [["horizon", "Event Horizon"], ["starfall", "Starfall"], ["crown", "Galaxy Crown"], ["flame", "Hall of Flame"],
   ["frost", "Ice Cold"], ["gold", "Gold Standard"], ["volt", "Supercharged"], ["kaleido", "Kaleidoscope"], ["rift", "Cosmic Rift"], ["neon", "Neon Night"], ["aurora", "Northern Lights"], ["diamond", "Diamond Dust"]] };
 // Cosmic Ink: a signature-style insert. About 1 player card in 75 comes out signed in gold ink, worth twice the regular card.
 export const CZ_INK = { rate: 1 / 75, mult: 2 };
