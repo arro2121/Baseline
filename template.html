@@ -3381,7 +3381,8 @@ const logistic = z => 1 / (1 + Math.exp(-z));
 // a count sent as text ("27,284." from MLB): digits only, so it never shows as NaN (A19)
 const cnt = v => { const n = parseInt(String(v ?? "").replace(/[^\d]/g, ""), 10); return n > 0 ? n : null; };
 const ymdToDate = s => new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)));
-function daysBetween(last, when){ if (!last) return null; const d = when ? new Date(when) : new Date(), u = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); return Math.round((u - ymdToDate(last)) / 864e5); }
+// days of rest, counted on the Eastern calendar like the alerts service's model, not the viewer's own date (A15)
+function daysBetween(last, when){ if (!last) return null; return Math.round((ymdToDate(sportsDay(when ? Date.parse(when) : Date.now(), 0)) - ymdToDate(last)) / 864e5); }
 function mFeatures(lg, H, A, neutral, ctx){
   const M = MODELS[lg], m = M.model, cap = m.rest_cap, avg = m.lg_avg, when = ctx && ctx.date;
   const restOf = s => { const d = daysBetween(s.last, when); return d == null ? cap : Math.max(0, Math.min(cap, d)); };
@@ -5770,7 +5771,21 @@ async function czSignOut(all){
 }
 // ---- your data follows your account: followed teams, settings and picks
 const CZ_SYNC_LS = ["picks", "daily", "duels", "spoil", "sounds", "startSport", "voiceKind", "voiceRate", "rankView", "onboarded"];
-function czSyncCollect(){ const ls = {}; for (const k of CZ_SYNC_LS){ const v = lsGet(k, undefined); if (v !== undefined) ls[k] = v; }
+// merging, not replacing (A17): picks keep the graded (or newer) copy of each game, the Daily 3 and challenges are combined,
+// and a setting this device already has stays as it is
+const CZ_SYNC_MERGE = {
+  picks: (a, b) => { const o = { ...(b || {}) }; for (const [k, p] of Object.entries(a || {})){ const q = o[k]; o[k] = !q ? p : p.result && !q.result ? p : q.result && !p.result ? q : (p.t || 0) >= (q.t || 0) ? p : q; } return o; },
+  daily: (a, b) => ({ ...(b || {}), ...(a || {}) }),
+  duels: (a, b) => { const o = { ...(b || {}) }; for (const [d, l] of Object.entries(a || {})){ const seen = new Set((o[d] || []).map(x => JSON.stringify(x))); o[d] = [...(o[d] || []), ...(l || []).filter(x => !seen.has(JSON.stringify(x)))].slice(-5); } return o; } };
+// what's sent is trimmed to fit the service's limits: the oldest graded picks and Daily 3 days go first, never an open pick
+const CZ_SYNC_FIT = { picks: 58000, daily: 19000, duels: 19000 };
+function czSyncTrim(k, v){
+  const cap = CZ_SYNC_FIT[k]; if (!cap || JSON.stringify(v).length <= cap) return v;
+  if (k === "picks"){ const o = { ...v }, old = Object.entries(o).filter(([, p]) => p && p.result).sort((x, y) => Date.parse(x[1].date || 0) - Date.parse(y[1].date || 0));
+    for (const [key] of old){ if (JSON.stringify(o).length <= cap) break; delete o[key]; } return o; }
+  const o = { ...v }; for (const key of Object.keys(o).sort()){ if (JSON.stringify(o).length <= cap) break; delete o[key]; } return o;
+}
+function czSyncCollect(){ const ls = {}; for (const k of CZ_SYNC_LS){ const v = lsGet(k, undefined); if (v !== undefined) ls[k] = czSyncTrim(k, v); }
   let fav = {}, set = {}; try { fav = JSON.parse(localStorage.getItem("fav-teams") || "{}") || {}; } catch {} try { set = JSON.parse(localStorage.getItem("baseline:settings") || "{}") || {}; } catch {}
   return { v: 1, ls, fav, settings: set }; }
 async function czSyncPull(first){
@@ -5778,7 +5793,8 @@ async function czSyncPull(first){
   try { const d = (await czApi("/data")).data;
     if (d && d.v === 1){
       const mine = czSyncCollect();
-      for (const [k, v] of Object.entries(d.ls || {})) lsSet(k, v);
+      for (const [k, v] of Object.entries(d.ls || {})){ const here = lsGet(k, undefined); lsSet(k, CZ_SYNC_MERGE[k] ? CZ_SYNC_MERGE[k](here, v) : here === undefined ? v : here); }
+      PICKS = lsGet("picks", {}) || {}; DAILY = lsGet("daily", {}) || {}; DUELS = lsGet("duels", {}) || {};
       const fav = { ...(d.fav || {}) }; for (const [lg, l] of Object.entries(mine.fav)) fav[lg] = [...new Set([...(fav[lg] || []), ...l])];   // followed teams from both
       try { localStorage.setItem("fav-teams", JSON.stringify(fav)); localStorage.setItem("baseline:settings", JSON.stringify({ ...mine.settings, ...(d.settings || {}) })); } catch {}
       lsSet("cz-synced", CZ.me.uid); CZ.syncLast = "";
@@ -5796,7 +5812,9 @@ function czSyncStart(){
   if (CZ.syncOn || !CZ.me || !CZ.me.secured) return; CZ.syncOn = true;
   if (lsGet("cz-synced", "") !== CZ.me.uid) czSyncPull(true);
   setInterval(() => czSyncPush(false), 30000);
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") czSyncPush(false); });
+  // back in focus: another device may have picked or graded something meanwhile, so pull and merge (at most once a minute) (A17)
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") czSyncPush(false);
+    else if (Date.now() - (CZ.syncPulled || 0) > 60e3){ CZ.syncPulled = Date.now(); czSyncPull(false).then(() => { if (typeof redrawPlay === "function") try { redrawPlay(); } catch {} }); } });
 }
 // ---- Bet
 function czPrice(dec){ return fmtOdds(dec); }
@@ -6782,7 +6800,7 @@ function drawTrack(){
     trBind(el); return;
   }
   let h = head + (graded < TR_MIN ? `<p class="trpreview">👀 Owner preview: only you can see this. Everyone else sees the record after ${TR_MIN} graded games (${graded} so far).</p>` : "") + segs;
-  if (!S.n) h += `<div class="teamnote"><b>No finished games yet${TR.lg === "all" ? "" : " in " + esc(lgName)}</b>Picks lock in 90 minutes before each game. The record starts filling in as soon as the first ones finish.${pend.length ? "" : " Preseason games aren't counted."}</div>`;
+  if (!S.n) h += `<div class="teamnote"><b>No finished games yet${TR.lg === "all" ? "" : " in " + esc(lgName)}</b>Each pick locks when its game is 90 minutes away and never changes after that. The record starts filling in as soon as the first ones finish.${pend.length ? "" : " Preseason games aren't counted."}</div>`;
   else {
     if (S.n < 50) h += `<div class="trearly"><b>Early days: ${S.n} game${S.n === 1 ? "" : "s"} graded so far.</b> A handful of games says little about a model: even a good one can start 1–3. The numbers settle down after a few hundred games. Tested on past seasons it had never seen, it picked the winner about two thirds of the time in the NFL and NBA.</div>`;
     h += `<div class="metrics">
@@ -6942,7 +6960,7 @@ function shieldCover(g, lg){
 }
 
 /* ================= Picks: the Daily 3 and your record against the model ================= */
-const todayKey = () => ymd(new Date());
+const todayKey = () => sportsDay();                          // the Daily 3's day is the sports day, the same everywhere (A15)
 let DAILY = lsGet("daily", {}) || {};
 const saveDaily = () => { const keep = Object.keys(DAILY).sort().slice(-40), o = {}; for (const k of keep) o[k] = DAILY[k]; DAILY = o; lsSet("daily", DAILY); };
 // three upcoming games worth calling today: the closest model calls, spread across leagues
@@ -6963,12 +6981,16 @@ function dailyState(day){
   const picked = rows.filter(r => r.P).length, graded = rows.filter(r => r.P && r.P.result && !pickHidden(r.P, r.an, r.hn)), right = graded.filter(r => r.P.pick === r.P.result).length;
   return { D, rows, picked, graded: graded.length, right, done: graded.length === rows.length && rows.length > 0 };
 }
-function dailyStreak(){   // days in a row with all of the Daily picked
-  let n = 0; const d = new Date();
-  for (let i = 0; i < 400; i++){ const k = ymd(d), s = dailyState(k);
-    if (s && s.picked === s.rows.length && s.rows.length) n++; else if (i > 0 || (s && s.picked)) break;
-    d.setDate(d.getDate() - 1); }
-  return n;
+// the streak is a counter with the last completed day, so it isn't capped by how many days of picks are kept (A18).
+// The first time, it's counted from the saved days as before
+function dailyStreak(){
+  const today = todayKey(), yday = ymdShift(today, -1); let S = lsGet("daily-streak", null);
+  if (!S){ let n = 0, d = today; const t = dailyState(today); if (!(t && t.picked === t.rows.length && t.rows.length)) d = yday;
+    for (let i = 0; i < 400; i++){ const x = dailyState(d); if (x && x.picked === x.rows.length && x.rows.length){ n++; d = ymdShift(d, -1); } else break; }
+    S = { n, last: n ? ymdShift(d, 1 + (n - 1)) : null }; lsSet("daily-streak", S); }
+  const t = dailyState(today);
+  if (t && t.picked === t.rows.length && t.rows.length && S.last !== today){ S = { n: S.last === yday ? S.n + 1 : 1, last: today }; lsSet("daily-streak", S); }
+  return S.last === today || S.last === yday ? S.n : 0;
 }
 const dailyGrid = s => s.rows.map(r => !r.P ? "⬜" : !r.P.result || pickHidden(r.P, r.an, r.hn) ? "🟦" : r.P.pick === r.P.result ? "🟩" : "🟥").join("");
 function duelLink(day){
@@ -7273,10 +7295,19 @@ function pickStats(){
 }
 // picks from past days that no loaded scoreboard has graded yet
 async function gradeOldPicks(){
-  const want = {}; for (const p of Object.values(PICKS)) if (!p.result && p.date && Date.now() - new Date(p.date) > 3 * 3600e3) want[p.lg + "|" + ymd(new Date(p.date))] = 1;
+  // picks are grouped by the game's Eastern date (the day the league lists it under, wherever the viewer is), the day
+  // tried least recently goes first so a stuck day never blocks the rest, and a game that moved (a postponement replayed
+  // later, a date the feed lists it under) is looked up by its id (A16)
+  const T = lsGet("grade-tries", {}) || {}, now = Date.now(), byDay = {};
+  for (const p of Object.values(PICKS)) if (!p.result && p.date && now - Date.parse(p.date) > 3 * 3600e3) (byDay[p.lg + "|" + sportsDay(Date.parse(p.date), 0)] ||= []).push(p);
   let n = 0;
-  for (const k of Object.keys(want).slice(0, 8)){ const [lg, day] = k.split("|");
-    try { const d = await espnOr(() => ESPN_DIRECT.scoreboard(lg, day), `${ALERTS_URL}/sports/${lg}/scoreboard?dates=${day}`); n += gradePicks(lg, d.games); } catch {} }
+  for (const k of Object.keys(byDay).sort((a, b) => (T[a] || 0) - (T[b] || 0)).slice(0, 8)){ const [lg, day] = k.split("|"); T[k] = now;
+    try { const d = await espnOr(() => ESPN_DIRECT.scoreboard(lg, day), `${ALERTS_URL}/sports/${lg}/scoreboard?dates=${day}`); n += gradePicks(lg, d.games); } catch {}
+    for (const p of byDay[k]) if (!p.result && now - Date.parse(p.date) > 20 * 3600e3){
+      try { const g = await espnOr(() => ESPN_DIRECT.game(lg, p.id), `${ALERTS_URL}/sports/${lg}/game/${p.id}`); n += gradePicks(lg, [{ ...g, id: p.id }]); } catch {} } }
+  for (const [k, p] of Object.entries(PICKS)) if (!p.result && p.date && now - Date.parse(p.date) > 45 * 864e5) delete PICKS[k];   // never gradeable
+  for (const k of Object.keys(T)) if (!byDay[k]) delete T[k];
+  lsSet("grade-tries", T); if (n) savePicks();
   return n;
 }
 function pickRow(g, lg, pred){

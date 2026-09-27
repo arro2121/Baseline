@@ -1546,19 +1546,17 @@ export async function trackTick(env, fetchImpl = fetch, now = new Date(), force 
     const games = board.games || [], rec = days[day];
     const pre = g => lg !== "epl" && g.stype === 1;                                      // preseason: not tracked
     if (day === today) st.sched[lg] = { day, at: t, starts: games.filter(g => g.status?.state === "pre" && !pre(g)).map(g => Date.parse(g.date)).filter(x => x > t) };
-    const inWin = g => { const s = Date.parse(g.date); return g.status?.state === "pre" && !pre(g) && s > t && s - t <= LOCK_MS; };
+    const inWin = g => { const s = Date.parse(g.date); return g.status?.state === "pre" && !pre(g) && !g.tbd && !dhWaiting(g, games) && s > t && s - t <= LOCK_MS; };
     let espnMlb = null, inj;                                                               // MLB's own feed has no odds: take ESPN's for the same game
     if (lg === "mlb" && games.some(inWin)) { try { espnMlb = (await espnBoard("mlb", fetchImpl, day)).games || []; } catch { espnMlb = []; } }
     for (const g of games) {
       const key = `${lg}/${g.id}`, cur = rec[key];
-      if (inWin(g) && models && (!cur || cur.res == null)) {
+      if (inWin(g) && models && !cur) {                                                   // locked once, when its window opens; never rewritten (A28)
         if (inj === undefined) inj = await injuries(env, lg, fetchImpl).catch(() => null);
         const iH = injuryFor(inj, g.home.name), iA = injuryFor(inj, g.away.name); g.inj = { home: iH ? iH.pen : 0, away: iA ? iA.pen : 0 };
         const p = modelProbs(models, lg, g); if (!p) continue;
         let o = g.odds;
-        if (lg === "mlb") { const gs = Date.parse(g.date), m = (espnMlb || []).filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
-            .sort((a, b) => Math.abs(Date.parse(a.date) - gs) - Math.abs(Date.parse(b.date) - gs))[0];
-          o = m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m.odds : null; }
+        if (lg === "mlb") { const m = mlbEspnMatch(espnMlb, g); o = m ? m.odds : null; }
         const r4 = v => Math.round(v * 1e4) / 1e4;
         const pick = { lg, id: g.id, day, start: g.date, home: { name: g.home.name, abbr: g.home.abbr || "" }, away: { name: g.away.name, abbr: g.away.abbr || "" },
           p: lg === "epl" ? [r4(p.home), r4(p.draw), r4(p.away)] : [r4(p.home), r4(p.away)], proj: p.proj.map(v => Math.round(v * 100) / 100),
@@ -2304,13 +2302,21 @@ async function cz(env, a) {
   return a.act === "settle" ? czSettleTx(czKv(env), a) : a.act === "legacy" ? czLegacyTx(czKv(env), a) : a.act === "nanfix" ? czNanFixTx(czKv(env), a) : czTx(czKv(env), a);
 }
 const czRead = async (env, k, d) => { const v = await store(env).get(k); return v == null ? d : typeof v === "string" ? JSON.parse(v) : v; };
+// ESPN's copy of an MLB game (MLB's own feed has no odds). In a doubleheader both games share the teams and game 2's listed
+// time is a placeholder, so they're matched by game number, never by the nearest start time (A10)
+export function mlbEspnMatch(espnMlb, g) {
+  const same = (espnMlb || []).filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name)).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+  if (same.length > 1 || (g.gnum || 1) > 1) return same[(g.gnum || 1) - 1] || null;
+  const m = same[0], gs = Date.parse(g.date); return m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m : null;
+}
+// game 2 of a traditional doubleheader starts when game 1 ends: it isn't locked (or offered) until game 1 is final (A10)
+export const dhWaiting = (g, games) => (g.gnum || 1) > 1 && g.dh === "Y" && (games || []).some(x => x !== g && (x.gnum || 1) < g.gnum && mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name) && x.status?.state !== "post");
 // the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
 const czDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
 function czOffer(lg, g, models, espnMlb, inj) {
   if (inj) { const iH = injuryFor(inj, g.home.name), iA = injuryFor(inj, g.away.name); g.inj = { home: iH ? iH.pen : 0, away: iA ? iA.pen : 0 }; }
   let o = g.odds;
-  if (lg === "mlb" && espnMlb) { const gs = Date.parse(g.date), m = espnMlb.filter(x => mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name))
-      .sort((a, b) => Math.abs(Date.parse(a.date) - gs) - Math.abs(Date.parse(b.date) - gs))[0]; o = m && Math.abs(Date.parse(m.date) - gs) < 4 * 3600e3 ? m.odds : null; }
+  if (lg === "mlb" && espnMlb) { const m = mlbEspnMatch(espnMlb, g); o = m ? m.odds : null; }
   const book = trackOdds(o, lg === "epl"), p = modelProbs(models, lg, g);
   const sides = lg === "epl" ? ["home", "draw", "away"] : ["home", "away"];
   const r2 = v => Math.round(v * 100) / 100;
@@ -3012,7 +3018,11 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
   if (p === "/data" && req.method === "PUT") {
     const raw = await req.text(); if (raw.length > 100000) return json({ error: "Too much data." }, 413);
-    let d; try { d = czSyncClean(JSON.parse(raw)); } catch { d = null; } if (!d) return json({ error: "bad data" }, 400);
+    let j; try { j = JSON.parse(raw); } catch { j = null; }
+    // a known part that's over its limit is refused, so the saved copy is never replaced by one with it silently missing (A17)
+    const big = j && j.ls && typeof j.ls === "object" ? Object.entries(CZ_SYNC_KEYS).find(([k, cap]) => k in j.ls && (JSON.stringify(j.ls[k]) || "").length > cap) : null;
+    if (big) return json({ error: `Too much ${big[0]} data to save.`, key: big[0], cap: big[1] }, 413);
+    const d = czSyncClean(j); if (!d) return json({ error: "bad data" }, 400);
     await store(env).put("cz:data:" + u.uid, JSON.stringify({ ...d, at: now })); return json({ ok: true, at: now });
   }
   if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: dayBefore(today), now }); return json(r, r.error ? 409 : 200); }
