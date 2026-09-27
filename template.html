@@ -1299,6 +1299,9 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czres{font-size:.74rem;font-weight:750;padding:2px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--line)}.czres.win{color:var(--pos);border-color:currentColor}.czres.loss{color:var(--neg);border-color:currentColor}.czres.open{color:#c084fc;border-color:currentColor}
 .czvf{display:grid;gap:0;margin-bottom:6px}.czq{width:100%;max-width:360px;margin:0 0 10px}
 .czgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+/* long card lists: a card out of view isn't rendered at all (no animations, layers or painting) until it scrolls near, so a
+   collection of hundreds of cards scrolls smoothly and doesn't run a phone out of graphics memory */
+.czgrid>*,.czchgal>*,.czbinder .czpocket{content-visibility:auto;contain-intrinsic-size:auto 300px}
 .czitem,.czown{display:grid;gap:8px;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:default}.czown{cursor:pointer}.czown small{color:var(--muted);font-size:.72rem;text-align:center}
 .czinfo{display:grid;gap:6px}.czleft{font-size:.75rem;color:var(--muted);text-align:center}.czbuy{justify-content:center;width:100%}
 /* the card: a galaxy in the team's colours, the tier's foil on top */
@@ -1921,7 +1924,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .d-3 .czc-plate .czc-name{font-style:italic;text-transform:uppercase;letter-spacing:.02em}
 .d-4{clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 14px,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px),0 14px);border-radius:4px}
 .d-4 .czc-plate{background:rgba(2,6,23,.85);border:1px solid var(--c2);box-shadow:0 0 10px -2px var(--c2),inset 0 0 8px -2px var(--c2)}
-.d-5 .czc-plate{background:linear-gradient(120deg,rgba(255,255,255,.18),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(3px);clip-path:polygon(3% 0,100% 0,97% 100%,0 100%)}
+.d-5 .czc-plate{background:linear-gradient(120deg,rgba(255,255,255,.2),rgba(255,255,255,.06)),rgba(10,8,30,.35);border:1px solid rgba(255,255,255,.35);clip-path:polygon(3% 0,100% 0,97% 100%,0 100%)}
 .d-6 .czc-plate{background:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.7)}
 .d-7 .czc-plate{background:var(--c1);border:2px solid #000;box-shadow:3px 3px 0 #000;transform:skew(-8deg);margin:0 2px 2px}
 .d-7 .czc-plate>*{transform:skew(8deg)}.d-7 .czc-plate .czc-name{text-transform:uppercase;font-weight:900;-webkit-text-stroke:.3px #000}
@@ -7878,18 +7881,20 @@ $("#gameDlg").addEventListener("click", e => { if (e.target.id === "gameDlg") $(
 function navTo(fn){ if (RM() || !document.startViewTransition || document.hidden) return fn(); try { document.startViewTransition(fn); } catch { fn(); } }
 // the sky: three layers of stars at different depths drift and shift with scrolling (and the phone's tilt), with the odd shooting star
 const SKY = { tx: 0, ty: 0 };
+// while the page is scrolling, the moving background and the card tilt rest, so all the work goes to the scroll itself
+const SCROLLING = { until: 0 }; addEventListener("scroll", () => { SCROLLING.until = performance.now() + 180; }, { passive: true });
 (function starfield(){
   if (RM()) return;
   const c = document.createElement("canvas"); c.id = "starfield"; c.setAttribute("aria-hidden", "true"); document.body.prepend(c);
   const x = c.getContext("2d"); if (!x) return;
   let W = 0, H = 0, dpr = 1, stars = [], shoot = null, last = 0, nextShoot = performance.now() + 4000;
-  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const size = () => { dpr = Math.min(1.5, devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
     const n = Math.min(230, Math.round(W * H / 6500)), hues = [220, 250, 280, 190, 45];
     stars = Array.from({ length: n }, (_, i) => { const z = i % 3 === 0 ? 1 : i % 3 === 1 ? .6 : .3;
       return { x: Math.random() * W, y: Math.random() * H, z, r: (.4 + Math.random() * 1.1) * (z === 1 ? 1.35 : z === .6 ? 1 : .7), tw: Math.random() * 6.28, sp: .6 + Math.random() * 1.6, h: hues[i % hues.length] }; }); };
   size(); addEventListener("resize", size, { passive: true });
   const frame = t => { requestAnimationFrame(frame);
-    if (document.hidden || document.body.classList.contains("vplay") || t - last < 33) return; const dt = Math.min(80, t - last); last = t;
+    if (document.hidden || document.body.classList.contains("vplay") || t - last < 33 || t < SCROLLING.until) return; const dt = Math.min(80, t - last); last = t;
     x.clearRect(0, 0, W, H); const sy = scrollY * .06;
     for (const s of stars){ s.x += dt * .004 * s.z; if (s.x > W + 4) s.x = -4;
       const px = s.x + SKY.tx * 16 * s.z, py = ((s.y - sy * s.z + SKY.ty * 16 * s.z) % H + H) % H, a = .35 + .65 * (.5 + .5 * Math.sin(t / 1000 * s.sp + s.tw));
@@ -7913,7 +7918,7 @@ function gyroStart(){
 document.addEventListener("pointerdown", e => { if (e.target.closest("#cosmicView, #infoDlg")) gyroStart(); }, { passive: true });
 (function holoLoop(){
   let last = 0;
-  const tick = t => { requestAnimationFrame(tick); if (!GYRO.on || document.hidden || t - last < 40) return; last = t;
+  const tick = t => { requestAnimationFrame(tick); if (!GYRO.on || document.hidden || t - last < 40 || t < SCROLLING.until) return; last = t;
     const cards = document.querySelectorAll("#cosmicView .czcard, #infoDlg[open] .czcard"); let n = 0;
     for (const c of cards){ if (c.matches(":hover") || n > 24) continue; const b = c.getBoundingClientRect(); if (b.bottom < 0 || b.top > innerHeight) continue; n++;
       c.classList.add("tilt"); c.style.setProperty("--ry", (GYRO.x * 12).toFixed(1) + "deg"); c.style.setProperty("--rx", (-GYRO.y * 12).toFixed(1) + "deg");
