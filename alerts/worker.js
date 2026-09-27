@@ -2400,7 +2400,7 @@ export async function czLevels(env, fetchImpl = fetch, now = new Date(), force =
 /* ---- the Grails: each league's championship trophy as a single 1-of-1 card, the most valuable card in the game. It's
    priced at CZ_GRAIL_X times the most valuable card of any kind, so even a top card's level, hot streak and scarcity
    bonuses (up to about 2.2x) can't pass it. Sold, never pulled: it can't be a case hit, ink or graded. ---- */
-export const CZ_GRAILS = [["nfl", "Lombardi Trophy"], ["nba", "Larry O'Brien Trophy"], ["mlb", "Commissioner's Trophy"], ["nhl", "Stanley Cup"], ["epl", "Premier League Trophy"], ["atp", "Grand Slam Trophy"]];
+export const CZ_GRAILS = [["nfl", "The Gridiron Grail"], ["nba", "The Hardwood Grail"], ["mlb", "The Diamond Grail"], ["nhl", "The Ice Grail"], ["epl", "The Pitch Grail"], ["atp", "The Court Grail"]];
 export const CZ_GRAIL_X = 3, CZ_GRAIL_EV = .03;
 // a pack's chance per card of a Grail: worth about 3% of the pack's price, so a Galaxy pack is about 1 in 1,900 and a
 // Comet pack about 1 in 1.9 million
@@ -2500,18 +2500,17 @@ async function czCatalog(env, fetchImpl = fetch) {
         hobby: d, form: d && play != null ? Math.round((czFormOf(play) - 1) * 100) : undefined, off: off || undefined, rc: p.rc ? true : undefined, rcx: p.rc ? Math.round((rx - 1) * 100) : undefined }, "p" + p.id); } } catch {}
   // the All-Time 200: each legend is a single 1-of-1 (Singularity) card, numbered by all-time rank, worth what the greatest
   // players' 1-of-1s would be (#1 about 3.4 on the value curve, down to about 1.0 at #200), within their sport's market
-  { let R = {}; try { const r = await siteGet(env, "/rosters.json", fetchImpl); R = r.ok ? await r.json() : {}; } catch {}
-    const photo = (R.legends || {}), T = CZ_TIERS[0];
+  // (cards carry names and numbers only: no player photos)
+  { const T = CZ_TIERS[0];
     for (const L of LEGENDS) { const mult = Math.round((3.4 - (L.rank - 1) * .012) * 1000) / 1000, usd = czUsd(T[3], mult, "player", L.lg);
       items.push({ id: `${L.lg}.at-${czSlug(L.name)}.${T[0]}`, lg: L.lg, kind: "player", legend: true, name: L.name, team: L.team, pos: L.pos, tier: T[0], label: T[1], supply: 1,
-        mult, usd, price: czCoins(usd), rank: L.rank, no: L.rank, img: photo[L.name] || undefined }); } }
-  // Iconic Moments: the greatest moments in sports history, each a single 1-of-1 with its photo, numbered by rank
-  { let R = {}; try { const r = await siteGet(env, "/rosters.json", fetchImpl); R = r.ok ? await r.json() : {}; } catch {}
-    const photo = R.moments || {}, T = CZ_TIERS[0];
-    for (const M of MOMENTS) { if (Object.keys(photo).length && !photo[M.name]) continue;          // no photo, no card
+        mult, usd, price: czCoins(usd), rank: L.rank, no: L.rank }); } }
+  // Iconic Moments: the greatest moments in sports history, each a single 1-of-1 numbered by rank, shown as its year
+  { const T = CZ_TIERS[0];
+    for (const M of MOMENTS) {
       const mult = Math.round((2.6 - (M.rank - 1) * .03) * 1000) / 1000, usd = czUsd(T[3], mult, "player", M.lg);
       items.push({ id: `${M.lg}.mo-${czSlug(M.name)}.${T[0]}`, lg: M.lg, kind: "player", moment: true, name: M.name, team: M.who, pos: M.year, year: M.year, tier: T[0], label: T[1], supply: 1,
-        mult, usd, price: czCoins(usd), rank: M.rank, no: M.rank, img: photo[M.name] || undefined }); } }
+        mult, usd, price: czCoins(usd), rank: M.rank, no: M.rank }); } }
   // card numbers, like a real set: each league's set (2026 Cosmic NBA...) runs teams first, then players by team and name.
   // A card keeps its number in every tier.
   { const byLg = new Map(); for (const i of items) if (i.tier === "comet") (byLg.get(i.lg) || byLg.set(i.lg, []).get(i.lg)).push(i);
@@ -3021,7 +3020,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (!u.sp || u.sp.season !== czSeasonOf(now)) { const r = await cz(env, { act: "season", uid: u.uid, now }); if (r.user) user = r.user; }
     const pxAlerts = await czPriceAlerts(env, u.items || []);
     // cards pulled before RC labels or before their player's photo was known
-    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => { const c = CZ_CAT.byId.get(i.id); return c && ((!i.rc && c.rc) || (!i.img && c.img) || !i.no) ? { ...i, rc: i.rc || c.rc || undefined, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num } : i; }) };
+    if (CZ_CAT && user.items) user = { ...user, items: user.items.map(i => { const c = CZ_CAT.byId.get(i.id); if (c && i.grail && i.name !== c.name) i = { ...i, name: c.name };      // Grails renamed (no real trophies)
+      return c && ((!i.rc && c.rc) || (!i.img && c.img) || !i.no) ? { ...i, rc: i.rc || c.rc || undefined, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num } : i; }) };
     return json({ user, pxAlerts }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/season/seen" && req.method === "POST") { const r = await cz(env, { act: "seasonseen", uid: u.uid, now }); return json(r, r.error ? 409 : 200); }
