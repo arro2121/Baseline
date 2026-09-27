@@ -1995,7 +1995,7 @@ export async function czTx(st, a) {
       if (!open.length) continue;
       const n = open[Math.floor(rnd() * open.length)];
       if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
-      const ch = rnd() < CZ_CASE.rate ? CZ_CASE.inserts[Math.floor(rnd() * CZ_CASE.inserts.length)][0] : null;
+      const ch = rnd() < CZ_CASE.rate ? czCasePick(rnd()) : null;
       const ink = !ch && it.kind === "player" && !it.legend && !it.moment && rnd() < CZ_INK.rate;
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(it.legend ? { legend: true, rank: it.rank } : {}), ...(it.moment ? { moment: true, rank: it.rank, year: it.year } : {}), ...(ch ? { ch } : {}), ...(ink ? { ink: true } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
@@ -2537,14 +2537,24 @@ export function czValueOf(it, { xp = 0, hot = false, held = 0 } = {}) {
   const v = Math.round(it.price * (1 + .15 * (lv - 1)) * (hot ? 1.1 : 1) * (1 + scarce) / 10) * 10;
   return { value: Math.max(10, v), level: lv, hot, scarce: Math.round(scarce * 100) };
 }
-// case hits: about 1 card in 100 from any pack comes out as a case hit, in one of 12 insert designs. It's the same card
-// and serial, but worth 3 times as much, and everyone sees it in the activity feed.
-export const CZ_CASE = { rate: 1 / 100, mult: 3, inserts: [["horizon", "Event Horizon"], ["starfall", "Starfall"], ["crown", "Galaxy Crown"], ["flame", "Hall of Flame"],
-  ["frost", "Ice Cold"], ["gold", "Gold Standard"], ["volt", "Supercharged"], ["kaleido", "Kaleidoscope"], ["rift", "Cosmic Rift"], ["neon", "Neon Night"], ["aurora", "Northern Lights"], ["diamond", "Diamond Dust"]] };
+// case hits: about 1 card in 100 from any pack comes out as a case hit, in one of 12 insert designs. It's the same card and
+// serial in an insert frame, and everyone sees it in the activity feed. The designs come in four levels: the rarer the design,
+// the more the copy is worth. inserts: [id, name, level, times the regular card, weight (its share of case hits)].
+// On average a case hit is worth about 2.9x, close to the old flat 3x, so packs return what they did.
+export const CZ_CASE_LEVELS = [["mythic", "Mythic", 8], ["legendary", "Legendary", 5], ["epic", "Epic", 3], ["rare", "Rare", 2]];
+export const CZ_CASE = { rate: 1 / 100, mult: 3, inserts: [
+  ["crown", "Galaxy Crown", "mythic", 8, 2], ["diamond", "Diamond Dust", "mythic", 8, 2],
+  ["horizon", "Event Horizon", "legendary", 5, 4], ["gold", "Gold Standard", "legendary", 5, 4],
+  ["starfall", "Starfall", "epic", 3, 7], ["flame", "Hall of Flame", "epic", 3, 7], ["kaleido", "Kaleidoscope", "epic", 3, 7], ["rift", "Cosmic Rift", "epic", 3, 7],
+  ["frost", "Ice Cold", "rare", 2, 12], ["volt", "Supercharged", "rare", 2, 12], ["neon", "Neon Night", "rare", 2, 12], ["aurora", "Northern Lights", "rare", 2, 12]] };
+const CZ_CASE_W = CZ_CASE.inserts.reduce((t, i) => t + i[4], 0);
+export const czCaseMult = ch => (CZ_CASE.inserts.find(i => i[0] === ch) || [])[3] || CZ_CASE.mult;
+// which design a case hit gets, by weight (r is a random number from 0 to 1)
+export const czCasePick = r => { let x = r * CZ_CASE_W; for (const i of CZ_CASE.inserts) { x -= i[4]; if (x < 0) return i[0]; } return CZ_CASE.inserts[CZ_CASE.inserts.length - 1][0]; };
 // Cosmic Ink: a signature-style insert. About 1 player card in 75 comes out signed in gold ink, worth twice the regular card.
 export const CZ_INK = { rate: 1 / 75, mult: 2 };
-// a copy's worth next to the regular card: a case hit 3x, an ink card 2x (both: 3x)
-export const czCopyMult = c => c && c.ch ? CZ_CASE.mult : c && c.ink ? CZ_INK.mult : 1;
+// a copy's worth next to the regular card: a case hit 2x to 8x by its design, an ink card 2x
+export const czCopyMult = c => c && c.ch ? czCaseMult(c.ch) : c && c.ink ? CZ_INK.mult : 1;
 // set checklists: collect one card (any tier) of every player in a set, then claim its reward once
 //   <lg> Superstars: the 12 players collectors chase most in that league (tennis: 6 from each tour)
 //   <lg> Rookie Class: the league's most collected first-year players; QB Club: the 12 most collected quarterbacks
@@ -2772,7 +2782,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     let h = Math.floor(Date.now() / 864e5); const pool = STARS.map(pick).filter(Boolean);
     for (let i = pool.length - 1; i > 0; i--) { h = (h * 9301 + 49297) % 233280; const j = h % (i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const samples = pool.slice(0, CZ_CASE.inserts.length);
-    return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, ink: CZ_INK, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
+    return json({ rate: CZ_CASE.rate, mult: CZ_CASE.mult, inserts: CZ_CASE.inserts, levels: CZ_CASE_LEVELS, ink: CZ_INK, samples, pulled: await czRead(env, "cz:chlog", []) }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/sets" && req.method === "GET") { const lg = url.searchParams.get("lg") || "all";
     if (!["all", "nfl", "nba", "mlb", "nhl", "epl", "tennis"].includes(lg)) return json({ error: "Pick a league." }, 400);
     return json({ sets: await czSets(env, lg) }, 200, { "Cache-Control": "no-store" }); }

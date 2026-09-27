@@ -2071,7 +2071,9 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czins-rays{position:absolute;left:50%;top:45%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;background:repeating-conic-gradient(from 0deg,var(--gl) 0 5deg,transparent 5deg 16deg);-webkit-mask:radial-gradient(circle,#000,transparent 55%);mask:radial-gradient(circle,#000,transparent 55%);opacity:0;animation:czinsrays 1s .2s ease-out forwards,czinsspin 30s linear infinite}
 @keyframes czinsrays{to{opacity:.5}}
 .czins-in{position:relative;display:grid;justify-items:center;gap:10px;text-align:center;width:min(92vw,380px)}
-.czins-kick{font-size:.72rem;font-weight:850;letter-spacing:.35em;text-transform:uppercase;color:var(--pl);opacity:0;animation:czcluein .5s .45s forwards}
+.czins-kick{font-size:.72rem;font-weight:850;letter-spacing:.3em;text-transform:uppercase;color:var(--pl);opacity:0;animation:czcluein .5s .45s forwards}
+.czins-kick.lv-mythic{color:#f0abfc;text-shadow:0 0 10px #d946ef}.czins-kick.lv-legendary{color:#fcd34d;text-shadow:0 0 10px #f59e0b}
+.czlvh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:var(--lv)}.czlvh small{color:var(--muted);font-weight:600;font-size:.8rem}
 .czins-title{margin:0;font-size:clamp(1.8rem,9vw,2.9rem);font-weight:900;line-height:1.05;text-transform:uppercase}
 .czins-title span{display:inline-block;background:var(--chf);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.7)) drop-shadow(0 0 12px var(--gl));opacity:0;animation:czinsletter .5s cubic-bezier(.2,1.6,.4,1) forwards,czfoilmove 4s linear infinite;animation-delay:calc(.65s + var(--i) * 50ms),0s}
 @keyframes czinsletter{from{opacity:0;transform:translateY(-40px) scale(1.8)}to{opacity:1;transform:none}}
@@ -5411,6 +5413,13 @@ const CZ_SCENES = [
 ];
 const CZ_CASE_NAME = { horizon: "Event Horizon", starfall: "Starfall", crown: "Galaxy Crown", flame: "Hall of Flame", frost: "Ice Cold", gold: "Gold Standard", volt: "Supercharged",
   kaleido: "Kaleidoscope", rift: "Cosmic Rift", neon: "Neon Night", aurora: "Northern Lights", diamond: "Diamond Dust" };
+// each design's level, what it's worth next to the regular card, and its share of case hits (the same table as the worker's CZ_CASE)
+const CZ_CASE_LV = { crown: ["mythic", 8, 2], diamond: ["mythic", 8, 2], horizon: ["legendary", 5, 4], gold: ["legendary", 5, 4],
+  starfall: ["epic", 3, 7], flame: ["epic", 3, 7], kaleido: ["epic", 3, 7], rift: ["epic", 3, 7], frost: ["rare", 2, 12], volt: ["rare", 2, 12], neon: ["rare", 2, 12], aurora: ["rare", 2, 12] };
+const CZ_LV_NAME = { mythic: "Mythic", legendary: "Legendary", epic: "Epic", rare: "Rare" }, CZ_LV_COL = { mythic: "#f0abfc", legendary: "#fcd34d", epic: "#a78bfa", rare: "#7dd3fc" };
+const czChLv = ch => { const l = CZ_CASE_LV[ch] || ["epic", 3, 7]; return { id: l[0], name: CZ_LV_NAME[l[0]], x: l[1], w: l[2] }; };
+// how many cards, on average, for one copy of this design: the case-hit rate times its share of case hits
+const czChEvery = ch => { const rate = (CZ.casehits && CZ.casehits.rate) || 1 / 100, W = Object.values(CZ_CASE_LV).reduce((t, l) => t + l[2], 0); return Math.round(1 / (rate * czChLv(ch).w / W)); };
 // each case hit is drawn as its name: a black hole for Event Horizon, a meteor shower for Starfall, a crowned galaxy,
 // a flaming hall, icicles, gold bars, lightning, a mandala, a torn sky, a neon skyline, an aurora and a cut diamond.
 // Two layers: a scene behind the player and an edge ornament in front of him that stays clear of the face and name
@@ -5501,7 +5510,7 @@ function czCard(it, ed, big){
   const extra = (it.tier === "singularity" && !it.legend && !it.moment ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
     + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
-    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
+    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>${esc(czChLv(it.ch).name)} insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? `<i></i><b></b>${CZ_CASE_ART[it.ch] ? `<svg class="czscene czchart" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_CASE_ART[it.ch].back}</svg>` : ""}` : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch && CZ_CASE_ART[it.ch] && CZ_CASE_ART[it.ch].front ? `<svg class="czscene czchfr" aria-hidden="true" viewBox="0 0 100 140" preserveAspectRatio="none">${CZ_CASE_ART[it.ch].front}</svg>` : ""}${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
@@ -6106,8 +6115,12 @@ async function czLegends(more, kind = "legends"){ const d = await czApi(`/vault?
 function czCaseHitsHtml(){
   const C = CZ.casehits; if (!C) return `<div class="teamnote">${cosmoLoad("Opening the case…")}</div>`;
   const fb = (CZ.vault && CZ.vault.items || []).find(i => i.kind === "player") || { id: "nba.x.pulsar", name: "Cosmic Star", kind: "player", lg: "nba", tier: "pulsar", supply: 100 }, sample = k => (C.samples || [])[k % Math.max(1, (C.samples || []).length)] || fb;
-  return `<p class="sub">Case hits are the rarest inserts in the set: about <b>1 in every ${Math.round(1 / C.rate)}</b> cards from any pack comes out as one, in one of ${C.inserts.length} designs. Any player or team from any pack can hit one. It's the same player and serial, in an insert frame, and worth <b>${C.mult}×</b> the regular card.</p>
-    <div class="czchgal">${C.inserts.map(([id, name], k) => `<div class="czchitem">${czCard({ ...sample(k), ch: id, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>${esc(name)}</b></div>`).join("")}</div>
+  const ins = C.inserts.map(([id, name]) => ({ id, name, lv: czChLv(id) }));
+  let k = 0; const group = l => { const g = ins.filter(i => i.lv.id === l); if (!g.length) return "";
+    return `<h3 class="subh czlvh" style="--lv:${CZ_LV_COL[l]}">${esc(CZ_LV_NAME[l])} <small>${g[0].lv.x}× the card · about 1 in ${czChEvery(g[0].id).toLocaleString()} cards each</small></h3>
+      <div class="czchgal">${g.map(i => `<div class="czchitem">${czCard({ ...sample(k++), ch: i.id, label: CZ_TIER_NAME[sample(k - 1).tier] }, 1)}<b>${esc(i.name)}</b></div>`).join("")}</div>`; };
+  return `<p class="sub">Case hits are the rarest inserts in the set: about <b>1 in every ${Math.round(1 / C.rate)}</b> cards from any pack comes out as one, in one of ${C.inserts.length} designs. Any player or team from any pack can hit one. It's the same player and serial, in an insert frame. The designs come in four levels: the rarer the design, the more it's worth, from <b>2×</b> the regular card for a Rare up to <b>8×</b> for a Mythic.</p>
+    ${["mythic", "legendary", "epic", "rare"].map(group).join("")}
     <h3 class="subh">✍️ Cosmic Ink</h3><p class="sub">A signed-style insert: about <b>1 in every ${Math.round(1 / ((C.ink && C.ink.rate) || 1 / 75))}</b> player cards comes out with the player's name inked across it in gold, worth <b>${(C.ink && C.ink.mult) || 2}×</b> the regular card.</p>
     <div class="czchgal">${[0, 1, 2].map(k => `<div class="czchitem">${czCard({ ...sample(k), ink: true, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>Cosmic Ink</b></div>`).join("")}</div>
     <h3 class="subh">Pulled so far</h3>
@@ -6311,7 +6324,7 @@ function czCardBack(it){
   const setName = it.moment ? "Cosmic Iconic Moments" : it.legend ? "Cosmic All-Time 200" : `2026 Cosmic ${({ nfl: "Football", nba: "Basketball", mlb: "Baseball", nhl: "Hockey", epl: "Premier League", atp: "Tennis", wta: "Tennis" })[it.lg] || ""}`;
   const pos = it.kind === "player" ? ((CZ_POSN[it.lg] || {})[it.pos] || it.pos || "") : "Team card";
   const rows = [["Team", it.kind === "player" ? it.team || CZ_LG[it.lg] : it.name], ["Position", pos], it.num ? ["Number", "#" + it.num] : null, it.ovr ? ["Rating", `${it.ovr} this season`] : null, it.rank ? [it.kind === "team" ? "Ratings rank" : "Tour rank", "#" + it.rank] : null].filter(Boolean);
-  const blurb = it.moment ? `Iconic Moment No. ${it.rank}: ${it.name}, ${it.year}. ${it.team || ""}. The only copy of this card in existence.` : it.ink ? `Cosmic Ink: a signed-style insert, about 1 in every 75 player cards, worth twice the regular card.` : it.legend ? `No. ${it.rank} of the All-Time 200: one of the greatest players ever, and the only copy of this card in existence.` : it.ch ? `A case hit: one of the rarest inserts in ${setName}, about 1 in every ${Math.round(1 / ((CZ.casehits && CZ.casehits.rate) || 1 / 100))} cards.` : it.rc ? `Rookie card. ${it.name}'s first season, the card collectors chase first.` : it.line ? `This season: ${it.line}.` : it.kind === "team" ? `${it.name} team card from ${setName}.` : `Part of ${setName}.`;
+  const blurb = it.moment ? `Iconic Moment No. ${it.rank}: ${it.name}, ${it.year}. ${it.team || ""}. The only copy of this card in existence.` : it.ink ? `Cosmic Ink: a signed-style insert, about 1 in every 75 player cards, worth twice the regular card.` : it.legend ? `No. ${it.rank} of the All-Time 200: one of the greatest players ever, and the only copy of this card in existence.` : it.ch ? `A ${czChLv(it.ch).name} case hit, ${esc(CZ_CASE_NAME[it.ch] || "")}: worth ${czChLv(it.ch).x}× the regular card, and about 1 in every ${czChEvery(it.ch).toLocaleString()} cards comes out as one.` : it.rc ? `Rookie card. ${it.name}'s first season, the card collectors chase first.` : it.line ? `This season: ${it.line}.` : it.kind === "team" ? `${it.name} team card from ${setName}.` : `Part of ${setName}.`;
   return `<div class="czcbk t-${esc(it.tier)}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}">
     <div class="czbk-head"><b>#${String(it.no || 0).padStart(3, "0")}</b><span>${esc(it.name)}</span>${logo ? `<img src="${esc(logo)}" alt="" loading="lazy">` : ""}</div>
     <div class="czbk-sub">${esc(pos)}${it.rc ? ' · <i class="czrc-s">RC</i>' : ""}</div>
@@ -6326,7 +6339,7 @@ async function czHistory(id, n){
   try { const d = await czApi("/card/" + encodeURIComponent(id)); owners = d.owners; V = d.item; } catch {}
   setTimeout(() => { const b = $("#czFlipBtn"); if (b) b.onclick = () => { $("#czFlipCard").classList.toggle("back"); sfx("tap"); }; }, 0);
   const it = own || { ...((CZ.vault && CZ.vault.items || []).find(i => i.id === id) || {}), ...(V || {}) };
-  if (V && own && (own.ch || own.ink)) { const x = own.ch ? 3 : 2; V = { ...V, value: V.value * x, shop: V.shop * x }; }       // a case hit is worth 3x the card, an ink card 2x
+  if (V && own && (own.ch || own.ink)) { const x = own.ch ? czChLv(own.ch).x : 2; V = { ...V, value: V.value * x, shop: V.shop * x }; }       // a case hit is worth 2x to 8x the card by its level, an ink card 2x
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
   const face = czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true), back = czCardBack({ ...it, ...(V || {}), ch: it.ch, n: n || it.n, label: CZ_TIER_NAME[it.tier] });
   $("#infoBody").innerHTML = `<div class="czreveal"><div class="czflipcard" id="czFlipCard"><div class="czfc-f">${face}</div><div class="czfc-b">${back}</div></div><button type="button" class="btn czflipbtn" id="czFlipBtn">↻ Flip card</button><h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
@@ -6721,10 +6734,10 @@ function czRip(pk, cards){
 let czInsQ = Promise.resolve();
 function czInsert(c, n = c.n){
   return czInsQ = czInsQ.then(() => new Promise(done => {
-    const d = document.createElement("dialog"), name = CZ_CASE_NAME[c.ch] || "Insert", ser = c.supply === 1 ? "1 of 1" : `${n}/${c.supply}`;
+    const d = document.createElement("dialog"), name = CZ_CASE_NAME[c.ch] || "Insert", lv = czChLv(c.ch), ser = c.supply === 1 ? "1 of 1" : `${n}/${c.supply}`;
     d.className = "czins ch-" + c.ch; d.setAttribute("aria-labelledby", "czInsT");
     d.innerHTML = `<span class="czins-burst" aria-hidden="true"></span><span class="czins-rays" aria-hidden="true"></span>
-      <div class="czins-in"><small class="czins-kick">💎 Case hit</small>
+      <div class="czins-in"><small class="czins-kick lv-${lv.id}">💎 ${esc(lv.name)} case hit · ${lv.x}×</small>
       <h2 class="czins-title" id="czInsT" aria-label="${esc(name)}">${[...name].map((ch, i) => `<span aria-hidden="true" style="--i:${i}">${ch === " " ? "&nbsp;" : esc(ch)}</span>`).join("")}</h2>
       <div class="czins-card"><div>${czCard({ ...c, label: CZ_TIER_NAME[c.tier] }, n, true)}</div></div>
       <p class="czins-who"><b>${esc(c.name)}</b><small>${esc(CZ_TIER_NAME[c.tier])} · ${ser}</small></p><small class="czins-tap">Tap to continue</small></div>`;
@@ -6735,14 +6748,14 @@ function czInsert(c, n = c.n){
     d.addEventListener("click", () => close()); d.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); close(); } });
     d.showModal(); d.focus(); sfx("win");
     if (!RM()) { const cs = getComputedStyle(d), cols = ["--pe", "--pl", "--pn"].map(v => cs.getPropertyValue(v).trim()).filter(Boolean);
-      timers.push(setTimeout(() => sfx("reveal"), 1250), setTimeout(() => czConfetti(c.supply === 1 ? 140 : 90, cols, d), 1900)); }
+      timers.push(setTimeout(() => sfx("reveal"), 1250), setTimeout(() => czConfetti(c.supply === 1 || lv.x >= 8 ? 160 : lv.x >= 5 ? 120 : 90, cols, d), 1900)); }
     timers.push(setTimeout(() => close(true), 9000));
   }));
 }
 function czFlash(c){
   if (RM()) return; const el = document.createElement("div"); el.className = "czflash t-" + c.tier; el.setAttribute("aria-hidden", "true");
   if (c.ch) el.classList.add("casehit");
-  el.innerHTML = `<div class="czflash-in"><small>${c.ch ? `💎 Case hit · ${esc(CZ_CASE_NAME[c.ch] || "")}` : esc(CZ_TIER_NAME[c.tier])}</small><b>${c.supply === 1 ? "1 of 1" : `${c.n}/${c.supply}`}</b><span>${esc(c.name)}</span></div>`;
+  el.innerHTML = `<div class="czflash-in"><small>${c.ch ? `💎 ${esc(czChLv(c.ch).name)} case hit · ${esc(CZ_CASE_NAME[c.ch] || "")}` : esc(CZ_TIER_NAME[c.tier])}</small><b>${c.supply === 1 ? "1 of 1" : `${c.n}/${c.supply}`}</b><span>${esc(c.name)}</span></div>`;
   document.body.appendChild(el); czConfetti(c.supply === 1 ? 140 : 90); setTimeout(() => el.classList.add("out"), 1900); setTimeout(() => el.remove(), 2500);
 }
 function czBind(el){
