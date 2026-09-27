@@ -152,7 +152,7 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
 // RC1 / TP1: rookie premium and team-pack prices
 check("RC1 rookie premium grows with play (10% to 45%)", W.czRookieX(0, null) === 1.1 && W.czRookieX(0, 0) === 1.15 && Math.abs(W.czRookieX(0, 1) - 1.45) < 1e-9 && W.czRookieX(8, 1) < 1.13);
 check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN === .7 && W.czPackRound(1234) === 1250 && W.czPackRound(123) === 120 && W.czPackRound(12) === 10);
-{ const avg = { singularity: 78200, pulsar: 230, comet: 23 };
+{ const avg = { singularity: 78119, supernova: 5752, quasar: 1381, nebula: 575, pulsar: 231, stardust: 92, comet: 23 };
   const r = W.CZ_PACKS.map(pk => W.czPackEV(pk.odds, pk.cards, avg) / pk.price);
   check("TP2 every list-price pack returns 69-72% on the catalog's averages", r.every(x => x > .68 && x < .72), r.map(x => x.toFixed(3)).join()); }
 // SET1 / CH1: set checklists pay once when complete; case hits sell for 3 times the value
@@ -182,34 +182,11 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   check("MB1 at most 10 at a time", (await T({ act: "pack", uid: "Q", pack: pk, pool, count: 50, rid: "dddddddddddddddd" })).cards.length === 10 * pk.cards);
   check("MB1 not enough coins for all of them", /cost/.test((await T({ act: "pack", uid: "Q", pack: W.CZ_PACKS.find(x => x.id === "galaxy"), pool, count: 5, rid: "eeeeeeeeeeeeeeee" })).error || ""));
   check("PK2 six packs at 100, 250, 1,000, 5,000, 10,000 and 100,000", W.CZ_PACKS.map(x => x.price).join() === "100,250,1000,5000,10000,100000");
-  check("TR1 three versions per card: a 1-of-1, /100 and /1000", W.CZ_TIERS.map(t => t[2]).join() === "1,100,1000" && W.CZ_PACKS.every(pk => pk.odds.length === 3 && Math.abs(pk.odds.reduce((a, b) => a + b) - 100) < .01)); }
+  check("TR1 seven tiers per card: 1, 10, 25, 50, 100, 250 and 1,000 copies", W.CZ_TIERS.map(t => t[2]).join() === "1,10,25,50,100,250,1000" && [...W.CZ_PACKS, { odds: W.CZ_EV_ODDS }].every(pk => pk.odds.length === 7 && Math.abs(pk.odds.reduce((a, b) => a + b) - 100) < .01)); }
 // WP1: the welcome gift is three Comet packs, free
 { const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k) }, T = a => W.czTx(st, { now: now0, ...a });
   await T({ act: "ident", sub: "N", uid: "N", tok: "t", name: "Newbie" }); m.set("cz:u:N", { ...m.get("cz:u:N"), bal: 0, freePack: true, tix: { comet: 1 } });
   const pool = Array.from({ length: 20 }, (_, i) => ({ id: `nba.p${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "P" + i, kind: "player" }));
   const r = await T({ act: "pack", uid: "N", pack: W.CZ_PACKS[0], pool, free: true, rid: "ffffffffffffffff" }), U = m.get("cz:u:N");
   check("WP1 the welcome gift is three free Comet packs", r.cards.length === 3 && U.bal === 0 && U.freePack === false && U.tix.comet === 1, { n: r.cards.length, bal: U.bal }); }
-// the old tiers are taken out of every collection, the market, auctions, trades and battles, and paid back in full. Once
-{ const m = new Map(), st = { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k), list: async ({ prefix = "" } = {}) => new Map([...m].filter(([k]) => k.startsWith(prefix))) };
-  const c = (id, n, x = {}) => ({ id, n, supply: 50, tier: id.split(".").pop(), lg: "nba", name: "X", kind: "player", ...x });
-  m.set("cz:u:A", { uid: "A", name: "Al", bal: 100, items: [c("nba.p1.nebula", 3, { listed: "L1" }), c("nba.p2.comet", 9, { battle: "B1" }), c("nba.p3.supernova", 1, { ch: "flame" }), c("nba.p4.stardust", 2, { battle: "B1" })] });
-  m.set("cz:u:B", { uid: "B", name: "Bo", bal: 50, items: [c("nba.p5.pulsar", 4), c("nba.p6.quasar", 7, { auction: "Q1" })] });
-  m.set("cz:u:C", { uid: "C", name: "Cy", bal: 0, items: [c("nba.p7.comet", 1)] });
-  m.set("cz:mkt", [{ lid: "L1", id: "nba.p1.nebula", uid: "A" }, { lid: "L2", id: "nba.p7.comet", uid: "C" }]);
-  m.set("cz:auc", [{ aid: "Q1", id: "nba.p6.quasar", seller: "B", bidder: "C", bid: 40, bT: false }]);
-  m.set("cz:bat", [{ id: "B1", from: "A", status: "open", stake: 25, a: [{ id: "nba.p2.comet" }, { id: "nba.p4.stardust" }] }]);
-  m.set("cz:trades", [{ tid: "T1", from: "C", to: "B", status: "open", give: [c("nba.p7.comet", 1)], get: [c("nba.p6.quasar", 7)] }]);
-  m.set("cz:own:nba.p1.nebula", [{ uid: "A", n: 3 }]); m.set("cz:ret", { "nba.p1.nebula": [5], "nba.p2.comet": [1] }); m.set("cz:lb", {});
-  const ids = (await W.czLegacyTx(st, { act: "legacy", phase: "ids" })).ids.sort().join();
-  const r = await W.czLegacyTx(st, { act: "legacy", phase: "purge", prices: { "nba.p1.nebula": 100, "nba.p3.supernova": 1000, "nba.p4.stardust": 10, "nba.p6.quasar": 200 }, now: 5 });
-  const A = m.get("cz:u:A"), B = m.get("cz:u:B"), C = m.get("cz:u:C");
-  check("LG1 old-tier cards leave every collection", ![A, B, C].some(u => u.items.some(i => W.CZ_LEGACY_RE.test(i.id))) && A.items.length === 1 && B.items.length === 1 && C.items.length === 1, ids);
-  check("LG2 owners are paid full value (case hits at 3x) plus a cancelled battle's stake", A.bal === 100 + 100 + 3000 + 10 + 25 && B.bal === 50 + 200 && A.legacyRefund.n === 3, [A.bal, B.bal]);
-  check("LG3 the market, auction, trade and battle holding them are cleared, with the held bid refunded", m.get("cz:mkt").length === 1 && m.get("cz:auc").length === 0 && C.bal === 40 && m.get("cz:trades")[0].status === "void" && m.get("cz:bat")[0].status === "cancelled" && !A.items[0].battle, C.bal);
-  check("LG4 their owner lists and serials go too", !m.has("cz:own:nba.p1.nebula") && !m.get("cz:ret")["nba.p1.nebula"] && m.get("cz:ret")["nba.p2.comet"].length === 1);
-  const again = await W.czLegacyTx(st, { act: "legacy", phase: "purge", prices: {}, now: 6 });
-  check("LG5 it happens only once", again.already && m.get("cz:u:A").bal === A.bal && r.cards === 4); }
-{ const { env: e2, data: d2 } = fakeEnv(); d2.set("cz:u:Z", { uid: "Z", name: "Zed", bal: 0, items: [{ id: "nba.p9.nebula", n: 1, tier: "nebula" }] });
-  const r = await (await e2.STORE.get("main").fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "cz", a: { act: "legacy", phase: "purge", prices: { "nba.p9.nebula": 70 }, now: 9 } }) })).json();
-  check("LG6 the Durable Object runs the cleanup", r.v.done && d2.get("cz:u:Z").items.length === 0 && d2.get("cz:u:Z").bal === 70 && d2.get("cz:legacypurged") === 9, r); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
