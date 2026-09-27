@@ -1302,6 +1302,9 @@ html.native .webonly,html.native #installBtn{display:none!important}
 /* long card lists: a card out of view isn't rendered at all (no animations, layers or painting) until it scrolls near, so a
    collection of hundreds of cards scrolls smoothly and doesn't run a phone out of graphics memory */
 .czgrid>*,.czchgal>*,.czbinder .czpocket{content-visibility:auto;contain-intrinsic-size:auto 300px}
+/* on a phone the cards in a list hold still: their foil, sweeps and scenes repaint every frame, which is what makes long lists
+   lag and drain the battery. They still move on the big card, in pack openings and in reveals. */
+@media (pointer:coarse){.czgrid .czcard,.czgrid .czcard *,.czgrid .czcard::before,.czgrid .czcard::after,.czgrid .czcard *::before,.czgrid .czcard *::after,.czchgal .czcard,.czchgal .czcard *,.czbinder .czcard,.czbinder .czcard *{animation:none!important}}
 .czitem,.czown{display:grid;gap:8px;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:default}.czown{cursor:pointer}.czown small{color:var(--muted);font-size:.72rem;text-align:center}
 .czinfo{display:grid;gap:6px}.czleft{font-size:.75rem;color:var(--muted);text-align:center}.czbuy{justify-content:center;width:100%}
 /* the card: a galaxy in the team's colours, the tier's foil on top */
@@ -1387,7 +1390,11 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czpk-crimp{position:absolute;left:0;right:0;top:0;height:10px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 4px,transparent 4px 8px);opacity:.5}.czpk-crimp.b{top:auto;bottom:0}
 
 /* ---- finishing touches: the starfield, section transitions, springy taps, score bursts, richer holo ---- */
-#starfield{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
+#starfield{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;--sfx:0px;--sfy:0px;--sft:0px}
+#starfield .sfl{position:absolute;left:0;top:0;width:200vw;height:max(100vh,100lvh);transform:translate3d(calc(var(--sfx) * var(--sfz)),calc((var(--sfy) + var(--sft)) * var(--sfz)),0)}
+#starfield .sfl0{animation:sfdrift 90s linear infinite,sftw 5s ease-in-out infinite alternate}#starfield .sfl1{animation:sfdrift 150s linear infinite,sftw 6.5s ease-in-out -2s infinite alternate}#starfield .sfl2{animation:sfdrift 300s linear infinite,sftw 8s ease-in-out -4s infinite alternate}
+@keyframes sfdrift{from{translate:0 0}to{translate:-100vw 0}}@keyframes sftw{from{opacity:.62}to{opacity:1}}
+body.vplay #starfield{display:none}
 ::view-transition-old(root){animation:vtOut .2s ease both}
 ::view-transition-new(root){animation:vtIn .36s cubic-bezier(.2,.8,.2,1) both}
 @keyframes vtOut{to{opacity:0;transform:scale(.985);filter:blur(3px)}}
@@ -7885,27 +7892,21 @@ const SKY = { tx: 0, ty: 0 };
 const SCROLLING = { until: 0 }; addEventListener("scroll", () => { SCROLLING.until = performance.now() + 180; }, { passive: true });
 (function starfield(){
   if (RM()) return;
-  const c = document.createElement("canvas"); c.id = "starfield"; c.setAttribute("aria-hidden", "true"); document.body.prepend(c);
-  const x = c.getContext("2d"); if (!x) return;
-  let W = 0, H = 0, dpr = 1, stars = [], shoot = null, last = 0, nextShoot = performance.now() + 4000;
-  const size = () => { dpr = Math.min(1.5, devicePixelRatio || 1); W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; x.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = Math.min(230, Math.round(W * H / 6500)), hues = [220, 250, 280, 190, 45];
-    stars = Array.from({ length: n }, (_, i) => { const z = i % 3 === 0 ? 1 : i % 3 === 1 ? .6 : .3;
-      return { x: Math.random() * W, y: Math.random() * H, z, r: (.4 + Math.random() * 1.1) * (z === 1 ? 1.35 : z === .6 ? 1 : .7), tw: Math.random() * 6.28, sp: .6 + Math.random() * 1.6, h: hues[i % hues.length] }; }); };
-  size(); addEventListener("resize", size, { passive: true });
-  const frame = t => { requestAnimationFrame(frame);
-    if (document.hidden || document.body.classList.contains("vplay") || t - last < 33 || t < SCROLLING.until) return; const dt = Math.min(80, t - last); last = t;
-    x.clearRect(0, 0, W, H); const sy = scrollY * .06;
-    for (const s of stars){ s.x += dt * .004 * s.z; if (s.x > W + 4) s.x = -4;
-      const px = s.x + SKY.tx * 16 * s.z, py = ((s.y - sy * s.z + SKY.ty * 16 * s.z) % H + H) % H, a = .35 + .65 * (.5 + .5 * Math.sin(t / 1000 * s.sp + s.tw));
-      x.globalAlpha = a * (.45 + .55 * s.z); x.fillStyle = `hsl(${s.h},85%,${s.h === 45 ? 80 : 88}%)`; x.beginPath(); x.arc(px, py, s.r, 0, 6.2832); x.fill();
-      if (s.r > 1.3 && a > .85){ x.globalAlpha = (a - .85) * 2.5; x.fillRect(px - s.r * 3, py - .35, s.r * 6, .7); x.fillRect(px - .35, py - s.r * 3, .7, s.r * 6); } }
-    if (!shoot && t > nextShoot){ shoot = { x: Math.random() * W * .7 + W * .3, y: Math.random() * H * .35, t0: t, a: Math.PI * (.78 + Math.random() * .1) }; nextShoot = t + 7000 + Math.random() * 9000; }
-    if (shoot){ const k = (t - shoot.t0) / 900; if (k > 1) shoot = null; else { const L = 140, hx = shoot.x + Math.cos(shoot.a) * k * 420, hy = shoot.y + Math.sin(shoot.a) * k * 420;
-      const g = x.createLinearGradient(hx, hy, hx - Math.cos(shoot.a) * L, hy - Math.sin(shoot.a) * L); g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(.3, "rgba(185,139,255,.5)"); g.addColorStop(1, "rgba(185,139,255,0)");
-      x.globalAlpha = Math.sin(k * Math.PI); x.strokeStyle = g; x.lineWidth = 2; x.beginPath(); x.moveTo(hx, hy); x.lineTo(hx - Math.cos(shoot.a) * L, hy - Math.sin(shoot.a) * L); x.stroke(); } }
-    x.globalAlpha = 1; };
-  requestAnimationFrame(frame);
+  // three depths of stars, each drawn once into its own still image twice the screen's width; the graphics chip slides them
+  // across (a slow drift, a touch of parallax on scroll and tilt) and fades them out of step, so nothing is redrawn per frame
+  const box = document.createElement("div"); box.id = "starfield"; box.setAttribute("aria-hidden", "true"); document.body.prepend(box);
+  const phone = matchMedia("(pointer:coarse)").matches, hues = [220, 250, 280, 190, 45];
+  const build = () => { box.textContent = ""; const W = innerWidth, H = Math.max(innerHeight, screen.height || 0), dpr = Math.min(1.5, devicePixelRatio || 1), n = Math.min(phone ? 150 : 230, Math.round(W * H / 6500));
+    [1, .6, .3].forEach((z, li) => { const c = document.createElement("canvas"); c.width = W * 2 * dpr; c.height = H * dpr; c.className = "sfl sfl" + li; c.style.setProperty("--sfz", z);
+      const g = c.getContext("2d"); if (!g) return; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (let i = li; i < n; i += 3) { const r = (.4 + Math.random() * 1.1) * (z === 1 ? 1.35 : z === .6 ? 1 : .7), px = Math.random() * W, py = Math.random() * H, h = hues[i % hues.length];
+        g.globalAlpha = (.55 + Math.random() * .45) * (.45 + .55 * z); g.fillStyle = `hsl(${h},85%,${h === 45 ? 80 : 88}%)`;
+        for (const ox of [0, W]) { g.beginPath(); g.arc(px + ox, py, r, 0, 6.2832); g.fill(); if (r > 1.3) { const a = g.globalAlpha; g.globalAlpha = a * .5; g.fillRect(px + ox - r * 3, py - .35, r * 6, .7); g.fillRect(px + ox - .35, py - r * 3, .7, r * 6); g.globalAlpha = a; } } }
+      box.appendChild(c); }); };
+  build(); let rw = innerWidth; addEventListener("resize", () => { if (Math.abs(innerWidth - rw) > 40) { rw = innerWidth; build(); } }, { passive: true });
+  // parallax: only a CSS variable on the box changes (scroll and tilt), and only when it moved
+  let py = -1; const par = () => { const y = Math.round(scrollY * .06); if (y !== py) { py = y; box.style.setProperty("--sfy", -y + "px"); } box.style.setProperty("--sfx", (SKY.tx * 16).toFixed(1) + "px"); box.style.setProperty("--sft", (SKY.ty * 16).toFixed(1) + "px"); };
+  addEventListener("scroll", () => requestAnimationFrame(par), { passive: true }); addEventListener("deviceorientation", () => requestAnimationFrame(par), { passive: true });
 })();
 // holographic cards: on a phone they follow the device's tilt (iPhone asks once, on the first tap in Cosmic); on a computer the pointer
 const GYRO = { on: false, asked: false, x: 0, y: 0 };
@@ -7919,7 +7920,7 @@ document.addEventListener("pointerdown", e => { if (e.target.closest("#cosmicVie
 (function holoLoop(){
   let last = 0;
   const tick = t => { requestAnimationFrame(tick); if (!GYRO.on || document.hidden || t - last < 40 || t < SCROLLING.until) return; last = t;
-    const cards = document.querySelectorAll("#cosmicView .czcard, #infoDlg[open] .czcard"); let n = 0;
+    const cards = document.querySelectorAll(matchMedia("(pointer:coarse)").matches ? "#infoDlg[open] .czcard" : "#cosmicView .czcard, #infoDlg[open] .czcard"); let n = 0;
     for (const c of cards){ if (c.matches(":hover") || n > 24) continue; const b = c.getBoundingClientRect(); if (b.bottom < 0 || b.top > innerHeight) continue; n++;
       c.classList.add("tilt"); c.style.setProperty("--ry", (GYRO.x * 12).toFixed(1) + "deg"); c.style.setProperty("--rx", (-GYRO.y * 12).toFixed(1) + "deg");
       c.style.setProperty("--mx", (50 + GYRO.x * 45).toFixed(0) + "%"); c.style.setProperty("--my", (50 + GYRO.y * 45).toFixed(0) + "%"); } };
