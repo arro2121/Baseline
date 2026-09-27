@@ -1990,23 +1990,25 @@ export async function czTx(st, a) {
     const chRate = typeof pk.ch === "number" && pk.ch >= 0 && pk.ch <= .1 ? pk.ch : CZ_CASE.rate;              // this pack's case-hit chance per card
     const ser = {}, order = CZ_TIERS.map(t => t[0]), pulled = [], rnd = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
     // one pack never repeats a player or team if it can help it (a team pack draws from a small pool, in every tier)
-    const left = t => { const l = a.pool.filter(i => i.tier === t && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id)), fresh = l.filter(i => !pulled.some(x => x.lg === i.lg && x.name === i.name));
+    const left = t => { const l = a.pool.filter(i => i.tier === t && !i.grail && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id)), fresh = l.filter(i => !pulled.some(x => x.lg === i.lg && x.name === i.name));
       return fresh.length ? fresh : l; };
     for (let c = 0; c < pk.cards * count; c++) {
+      // a Grail: each card has the pack's small grail chance (pk.gc) of being one of the Grails nobody owns yet
+      let grail = null; if (pk.gc > 0 && rnd() < pk.gc) { const gl = a.pool.filter(i => i.grail && out(i.id) < i.supply && !owned.has(i.id) && !pulled.some(x => x.id === i.id)); if (gl.length) grail = gl[Math.floor(rnd() * gl.length)]; }
       let r = rnd() * 100, tier = order[order.length - 1];
       for (let k = 0; k < order.length; k++) { r -= pk.odds[k]; if (r < 0) { tier = order[k]; break; } }
       let ti = order.indexOf(tier), cands = left(tier);
       for (let k = ti + 1; !cands.length && k < order.length; k++) cands = left(order[k]);      // sold out: the next more common tier
       for (let k = ti - 1; !cands.length && k >= 0; k--) cands = left(order[k]);
-      if (!cands.length) break;
-      const it = cands[Math.floor(rnd() * cands.length)], back = ret[it.id] || [];
+      if (!cands.length && !grail) break;
+      const it = grail || cands[Math.floor(rnd() * cands.length)], back = ret[it.id] || [];
       // every copy gets a random serial that isn't in anyone's collection: 1/25 to 25/25 each exist exactly once
       const sk = "cz:ser:" + it.id, iss = ser[it.id] || (ser[it.id] = await get(sk, null) || Array.from({ length: mint[it.id] || 0 }, (_, k) => k + 1));
       const taken = new Set(iss), open = [...back]; for (let k = 1; k <= it.supply; k++) if (!taken.has(k)) open.push(k);
       if (!open.length) continue;
       const n = open[Math.floor(rnd() * open.length)];
       if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
-      const ch = rnd() < chRate ? czCasePick(rnd()) : null;
+      const ch = !grail && rnd() < chRate ? czCasePick(rnd()) : null;
       const ink = !ch && it.kind === "player" && !it.legend && !it.moment && !it.grail && rnd() < CZ_INK.rate;
       pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(it.legend ? { legend: true, rank: it.rank } : {}), ...(it.moment ? { moment: true, rank: it.rank, year: it.year } : {}), ...(it.grail ? { grail: true } : {}), ...(ch ? { ch } : {}), ...(ink ? { ink: true } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
@@ -2147,7 +2149,7 @@ export async function czTx(st, a) {
     const c = card(x.id); if (c) delete c.auction; await st.put("cz:auc", AU.filter(v => v !== x)); await st.put("cz:u:" + u.uid, u);
     return { user: czPublic(u) };
   }
-  if (a.act === "grade") {                                           // grade a copy once: pay the fee, get a grade from 4 to 10
+  if (a.act === "grade") {                                           // grade a copy once: pay the fee, get a grade from 1 to 10
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
     if (busy(c)) return { error: busy(c) };
     if (c.gr) return { error: "That card has already been graded." };
@@ -2399,7 +2401,10 @@ export async function czLevels(env, fetchImpl = fetch, now = new Date(), force =
    priced at CZ_GRAIL_X times the most valuable card of any kind, so even a top card's level, hot streak and scarcity
    bonuses (up to about 2.2x) can't pass it. Sold, never pulled: it can't be a case hit, ink or graded. ---- */
 export const CZ_GRAILS = [["nfl", "Lombardi Trophy"], ["nba", "Larry O'Brien Trophy"], ["mlb", "Commissioner's Trophy"], ["nhl", "Stanley Cup"], ["epl", "Premier League Trophy"], ["atp", "Grand Slam Trophy"]];
-export const CZ_GRAIL_X = 3;
+export const CZ_GRAIL_X = 3, CZ_GRAIL_EV = .03;
+// a pack's chance per card of a Grail: worth about 3% of the pack's price, so a Galaxy pack is about 1 in 1,900 and a
+// Comet pack about 1 in 1.9 million
+export const czGrailChance = (price, cards, grailPrice) => grailPrice > 0 ? Math.min(.01, price / Math.max(1, cards) * CZ_GRAIL_EV / grailPrice) : 0;
 export function czGrails(items) {
   const top = items.reduce((m, i) => Math.max(m, i.price || 0), 0), price = Math.ceil(top * CZ_GRAIL_X / 1000) * 1000, T = CZ_TIERS[0];
   return CZ_GRAILS.map(([lg, name]) => ({ id: `${lg}.grail.${T[0]}`, lg, kind: "grail", grail: true, name, tier: T[0], label: "Grail", supply: 1, mult: 0, usd: Math.round(price / CZ_COINS_PER_USD), price }));
@@ -2641,11 +2646,13 @@ export const czCaseMult = ch => (CZ_CASE.inserts.find(i => i[0] === ch) || [])[3
 export const czCasePick = r => { let x = r * CZ_CASE_W; for (const i of CZ_CASE.inserts) { x -= i[4]; if (x < 0) return i[0]; } return CZ_CASE.inserts[CZ_CASE.inserts.length - 1][0]; };
 // Cosmic Ink: a signature-style insert. About 1 player card in 75 comes out signed in gold ink, worth twice the regular card.
 export const CZ_INK = { rate: 1 / 75, mult: 2 };
-// grading: a copy can be sent in once for a grade from 4 to 10, like a real slab. The grade moves its worth: a Gem Mint 10 is
-// 3x, a 9 1.5x, down to 0.6x for a 4. [grade, name, times the ungraded copy, chance in %]. On average a grade adds about 18%,
-// and the fee is 20% of the copy's value (at least 50 coins), so grading is a gamble that slowly takes coins out of the game.
-export const CZ_GRADES = [[10, "Gem Mint", 3, 5], [9, "Mint", 1.5, 20], [8, "NM-MT", 1.1, 30], [7, "Near Mint", 1, 20], [6, "EX-MT", .9, 12], [5, "Excellent", .75, 8], [4, "VG-EX", .6, 5]];
-export const CZ_GRADE_FEE = .2, CZ_GRADE_MIN = 50;
+// grading: a copy can be sent in once for a grade from 1 to 10, on PSA's scale and at about the rates PSA gives modern cards
+// (a quarter come back Gem Mint 10, a third Mint 9). The grade moves its worth: a 10 is 2.5x an ungraded copy, a 9 1.1x, an
+// 8 0.8x, down to 0.2x for a 1. [grade, name, times the ungraded copy, chance in %]. On average a grade adds about 29%, and
+// the fee is 30% of the copy's value (at least 50 coins), so grading is a gamble that slowly takes coins out of the game.
+export const CZ_GRADES = [[10, "Gem Mint", 2.5, 25], [9, "Mint", 1.1, 35], [8, "NM-MT", .8, 20], [7, "Near Mint", .7, 9], [6, "EX-MT", .6, 5], [5, "Excellent", .5, 3],
+  [4, "VG-EX", .4, 1.5], [3, "Very Good", .3, .8], [2, "Good", .25, .4], [1, "Poor", .2, .3]];
+export const CZ_GRADE_FEE = .3, CZ_GRADE_MIN = 50;
 export const czGradeMult = g => g ? ((CZ_GRADES.find(x => x[0] === g) || [])[2] || 1) : 1;
 export const czGradeRoll = r => { let x = r * 100; for (const g of CZ_GRADES) { x -= g[3]; if (x < 0) return g[0]; } return CZ_GRADES[CZ_GRADES.length - 1][0]; };
 export const czGradeFee = (value, c) => Math.max(CZ_GRADE_MIN, Math.round(value * czCopyMult(c) * CZ_GRADE_FEE));
@@ -2860,7 +2867,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     const out = []; for (const [lg] of CZ_GRAILS) { const g = CZ_CAT.byId.get(`${lg}.grail.singularity`); if (!g) continue; const held = (mint[g.id] || 0) - (ret[g.id] || []).length;
       let owner = null; if (held > 0) { const o = (await czRead(env, "cz:own:" + g.id, []))[0]; const w = o && await czRead(env, "cz:u:" + o.uid, null); owner = w ? w.name : "a collector"; }
       out.push({ ...g, owner }); }
-    return json({ grails: out }, 200, { "Cache-Control": "no-store" }); }
+    const gp = out[0] ? out[0].price : 0, odds = CZ_PACKS.map(pk => ({ label: pk.label, per: gp ? Math.round(1 / (1 - Math.pow(1 - czGrailChance(pk.price, pk.cards, gp), pk.cards))) : 0 }));
+    return json({ grails: out, odds }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/drops" && req.method === "GET") { const D = await czDropsSync(env), [mint, ret] = await Promise.all([czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]);
     const live = D.filter(r => now < r.until).map(r => { const it = CZ_CAT.byId.get(r.id), held = (mint[r.id] || 0) - (ret[r.id] || []).length;
       return { ...it, kind: r.kind, title: r.title, line: r.line, game: r.game, until: r.until, left: Math.max(0, it.supply - held), ev: r.kind, evl: CZ_DROP[r.kind].evl, evc: CZ_DROP[r.kind].evc }; });
@@ -3158,15 +3166,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (E && E.status !== "live") return json({ error: E.status === "soon" ? `The ${E.label} opens soon. Check the countdown on the Packs tab.` : `The ${E.label} has ended.` }, 409);
     const TP = /^tp:(nfl|nba|mlb|nhl|epl):[a-z0-9-]{1,60}$/.test(want) ? (await czTeamPacks(env, want.split(":")[1])).find(t => t.id === want) : null;
     if (want.startsWith("tp:") && !TP) return json({ error: "That team pack isn't available." }, 404);
-    if (want.startsWith("grail:")) {                                // a league's Grail: the one copy, at its price
-      await czCatalog(env); const it = CZ_CAT.byId.get(`${want.slice(6)}.grail.singularity`); if (!it) return json({ error: "That Grail isn't available." }, 404);
-      const pkg = { id: want, label: `${it.name} Grail`, price: it.price, cards: 1, odds: CZ_TIERS.map(t => t[0] === it.tier ? 100 : 0), ch: 0 };
-      const pool = [{ id: it.id, tier: it.tier, supply: 1, lg: it.lg, name: it.name, kind: it.kind, grail: true }];
-      const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
-      const res = await cz(env, { act: "pack", uid: u.uid, now, pack: pkg, pool, free: false, rid, count: 1 });
-      if (res && res.cards) res.cards = res.cards.map(c => ({ ...c, value: it.price }));
-      return json(res && res.error && /every card this pack/.test(res.error) ? { ...res, error: "Someone already owns this Grail." } : res, res.error ? 409 : 200);
-    }
+    if (want.startsWith("grail:")) return json({ error: "Grails only come out of packs." }, 409);
     if (want.startsWith("dd:")) {                                   // a Daily Drop or Milestone card: one copy, at its price, while it's on sale
       const D = await czDropsSync(env), r = D.find(x => x.id === want.slice(3)), it = r && CZ_CAT.byId.get(r.id);
       if (!r || !it) return json({ error: "That drop isn't available." }, 404);
@@ -3194,6 +3194,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(160, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
       for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, no: i.no, num: i.num, ...(i.rc ? { rc: true } : {}), ...(i.legend ? { legend: true, rank: i.rank } : {}), ...(i.moment ? { moment: true, rank: i.rank, year: i.year } : {}) }); } }
+    const G = CZ_GRAILS.map(([g]) => CZ_CAT.byId.get(`${g}.grail.singularity`)).filter(g => g && (!lgs || lgs.includes(g.lg) || (g.lg === "atp" && lgs.includes("wta"))) && (mint[g.id] || 0) - (ret[g.id] || []).length < 1);
+    if (G.length) { pk = { ...pk, gc: czGrailChance(pk.price, pk.cards, G[0].price) }; for (const g of G) pool.push({ id: g.id, tier: g.tier, supply: 1, lg: g.lg, name: g.name, kind: g.kind, grail: true }); }
     const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
     const r = await cz(env, { act: "pack", uid: u.uid, now, pack: pk, pool, free: !!d.free, rid, count: d.count });
     // the cards come back cheapest first, so the most valuable one (a case hit or ink copy at its multiple) is always last
