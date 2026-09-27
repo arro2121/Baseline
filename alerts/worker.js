@@ -167,7 +167,7 @@ export class Store {
     if (d.op === "get") v = (await st.get(d.k)) ?? null;
     else if (d.op === "put") { await st.put(d.k, d.v); v = true; }
     else if (d.op === "many") v = Object.fromEntries(await st.get((d.ks || []).slice(0, 128)));
-    else if (d.op === "cz") v = d.a.act === "settle" ? await czSettleTx(st, d.a) : d.a.act === "legacy" ? await czLegacyTx(st, d.a) : await czTx(st, d.a);
+    else if (d.op === "cz") v = d.a.act === "settle" ? await czSettleTx(st, d.a) : d.a.act === "legacy" ? await czLegacyTx(st, d.a) : d.a.act === "nanfix" ? await czNanFixTx(st, d.a) : await czTx(st, d.a);
     else if (d.op === "subs") v = [...(await st.list({ prefix: "sub:" })).values()];
     else if (d.op === "subGet") v = (await st.get("sub:" + await subId(d.e))) ?? null;
     else if (d.op === "subPut") { await st.put("sub:" + await subId(d.rec.sub.endpoint), d.rec); v = true; }
@@ -268,7 +268,7 @@ async function cometsRoute(req, env, ctx, url, db) {
   // everything else writes
   if (await cometsTooManyFails(env, ip)) return json({ error: "Too many tries. Wait 15 minutes." }, 429);
   if (!(await cometsAuthed(req, env))) { await cometsFail(env, ip); return json({ error: env.COMETS_KEY ? "Wrong writer key" : "Posting isn't set up yet: add the COMETS_KEY secret" }, 401); }
-  const d = await req.json().catch(() => ({}));
+  const d = await czBody(req);
   let list = await cometsIndex(db);
   if (req.method === "DELETE" && id) {
     await db.put("cm:" + id, ""); list = list.filter(p => p.id !== id); await db.put("comets", JSON.stringify(list));
@@ -455,7 +455,7 @@ export async function morningBrief(env, subs, fetchImpl = fetch, now = new Date(
   const who = subs.filter(s => s.prefs?.daily !== false);
   if (!who.length) return "nobody";
   await db.put("brief", today);                      // at most once a day, even if a send below fails
-  const y = etParts(new Date(now - 864e5)), yday = `${y.year}${y.month}${y.day}`;
+  const yday = dayBefore(etDay(now));
   const leagues = who.some(s => !hasTeams(s)) ? [...new Set([...Object.keys(LEAGUES).filter(l => !SPORT_OF[l]), ...who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length))])] : [...new Set(who.flatMap(s => Object.keys(s.teams || {}).filter(lg => s.teams[lg].length)))];
   const boards = {};
   for (const lg of leagues) {
@@ -1293,7 +1293,9 @@ export function normTennis(e, resolve = n => n) {
  * Answers questions about games, teams and the model from live data. Runs on Cloudflare Workers AI (free daily
  * allowance, no key needed) or, when the ANTHROPIC_API_KEY secret is set, on Claude for sharper answers. */
 const ASK_CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const ASK_CLAUDE_MODEL = "claude-opus-5";             // the battle judge
+// the battle judge on Claude: a small model (a short JSON verdict), only for battles between players, and at most
+// JUDGE_CLAUDE_DAILY a day (default 200); the rest use the free Workers AI model or the power formula
+const JUDGE_CLAUDE_MODEL = "claude-haiku-4-5", JUDGE_MAX_TOKENS = 1024;
 // Ask on Claude (only when ANTHROPIC_API_KEY is set): a smaller model, short answers, signed-in passkey accounts only, and a daily
 // cap (ASK_CLAUDE_DAILY, default 300 questions) after which Ask carries on with the free Workers AI model
 const ASK_MODEL = "claude-sonnet-5", ASK_MAX_TOKENS = 1200;
@@ -1408,6 +1410,9 @@ export const TRACK_SINCE = "2026-09-24";
 const TRACK_LEAGUES = ["nfl", "nba", "mlb", "nhl", "epl"];
 const LOCK_MS = 90 * 60e3, GAME_H = { nfl: 3.2, nba: 2.3, mlb: 2.7, nhl: 2.4, epl: 1.9 };
 const etDay = d => { const p = etParts(new Date(d)); return `${p.year}${p.month}${p.day}`; };
+// the calendar day before a YYYYMMDD day, counted on the calendar (not "24 hours ago", which on the night clocks go back is still today)
+export const dayAfter = ymd => { const d = new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8) + 1)); return d.toISOString().slice(0, 10).replace(/-/g, ""); };
+export const dayBefore = ymd => { const d = new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8) - 1)); return d.toISOString().slice(0, 10).replace(/-/g, ""); };
 const ymdMs = s => Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
 const gapDays = (last, when) => last ? Math.round((ymdMs(etDay(when)) - ymdMs(last)) / 864e5) : null;
 const mkey = n => String(n || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/\b(fc|afc)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
@@ -1701,7 +1706,12 @@ export const CZ_BSPORT = {
 const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
 const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
 const CZ_BAT_MAX = 5000, CZ_BAT_TTL = 48 * 3600e3, CZ_HOUSE_DAY = 20;
-const czSecured = u => !!(u && u.ident);                          // signed in with a passkey
+const czSecured = u => !!(u && u.ident);
+// request bodies: always a plain object, and lists are lists, so a malformed request gets a 400 rather than a crash (A8)
+const czBody = req => req.json().then(d => d && typeof d === "object" && !Array.isArray(d) ? d : {}, () => ({}));
+const czArr = x => Array.isArray(x) ? x : [];
+const czFree = c => { delete c.listed; delete c.auction; delete c.battle; return c; };   // a card changing hands arrives with no locks
+const czDecOk = d => Number.isFinite(d) && d >= 1.01 && d <= 1000;       // a real decimal price                          // signed in with a passkey
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], setsDone: u.setsDone || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, legacyRefund: u.legacyRefund || null, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
@@ -1771,9 +1781,11 @@ export async function czTx(st, a) {
       const by = x.bidder ? await st.get("cz:u:" + x.bidder) : null;
       if (!c) { if (by && !x.bT) { by.bal += x.bid; await st.put("cz:u:" + by.uid, by); } continue; }        // the card is gone: refund
       if (!by) { delete c.auction; await st.put("cz:u:" + sl.uid, sl); continue; }                             // no bids: back to the seller
+      if ((by.items || []).some(v => v.id === x.id)) {                                                         // the winner got a copy meanwhile: no sale
+        if (!x.bT) by.bal += x.bid; delete c.auction; await st.put("cz:u:" + sl.uid, sl); await st.put("cz:u:" + by.uid, by); continue; }
       const fee = Math.ceil(x.bid * CZ_FEE);
-      sl.items = sl.items.filter(v => v.id !== x.id); delete c.auction; sl.bal += x.bid - fee; sl.sold = (sl.sold || 0) + 1;
-      by.items = [...(by.items || []), { ...c, at: a.now, bought: x.bid, from: sl.name, auction: undefined }];
+      sl.items = sl.items.filter(v => v !== c); delete c.auction; sl.bal += x.bid - fee; sl.sold = (sl.sold || 0) + 1;
+      by.items = [...(by.items || []), czFree({ ...c, at: a.now, bought: x.bid, from: sl.name })];
       const o = await get("cz:own:" + x.id, []); await st.put("cz:own:" + x.id, [...o.filter(v => v.uid !== sl.uid), { n: c.n, uid: by.uid, name: by.name, at: a.now, price: x.bid }]);
       by.won_auc = [...(by.won_auc || []), { name: x.name, tier: x.tier, n: x.n, supply: x.supply, price: x.bid, at: a.now }].slice(-10);
       await st.put("cz:u:" + sl.uid, sl); await st.put("cz:u:" + by.uid, by); await lb(sl); await lb(by);
@@ -1809,6 +1821,7 @@ export async function czTx(st, a) {
   }
   const u = await st.get("cz:u:" + a.uid);
   if (!u) return { error: "Account not found." };
+  if (!Number.isFinite(u.bal)) { u.bal = 0; u.balFixed = a.now; await st.put("cz:u:" + u.uid, u); }   // a balance broken by a bad price (A1)
   if (a.act === "daily") {
     if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
     u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
@@ -1831,7 +1844,8 @@ export async function czTx(st, a) {
     return { user: czPublic(u), slot: i, prize };
   }
   if (a.act === "parlay") {                                          // 2 to 5 games in one bet: every leg has to win
-    const P = a.parlay, stake = Math.floor(+P.stake);
+    const P = a.parlay, stake = Math.floor(+(P && P.stake));
+    if (!P || !Array.isArray(P.legs) || P.legs.length < 2 || P.legs.length > 5 || !P.legs.every(l => l && typeof l === "object" && czDecOk(l.dec))) return { error: "That parlay isn't available." };
     if (!(stake >= CZ_MIN && stake <= CZ_MAX)) return { error: `Bets are ${CZ_MIN} to ${CZ_MAX.toLocaleString()} coins.` };
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
     const open = (u.bets || []).filter(x => !x.res);
@@ -1860,6 +1874,7 @@ export async function czTx(st, a) {
     if (!(stake >= 0 && stake <= CZ_BAT_MAX)) return { error: `Stakes are 0 to ${CZ_BAT_MAX.toLocaleString()} coins.` };
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins for that stake." };
     if (u.tester && !a.house) return { error: TESTER_NO };            // unlimited coins stay out of other players' pockets
+    if (!a.house && stake > 0 && !czSecured(u)) return { error: "Add a passkey to your account to battle other players for coins.", needPasskey: true };
     if (!CZ_BSPORT[a.sport]) return { error: "Pick a sport for the battle." };
     const sc = await snapCards(a.cards, a.sport); if (sc.error) return sc;
     const B = await get("cz:bat", []);
@@ -1878,6 +1893,7 @@ export async function czTx(st, a) {
     if (!bt || bt.status !== "open") return { error: "That challenge isn't open any more." };
     if (bt.from === u.uid) return { error: "That's your own challenge." };
     if (u.tester) return { error: TESTER_NO };
+    if (bt.stake > 0 && !czSecured(u)) return { error: "Add a passkey to your account to battle other players for coins.", needPasskey: true };
     if (bt.to && bt.to !== u.uid) return { error: "That challenge is for someone else." };
     if (a.now - bt.at > CZ_BAT_TTL) return { error: "That challenge has expired." };
     if (bt.stake > u.bal && !u.tester) return { error: `You need ${bt.stake.toLocaleString()} coins to match the stake.` };
@@ -1891,6 +1907,9 @@ export async function czTx(st, a) {
     const B = await get("cz:bat", []), bt = B.find(x => x.id === a.id);
     if (!bt || bt.status !== "judging") return { battle: bt || null, already: true };
     const A = await st.get("cz:u:" + bt.from), Bu = bt.by ? await st.get("cz:u:" + bt.by) : null, win = a.winner === "b" ? "b" : "a";
+    if (!A || (bt.by && !Bu)) {                                       // a player left Cosmic mid-battle: void, the other gets their stake back
+      const x = A || Bu; if (x) { if (!x.tester) x.bal += bt.stake; lock(x, x === A ? bt.a : bt.b || [], null); await st.put("cz:u:" + x.uid, x); await lb(x); }
+      Object.assign(bt, { status: "void", done: a.now }); await st.put("cz:bat", B); return { battle: bt, user: czPublic(x || u) }; }
     Object.assign(bt, { status: "done", winner: win, report: String(a.report || "").slice(0, 1200), chance: a.chance, pow: a.pow, judge: a.judge || null, mvp: a.mvp || null, done: a.now });
     const W = win === "a" ? A : Bu, Lz = win === "a" ? Bu : A;
     const rec = (x, k) => { if (!bt.sport) return; x.bsp = x.bsp || {}; const r = x.bsp[bt.sport] || [0, 0]; r[k]++; x.bsp[bt.sport] = r; };
@@ -1913,6 +1932,7 @@ export async function czTx(st, a) {
   }
   if (a.act === "bet") {
     const b = a.bet, stake = Math.floor(+b.stake);
+    if (!b || !czDecOk(b.dec)) return { error: "That price isn't available." };
     if (!(stake >= CZ_MIN && stake <= CZ_MAX)) return { error: `Bets are ${CZ_MIN} to ${CZ_MAX.toLocaleString()} coins.` };
     if (stake > u.bal && !u.tester) return { error: "Not enough Cosmic Coins." };
     const open = (u.bets || []).filter(x => !x.res);
@@ -1975,7 +1995,7 @@ export async function czTx(st, a) {
     return { user: czPublic(u), cards: pulled, count: opened };
   }
   const card = id => (u.items || []).find(x => x.id === id);
-  const dropOwner = async (id, uid) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid)); };
+  const dropOwner = async (id, uid, n) => { const o = await get("cz:own:" + id, []); await st.put("cz:own:" + id, o.filter(x => x.uid !== uid || (n != null && x.n !== n))); };
   if (a.act === "report") {
     // reports wait for the owner to review (Owner inbox in the app); nothing is renamed automatically. Only reports from
     // passkey accounts at least CZ_REP_AGE_DAYS old count toward a name's total, and each player can report a name once a week.
@@ -2001,6 +2021,13 @@ export async function czTx(st, a) {
     for (const x of AU.filter(v => v.seller === u.uid && v.bidder && !v.bT)) { const by = await st.get("cz:u:" + x.bidder); if (by) { by.bal += x.bid; await st.put("cz:u:" + by.uid, by); } }
     await st.put("cz:auc", AU.filter(v => v.seller !== u.uid).map(v => v.bidder === u.uid ? { ...v, bid: 0, bidder: null, bidderName: null, bT: false } : v));
     await st.put("cz:trades", (await get("cz:trades", [])).filter(t => t.from !== u.uid && t.to !== u.uid));
+    // A4: their challenges end. Open ones sent to them give the challenger's stake back; battles being judged are void
+    const BT = await get("cz:bat", []);
+    for (const bt of BT) { const mine = bt.from === u.uid || bt.to === u.uid || bt.by === u.uid; if (!mine || !["open", "judging"].includes(bt.status)) continue;
+      const other = bt.status === "open" ? (bt.from === u.uid ? null : bt.from) : (bt.from === u.uid ? bt.by : bt.from);
+      if (other) { const x = await st.get("cz:u:" + other); if (x) { if (!x.tester) x.bal += bt.stake; lock(x, x.uid === bt.from ? bt.a : bt.b || [], null); await st.put("cz:u:" + x.uid, x); } }
+      bt.status = bt.status === "open" ? "cancelled" : "void"; bt.done = a.now; }
+    await st.put("cz:bat", BT);
     await st.put("cz:feed", (await get("cz:feed", [])).filter(x => x.name !== u.name && x.seller !== u.name));
     const names = await get("cz:names", {}), key = String(u.name).toLowerCase(); if (names[key] === u.uid) { delete names[key]; await st.put("cz:names", names); }
     const L = await get("cz:lb", {}); delete L[u.uid]; await st.put("cz:lb", L);
@@ -2012,8 +2039,8 @@ export async function czTx(st, a) {
   }
   const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : c.battle ? "It's in a battle lineup. Cancel the battle first." : null;
   const moveCard = async (c, from, to, extra) => {                  // one copy changes hands: collections and the owners list
-    from.items = (from.items || []).filter(x => x.id !== c.id); delete c.listed; delete c.auction;
-    to.items = [...(to.items || []), { ...c, at: a.now, from: from.name, ...extra }];
+    from.items = (from.items || []).filter(x => x !== c); delete c.listed; delete c.auction;
+    to.items = [...(to.items || []), czFree({ ...c, at: a.now, from: from.name, ...extra })];
     const o = await get("cz:own:" + c.id, []); await st.put("cz:own:" + c.id, [...o.filter(x => x.uid !== from.uid), { n: c.n, uid: to.uid, name: to.name, at: a.now, ...(extra && extra.bought ? { price: extra.bought } : {}) }]);
   };
   if (a.act === "toffer") {                                          // offer a trade: your cards (and coins) for someone else's cards
@@ -2021,7 +2048,8 @@ export async function czTx(st, a) {
     const names = await get("cz:names", {}), tid0 = names[String(a.to || "").toLowerCase()];
     if (!tid0) return { error: "That player isn't in Cosmic." }; if (tid0 === u.uid) return { error: "That's you." };
     const t = await st.get("cz:u:" + tid0); if (!t) return { error: "That player isn't in Cosmic." };
-    const give = [...new Set(a.give || [])].slice(0, 5), getIds = [...new Set(a.get || [])].slice(0, 5), coins = Math.max(0, Math.floor(+a.coins || 0));
+    if (!czSecured(u)) return { error: "Add a passkey to your account to trade with other players.", needPasskey: true }; if (!czSecured(t)) return { error: `${t.name} can't trade until they add a passkey.` };
+    const give = [...new Set(Array.isArray(a.give) ? a.give : [])].slice(0, 5), getIds = [...new Set(Array.isArray(a.get) ? a.get : [])].slice(0, 5), coins = Math.max(0, Math.floor(+a.coins || 0));
     if (!give.length && !getIds.length) return { error: "Add at least one card." };
     if (!getIds.length) return { error: "Pick at least one of their cards to ask for." };
     for (const id of give) { const c = card(id); if (!c) return { error: "You don't own one of those cards any more." }; const b = busy(c); if (b) return { error: b }; }
@@ -2043,8 +2071,10 @@ export async function czTx(st, a) {
     const f = await st.get("cz:u:" + tr.from); if (!f) { tr.status = "void"; await st.put("cz:trades", TR); return { error: "That player has left Cosmic." }; }
     const fail = async msg => { tr.status = "void"; tr.done = a.now; await st.put("cz:trades", TR); return { error: msg }; };
     if (f.tester || u.tester) return fail(TESTER_NO);
+    if (!czSecured(u)) return { error: "Add a passkey to your account to trade with other players.", needPasskey: true }; if (!czSecured(f)) return fail(`${f.name} can't trade until they add a passkey.`);
     for (const g of tr.give) { const c = (f.items || []).find(x => x.id === g.id); if (!c || busy(c)) return fail(`${f.name} no longer has one of the cards on offer, so the trade was called off.`); if (card(g.id)) return fail("You already own a copy of one of those cards."); }
-    for (const g of tr.get) { const c = card(g.id); if (!c) return fail("You no longer have one of the cards they asked for."); const b = busy(c); if (b) return { error: b }; }
+    for (const g of tr.get) { const c = card(g.id); if (!c) return fail("You no longer have one of the cards they asked for."); const b = busy(c); if (b) return { error: b };
+      if ((f.items || []).some(x => x.id === g.id)) return fail(`${f.name} already owns a copy of one of the cards they asked for, so the trade was called off.`); }
     if (tr.coins > f.bal && !f.tester) return fail(`${f.name} doesn't have the coins any more, so the trade was called off.`);
     for (const g of tr.give) await moveCard(f.items.find(x => x.id === g.id), f, u, { traded: tr.tid });
     for (const g of tr.get) await moveCard(u.items.find(x => x.id === g.id), u, f, { traded: tr.tid });
@@ -2055,6 +2085,7 @@ export async function czTx(st, a) {
     return { user: czPublic(u), trade: tr };
   }
   if (a.act === "aucnew") {                                          // put a card up for auction
+    if (u.tester) return { error: TESTER_NO };
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." }; const b = busy(c); if (b) return { error: b };
     const start = Math.floor(+a.start), hours = [1, 6, 24, 72].includes(+a.hours) ? +a.hours : 24;
     if (!(start >= 10 && start <= 50000000)) return { error: "Start the bidding between 10 and 50,000,000 coins." };
@@ -2067,7 +2098,7 @@ export async function czTx(st, a) {
   }
   if (a.act === "aucbid") {
     const AU = await get("cz:auc", []), x = AU.find(v => v.aid === a.aid); if (!x || x.ends <= a.now) return { error: "That auction has ended." };
-    if (x.seller === u.uid) return { error: "That's your own auction." }; if (u.tester) return { error: TESTER_NO }; if (card(x.id)) return { error: "You already own a copy of this card." };
+    if (x.seller === u.uid) return { error: "That's your own auction." }; if (u.tester) return { error: TESTER_NO }; if (!czSecured(u)) return { error: "Add a passkey to your account to trade with other players.", needPasskey: true }; if (card(x.id)) return { error: "You already own a copy of this card." };
     const min = x.bid ? Math.max(x.bid + 1, Math.ceil(x.bid * 1.05)) : x.start, amt = Math.floor(+a.amount);
     if (!(amt >= min)) return { error: `The lowest bid now is ${min.toLocaleString()} coins.`, min };
     if (x.bidder === u.uid) return { error: "You're already the highest bidder." };
@@ -2089,9 +2120,9 @@ export async function czTx(st, a) {
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
     if (busy(c)) return { error: busy(c) };
     const pay = Math.max(1, Math.floor(a.value * czCopyMult(c) * CZ_SHOP));
-    u.items = u.items.filter(x => x.id !== a.id); u.bal += pay; u.sold = (u.sold || 0) + 1;
+    u.items = u.items.filter(x => x !== c); u.bal += pay; u.sold = (u.sold || 0) + 1;
     const ret = await get("cz:ret", {}); ret[a.id] = [...(ret[a.id] || []), c.n]; await st.put("cz:ret", ret);
-    await dropOwner(a.id, u.uid); await st.put("cz:u:" + a.uid, u); await lb(u);
+    await dropOwner(a.id, u.uid, c.n); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), paid: pay };
   }
   if (a.act === "setclaim") {                                        // a finished set checklist pays its reward, once
@@ -2104,22 +2135,23 @@ export async function czTx(st, a) {
     return { user: czPublic(u), reward: S.reward };
   }
   if (a.act === "sellmany") {                                        // Sell all: many cards to the shop in one go
-    const want = new Map((a.cards || []).map(x => [x.id, x.value])), sold = [], skipped = [];
+    const want = new Map((Array.isArray(a.cards) ? a.cards : []).filter(x => x && typeof x === "object").map(x => [x.id, x.value])), sold = [], skipped = [], soldCopies = new Set();
     const ret = await get("cz:ret", {}); let paid = 0;
     for (const c of (u.items || []).filter(x => want.has(x.id))) {
       if (busy(c)) { skipped.push(c.id); continue; }
-      const pay = Math.max(1, Math.floor(want.get(c.id) * czCopyMult(c) * CZ_SHOP)); paid += pay; sold.push(c.id);
-      ret[c.id] = [...(ret[c.id] || []), c.n]; await dropOwner(c.id, u.uid);
+      const pay = Math.max(1, Math.floor(want.get(c.id) * czCopyMult(c) * CZ_SHOP)); paid += pay; sold.push(c.id); soldCopies.add(c);
+      ret[c.id] = [...(ret[c.id] || []), c.n]; await dropOwner(c.id, u.uid, c.n);
     }
     if (!sold.length) return { error: skipped.length ? "Those cards are on the market, in an auction or in a battle." : "None of those cards are in your collection." };
-    const gone = new Set(sold); u.items = u.items.filter(x => !gone.has(x.id)); u.bal += paid; u.sold = (u.sold || 0) + sold.length;
+    u.items = u.items.filter(x => !soldCopies.has(x)); u.bal += paid; u.sold = (u.sold || 0) + sold.length;
     await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), paid, sold: sold.length, skipped: skipped.length };
   }
   if (a.act === "list") {
     const c = card(a.id), price = Math.floor(+a.price);
     if (!c) return { error: "That card isn't in your collection." };
-    if (c.listed) return { error: "It's already on the market." }; if (c.auction) return { error: "It's up for auction." };
+    if (u.tester) return { error: TESTER_NO };                          // A6: unlimited-coin cards stay out of the player economy
+    if (c.listed) return { error: "It's already on the market." }; const bz = busy(c); if (bz) return { error: bz };
     if (!(price >= 10 && price <= 50000000)) return { error: "Ask between 10 and 50,000,000 coins." };
     const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
     const lid = czRand(6); c.listed = lid;
@@ -2142,8 +2174,8 @@ export async function czTx(st, a) {
     const s = await st.get("cz:u:" + l.uid); if (!s) return { error: "The seller's account is gone." };
     const c = (s.items || []).find(x => x.id === l.id && x.listed === l.lid); if (!c) { await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); return { error: "That card is no longer for sale." }; }
     const fee = Math.ceil(l.price * CZ_FEE);
-    if (!u.tester) u.bal -= l.price; s.bal += l.price - fee; s.items = s.items.filter(x => x.id !== l.id); s.sold = (s.sold || 0) + 1;
-    delete c.listed; u.items = [...(u.items || []), { ...c, at: a.now, bought: l.price, from: s.name }];
+    if (!u.tester) u.bal -= l.price; s.bal += l.price - fee; s.items = s.items.filter(x => x !== c); s.sold = (s.sold || 0) + 1;
+    delete c.listed; u.items = [...(u.items || []), czFree({ ...c, at: a.now, bought: l.price, from: s.name })];
     const o = await get("cz:own:" + l.id, []); await st.put("cz:own:" + l.id, [...o.filter(x => x.uid !== s.uid), { n: c.n, uid: u.uid, name: u.name, at: a.now, price: l.price }]);
     await st.put("cz:mkt", M.filter(x => x.lid !== l.lid)); await st.put("cz:u:" + s.uid, s); await st.put("cz:u:" + a.uid, u); await lb(u); await lb(s);
     await feed({ kind: "sale", name: u.name, seller: s.name, label: c.name, tier: c.tier, n: c.n, supply: c.supply, price: l.price });
@@ -2159,6 +2191,7 @@ export async function czSettleTx(st, a) {
   const users = {}, L = (await st.get("cz:lb")) ?? {}, F = (await st.get("cz:feed")) ?? [], closed = new Set(), now = Date.parse(a.now);
   const pay = (u, b, res) => {                                       // a bet is decided: coins, record, weekly board, season points
     const wk = czWeek(now); u.wkp = u.wkp || {}; b.res = res; b.settled = a.now;
+    if (res === "win" && !Number.isFinite(b.stake * b.dec)) res = b.res = "push";              // a broken price never pays out: the stake comes back
     if (res === "win") { b.paid = Math.round(b.stake * b.dec); u.bal += b.paid; u.won = (u.won || 0) + 1; u.profit = (u.profit || 0) + b.paid - b.stake; u.wkp[wk] = (u.wkp[wk] || 0) + b.paid - b.stake;
       czAddSp(u, Math.min(b.parlay ? 300 : 200, (b.parlay ? 25 : 10) + (b.paid - b.stake) / 25), now);
       if (b.paid - b.stake >= 1000) F.unshift({ kind: "win", name: u.name, label: b.label, paid: b.paid, dec: b.dec, parlay: !!b.parlay, at: a.now }); }
@@ -2187,6 +2220,13 @@ export async function czSettleTx(st, a) {
 // collection, the market, auctions, trades and open battles, and its owner gets its full value back in coins.
 // Phase "ids" lists the old cards people hold; phase "purge" removes them, paying the prices the worker worked out
 export const CZ_LEGACY_RE = /\.(supernova|quasar|nebula|stardust)$/;
+// a balance that isn't a number (from the prop-side bug) is reset to 0, once, for every account
+export async function czNanFixTx(st, a) {
+  if (await st.get("cz:nanfixed")) return { done: true, already: true }; if (!st.list) return { done: false };
+  let n = 0; const L = (await st.get("cz:lb")) ?? {};
+  for (const [k, u] of await st.list({ prefix: "cz:u:" })) if (u && u.uid && !Number.isFinite(u.bal)) { u.bal = 0; u.balFixed = a.now || Date.now(); await st.put(k, u); if (L[u.uid]) L[u.uid] = czLbRow(u); n++; }
+  await st.put("cz:lb", L); await st.put("cz:nanfixed", a.now || Date.now()); return { done: true, fixed: n };
+}
 export async function czLegacyTx(st, a) {
   const get = async (k, d) => (await st.get(k)) ?? d, old = id => CZ_LEGACY_RE.test(String(id || ""));
   if (await st.get("cz:legacypurged")) return { done: true, already: true };
@@ -2227,6 +2267,7 @@ export async function czLegacyTx(st, a) {
   await st.put("cz:legacypurged", now);
   return { done: true, cards, coins, battles: bats };
 }
+async function czNanFix(env) { try { if (await czRead(env, "cz:nanfixed", null)) return 0; const r = await cz(env, { act: "nanfix", now: Date.now() }); console.log("nanfix", JSON.stringify(r)); return r; } catch (e) { return String(e.message || e); } }
 async function czLegacy(env) {                                        // run from the cron until it has happened once
   try { if (await czRead(env, "cz:legacypurged", null)) return 0;
     const r = await cz(env, { act: "legacy", phase: "ids" }); if (!r || !r.ids) return r;
@@ -2238,7 +2279,7 @@ function czKv(env) {                                                         // 
 }
 async function cz(env, a) {
   if (env.STORE) { const stub = env.STORE.get(env.STORE.idFromName("main")); const r = await stub.fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "cz", a }) }); return (await r.json()).v; }
-  return a.act === "settle" ? czSettleTx(czKv(env), a) : a.act === "legacy" ? czLegacyTx(czKv(env), a) : czTx(czKv(env), a);
+  return a.act === "settle" ? czSettleTx(czKv(env), a) : a.act === "legacy" ? czLegacyTx(czKv(env), a) : a.act === "nanfix" ? czNanFixTx(czKv(env), a) : czTx(czKv(env), a);
 }
 const czRead = async (env, k, d) => { const v = await store(env).get(k); return v == null ? d : typeof v === "string" ? JSON.parse(v) : v; };
 // the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
@@ -2320,7 +2361,7 @@ export const czHotLine = (lg, st) => (CZ_HOTLINE[lg] ? CZ_HOTLINE[lg](st) : []).
 export async function czLevels(env, fetchImpl = fetch, now = new Date(), force = false) {
   if (!force && now.getUTCMinutes() % 10 !== 6) return "not time";
   const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, hot = {}, newDone = []; let fetched = 0;
-  for (const lg of TRACK_LEAGUES) for (const day of [etDay(now.getTime() - 864e5), etDay(now.getTime())]) {
+  for (const lg of TRACK_LEAGUES) for (const day of [dayBefore(etDay(now.getTime())), etDay(now.getTime())]) {
     let games; try { games = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch { continue; }
     for (const g of games) {
       const key = lg + "/" + g.id; if (done.has(key) || g.status?.state !== "post" || !g.status.completed || fetched >= 16) continue;
@@ -2677,15 +2718,16 @@ export async function czJudge(env, bt, fetchImpl = fetch) {
   const S = CZ_BSPORT[bt.sport];
   const prompt = `${S ? `This is ${S.an || "a"} ${S.name} battle: the two lineups meet in ${S.game}.\n\n` : ""}Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
   const ok = x => x && typeof x.chance_a === "number" && isFinite(x.chance_a) && typeof x.report_if_a_wins === "string" && typeof x.report_if_b_wins === "string";
-  if (env.ANTHROPIC_API_KEY) {
+  // playing the AI is a coin flip whatever the lineups, so no model is asked: the recap comes from the formula below
+  if (!bt.house && env.ANTHROPIC_API_KEY && await rateOk(env, "judge:claude", Math.max(0, +env.JUDGE_CLAUDE_DAILY || 200), 864e5)) {
     try {
       const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, fetch: fetchImpl === fetch ? undefined : fetchImpl, maxRetries: 1, timeout: 25000 });
-      const r = await client.beta.messages.create({ model: ASK_CLAUDE_MODEL, max_tokens: 2000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
-        output_config: { effort: "low", format: { type: "json_schema", schema: CZ_JUDGE_SCHEMA } }, system: CZ_JUDGE_SYSTEM, messages: [{ role: "user", content: prompt }] });
+      const r = await client.messages.create({ model: JUDGE_CLAUDE_MODEL, max_tokens: JUDGE_MAX_TOKENS,
+        output_config: { format: { type: "json_schema", schema: CZ_JUDGE_SCHEMA } }, system: CZ_JUDGE_SYSTEM, messages: [{ role: "user", content: prompt }] });
       if (r.stop_reason !== "refusal") { const t = (r.content || []).find(b => b.type === "text"); const x = t && JSON.parse(t.text); if (ok(x)) { j = x; judge = "claude"; } }
     } catch (e) { console.log("judge:", e.message); }
   }
-  if (!j && env.AI) {
+  if (!j && !bt.house && env.AI) {
     try {
       const r = await env.AI.run(ASK_CF_MODEL, { messages: [{ role: "system", content: CZ_JUDGE_SYSTEM + "\nAnswer with only a JSON object with the keys chance_a, report_if_a_wins, report_if_b_wins, mvp_a, mvp_b." }, { role: "user", content: prompt }], max_tokens: 500 });
       const txt = String(r?.response ?? r ?? ""), m = txt.match(/\{[\s\S]*\}/); const x = m && JSON.parse(m[0]); if (ok(x)) { j = x; judge = "workers-ai"; }
@@ -2706,7 +2748,7 @@ async function czFinish(env, bt, uid, fetchImpl) { const v = await czJudge(env, 
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
   if (!env.STORE) return json({ error: "Cosmic isn't set up on this server (it needs the STORE Durable Object)." }, 503);
-  const today = etDayStr(now), tomorrow = etDayStr(now + 864e5);
+  const today = etDayStr(now), tomorrow = dayAfter(today);
   if (p === "/board" && req.method === "GET") return cached(req, ctx, 60, async () => {
     const out = [];
     for (const lg of TRACK_LEAGUES) for (const d of [today, tomorrow]) { try { out.push(...await czMarkets(env, lg, d)); } catch {} }
@@ -2787,7 +2829,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/config" && req.method === "GET") return json({ passkeys: true });
   if (p === "/pk/start" && req.method === "POST") {                          // a challenge to create or use a passkey
-    const d = await req.json().catch(() => ({})), kind = d.kind === "reg" ? "reg" : "auth", name = String(d.name || "").replace(/\s+/g, " ").trim();
+    const d = await czBody(req), kind = d.kind === "reg" ? "reg" : "auth", name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!await rateOk(env, "pk:" + ip, 30, 3600e3)) return json({ error: "Too many tries. Wait a few minutes." }, 429);
     if (kind === "reg") {
       const linker = d.link ? await czAuth(req, env) : null;
@@ -2800,7 +2842,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ challenge: await pkChallenge(env, "auth") });
   }
   if (p === "/pk/register" && req.method === "POST") {                       // save a new passkey and sign in (or add it to your account)
-    const d = await req.json().catch(() => ({}));
+    const d = await czBody(req);
     try {
       const { ch, rpIdHash } = await pkClient(env, d.clientDataJSON, "reg"), att = cbor(b64u.dec(d.attestationObject)).v, ad = authData(att.get("authData"));
       if (!eqBytes(ad.rpIdHash, rpIdHash) || !ad.up || !ad.credId) throw new Error("bad passkey");
@@ -2814,7 +2856,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     } catch (e) { return json({ error: "The passkey couldn't be saved (" + e.message + "). Try again." }, 400); }
   }
   if (p === "/pk/login" && req.method === "POST") {                          // sign in: check the device's signature over our challenge
-    const d = await req.json().catch(() => ({}));
+    const d = await czBody(req);
     try {
       const cred = await czRead(env, "cz:pk:" + String(d.id || ""), null); if (!cred) throw new Error("unknown passkey");
       const { raw, rpIdHash } = await pkClient(env, d.clientDataJSON, "auth"), adRaw = b64u.dec(d.authenticatorData), ad = authData(adRaw);
@@ -2836,7 +2878,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/join" && req.method === "POST") {
     if (!(req.headers.get("X-No-Passkeys") === "1")) return json({ error: "Create your account with a passkey." }, 403);
     if (!(await rateOk(env, "join:" + ip, 5, 3600e3, "peek"))) return json({ error: "Too many new accounts from here. Try again later." }, 429);
-    const d = await req.json().catch(() => ({})), name = String(d.name || "").replace(/\s+/g, " ").trim();
+    const d = await czBody(req), name = String(d.name || "").replace(/\s+/g, " ").trim();
     if (!/^[\p{L}\p{N} ._-]{3,20}$/u.test(name)) return json({ error: "Pick a name of 3 to 20 letters, numbers, spaces, dots, dashes or underscores." }, 400);
     if (!czNameOk(name)) return json({ error: "Please pick a different name." }, 400);
     const uid = czRand(12), token = czRand(32);
@@ -2847,7 +2889,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/support" && req.method === "POST") {                           // the contact form on the Support page
     if (!await rateOk(env, "sup:" + ip, 5, 3600e3)) return json({ error: "Too many messages. Try again later." }, 429);
-    const d = await req.json().catch(() => ({})), message = String(d.message || "").trim().slice(0, 3000), contact = String(d.contact || "").trim().slice(0, 200);
+    const d = await czBody(req), message = String(d.message || "").trim().slice(0, 3000), contact = String(d.contact || "").trim().slice(0, 200);
     if (message.length < 5) return json({ error: "Write a message first." }, 400);
     const who = await czAuth(req, env), L = (await czRead(env, "cz:support", [])).filter(x => now - x.at < CZ_SUPPORT_DAYS * 864e5);   // kept 180 days
     L.unshift({ id: czRand(6), at: now, message, contact, uid: who ? who.uid : null, name: who ? who.name : null }); await store(env).put("cz:support", JSON.stringify(L.slice(0, 300)));
@@ -2859,18 +2901,18 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   if (p === "/owner/review" && req.method === "POST") {                      // the owner acts on reports: rename the player or dismiss
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
-    const d = await req.json().catch(() => ({})), name = String(d.name || "").slice(0, 40);
+    const d = await czBody(req), name = String(d.name || "").slice(0, 40);
     const r = await cz(env, { act: d.action === "rename" ? "rename" : "repdone", name, now }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/owner/support/delete" && req.method === "POST") {              // the owner clears a support message once it's handled
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
-    const d = await req.json().catch(() => ({})), L = await czRead(env, "cz:support", []);
+    const d = await czBody(req), L = await czRead(env, "cz:support", []);
     await store(env).put("cz:support", JSON.stringify(L.filter(x => (x.id || String(x.at)) !== String(d.id || "")))); return json({ ok: true });
   }
   const u = await czAuth(req, env);
   if (!u) return json({ error: "Sign in to Cosmic first." }, 401);
   if (p === "/signout" && req.method === "POST") {                           // this device's key stops working (or every key, with all)
-    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "signout", uid: u.uid, tok: await czTokHash(req), all: !!d.all, now }); return json({ ok: true, all: !!d.all && r.ok });
+    const d = await czBody(req), r = await cz(env, { act: "signout", uid: u.uid, tok: await czTokHash(req), all: !!d.all, now }); return json({ ok: true, all: !!d.all && r.ok });
   }
   if (p === "/key/new" && req.method === "POST") {                           // a new account key; every other device is signed out
     const token = czRand(32), r = await cz(env, { act: "signout", uid: u.uid, all: true, newTok: await czHash(token), now });
@@ -2887,8 +2929,9 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/season/seen" && req.method === "POST") { const r = await cz(env, { act: "seasonseen", uid: u.uid, now }); return json(r, r.error ? 409 : 200); }
   if (p === "/spin" && req.method === "POST") { const r = await cz(env, { act: "spin", uid: u.uid, day: today, now }); return json(r, r.error ? 409 : 200); }
   if (p === "/parlay" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), raw = Array.isArray(d.legs) ? d.legs : [];
+    const d = await czBody(req), raw = czArr(d.legs);
     if (raw.length < 2 || raw.length > 5) return json({ error: "A parlay has 2 to 5 picks." }, 400);
+    if (!raw.every(l => l && typeof l === "object" && !Array.isArray(l))) return json({ error: "One of those picks isn't available." }, 400);
     if (new Set(raw.map(l => l.lg + "/" + l.gid)).size !== raw.length) return json({ error: "Only one pick per game in a parlay." }, 400);
     const legs = [];
     for (const l of raw) {
@@ -2909,12 +2952,12 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ mine: B.filter(mine).slice(0, 40), open: B.filter(bt => bt.status === "open" && bt.from !== u.uid && !bt.to && now - bt.at < CZ_BAT_TTL).slice(0, 30), max: CZ_BAT_MAX, house: CZ_HOUSE_DAY }, 200, { "Cache-Control": "no-store" });
   }
   if (p === "/battle/new" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
-    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), sport: String(d.sport || ""), cards: (d.cards || []).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
+    const d = await czBody(req); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const r = await cz(env, { act: "bnew", uid: u.uid, now, day: today, id: czRand(6), sport: String(d.sport || ""), cards: czArr(d.cards).map(String), stake: d.stake, to: d.to ? String(d.to).trim().slice(0, 30) : null });
     return json(r, r.error ? 409 : 200);
   }
   if (p === "/battle/house" && req.method === "POST") {                      // play Cosmo: a lineup of the same tiers, dealt at random
-    const d = await req.json().catch(() => ({})), ids = (d.cards || []).map(String); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
+    const d = await czBody(req), ids = czArr(d.cards).map(String); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
     const S = CZ_BSPORT[String(d.sport || "")]; if (!S) return json({ error: "Pick a sport for the battle." }, 400);
     const mineC = ids.map(id => (u.items || []).find(x => x.id === id)).filter(Boolean), items = (await czCatalog(env)).filter(i => S.lgs.includes(i.lg)), by = {};
     for (const i of items) (by[i.tier] ||= []).push(i);
@@ -2924,24 +2967,24 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json(await czFinish(env, r.battle, u.uid));
   }
   if (p === "/battle/accept" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "bjoin", uid: u.uid, now, id: String(d.id || ""), cards: (d.cards || []).map(String) });
+    const d = await czBody(req), r = await cz(env, { act: "bjoin", uid: u.uid, now, id: String(d.id || ""), cards: czArr(d.cards).map(String) });
     if (r.error) return json(r, 409);
     return json(await czFinish(env, r.battle, u.uid));
   }
-  if (p === "/battle/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "bcancel", uid: u.uid, now, id: String(d.id || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/battle/cancel" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "bcancel", uid: u.uid, now, id: String(d.id || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/owner/unlimited" && req.method === "POST") {
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
-    const d = await req.json().catch(() => ({})), r = await cz(env, { act: "tester", uid: u.uid, on: d.on !== false, now });
+    const d = await czBody(req), r = await cz(env, { act: "tester", uid: u.uid, on: d.on !== false, now });
     return json(r, r.error ? 409 : 200);
   }
   if (p === "/report" && req.method === "POST") {                            // report a player's name; three reports rename it automatically
     if (!await rateOk(env, "rep:" + u.uid, 20, 86400e3)) return json({ error: "You've sent a lot of reports today. Thanks, we'll look at them." }, 429);
-    const d = await req.json().catch(() => ({})), name = String(d.name || "").slice(0, 40), reason = String(d.reason || "").slice(0, 300);
+    const d = await czBody(req), name = String(d.name || "").slice(0, 40), reason = String(d.reason || "").slice(0, 300);
     const r = await cz(env, { act: "report", uid: u.uid, name, reason, now }); return json(r, r.error ? 409 : 200);
   }
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
   if (p === "/delete" && req.method === "POST") {                            // delete your account and everything saved with it
-    const d = await req.json().catch(() => ({})); if (d.confirm !== "DELETE") return json({ error: "Confirm by sending DELETE." }, 400);
+    const d = await czBody(req); if (d.confirm !== "DELETE") return json({ error: "Confirm by sending DELETE." }, 400);
     const r = await cz(env, { act: "delete", uid: u.uid, now }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
@@ -2950,16 +2993,17 @@ export async function cosmicRoute(req, env, ctx, url) {
     let d; try { d = czSyncClean(JSON.parse(raw)); } catch { d = null; } if (!d) return json({ error: "bad data" }, 400);
     await store(env).put("cz:data:" + u.uid, JSON.stringify({ ...d, at: now })); return json({ ok: true, at: now });
   }
-  if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: etDayStr(now - 864e5), now }); return json(r, r.error ? 409 : 200); }
+  if (p === "/daily" && req.method === "POST") { const r = await cz(env, { act: "daily", uid: u.uid, day: today, yday: dayBefore(today), now }); return json(r, r.error ? 409 : 200); }
   if (p === "/bet" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");
+    const d = await czBody(req), lg = String(d.lg || ""), gid = String(d.gid || ""), side = String(d.side || "");
     if (!TRACK_LEAGUES.includes(lg) || (!d.prop && !["home", "away", "draw"].includes(side))) return json({ error: "That bet isn't available." }, 400);
     let m = null;
     for (const day of [today, tomorrow]) { try { m = (await czMarkets(env, lg, day)).find(x => x.gid === gid); } catch {} if (m) break; }
     if (!m || Date.parse(m.start) <= now + 60e3) return json({ error: "Betting on this game has closed." }, 409);
     if (d.prop) {                                                   // a player prop
       const pr = (m.props || []).find(x => x.key === String(d.prop)), pside = String(d.side || "");
-      if (!pr || !pr.dec[pside]) return json({ error: "That prop isn't available." }, 400);
+      const sides = pr && pr.kind === "yes" ? ["yes"] : ["over", "under"];      // only real sides: "constructor" and friends are not bets
+      if (!pr || !pr.dec || !sides.includes(pside) || !Object.hasOwn(pr.dec, pside) || !Number.isFinite(pr.dec[pside])) return json({ error: "That prop isn't available." }, 400);
       if (d.dec && Math.abs(d.dec - pr.dec[pside]) > .005) return json({ error: "The price moved.", dec: pr.dec[pside], moved: true }, 409);
       const plabel = pr.kind === "yes" ? `${pr.player} ${pr.what === "home run" ? "to hit a home run" : "to score a goal"}` : `${pr.player} ${pside} ${pr.line} ${pr.what}`;
       const r = await cz(env, { act: "bet", uid: u.uid, now, bet: { bid: czRand(6), lg, gid, day: m.day, start: m.start, side: pside, dec: pr.dec[pside], stake: d.stake, label: plabel, home: m.home.name, away: m.away.name, src: "Cosmo props",
@@ -2972,12 +3016,12 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "bet", uid: u.uid, now, bet: { bid: czRand(6), lg, gid, day: m.day, start: m.start, side, dec, stake: d.stake, label, home: m.home.name, away: m.away.name, src: m.src } });
     return json(r, r.error ? 409 : 200);
   }
-  if (p === "/sets/claim" && req.method === "POST") { const d = await req.json().catch(() => ({})), id = String(d.id || "");
+  if (p === "/sets/claim" && req.method === "POST") { const d = await czBody(req), id = String(d.id || "");
     const lg = id.startsWith("team:") ? id.split(":")[1] : null, S = (await czSets(env, lg || "all")).find(s => s.id === id) || (await czSets(env, "all")).find(s => s.id === id);
     if (!S) return json({ error: "That set doesn't exist." }, 404);
     const r = await cz(env, { act: "setclaim", uid: u.uid, now, set: { id: S.id, label: S.label, reward: S.reward, members: S.members.map(m => m.b) } }); return json(r, r.error ? 409 : 200); }
   if (p === "/sell" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), it = await czItem(env, String(d.item || ""));
+    const d = await czBody(req), it = await czItem(env, String(d.item || ""));
     if (!it) return json({ error: "That card isn't in Cosmic." }, 404);
     const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), k = czLvlKey(it);
     const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[it.id] || 0) - (ret[it.id] || []).length });
@@ -2985,7 +3029,7 @@ export async function cosmicRoute(req, env, ctx, url) {
   }
   // Sell all: the cards to sell (up to 500), valued the same way as one at a time. With preview, only says what they'd bring.
   if (p === "/sellmany" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), ids = [...new Set((Array.isArray(d.items) ? d.items : []).map(String))].slice(0, 500);
+    const d = await czBody(req), ids = [...new Set((Array.isArray(d.items) ? d.items : []).map(String))].slice(0, 500);
     if (!ids.length) return json({ error: "Pick some cards to sell." }, 400);
     const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), cards = [];
     for (const id of ids) { const it = await czItem(env, id); if (!it) continue; const k = czLvlKey(it);
@@ -2995,20 +3039,20 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "sellmany", uid: u.uid, now, cards }); return json(r, r.error ? 409 : 200);
   }
   if (p === "/trades" && req.method === "GET") { const TR = await czRead(env, "cz:trades", []); return json({ trades: TR.filter(t => t.from === u.uid || t.to === u.uid).slice(0, 40) }, 200, { "Cache-Control": "no-store" }); }
-  if (p === "/trade/offer" && req.method === "POST") { const d = await req.json().catch(() => ({})); if (!await rateOk(env, "tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
+  if (p === "/trade/offer" && req.method === "POST") { const d = await czBody(req); if (!await rateOk(env, "tr:" + u.uid, 30, 3600e3)) return json({ error: "That's a lot of offers. Try again later." }, 429);
     const r = await cz(env, { act: "toffer", uid: u.uid, now, to: String(d.to || ""), give: (d.give || []).map(String), get: (d.get || []).map(String), coins: d.coins }); return json(r, r.error ? 409 : 200); }
-  if (p === "/trade/respond" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tresp", uid: u.uid, now, tid: String(d.tid || ""), accept: !!d.accept }); return json(r, r.error ? 409 : 200); }
-  if (p === "/trade/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "tcancel", uid: u.uid, now, tid: String(d.tid || "") }); return json(r, r.error ? 409 : 200); }
-  if (p === "/auction/new" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "aucnew", uid: u.uid, now, id: String(d.item || ""), start: d.start, hours: d.hours }); return json(r, r.error ? 409 : 200); }
-  if (p === "/auction/bid" && req.method === "POST") { const d = await req.json().catch(() => ({})); await czAuctionTick(env).catch(() => {}); const r = await cz(env, { act: "aucbid", uid: u.uid, now, aid: String(d.aid || ""), amount: d.amount }); return json(r, r.error ? 409 : 200); }
-  if (p === "/auction/cancel" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "auccancel", uid: u.uid, now, aid: String(d.aid || "") }); return json(r, r.error ? 409 : 200); }
-  if (p === "/list" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
-  if (p === "/unlist" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/trade/respond" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "tresp", uid: u.uid, now, tid: String(d.tid || ""), accept: !!d.accept }); return json(r, r.error ? 409 : 200); }
+  if (p === "/trade/cancel" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "tcancel", uid: u.uid, now, tid: String(d.tid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/new" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "aucnew", uid: u.uid, now, id: String(d.item || ""), start: d.start, hours: d.hours }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/bid" && req.method === "POST") { const d = await czBody(req); await czAuctionTick(env).catch(() => {}); const r = await cz(env, { act: "aucbid", uid: u.uid, now, aid: String(d.aid || ""), amount: d.amount }); return json(r, r.error ? 409 : 200); }
+  if (p === "/auction/cancel" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "auccancel", uid: u.uid, now, aid: String(d.aid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/list" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "list", uid: u.uid, now, id: String(d.item || ""), price: d.price }); return json(r, r.error ? 409 : 200); }
+  if (p === "/unlist" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "unlist", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   // cards belong to accounts: only a signed-in account with a passkey can pull or buy them
   if ((p === "/pack" || p === "/buylisting") && req.method === "POST" && !czSecured(u)) return json({ error: "Add a passkey to your account to collect cards.", needPasskey: true }, 403);
-  if (p === "/buylisting" && req.method === "POST") { const d = await req.json().catch(() => ({})); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
+  if (p === "/buylisting" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "buyl", uid: u.uid, now, lid: String(d.lid || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/pack" && req.method === "POST") {
-    const d = await req.json().catch(() => ({})), want = String(d.pack || ""), E = want.startsWith("ev:") ? czEventsAt(now).find(e => e.pack === want) : null;
+    const d = await czBody(req), want = String(d.pack || ""), E = want.startsWith("ev:") ? czEventsAt(now).find(e => e.pack === want) : null;
     if (E && E.status !== "live") return json({ error: E.status === "soon" ? `The ${E.label} opens soon. Check the countdown on the Packs tab.` : `The ${E.label} has ended.` }, 409);
     const TP = /^tp:(nfl|nba|mlb|nhl|epl):[a-z0-9-]{1,60}$/.test(want) ? (await czTeamPacks(env, want.split(":")[1])).find(t => t.id === want) : null;
     if (want.startsWith("tp:") && !TP) return json({ error: "That team pack isn't available." }, 404);
@@ -3102,14 +3146,16 @@ export default {
     if (url.pathname === "/live.json") return new Response(await db.get("live") || '{"asof":"1970-01-01T00:00:00Z","matches":[]}',
       { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors } });
     if (url.pathname === "/vapid") return json({ key: env.VAPID_PUBLIC_KEY });
-    if (url.pathname.startsWith("/cosmic/")) { try { return await cosmicRoute(req, env, ctx, url); } catch (e) { return json({ error: "Cosmic isn't available right now." }, 503); } }
+    if (url.pathname.startsWith("/cosmic/")) { try { return await cosmicRoute(req, env, ctx, url); } catch (e) {
+      if (req.method === "POST" && e instanceof TypeError) { console.log("cosmic bad request", url.pathname, String(e.message || e)); return json({ error: "That request isn't valid." }, 400); }
+      return json({ error: "Cosmic isn't available right now." }, 503); } }
     if (url.pathname === "/track") return await cached(req, ctx, 120, () => trackAll(db)).catch(e => json({ error: String(e.message || e) }, 503));
     if (url.pathname === "/comets" || url.pathname.startsWith("/comets/")) { const r = await cometsRoute(req, env, ctx, url, db); if (r) return r; }
     if (url.pathname === "/ask") return json({ error: "Ask Cosmo was removed." }, 410);   // removed from the app; nothing reaches the AI through it
     if (url.pathname === "/tts" && req.method === "POST") {
       if (!env.AI) return json({ error: "no voice" }, 503);
       if (!(await ttsAllowed(env, req.headers.get("CF-Connecting-IP") || "anon"))) return json({ error: "slow down" }, 429);
-      const d = await req.json().catch(() => ({}));
+      const d = await czBody(req);
       const text = String(d.text || "").replace(/\s+/g, " ").trim().slice(0, 420), voice = d.voice === "female" ? "female" : "male";
       if (!text) return json({ error: "no text" }, 400);
       const key = new Request(`https://tts.cosmo/${voice}/${await subId(text)}`), cache = caches.default;
@@ -3139,12 +3185,12 @@ export default {
       return json({ ok: true, watching: n, isNew: !old, storage: db.durable ? "durable" : "kv" });
     }
     if (url.pathname === "/unsubscribe" && req.method === "POST") {
-      const d = await req.json().catch(() => ({}));
+      const d = await czBody(req);
       if (d.endpoint) await db.subDel(String(d.endpoint)).catch(() => {});
       return json({ ok: true });
     }
     if (url.pathname === "/test" && req.method === "POST") {           // "Send test notification" button
-      const d = await req.json().catch(() => ({}));
+      const d = await czBody(req);
       let s = d.endpoint ? await db.subGet(String(d.endpoint)).catch(() => null) : null;
       if (!s && d.sub?.endpoint && d.sub.keys?.p256dh && d.sub.keys?.auth) s = { sub: d.sub };    // not saved yet: still prove the phone can receive
       if (!s) return json({ error: "not subscribed" }, 404);
@@ -3158,6 +3204,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czLegacy(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czLegacy(env), czNanFix(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
