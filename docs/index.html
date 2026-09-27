@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-FH/s5RPCM5NnZZisZDlNuEKdh2++Lyx1li3JZPET3vc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-5wkw+h5gydDDfGFZWlxhin74grFoj1CWDCV5/BVDGIo='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1711,7 +1711,16 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.l-3 .czbig{font-size:44cqw;top:8%}
 .czcard.czcard .czat{top:auto;bottom:83%}
 .czcard.czcard.czcard .czc-mid .czhs{bottom:0}.czcard.czcard.legend .czposb{display:none!important}
-.czink span{font:italic 700 10.5cqw/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#fde68a;white-space:nowrap;overflow:hidden;max-width:100%;text-shadow:0 1px 0 #92400e,0 0 8px rgba(0,0,0,.6),0 0 14px rgba(251,191,36,.5)}
+.czink span{font:700 10.5cqw/1 "Cosmo Ink","Dancing Script","Snell Roundhand","Segoe Script","Brush Script MT",cursive;color:#fde68a;white-space:nowrap;overflow:hidden;max-width:100%;text-shadow:0 1px 0 #92400e,0 0 8px rgba(0,0,0,.6),0 0 14px rgba(251,191,36,.5)}
+/* the signature font ships with the app (fonts/), so ink cards are signed in the same cursive on every device */
+@font-face{font-family:"Cosmo Ink";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/dancing-script-700-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2212}
+@font-face{font-family:"Cosmo Ink";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/dancing-script-700-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+1EF2-1EFF,U+2C60-2C7F,U+A720-A7FF}
+/* an ink card's name is written once, on its plate, as a gold signature in place of the printed name */
+.czcard.czcard.czcard.ink .czc-name{display:none}.czcard.czcard.czcard.ink .czc-sig{display:block}
+.czcard.czcard.czcard.ink .czbig{display:none}   /* no second, decorative copy of the name either */
+.czc-plate.long .czc-sig{font-size:11cqw}.czc-plate.xlong .czc-sig{font-size:9.5cqw}
+.czc-sig{display:none;font:700 13cqw/1.15 "Cosmo Ink","Dancing Script","Snell Roundhand","Segoe Script","Brush Script MT",cursive;color:#fde68a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 1px #2a1204,0 1px 0 #451a03,1px 1px 2px rgba(0,0,0,.85),0 0 8px rgba(251,191,36,.45)}
+.czcard.t-singularity .czc-sig,.czcard.t-supernova .czc-sig{color:#fff3c4;text-shadow:0 0 1px #1c0a02,0 1px 0 #1c0a02,1px 1px 3px rgba(0,0,0,.95),0 0 10px rgba(120,53,15,.9)}
 .czink small{margin-top:1cqw;padding:.4cqw 2cqw;border-radius:99px;background:linear-gradient(90deg,#fde68a,#f59e0b);color:#1c1206;font:900 2.6cqw/1.3 Archivo,system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase}
 .czcard.ink{box-shadow:0 0 0 1px #fde68a,0 0 16px -4px #fbbf24,0 12px 28px -14px #000}
 /* Iconic Moments: the legend frame in silver and blue, with the year on the plaque */
@@ -1746,7 +1755,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
    Top row 5-15% (tier, serial, 1-of-1), then RC 15-21%, then the insert name, signature or jersey number, then the photo */
 .czcard.czcard.czcard .czrc{top:15.5%;left:7%;font-size:3.3cqw;line-height:1.3;padding:.2cqw 1.4cqw}
 .czcard.czcard.czcard.ink .czink{top:22%;transform:rotate(-3deg)}.czcard.czcard.czcard.ink .czink small{margin-top:2.2cqw}
-.czcard.czcard.czcard.ink .czbig{display:none}.czcard.czcard.czcard.l-1.ink .czbig{display:block}
+.czcard.czcard.czcard.ink .czbig{display:none}
 .czcard.czcard.czcard.l-1 .czbig{top:23%}
 .czcard.czcard.czcard.l-2 .czbig{left:auto;right:9%;top:15.5%}
 .czcard.czcard.czcard.l-3 .czbig{font-size:26cqw;top:16%;right:2%}
@@ -1761,7 +1770,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard .czc-top{font-size:min(.66rem,5.2cqw);gap:1.5cqw}.czcard.czcard.czcard .czc-top span{padding:.5cqw 2.2cqw}
 .czcard.czcard.czcard.t-singularity:not(.ch):not(.legend) .czc-top span{max-width:62%}
 /* the signature lies flat, with its ribbon clear underneath */
-.czcard.czcard.czcard.ink .czink{top:21%;transform:none}.czcard.czcard.czcard.ink .czink span{line-height:1.25;font-size:8.5cqw}.czcard.czcard.czcard.ink .czink small{margin-top:.6cqw}
+.czcard.czcard.czcard.ink .czink{top:21%;transform:none}.czcard.czcard.czcard.ink .czink span{line-height:1.25;font-size:8.5cqw}.czcard.czcard.czcard.ink .czink small{margin-top:0;font-size:3.4cqw;padding:.5cqw 2.6cqw}
 .czcard.czcard.czcard.l-3 .czbig{top:18%}
 /* names in the insert, legend and moment plates get room for their second line */
 .czcard.czcard.czcard.ch .czc-name,.czcard.czcard.czcard.legend .czc-name{line-height:1.1}.czcard.czcard.czcard.ch .czc-lg,.czcard.czcard.czcard.legend .czc-lg{margin-top:.8cqw}
@@ -1786,8 +1795,8 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard .czc-lg{padding-right:0;margin-right:21cqw}.czcard.czcard.czcard.l-5 .czc-lg{margin-left:21cqw}   /* clear of the card number */
 /* tiny cards (a small grid on a narrow phone) keep only what fits: no ribbons or decorative big text, a smaller signature */
 @container (max-width:140px){
-  .czcard.czcard.czcard .czink small,.czcard.czcard.czcard .czch-logo small{display:none}
-  .czcard.czcard.czcard.ink .czink{top:19%}.czcard.czcard.czcard.ink .czink span{font-size:7.5cqw}
+  .czcard.czcard.czcard .czch-logo small,.czcard.czcard.czcard .czink small b{display:none}
+  .czcard.czcard.czcard.ink .czink{top:18.5%}.czcard.czcard.czcard.ink .czink span{font-size:9cqw}.czcard.czcard.czcard.ink .czink small{font-size:4.6cqw;margin-top:.4cqw;padding:.2cqw 2.4cqw;letter-spacing:.14em}
   .czcard.czcard.czcard.ch .czch-logo{top:18.5%;font-size:7.5cqw}
   .czcard.czcard.czcard.l-2 .czbig,.czcard.czcard.czcard.l-3 .czbig{display:none}
 }
@@ -1796,6 +1805,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
   .czcard.czcard.czcard .czink,.czcard.czcard.czcard .czch-logo,.czcard.czcard.czcard .czbig,.czcard.czcard.czcard .czsnd,.czcard.czcard.czcard .czposb,
   .czcard.czcard.czcard .czno,.czcard.czcard.czcard .czat,.czcard.czcard.czcard .czev,.czcard.czcard.czcard .czc-lg{display:none!important}
   .czcard.czcard.czcard.legend .czc-mid .czhs{top:24%;height:50%}
+  /* an ink card this small is signed on its name plate instead: the gold signature takes the printed name's place */
 }
 @container (max-width:90px){ .czcard.czcard.czcard.legend .czc-mid .czhs{top:29%;height:45%} }
 /* ---- the inserts, upgraded: each one gets its own foil frame, name plate, title lettering and a light sweep.
@@ -6349,13 +6359,13 @@ function czCard(it, ed, big){
   const extra = (it.tier === "singularity" && !it.legend && !it.moment ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
     + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
-    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>${esc(czChLv(it.ch).name)} insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
+    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><small>✍ <b>Cosmic </b>Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>${esc(czChLv(it.ch).name)} insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? `<i></i><b></b>${CZ_CASE_ART[it.ch] ? `<svg class="czscene czchart" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_CASE_ART[it.ch].back}</svg>` : ""}` : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch && CZ_CASE_ART[it.ch] && CZ_CASE_ART[it.ch].front ? `<svg class="czscene czchfr" aria-hidden="true" viewBox="0 0 100 140" preserveAspectRatio="none">${CZ_CASE_ART[it.ch].front}</svg>` : ""}${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid ${faces.length ? "pl" : ""}">${faces.length ? `<img class="czhs" src="${esc(faces[0])}" data-alt="${esc(JSON.stringify(faces.slice(1)))}" alt="" loading="lazy" referrerpolicy="no-referrer" data-err="face">${logo ? `<img class="czbadge" src="${esc(logo)}" alt="" loading="lazy">` : ""}`
       : logo ? `<img src="${esc(logo)}" alt="" loading="lazy" data-err="ini" data-ini="${esc(initials)}">` : `<b>${esc(initials)}</b>`}</div>
-    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name">${fn ? `<span class="fn">${esc(fn)}</span> ` : ""}<span class="ln">${esc(ln)}</span></div><div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
+    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name">${fn ? `<span class="fn">${esc(fn)}</span> ` : ""}<span class="ln">${esc(ln)}</span></div>${it.ink && !it.ch ? `<div class="czc-sig" aria-hidden="true">${esc(it.name)}</div>` : ""}<div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
 }
 // a player's photo: the one saved with the card, then the league's own photo by player id (older cards and players
 // whose photo wasn't in the roster), and finally the team's logo, large, instead of an empty card
@@ -6962,9 +6972,7 @@ function czCaseHitsHtml(){
     ${["mythic", "legendary", "epic", "rare"].map(group).join("")}
     <h3 class="subh">✍️ Cosmic Ink</h3><p class="sub">A signed-style insert: about <b>1 in every ${Math.round(1 / ((C.ink && C.ink.rate) || 1 / 75))}</b> player cards comes out with the player's name inked across it in gold, worth <b>${(C.ink && C.ink.mult) || 2}×</b> the regular card.</p>
     <div class="czchgal">${[0, 1, 2].map(k => `<div class="czchitem">${czCard({ ...sample(k), ink: true, label: CZ_TIER_NAME[sample(k).tier] }, 1)}<b>Cosmic Ink</b></div>`).join("")}</div>
-    <h3 class="subh">Pulled so far</h3>
-    ${C.pulled.length ? `<div class="czgrid">${C.pulled.map(c => `<div class="czitem">${czCard({ ...c, label: CZ_TIER_NAME[c.tier] }, c.n)}<div class="czinfo"><span class="czleft">Pulled by ${esc(c.by)}</span><small>${esc(new Date(c.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></div></div>`).join("")}</div>`
-      : `<div class="teamnote"><b>No case hits pulled yet</b>Every pack has a chance. Be the first!</div>`}`;
+`;
 }
 function czVaultInner(vv){
   const V = CZ.vault; if (!V) return `<div class="teamnote">${cosmoLoad("Opening the vault…")}</div>`;
