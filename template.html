@@ -2127,7 +2127,7 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .cznh .czsurf .a{stroke:color-mix(in srgb,var(--c2) 65%,#fff);stroke-width:1.1;opacity:.7}.cznh .czsurf .d{fill:rgba(255,255,255,.5);stroke:none}
 .cznh .czcon{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.cznh .czcon path{fill:none;stroke:rgba(255,255,255,.35);stroke-width:.35;stroke-dasharray:1.2 1.2;vector-effect:non-scaling-stroke}
 .cznh .czcon circle{fill:#fff;filter:drop-shadow(0 0 1.5px #fff)}
-.czsys{position:absolute;left:50%;top:47%;width:var(--ps);aspect-ratio:1;transform:translate(-50%,-50%)}
+.czsys{position:absolute;left:50%;top:47%;width:62cqw;aspect-ratio:1;transform:translate(-50%,-50%)}
 .czsys i{position:absolute;display:block}
 .czcard.czcard.czcard .czsys .czplimg,.czsys .czplimg{position:absolute;left:-14%;top:-14%;width:128%;height:128%;max-width:none;aspect-ratio:auto;z-index:1;transform:rotate(var(--rt));filter:none;object-fit:contain}
 .czmn{z-index:3;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#cbd5e1 45%,#475569);box-shadow:0 0 1.5cqw rgba(255,255,255,.3)}
@@ -2135,7 +2135,7 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .k-jupiter .czmn.m0,.k-jupiter .czmn.m2{background:radial-gradient(circle at 35% 30%,#fff7d6,#e0b04a 50%,#7c5a1a)}
 .k-mars .czmn{width:4.5%}.k-mars .czmn.m0{left:106%;top:28%}.k-mars .czmn.m1{left:-10%;top:72%}
 .k-neptune .czmn.m0{width:7%;left:106%;top:66%;background:radial-gradient(circle at 35% 30%,#fff,#fbcfe8 45%,#6b4f5f)}
-.k-sun .czsys{width:calc(var(--ps) + 4cqw)}.k-moment .czcm{left:74%;top:-16%;width:14%}.k-moment .czsys{width:calc(var(--ps) - 8cqw);top:52%}
+.k-sun .czsys{width:64cqw}.k-moment .czcm{left:74%;top:-16%;width:14%}.k-moment .czsys{width:52cqw;top:52%}
 .czcm{left:56%;top:22%;width:18%;aspect-ratio:1;border-radius:50%;z-index:2;background:radial-gradient(circle,#fff,#bae6fd 40%,rgba(125,211,252,0) 72%);box-shadow:0 0 5cqw #7dd3fc,0 0 12cqw rgba(125,211,252,.5)}
 .czcm::after{content:"";position:absolute;right:40%;top:50%;width:360%;height:70%;transform:translateY(-50%) rotate(calc(-24deg + var(--rt) / 2));transform-origin:100% 50%;border-radius:50%;
   background:linear-gradient(270deg,rgba(255,255,255,.9),rgba(125,211,252,.55) 30%,rgba(167,139,250,.25) 65%,transparent);-webkit-mask:linear-gradient(0deg,transparent,#000 30% 70%,transparent);mask:linear-gradient(0deg,transparent,#000 30% 70%,transparent)}
@@ -2151,6 +2151,33 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .czcard.czcard.l-2 .cznh .czmono.czhb{display:none}.czcard.czcard .czone~.czc-mid .cznh .czmono.czhb{top:16%}
 @container (min-width:141px){.czcard.czcard.l-1 .czone~.czc-mid .cznh .czmono.czhb{display:none}}
 @container (max-width:115px){.cznh .czmono.czhb{display:none}}
+
+/* ==== the clean card: one composition for every planet card (inserts and legends keep theirs). A deep-space field in the
+   rarity's colours, the globe dead centre, and one name plate: first name on its own line, the last name sized to fit ==== */
+.czcard.czcard.czcard.clean .czdz,.czcard.czcard.czcard.clean .czfx,.czcard.czcard.czcard.clean .czc-win,.czcard.czcard.czcard.clean .czscene,
+.czcard.czcard.czcard.clean .czbig,.czcard.czcard.czcard.clean .czsnd,.czcard.czcard.czcard.clean .czword,.czcard.czcard.czcard.clean .czposb,.czcard.czcard.czcard.clean .czhb{display:none!important}
+.czcard.czcard.czcard.clean .czc-stock{background:radial-gradient(60% 42% at 50% 42%,color-mix(in srgb,var(--c2) 38%,transparent),transparent 72%),
+  radial-gradient(90% 60% at 50% 110%,color-mix(in srgb,var(--c1) 70%,transparent),transparent 70%),
+  radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 84% 12%,#fff,transparent),radial-gradient(1.4px 1.4px at 72% 30%,#e0f2fe,transparent),
+  radial-gradient(1px 1px at 22% 52%,#fff,transparent),radial-gradient(1px 1px at 90% 58%,#fde68a,transparent),radial-gradient(1.2px 1.2px at 8% 70%,#fff,transparent),
+  radial-gradient(1px 1px at 60% 8%,#fff,transparent),radial-gradient(1px 1px at 38% 24%,#c7d2fe,transparent),
+  linear-gradient(180deg,color-mix(in srgb,var(--c1) 45%,#05030f),#05030f 70%)}
+.czcard.czcard.czcard.clean .cznh .czsurf{opacity:.45}
+.czcard.czcard.czcard.clean .czsys,.czcard.czcard.czcard.clean.l-1 .czsys{left:50%;top:52%;width:66cqw}
+.czcard.czcard.czcard.clean .czsys .czplimg{transform:none}
+.czcard.czcard.czcard.clean .czc-plate{position:relative;display:grid;gap:.8cqw;justify-items:center;text-align:center;margin:0 0 1.5cqw;padding:3cqw 3cqw 2.6cqw;border-radius:2.6cqw;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04)),rgba(6,4,18,.72);border:0;box-shadow:inset 0 0 0 .35cqw rgba(255,255,255,.14),inset 0 .7cqw 0 -.2cqw color-mix(in srgb,var(--c2) 80%,#fff),0 1.6cqw 3cqw -1.6cqw #000;transform:none;clip-path:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none}
+.czcard.czcard.czcard.clean .czc-plate::before,.czcard.czcard.czcard.clean .czc-plate::after{display:none}
+.czcard.czcard.czcard.clean .czc-name{display:grid;justify-items:center;gap:1cqw;min-width:0;max-width:100%;margin:0;padding:0;background:none;border:0;transform:none;color:#fff;
+  font:900 min(10.5cqw,calc(122cqw / var(--nl)))/1.12 Archivo,system-ui,sans-serif;font-stretch:88%;letter-spacing:.02em;text-transform:uppercase;text-shadow:0 .4cqw 1cqw rgba(0,0,0,.6);-webkit-text-stroke:0;white-space:nowrap}
+.czcard.czcard.czcard.clean .czc-name .fn,.czcard.czcard.czcard.clean .czc-name .ln{display:block;background:none;border:0;padding:0;margin:0;transform:none;box-shadow:none;-webkit-text-stroke:0;opacity:1;overflow:visible;text-overflow:clip;max-width:none}
+.czcard.czcard.czcard.clean .czc-name .fn{font:700 5.4cqw/1.2 Archivo,system-ui,sans-serif;letter-spacing:.18em;color:color-mix(in srgb,var(--c2) 55%,#fff);text-shadow:0 .3cqw .8cqw rgba(0,0,0,.6)}
+.czcard.czcard.czcard.clean .czc-name .ln{color:#fff}
+.czcard.czcard.czcard.clean .czc-lg{margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 3.9cqw/1.35 Archivo,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);text-shadow:none;opacity:1}
+.czcard.czcard.czcard.czcard.clean.t-singularity .czc-name .ln{color:#2a0e02;text-shadow:0 1px 0 rgba(255,255,255,.45)}.czcard.czcard.czcard.czcard.clean.t-singularity .czc-name .fn{color:#7c2d12;text-shadow:none}.czcard.czcard.czcard.czcard.clean.t-singularity .czc-lg{color:#5c2306}
+.czcard.czcard.czcard.clean.t-pulsar .czc-foil{opacity:.16}
+@container (max-width:115px){.czcard.czcard.czcard.clean .czc-name .fn{font-size:6.2cqw;letter-spacing:.1em}.czcard.czcard.czcard.clean .czc-lg{display:none}.czcard.czcard.czcard.clean .czsys{width:68cqw}}
 /* (the slab box itself is sized in %: container units on a container refer to its parent) */
 .czslabbed{position:relative;aspect-ratio:5/7;container-type:inline-size;display:grid;grid-template-rows:auto minmax(0,1fr);gap:0;padding:4% 4.5% 4.5%;border-radius:6% / 4.3%;
   background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.08) 40%,rgba(255,255,255,.16));border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 0 0 3px rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.6),0 14px 28px -16px #000}
@@ -5682,8 +5709,7 @@ function czHero(it, player){
   const stars = Array.from({ length: 6 }, (_, i) => [8 + ((h >>> i * 4) % 84), 6 + ((h >>> (i * 5 + 2)) % 60)]);
   const con = `<svg class="czcon" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M${stars.map(p => p.join(" ")).join("L")}"/>${stars.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 3 ? .9 : 1.5}"/>`).join("")}</svg>`;
   const moons = Array.from({ length: CZ_MOONS[body] || 0 }, (_, i) => `<i class="czmn m${i}"></i>`).join("");
-  const vars = `--rt:${Math.round(r(2) * 30 - 15)}deg;--ps:${Math.round(54 + r(6) * 8)}cqw;--mo:${Math.round(r(4) * 8 - 4)}%`;
-  const badge = player && it.team && !it.moment ? czMono(it.lg, it.team, "czhb") : it.kind === "team" ? czMono(it.lg, it.name, "czhb") : "";
+  const vars = `--mo:${Math.round(r(4) * 6 - 3)}%`, badge = "";
   return `<div class="cznh k-${body}${it.moment ? " k-moment" : ""}" aria-hidden="true" style="${vars}"><svg class="czsurf" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${CZ_SURF[lg] || CZ_SURF.nba}</svg>${con}<div class="czsys"><img class="czplimg" src="${czBodyImg(body, h)}" alt="" decoding="async" loading="lazy">${moons}${it.moment ? `<i class="czcm"></i>` : ""}</div>${badge}</div>`;
 }
 function czCard0(it, ed, big){
@@ -5692,18 +5718,19 @@ function czCard0(it, ed, big){
   const initials = czInitials(it.name);
   const lv = czLevel(it);
   const evc = it.ev && /^#[0-9a-f]{6}$/i.test(it.evc || "") ? it.evc : null, hot = czHotOf(it);
-  const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), fn = parts.length > 1 ? parts[0] : "", ln = parts.length > 1 ? parts.slice(1).join(" ") : it.name;
+  const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), nick = it.kind === "team" && parts.length > 1 ? String(simShort(it.lg, it.name) || "") : "", teamSplit = nick && nick !== it.name && it.name.endsWith(nick),
+    fn = teamSplit ? it.name.slice(0, -nick.length).trim() : parts.length > 1 ? parts[0] : "", ln = teamSplit ? nick : parts.length > 1 ? parts.slice(1).join(" ") : it.name;
   const abbr = player ? simShort(it.lg, it.team) : (T && simShort(it.lg, T.name)) || initials, bigTxt = L === 1 ? ln : L === 3 ? (player ? (it.pos && it.pos.length <= 3 ? it.pos : initials) : "#" + (it.rank || 1)) : L === 2 ? abbr : "";
   const setLg = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "PL", atp: "ATP", wta: "WTA" }[it.lg] || "";
   const extra = (it.tier === "singularity" && !it.legend && !it.moment ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
     + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
     + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><small>✦ <b>Cosmic </b>Ink</small></div>` : "") + (it.gr ? `<div class="czno czgr g${+it.gr}" aria-hidden="true">${czGrShort(+it.gr)} <b>${+it.gr}</b></div>` : it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>${esc(czChLv(it.ch).name)} insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
-  return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
+  return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${!it.ch && !it.legend && !it.moment ? "clean" : ""} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? `<i></i><b></b>${CZ_CASE_ART[it.ch] ? `<svg class="czscene czchart" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_CASE_ART[it.ch].back}</svg>` : ""}` : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch && CZ_CASE_ART[it.ch] && CZ_CASE_ART[it.ch].front ? `<svg class="czscene czchfr" aria-hidden="true" viewBox="0 0 100 140" preserveAspectRatio="none">${CZ_CASE_ART[it.ch].front}</svg>` : ""}${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span class="${it.legend || it.moment || it.ch ? "" : "pl-" + esc(it.tier)}">${esc(it.legend || it.moment ? "The Sun" : CZ_TIER_NAME[it.tier] || it.label || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
     <div class="czc-mid hero">${czHero(it, player)}</div>
-    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name">${fn ? `<span class="fn">${esc(fn)}</span> ` : ""}<span class="ln">${esc(ln)}</span></div>${it.ink && !it.ch ? `<div class="czc-sig" aria-hidden="true">${esc(it.name)}</div>` : ""}<div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
+    ${lv > 1 ? `<div class="czlv" title="Level ${lv}: levels up with big real games">Lv ${lv}</div>` : ""}<div class="czc-plate ${it.name.length > 19 ? "xlong" : it.name.length > 13 ? "long" : ""}"><div class="czc-name" style="--nl:${Math.max(6, ln.length)}">${fn ? `<span class="fn">${esc(fn)}</span> ` : ""}<span class="ln">${esc(ln)}</span></div>${it.ink && !it.ch ? `<div class="czc-sig" aria-hidden="true">${esc(it.name)}</div>` : ""}<div class="czc-lg">${player ? `${esc(it.pos || "")}${it.pos ? " · " : ""}${esc(simShort(it.lg, it.team))} · ` : ""}${esc(CZ_LG[it.lg] || it.lg)}${["atp", "wta"].includes(it.lg) ? " · Tennis" : ""}</div></div></div>`;
 }
 // no inline handlers anywhere (the Content-Security-Policy blocks them): images say what to do if they fail with data-err,
 // buttons in markup built as text say what they do with data-ui

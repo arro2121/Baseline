@@ -8,7 +8,7 @@ import os
 import numpy as np
 from PIL import Image
 
-S = 384                    # image size (px); the globe fills the middle, leaving room for its glow
+S = 512                    # image size (px); the globe fills the middle, leaving room for its glow
 R = 0.78                   # globe radius, as a share of half the image
 VARIANTS = 4
 OUT = os.path.join(os.path.dirname(__file__), "..", "docs", "planets")
@@ -225,7 +225,7 @@ def neptune(p, n, lit, d, perm, v):
     e = (dl / .2) ** 2 + ((lat + .3) / .07) ** 2
     spot = smooth(1.1, .4, e)
     col = col * (1 - spot[..., None] * .55)
-    streak = np.exp(-((lat + .2) / .02) ** 2) * smooth(.4, .05, np.abs(dl - .25)) + np.exp(-((lat - .35) / .015) ** 2) * smooth(.7, .1, np.abs(dl + .6))
+    streak = (np.exp(-((lat + .2) / .02) ** 2) * smooth(.4, .05, np.abs(dl - .25)) + np.exp(-((lat - .35) / .015) ** 2) * smooth(.7, .1, np.abs(dl + .6))) * smooth(.15, .45, n[2])
     col = col * (1 - streak[..., None] * .8) + np.array([.95, .97, 1]) * streak[..., None] * .8
     return col
 
@@ -236,7 +236,7 @@ def sun_texture(p, perm):
     t = gran * .25 + big * .5 + .58
     col = ramp(t, [(0, (220, 90, 10)), (.4, (250, 160, 30)), (.7, (255, 210, 80)), (1, (255, 246, 200))])
     spots = smooth(-.3, -.42, fbm((p[0] * 3 + 3, p[1] * 3, p[2] * 3), perm, 3)) * smooth(.55, .2, np.abs(p[1]))
-    return col * (1 - spots[..., None] * .55)
+    return col * (1 - spots[..., None] * .0)      # (sunspots read as blemishes at card size)
 
 
 BODIES = {
@@ -255,7 +255,7 @@ def render(name, v):
     cfg = BODIES.get(name)
     tilt = cfg["tilt"] if cfg else .1
     n, p, inside, r2 = sphere(rot, tilt * (1 if v % 2 else -1))
-    ldir = [(-.55, .45, .7), (-.7, .3, .6), (-.45, .55, .7), (-.6, .2, .75)][v % 4]
+    ldir = [(-.4, .38, .83), (-.45, .3, .84), (-.35, .42, .84), (-.42, .34, .84)][v % 4]     # light from over the viewer's left shoulder: a full, round globe with a thin night side
     a = edge_alpha(r2)
     if name == "sun":
         col = sun_texture(p, perm)
