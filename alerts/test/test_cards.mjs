@@ -57,7 +57,7 @@ check("DD6 feats and scores from a box score", W.czFeats("nhl", { G: 3, A: 2 }).
   check("GL1 one Grail per league, each worth 3x the most valuable card in the game", G.length === 6 && new Set(G.map(g => g.lg)).size === 6 && G.every(g => g.price >= 6e6 && g.supply === 1 && g.grail && g.tier === "singularity"), G.map(g => g.price));
   check("GL2 a Grail is valued at exactly its price (no level, hot or scarcity bonus)", W.czValueOf(G[0], { xp: 99, hot: true, held: 1 }).value === G[0].price); }
 { const { m, st } = mem(), T = a => W.czTx(st, { now, ...a }), odds = W.CZ_TIERS.map(t => t[0] === "comet" ? 100 : 0);
-  const grail = { id: "nba.grail.singularity", tier: "singularity", supply: 1, lg: "nba", name: "Larry O'Brien Trophy", kind: "grail", grail: true };
+  const grail = { id: "nba.grail.singularity", tier: "singularity", supply: 1, lg: "nba", name: "The Hardwood Grail", kind: "grail", grail: true };
   const pool = [grail, ...Array.from({ length: 20 }, (_, i) => ({ id: `nba.g${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "G" + i, kind: "player" })), { id: "nba.s1.singularity", tier: "singularity", supply: 1, lg: "nba", name: "S1", kind: "player" }];
   await T({ act: "ident", sub: "G", uid: "G", tok: "t", name: "Grailer" }); m.set("cz:u:G", { ...m.get("cz:u:G"), bal: 1e8, freePack: false });
   const r = await T({ act: "pack", uid: "G", pack: { id: "galaxy", label: "P", price: 100, cards: 3, odds, ch: 0, gc: 1 }, pool, rid: "aaaaaaaaaaaaaaaa" });
