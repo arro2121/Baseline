@@ -1749,7 +1749,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard .czev{max-width:56%}
 /* inserts: the serial stays light on their dark art (Classic cards print it dark on white), the crown gets its own band above
    the title, and gold lettering on gold art gets a dark edge so it reads */
-.czcard.czcard.czcard.ch .czc-top em{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.czcard.czcard.czcard.ch .czc-top em{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}.czcard.czcard.czcard.czcard.ch-diamond .czc-top em{color:#1e1b4b;text-shadow:0 0 3px #fff}
 .czcard.czcard.czcard.ch-crown .czch-logo{top:22.5%}.czcard.czcard.czcard.ch-crown .czdz i{display:none}.czcard.czcard.czcard.ch-horizon .czdz i,.czcard.czcard.czcard.ch-starfall .czdz i,.czcard.czcard.czcard.ch-volt .czdz i{display:none}
 /* every insert title sits on a soft dark glow (its own layer, under the lettering), so it reads on any art */
 .czch-back{position:absolute;left:4%;right:4%;top:17.5%;height:13%;z-index:5;pointer-events:none;border-radius:50%;background:radial-gradient(closest-side,rgba(5,3,20,.6),rgba(5,3,20,.3) 65%,transparent)}
@@ -1778,6 +1778,62 @@ html.native .webonly,html.native #installBtn{display:none!important}
   .czcard.czcard.czcard.legend .czc-mid .czhs{top:24%;height:50%}
 }
 @container (max-width:90px){ .czcard.czcard.czcard.legend .czc-mid .czhs{top:29%;height:45%} }
+/* ---- the inserts, upgraded: each one gets its own foil frame, name plate, title lettering and a light sweep.
+   Comet inserts keep a still frame, Pulsar ones move, Singularity ones also glow and pulse ---- */
+.czcard.ch-horizon{--chf:linear-gradient(115deg,#000,#f59e0b 20%,#fde68a 32%,#7c2d12 45%,#000 55%,#f59e0b 75%,#000);--pb:linear-gradient(90deg,#0b0604,#2a1405 50%,#0b0604);--pe:#f59e0b;--pn:#fde68a;--pl:#fbbf24;--gl:rgba(245,158,11,.6)}
+.czcard.ch-starfall{--chf:linear-gradient(115deg,#0c1a3a,#fde68a 20%,#93c5fd 35%,#fff 45%,#1e3a8a 60%,#fde68a 80%,#0c1a3a);--pb:linear-gradient(90deg,#0b1633,#1e3a8a 50%,#0b1633);--pe:#fde68a;--pn:#fff7d6;--pl:#bfdbfe;--gl:rgba(253,230,138,.5)}
+.czcard.ch-crown{--chf:linear-gradient(115deg,#4c1d95,#fde68a 18%,#a78bfa 34%,#fbbf24 50%,#2e1065 64%,#fde68a 82%,#4c1d95);--pb:linear-gradient(90deg,#1e0b3b,#4c1d95 50%,#1e0b3b);--pe:#fbbf24;--pn:#fde68a;--pl:#ddd6fe;--gl:rgba(167,139,250,.6)}
+.czcard.ch-flame{--chf:linear-gradient(115deg,#450a0a,#dc2626 18%,#f97316 32%,#fde047 45%,#dc2626 60%,#7f1d1d 75%,#f97316 90%);--pb:linear-gradient(90deg,#1c0505,#450a0a 50%,#1c0505);--pe:#f97316;--pn:#fed7aa;--pl:#fdba74;--gl:rgba(249,115,22,.65)}
+.czcard.ch-frost{--chf:linear-gradient(115deg,#0284c7,#e0f2fe 20%,#fff 30%,#7dd3fc 45%,#0c4a6e 60%,#e0f2fe 80%,#38bdf8);--pb:linear-gradient(90deg,#082f49,#0c4a6e 50%,#082f49);--pe:#bae6fd;--pn:#f0f9ff;--pl:#bae6fd;--gl:rgba(125,211,252,.6)}
+.czcard.ch-gold{--chf:linear-gradient(115deg,#78350f,#fef3c7 18%,#b45309 32%,#fde68a 46%,#92400e 60%,#fff7d6 76%,#b45309);--pb:linear-gradient(180deg,#fde68a,#f59e0b 55%,#b45309);--pe:#fff7d6;--pn:#1c1206;--pl:#451a03;--gl:rgba(251,191,36,.6)}
+.czcard.ch-volt{--chf:linear-gradient(115deg,#0f172a,#22d3ee 20%,#fef08a 32%,#6366f1 46%,#0f172a 58%,#22d3ee 78%,#fef08a);--pb:linear-gradient(90deg,#020617,#1e1b4b 50%,#020617);--pe:#22d3ee;--pn:#fef9c3;--pl:#a5f3fc;--gl:rgba(34,211,238,.65)}
+.czcard.ch-kaleido{--chf:linear-gradient(115deg,#f472b6,#fbbf24 16%,#34d399 32%,#38bdf8 48%,#a78bfa 64%,#fb7185 80%,#f472b6);--pb:linear-gradient(90deg,#140d2e,#2e1065 50%,#140d2e);--pe:#f9a8d4;--pn:#fff;--pl:#fbcfe8;--gl:rgba(244,114,182,.55)}
+.czcard.ch-rift{--chf:linear-gradient(115deg,#05010f,#e879f9 20%,#fff 28%,#22d3ee 36%,#05010f 50%,#e879f9 75%,#05010f);--pb:linear-gradient(90deg,#05010f,#1e0536 50%,#05010f);--pe:#e879f9;--pn:#fff;--pl:#a5f3fc;--gl:rgba(232,121,249,.6)}
+.czcard.ch-neon{--chf:linear-gradient(115deg,#0f0520,#f0abfc 22%,#fff 30%,#22d3ee 40%,#0f0520 55%,#f0abfc 80%,#0f0520);--pb:linear-gradient(90deg,#0a0214,#1e0536 50%,#0a0214);--pe:#f0abfc;--pn:#fdf4ff;--pl:#a5f3fc;--gl:rgba(240,171,252,.7)}
+.czcard.ch-aurora{--chf:linear-gradient(115deg,#022c22,#34d399 20%,#a78bfa 36%,#22d3ee 50%,#022c22 62%,#6ee7b7 80%,#7c3aed);--pb:linear-gradient(90deg,#031a14,#0c1a3a 50%,#031a14);--pe:#6ee7b7;--pn:#ecfdf5;--pl:#a7f3d0;--gl:rgba(52,211,153,.55)}
+.czcard.ch-diamond .czch-back{background:radial-gradient(closest-side,rgba(30,27,75,.55),rgba(30,27,75,.25) 65%,transparent)}
+.czcard.ch-diamond{--chf:linear-gradient(115deg,#818cf8,#fff 16%,#e0e7ff 28%,#c7d2fe 40%,#fff 52%,#a5b4fc 66%,#fff 82%,#818cf8);--pb:linear-gradient(180deg,#f8faff,#e0e7ff 55%,#c7d2fe);--pe:#fff;--pn:#1e1b4b;--pl:#3730a3;--gl:rgba(199,210,254,.85)}
+@keyframes czchglow{0%,100%{box-shadow:0 0 0 1px var(--pe),0 0 16px -3px var(--gl),0 12px 28px -14px #000}50%{box-shadow:0 0 0 1px var(--pe),0 0 34px 2px var(--gl),0 12px 28px -14px #000}}
+.czcard.czcard.czcard.czcard.ch{--tf:var(--chf);border-width:5px;background-size:auto,300% 100%;animation:czfoilmove 6s linear infinite;box-shadow:0 0 0 1px var(--pe),0 0 20px -4px var(--gl),0 12px 28px -14px #000}
+.czcard.czcard.czcard.czcard.ch.t-comet{border-width:4px;animation:none;box-shadow:0 0 0 1px var(--pe),0 10px 24px -14px #000}
+.czcard.czcard.czcard.czcard.ch.t-singularity{border-width:6px;animation:czfoilmove 4s linear infinite,czchglow 2.4s ease-in-out infinite}
+.czcard.czcard.czcard.czcard.ch .czc-plate{background:var(--pb);box-shadow:inset 0 0 0 .6cqw var(--pe),inset 0 1.4cqw 1.6cqw -1cqw rgba(255,255,255,.25),0 0 14px -4px var(--gl),0 4px 10px -4px #000}
+.czcard.czcard.czcard.czcard.ch .czc-name{color:var(--pn)}.czcard.czcard.czcard.czcard.ch .czc-name .fn{color:var(--pn);opacity:.78}.czcard.czcard.czcard.czcard.ch .czc-lg{color:var(--pl)}.czcard.czcard.czcard.czcard.ch .czno{color:var(--pl)}.czcard.czcard.czcard.czcard.ch .czno b{color:var(--pn)}
+/* a light sweep over the insert, in its own colour (not on Comet) */
+.czcard.czcard.czcard.czcard.ch .czc-foil{display:block;mix-blend-mode:screen;opacity:.55;background:linear-gradient(115deg,transparent 36%,var(--gl) 47%,rgba(255,255,255,.35) 50%,var(--gl) 53%,transparent 64%);background-size:260% 100%;animation:czfoil 5.5s linear infinite}
+.czcard.czcard.czcard.czcard.ch.t-comet .czc-foil{display:none}
+/* a Singularity insert keeps its own art (no tier swirl on top); the 1-of-1 medallion and a gold ring on the plate mark it */
+.czcard.czcard.czcard.czcard.ch .czfx{display:none}
+.czcard.czcard.czcard.czcard.ch.t-singularity .czc-plate{box-shadow:inset 0 0 0 .6cqw var(--pe),inset 0 1.4cqw 1.6cqw -1cqw rgba(255,255,255,.25),0 0 0 .5cqw #fde68a,0 0 18px -2px rgba(253,230,138,.8),0 4px 10px -4px #000}
+/* title lettering, one style per insert */
+@keyframes czsweep{from{background-position:160% 0,0 0}to{background-position:-60% 0,0 0}}
+@keyframes czflameup{to{background-position:0 -200%}}
+@keyframes czflow{to{background-position:300% 0}}
+@keyframes czvolt{0%,88%,100%{filter:drop-shadow(0 1.5px 0 #020617) drop-shadow(0 0 5px #22d3ee)}90%,94%{filter:drop-shadow(0 1.5px 0 #020617) drop-shadow(0 0 14px #fef08a) drop-shadow(0 0 4px #fff)}}
+@keyframes czneon{0%,100%{opacity:1}91%{opacity:1}92%{opacity:.55}93%{opacity:1}96%{opacity:.7}97%{opacity:1}}
+@keyframes czglitch{0%,86%,100%{text-shadow:-1.2px 0 #e879f9,1.2px 0 #22d3ee,0 0 10px #c026d3;transform:none}88%{text-shadow:-3px 0 #e879f9,3px 0 #22d3ee,0 0 10px #c026d3;transform:translateX(1px) skewX(-6deg)}90%{text-shadow:2px 0 #e879f9,-2px 0 #22d3ee,0 0 10px #c026d3;transform:translateX(-1px)}}
+@keyframes czhue{to{filter:drop-shadow(0 2px 0 #1e1b4b) drop-shadow(0 0 3px #fff) hue-rotate(360deg)}}
+.czcard.czcard.czcard.czcard.ch .czch-logo{letter-spacing:.05em}
+.czcard.czcard.czcard.czcard.ch-horizon .czch-logo,.czcard.czcard.czcard.czcard.ch-gold .czch-logo,.czcard.czcard.czcard.czcard.ch-starfall .czch-logo,.czcard.czcard.czcard.czcard.ch-frost .czch-logo,.czcard.czcard.czcard.czcard.ch-diamond .czch-logo,.czcard.czcard.czcard.czcard.ch-crown .czch-logo{background-size:260% 100%,100% 100%;background-repeat:no-repeat;animation:czsweep 3.8s linear infinite}
+.czcard.czcard.czcard.czcard.ch-horizon .czch-logo{letter-spacing:.1em;background-image:linear-gradient(100deg,transparent 44%,rgba(255,255,255,.95) 50%,transparent 56%),linear-gradient(180deg,#fff7d6,#fbbf24 45%,#c2410c 55%,#fde68a)}
+.czcard.czcard.czcard.czcard.ch-gold .czch-logo{background-image:linear-gradient(100deg,transparent 44%,#fff 50%,transparent 56%),linear-gradient(180deg,#fff7d6,#fde68a 40%,#b45309 52%,#fbbf24)}
+.czcard.czcard.czcard.czcard.ch-starfall .czch-logo{background-image:linear-gradient(100deg,transparent 44%,#fff 50%,transparent 56%),linear-gradient(180deg,#fff,#e2e8f0 45%,#94a3b8 52%,#fde68a)}
+.czcard.czcard.czcard.czcard.ch-frost .czch-logo{background-image:linear-gradient(100deg,transparent 44%,#fff 50%,transparent 56%),linear-gradient(180deg,#fff,#bae6fd 48%,#0284c7 56%,#e0f2fe);-webkit-text-stroke:.15cqw rgba(224,242,254,.7)}
+.czcard.czcard.czcard.czcard.ch-diamond .czch-logo{background-image:linear-gradient(100deg,transparent 44%,#fff 50%,transparent 56%),linear-gradient(90deg,#6366f1,#a5b4fc 20%,#f0abfc 40%,#7dd3fc 60%,#a5b4fc 80%,#6366f1);filter:drop-shadow(0 0 .3cqw #1e1b4b) drop-shadow(0 0 .3cqw #1e1b4b) drop-shadow(0 1.5px 0 #1e1b4b)}
+.czcard.czcard.czcard.czcard.ch-crown .czch-logo{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-stretch:100%;letter-spacing:.08em;font-size:7.4cqw;background-image:linear-gradient(100deg,transparent 44%,#fff 50%,transparent 56%),linear-gradient(180deg,#fff7d6,#fde68a 45%,#b45309 55%,#fbbf24);filter:drop-shadow(0 1.5px 0 #2e1065) drop-shadow(0 0 8px rgba(167,139,250,.9))}
+.czcard.czcard.czcard.czcard.ch-flame .czch-logo{background:linear-gradient(0deg,#b91c1c,#f97316 25%,#fde047 45%,#fff7d6 55%,#f97316 75%,#b91c1c) 0 0/100% 200%;-webkit-background-clip:text;background-clip:text;animation:czflameup 1.8s linear infinite}
+.czcard.czcard.czcard.czcard.ch-volt .czch-logo{font-style:italic;animation:czvolt 3s steps(1) infinite}
+.czcard.czcard.czcard.czcard.ch-neon .czch-logo{animation:czneon 5s linear infinite}
+.czcard.czcard.czcard.czcard.ch-rift .czch-logo{animation:czglitch 3.4s steps(1) infinite}
+.czcard.czcard.czcard.czcard.ch-kaleido .czch-logo{animation:czhue 8s linear infinite}
+.czcard.czcard.czcard.czcard.ch-aurora .czch-logo{background:linear-gradient(90deg,#6ee7b7,#22d3ee,#a78bfa,#34d399,#6ee7b7) 0 0/300% 100%;-webkit-background-clip:text;background-clip:text;animation:czflow 7s linear infinite}
+/* the living details */
+.czchart .czember circle{animation:czemb 3.2s linear infinite}@keyframes czemb{from{transform:translateY(0);opacity:1}to{transform:translateY(-58px);opacity:0}}
+.czchart .czsnow circle{animation:czsnowf 6s linear infinite}@keyframes czsnowf{from{transform:translateY(0)}to{transform:translateY(150px)}}
+.czchart .cztw > g{animation:cztwk 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes cztwk{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
+.czcard.t-comet .czchart *,.czcard.t-comet .czch-logo{animation:none!important}
+@media (prefers-reduced-motion:reduce){.czcard.ch,.czcard.ch *{animation:none!important}}
+
 
 
 /* ==== the three versions look clearly different, and the rarer the card the more special it looks ==== */
@@ -1800,7 +1856,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-plate{background:linear-gradient(180deg,#fde68a,#d97706 55%,#92400e);box-shadow:inset 0 0 0 .6cqw #fff7d6,0 4px 12px -4px #000}
 .czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-name{color:#1c1206;text-shadow:0 1px 0 rgba(255,255,255,.5)}
 .czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-name .fn{color:#422006}.czcard.czcard.czcard.t-singularity:not(.legend):not(.ch) .czc-lg{color:#422006;opacity:.9}
-.czcard.t-singularity:not(.legend):not(.ch):not(.moment) .czc-top em{visibility:hidden}
+.czcard.t-singularity:not(.legend):not(.moment) .czc-top em{visibility:hidden}
 .czone{position:absolute;display:grid;place-items:center;right:3cqw;top:2cqw;z-index:5;width:19cqw;aspect-ratio:1;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle at 35% 30%,#fff7d6,#fbbf24 45%,#92400e);box-shadow:0 0 0 .6cqw #fff7d6,0 0 14px rgba(253,230,138,.9),0 3px 8px rgba(0,0,0,.6);color:#1c1206;
   font:900 6.5cqw/.8 Archivo,system-ui,sans-serif;font-stretch:75%;grid-auto-flow:column;gap:.6cqw;align-content:center}
@@ -5392,6 +5448,13 @@ const CZ_CASE_ART = (() => {
       <circle cx="0" cy="-10" r="1.8" fill="#e879f9"/><circle cx="-16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="0" cy="1.5" r="2" fill="#a78bfa" stroke="#fde68a" stroke-width=".5"/></g>`,
     starfall: `${star(4, 70, 3.5, "#fde68a")}${star(96, 50, 3, "#fff")}`, diamond: `${star(4, 60, 4)}${star(96, 44, 4)}${star(5, 76, 3)}${star(95, 70, 3)}` };
   for (const k in behind) back[k] += behind[k];
+  // small living details: rising embers, falling snow, twinkling glints (animated in CSS, still when a clip plays)
+  const P = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join("");
+  back.flame += `<g class="czember">${P(12, i => `<circle cx="${8 + i * 7.6}" cy="${128 - (i % 4) * 6}" r="${(.5 + (i % 3) * .35).toFixed(2)}" fill="${i % 2 ? "#fde047" : "#fb923c"}" style="animation-delay:${((i * .41) % 3).toFixed(2)}s"/>`)}</g>`;
+  back.frost += `<g class="czsnow">${P(14, i => `<circle cx="${(4 + i * 7) % 98}" cy="${-4 - (i % 5) * 6}" r="${(.5 + (i % 3) * .3).toFixed(2)}" fill="#fff" style="animation-delay:${((i * .53) % 5).toFixed(2)}s"/>`)}</g>`;
+  back.diamond += `<g class="cztw">${P(8, i => `<g style="animation-delay:${((i * .37) % 2.4).toFixed(2)}s">${star(6 + (i * 13) % 90, 40 + (i * 17) % 70, 2 + (i % 3))}</g>`)}</g>`;
+  back.starfall += `<g class="cztw">${P(6, i => `<g style="animation-delay:${((i * .5) % 3).toFixed(2)}s">${star(8 + (i * 17) % 86, 46 + (i * 23) % 60, 1.6 + (i % 2))}</g>`)}</g>`;
+  back.gold += `<g class="cztw">${P(5, i => `<g style="animation-delay:${((i * .6) % 3).toFixed(2)}s">${star(14 + (i * 19) % 74, 50 + (i * 29) % 56, 2.2, "#fff7d6")}</g>`)}</g>`;
 
   const out = {}; for (const k in back) out[k] = { back: back[k], front: front[k] || "" }; return out;
 })();
@@ -5411,7 +5474,7 @@ function czCard(it, ed, big){
   const dz = czDesign(it), L = czLayout(it), parts = it.name.trim().split(/\s+/), fn = parts.length > 1 ? parts[0] : "", ln = parts.length > 1 ? parts.slice(1).join(" ") : it.name;
   const abbr = player ? simShort(it.lg, it.team) : (T && simShort(it.lg, T.name)) || initials, bigTxt = L === 1 ? ln : L === 3 ? (player ? (it.num || abbr) : "#" + (it.rank || 1)) : L === 2 ? abbr : "";
   const setLg = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "PL", atp: "ATP", wta: "WTA" }[it.lg] || "";
-  const extra = (it.tier === "singularity" && !it.legend && !it.moment && !it.ch ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
+  const extra = (it.tier === "singularity" && !it.legend && !it.moment ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
     + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
     + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
