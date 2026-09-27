@@ -150,7 +150,8 @@ def espn_standings(lg):
         node = stack.pop()
         for e in (node.get("standings") or {}).get("entries", []):
             st = {x.get("name") or x.get("type"): x.get("value") for x in e.get("stats", [])}
-            otl = next((st[k] for k in ("overtimeLosses", "otLosses", "OTLosses") if st.get(k) is not None), None)
+            # only hockey has overtime losses; ESPN's baseball table carries a number there that isn't one (A22)
+            otl = next((st[k] for k in ("overtimeLosses", "otLosses", "OTLosses") if st.get(k) is not None), None) if lg == "nhl" else None
             rows.append([e["team"]["displayName"], int(st.get("wins") or 0), int(st.get("losses") or 0), int(otl) if otl is not None else None])
         stack += node.get("children", [])
     return rows

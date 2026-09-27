@@ -2105,7 +2105,7 @@ table.cmp{display:table;gap:0;padding:0}
 /* ---------- spoiler shield ---------- */
 .gteam .sc.hid{color:var(--faint);letter-spacing:.1em}
 .hidnote{justify-content:space-between;align-items:center}.hidnote .ghost{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;padding:4px 10px;font-weight:700;font-size:.76rem}
-.hidtxt{color:var(--muted);font-weight:700}
+.hidtxt{color:var(--muted);font-weight:700}.offtxt{color:#fbbf24;font-weight:700}
 .shield{min-height:100%;display:grid;place-items:center;padding:60px 24px;background:radial-gradient(ellipse at 50% 30%,rgba(122,61,245,.3),transparent 60%)}
 .shieldin{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:34ch}
 .shico{font-size:2.4rem;filter:drop-shadow(0 0 12px rgba(185,139,255,.8))}.shieldin b{font-size:1.2rem}.shieldin p{margin:0 0 8px;color:var(--muted)}.shieldin small{color:var(--faint);font-size:.74rem}
@@ -2868,8 +2868,12 @@ const ALERTS_URL = "/*ALERTS_URL*/".replace(/^\/\*.*\*\/$/, "").replace(/\/$/, "
 // ESPN's scores and play-by-play, read straight from the phone (build_site.py copies this code from alerts/worker.js)
 const ESPN_DIRECT = (() => { /*ESPN_NORM*/
   return { scoreboard: (lg, dates) => espnScoreboard(lg, undefined, dates), game: (lg, id) => espnGame(lg, id),
-    standings: (lg, view) => espnStandings(lg, undefined, view), news: (lg, team) => espnNews(lg, team), team: (lg, id) => espnTeam(lg, id) };
+    standings: (lg, view) => espnStandings(lg, undefined, view), news: (lg, team) => espnNews(lg, team), team: (lg, id) => espnTeam(lg, id),
+    sportsDay, ymdShift,
+    // injuries straight from ESPN (it turns the alerts service away), weighed with the site's own stars list (A9)
+    injuries: async lg => { const [d, A] = await Promise.all([getJSON(`${ESPN}${LEAGUES[lg]}/injuries`), fetch("allstars.json").then(r => r.ok ? r.json() : {}).catch(() => ({}))]); return normInjuries(lg, d, starsFrom(A, lg)); } };
 })();
+const { sportsDay, ymdShift } = ESPN_DIRECT;              // the Eastern-time sports day, shared with the alerts service
 // ESPN (or MLB's own API) straight from the phone, then the alerts service; every source has a time limit, and the
 // whole chain gets one more try, because phones switch networks and a blocked or sleepy source shouldn't blank the app
 async function fetchJSON(url, ms = 12000){
@@ -2904,7 +2908,10 @@ function staleNote(asof){
   const m = Math.max(1, Math.round((Date.now() - Date.parse(asof)) / 60000));
   return `<div class="stalenote">Live sources are out of reach, so these scores are from ${m < 90 ? m + " min" : Math.round(m / 60) + " h"} ago. They refresh when the connection allows.</div>`;
 }
+// football is listed by week (Thursday to Monday); every other league by the day, always an explicit Eastern-time day (A14)
+const WEEKLY = new Set(["nfl", "cfb"]);
 async function fetchBoard(lg, day, fresh){
+  if (!day && lg !== "tennis" && !WEEKLY.has(lg)) day = sportsDay();
   const via = `${ALERTS_URL}/sports/${lg}/scoreboard?${day ? `dates=${day}&` : ""}t=${Math.floor(Date.now() / 20000)}`;
   try { return await espnOr(lg === "tennis" ? null : () => ESPN_DIRECT.scoreboard(lg, day), via); }
   catch (e) { if (day || fresh) throw e; return snapBoard(lg); }
@@ -3051,7 +3058,7 @@ function renderFeed(){
       ${mini}${line("a", m.a, PA)}${line("b", m.b, PB)}
       <div class="ffoot"><span>${PA && PB ? (m.status==="live" ? (m.srv ? "Live win chance from the exact score" : "Live win chance, server unknown") : m.status==="scheduled" ? "Pre-match model chance" : "Pre-match model chance") : "Not rated: a player is outside the top 200"}</span>
       ${HOSTED && ALERTS_URL && m.id && m.status !== "scheduled" ? `<button data-pbp="${esc(m.id)}">Point by point</button>` : PA && PB ? `<button data-open="${i}">Open matchup</button>` : ""}</div></div>`;
-  }).join("") || `<div class="emptyfeed">No pro matches on court right now.</div>`;
+  }).join("") || `<div class="emptyfeed">${!(lastUpdate > 0) || lastUpdate.getFullYear() < 2000 || Date.now() - lastUpdate > 864e5 ? "The live tennis feed is unavailable right now, so matches on court can't be shown." : "No pro matches on court right now."}</div>`;
   const prevStatus = window.__prevStatus || {};
   sorted_.forEach((m, i) => {
     const k = mkey(m), was = prevScores[k]; if (!was) return;
@@ -3113,11 +3120,13 @@ if (HOSTED){
 }
 /* real-time: listen to the shared live-scores record; any write updates every open page */
 let lastUpdate = new Date(LIVE.asof), liveConnected = false;
-function ago(d){ const s = Math.max(0, (Date.now() - d)/1000); if (s < 60) return "just now"; const m = Math.floor(s/60); if (m < 60) return `${m} min ago`; const h = Math.floor(m/60); return h < 24 ? `${h} hr ago` : `${Math.floor(h/24)} day${h>=48?"s":""} ago`; }
+function feedAgo(d){ const s = Math.max(0, (Date.now() - d)/1000); if (s < 60) return "just now"; const m = Math.floor(s/60); if (m < 60) return `${m} min ago`; const h = Math.floor(m/60); return h < 24 ? `${h} hr ago` : `${Math.floor(h/24)} day${h>=48?"s":""} ago`; }
 function renderFresh(){
   const el = $("#fresh"), mins = (Date.now() - lastUpdate)/6e4;
   el.classList.toggle("on", liveConnected && mins < 30); el.classList.toggle("stale", !liveConnected || mins >= 30);
-  el.querySelector("span").textContent = `${liveConnected ? "Live feed" : "Saved snapshot"}, updated ${ago(lastUpdate)}`;
+  // a feed that has never been written (its time is 1970) or hasn't moved in a day is unavailable, not "updated Dec 31" (A23)
+  const dead = !(lastUpdate > 0) || lastUpdate.getFullYear() < 2000 || mins > 24 * 60;
+  el.querySelector("span").textContent = dead ? "Live tennis feed unavailable right now" : `${liveConnected ? "Live feed" : "Saved snapshot"}, updated ${feedAgo(lastUpdate)}`;
 }
 setInterval(renderFresh, 15000);
 (async () => {
@@ -3357,9 +3366,9 @@ function modelsReady(){ try { if (SPORT === "universe") drawUniverse(); else if 
 // alerts/worker.js); the same numbers move the track-record picks and Cosmic prices
 const INJ = {};
 async function loadInj(lg){
-  if (!ALERTS_URL || !["nfl", "nba", "mlb", "nhl", "epl"].includes(lg)) return; const c = INJ[lg]; if (c && (c.busy || Date.now() - c.at < 15 * 60e3)) return;
+  if (!["nfl", "nba", "mlb", "nhl", "epl"].includes(lg)) return; const c = INJ[lg]; if (c && (c.busy || Date.now() - c.at < 15 * 60e3)) return;
   INJ[lg] = { ...(c || {}), busy: true };
-  try { const d = await fetchJSON(`${ALERTS_URL}/sports/${lg}/injuries`, 12000); INJ[lg] = { at: Date.now(), teams: d.teams || {} }; modelsReady(); } catch { INJ[lg] = { at: Date.now() - 10 * 60e3, teams: (c && c.teams) || {} }; }
+  try { const d = await espnOr(() => ESPN_DIRECT.injuries(lg), ALERTS_URL ? `${ALERTS_URL}/sports/${lg}/injuries` : null); INJ[lg] = { at: Date.now(), teams: d.teams || {} }; modelsReady(); } catch { INJ[lg] = { at: Date.now() - 10 * 60e3, teams: (c && c.teams) || {} }; }
 }
 function injOf(lg, name){ const t = INJ[lg] && INJ[lg].teams; if (!t || !name) return null; const k = tkey(name); for (const [n, v] of Object.entries(t)) if (tkey(n) === k) return v; return null; }
 function mTeam(lg, name){
@@ -3369,6 +3378,8 @@ function mTeam(lg, name){
   return n ? { name: n, ...M.state[n] } : null;
 }
 const logistic = z => 1 / (1 + Math.exp(-z));
+// a count sent as text ("27,284." from MLB): digits only, so it never shows as NaN (A19)
+const cnt = v => { const n = parseInt(String(v ?? "").replace(/[^\d]/g, ""), 10); return n > 0 ? n : null; };
 const ymdToDate = s => new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8)));
 function daysBetween(last, when){ if (!last) return null; const d = when ? new Date(when) : new Date(), u = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); return Math.round((u - ymdToDate(last)) / 864e5); }
 function mFeatures(lg, H, A, neutral, ctx){
@@ -3427,7 +3438,7 @@ function teamPredict(H, A, neutral, ctx){
   if (L.draw){ const [c0, c1] = L.draw, pd = Math.min(.6, Math.max(.05, c0 * (1 - Math.pow(Math.abs(2*E - 1), c1)))), ph = Math.max(.01, E - pd/2); return { home: ph, draw: pd, away: Math.max(.01, 1 - ph - pd) }; }
   return { home: E, away: 1 - E, spread: L.spread_per_point ? d / L.spread_per_point : null };
 }
-const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l}` : `${t.w}-${t.l}${t.otl ? "-" + t.otl : ""}${t.t ? "-" + t.t : ""}`;
+const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l}` : `${t.w}-${t.l}${t.otl && SPORT === "nhl" ? "-" + t.otl : ""}${t.t && SPORT === "nfl" ? "-" + t.t : ""}`;   // a third number only where the sport has one (A22)
 // each section keeps its own scroll position, like the tabs of a phone app
 const SCROLLS = {}, isPhone = () => matchMedia("(max-width:760px)").matches;
 function setSport(sp){
@@ -3831,8 +3842,8 @@ function renderTeamPredict(){
     const fa = Math.max(.01, lowerBetter ? floor - a : a - floor), fb = Math.max(.01, lowerBetter ? floor - b : b - floor), tot = fa + fb, aw = lowerBetter ? a < b : a > b, bw = lowerBetter ? b < a : b > a;
     return `<div class="stat"><div class="v ${aw?"win":""}">${fmt(a)}</div><div><div class="mid">${label}</div><div class="duel"><i class="${aw?"w":""}" style="width:${fa/tot*100}%;background:${sA.main}"></i><i class="${bw?"w":""}" style="width:${fb/tot*100}%;background:${sB.main}"></i></div></div><div class="v ${bw?"win":""}">${fmt(b)}</div></div>`;
   };
-  const games = T => (T.w || 0) + (T.l || 0) + (T.otl || 0) + (T.t || 0) + (T.d || 0);
-  const wpct = T => games(T) ? ((T.w || 0) + .5 * ((T.otl || 0) + (T.t || 0))) / games(T) : .5;
+  const otl = T => SPORT === "nhl" ? T.otl || 0 : 0, games = T => (T.w || 0) + (T.l || 0) + otl(T) + (T.t || 0) + (T.d || 0);
+  const wpct = T => games(T) ? ((T.w || 0) + .5 * (otl(T) + (T.t || 0))) / games(T) : .5;
   const r0 = v => Math.round(v).toLocaleString(), pc = v => (v*100).toFixed(1) + "%";
   let rows = row("Rating", A.rating, B.rating, r0, 1300) + row(`${isCollege(SPORT) ? "Cosmo" : LEAGUE_LABEL[SPORT]} rank`, teamRank(A), teamRank(B), v => "#" + v, L.teams.length + 1, true);
   if (soccer) rows += row("Points", A.pts || 0, B.pts || 0, v => v) + row("Goal difference", (A.gf||0)-(A.ga||0), (B.gf||0)-(B.ga||0), v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v), -20) + row("Goals scored", A.gf || 0, B.gf || 0, v => v) + row("Goals conceded", A.ga || 0, B.ga || 0, v => v, 30, true);
@@ -3879,13 +3890,11 @@ const ymd = d => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}
 const fromYmd = s => new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
 function dayLabel(s){
   if (!s) return "Today";
-  const d = fromYmd(s), t = new Date(); t.setHours(0, 0, 0, 0);
-  const diff = Math.round((d - t) / 864e5);
+  const d = fromYmd(s), diff = Math.round((ymdToDate(s) - ymdToDate(sportsDay())) / 864e5);   // counted from the sports day, not the device's date (A15)
   return diff === -1 ? "Yesterday" : diff === 1 ? "Tomorrow" : d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
 }
 function shiftDay(lg, n){
-  const d = GDATE[lg] ? fromYmd(GDATE[lg]) : new Date(); d.setDate(d.getDate() + n);
-  const s = ymd(d); GDATE[lg] = s === ymd(new Date()) ? "" : s;
+  const s = ymdShift(GDATE[lg] || sportsDay(), n); GDATE[lg] = s === sportsDay() ? "" : s;   // from the day being shown (A15)
   SB[lg] = null; renderGames();
 }
 /* favorite teams, kept on this device; their games come first */
@@ -3967,9 +3976,9 @@ function drawGames(){
     const pl = pulseOf(g, SPORT, p);
     const burst = bumped && !hid ? scoreBurst(SPORT, prev, as, hs, g) : "";
     const bar = p && g.status.state !== "post" ? `<div class="gwin" title="Cosmo's pre-game win chances"><i style="width:${p.away * 100}%;background:${ac}"></i>${p.draw != null ? `<i style="width:${p.draw * 100}%;background:var(--line)"></i>` : ""}<i style="width:${p.home * 100}%;background:${hc}"></i></div>` : "";
-    return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""} ${pl >= 82 && live ? "hotg" : ""} ${burst ? "scored" : ""}" data-gid="${esc(g.id)}" style="--ac:${ac};--hc:${hc}">${burst}<div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${esc(g.status.short || "")}${pulseChip(pl, g.status.state)}${g.status.state === "pre" ? `<span class="launch"><b data-launch="${esc(g.date)}"></b></span>` : ""}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
+    return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""} ${pl >= 82 && live ? "hotg" : ""} ${burst ? "scored" : ""}" data-gid="${esc(g.id)}" style="--ac:${ac};--hc:${hc}">${burst}<div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${WEEKLY.has(SPORT) && !live && sportsDay(Date.parse(g.date)) !== sportsDay() && !/\d+\/\d+/.test(g.status.short || "") ? `${esc(fromYmd(sportsDay(Date.parse(g.date))).toLocaleDateString([], { weekday: "short" }))} · ` : ""}${esc(g.status.short || "")}${pulseChip(pl, g.status.state)}${g.status.state === "pre" ? `<span class="launch"><b data-launch="${esc(g.date)}"></b></span>` : ""}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
       ${row(g.away, p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${bar}${hid ? "" : sitHtml}${hid ? `<div class="gsit hidnote"><span>🛡️ Score hidden</span><button type="button" class="ghost" data-reveal="${esc(g.id)}">Reveal</button></div>` : pickRow(g, SPORT, p)}
-      <div class="gfoot"><span>${g.odds?.details ? `Line ${esc(g.odds.details)}${g.odds.overUnder ? `, O/U ${g.odds.overUnder}` : ""}` : ""}${mk != null && p ? ` · market ${Math.round(mk*100)}% home` : ""}${p?.draw != null ? ` · draw ${Math.round(p.draw*100)}%` : ""}</span>
+      <div class="gfoot"><span>${g.odds?.details ? `Line ${esc(oddsText(g.odds.details))}${g.odds.overUnder ? `, O/U ${g.odds.overUnder}` : ""}` : ""}${mk != null && p ? ` · market ${Math.round(mk*100)}% home` : ""}${p?.draw != null ? ` · draw ${Math.round(p.draw*100)}%` : ""}</span>
         <span class="gbtns">${g.status.state !== "post" ? bellBtn(SPORT, g) : ""}${g.status.state === "pre" ? `<button class="ghost" data-cal="${g.id}" aria-label="Add to calendar">📅</button><button data-pbp="${g.id}">Preview</button>` : `<button data-pbp="${g.id}">${g.status.state === "post" ? "Recap" : "Play-by-play"}</button>`}</span></div></div>`; }).join("")}</div>
     <p class="condNote" style="margin-top:12px">Percentages and the colored bar are Cosmo's pre-game prediction; ⚡ is how exciting a game is right now, 0 to 100. Tap ☆ to put a team's games first. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${day ? "" : "; refreshes every 30 seconds"}.</p>`;
   $("#tt-games").querySelectorAll("[data-pbp]").forEach(b => b.onclick = () => openGame(SPORT, b.dataset.pbp));
@@ -4527,7 +4536,7 @@ function drawGame(g, lg){
   $("#gHead").innerHTML = `<div class="st">${live ? `<span class="stat-live"><i></i>Live</span>` : ""}${esc(g.status?.short || g.status?.detail || "")}<button class="sharebtn" id="gShare" type="button" aria-label="Share this game"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12.5V3M6.5 6.5 10 3l3.5 3.5M4 10v6h12v-6"/></svg>Share</button><button class="sharebtn cardbtn" id="gCard" type="button" aria-label="Share this game as an image">Image</button>${g.status?.state === "in" ? listenBtn(g, lg) : ""}${g.status?.state !== "post" && lg !== "tennis" ? bellBtn(lg, g, "sharebtn cardbtn bellh") : ""}</div>
     <div class="row">${tn(A)}<div class="big">${esc(A.score ?? "")}</div></div>
     <div class="row">${tn(H)}<div class="big">${esc(H.score ?? "")}</div></div>
-    ${g.status?.state === "pre" && g.date ? `<div class="countdown">Starts in <b data-launch="${esc(g.date)}" data-big="1"></b></div>` : ""}
+    ${g.status?.state === "pre" && g.date ? (g.tbd ? `<div class="countdown">Start time <b>TBD</b></div>` : `<div class="countdown"><span data-launch="${esc(g.date)}" data-big="1" data-pre="Starts in "></span></div>`) : ""}
     ${wp != null ? `<div class="wp"><span>Win probability</span><b>${esc(wp >= .5 ? H.abbr || H.short : A.abbr || A.short)} ${Math.round(Math.max(wp, 1 - wp) * 100)}%</b></div>${wpChart(g)}` : ""}
     <button class="xbtn" id="gClose" aria-label="Close">✕</button>`;
   $("#gClose").onclick = () => $("#gameDlg").close();
@@ -4712,7 +4721,7 @@ function infoHtml(g, lg){
   const when = g.date ? new Date(g.date) : null, facts = [
     when ? ["When", when.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })] : null,
     g.tv ? ["TV", g.tv] : null, I.venue ? ["Venue", I.venue + (I.city ? ", " + I.city : "")] : null, I.grass ? ["Surface", I.grass] : null,
-    I.attendance ? ["Attendance", Number(I.attendance).toLocaleString() + (I.capacity ? ` of ${Number(I.capacity).toLocaleString()}` : "")] : null,
+    cnt(I.attendance) ? ["Attendance", cnt(I.attendance).toLocaleString() + (cnt(I.capacity) ? ` of ${cnt(I.capacity).toLocaleString()}` : "")] : null,
     I.weather && (I.weather.temp != null || I.weather.text) ? ["Weather", [I.weather.temp != null ? I.weather.temp + "°" : "", I.weather.text].filter(Boolean).join(", ")] : null,
     ...(I.officials || []).slice(0, 4).map(([pos, n]) => [pos || "Official", n])].filter(Boolean);
   if (facts.length) out += `<div class="bsec"><h3>Game details</h3><dl class="facts">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div>`;
@@ -4806,6 +4815,7 @@ async function renderStandings(){
     ${gr.rows.map((r, i) => { if (r.note) notes.set(r.note.text, r.note.color); return `<tr data-team="${esc(r.id)}" class="${isFav(lg, r.name) ? "favrow" : ""}"><td style="${r.note ? `box-shadow:inset 3px 0 0 ${esc(r.note.color)}` : ""}">${i + 1}</td><td><span class="tcell">${logoChip(r, "sm")}<b>${esc(r.short || r.name)}</b></span></td>${r.vals.map(v => `<td>${esc(v)}</td>`).join("")}</tr>`; }).join("")}
     </tbody></table></div></div>`).join("") + (notes.size ? `<div class="snotes">${[...notes].map(([t, c]) => `<span><i style="background:${esc(c)}"></i>${esc(t)}</span>`).join("")}</div>` : "") +
     `<p class="condNote">Official standings from ESPN${S.season ? `, ${esc(S.season)}` : ""}. Tap a team for its schedule, roster and news.</p>`;
+  if (S.pre) el.insertAdjacentHTML("afterbegin", `<p class="condNote"><b>Preseason.</b> These are preseason games only; the regular-season table starts with the first regular-season game.</p>`);
   el.querySelectorAll("[data-team]").forEach(r => r.onclick = () => openTeam(lg, r.dataset.team)); bindSeg();
 }
 /* ---- league news ---- */
@@ -4838,11 +4848,11 @@ async function openTeam(lg, id){
   catch { body.innerHTML = `<div class="teamnote" style="margin:24px"><b>Couldn't load this team</b>ESPN didn't respond. Try again in a moment.</div>`; return; }
   learnLogos(lg, [t]);
   const col = t.color || "#10202B", fav = isFav(lg, t.name);
-  const next = t.games.find(x => x.state !== "post"), last = [...t.games].reverse().find(x => x.state === "post");
+  const next = teamNext(t.games), last = [...t.games].reverse().find(x => x.state === "post" && !x.off);
   const rated = LG_TEAMS(lg).find(x => tkey(x.name) === tkey(t.name)), rank = rated ? LG_TEAMS(lg).indexOf(rated) + 1 : null;
   const tabs = [["schedule", "Schedule"], ["roster", "Roster"], ["news", "News"]];
   body.innerHTML = `<header class="thd" style="--tc:${esc(col)}"><button class="xbtn" id="tClose" aria-label="Close">✕</button>
-      <div class="tid">${logoChip(t, "xl", lg)}<div><h2>${esc(t.name)}</h2><p>${esc([t.record, t.standing].filter(Boolean).join(" · "))}</p>${rank ? `<p class="trank">Cosmo rating: #${rank} in ${esc(isCollege(lg) ? "Cosmo's top 100" : LEAGUE_LABEL[lg])}</p>` : ""}</div></div>
+      <div class="tid">${logoChip(t, "xl", lg)}<div><h2>${esc(t.name)}</h2><p>${esc((teamShielded(lg, t.name) ? ["Record hidden by the spoiler shield"] : [t.record, t.standing]).filter(Boolean).join(" · "))}</p>${rank ? `<p class="trank">Cosmo rating: #${rank} in ${esc(isCollege(lg) ? "Cosmo's top 100" : LEAGUE_LABEL[lg])}</p>` : ""}</div></div>
       <div class="tacts"><button class="btn" id="tFav" type="button" aria-pressed="${fav}">${fav ? "★ Following" : "☆ Follow"}</button><button class="btn" id="tShare" type="button">Share</button>${t.games.some(x => x.state === "pre") ? `<button class="btn" id="tCal" type="button">Add games to calendar</button>` : ""}</div>
       ${next || last ? `<div class="tnext">${last ? `<div><small>Last game</small>${gameLine(last, lg, teamShielded(lg, t.name))}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Live now" : "Next game"}</small>${gameLine(next, lg, teamShielded(lg, t.name))}</div>` : ""}</div>` : ""}</header>
     <div class="pbar ttabs"><span class="gtabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" data-tt2="${k}" aria-selected="${TTAB === k}">${l}</button>`).join("")}</span></div>
@@ -4855,8 +4865,8 @@ async function openTeam(lg, id){
     body.querySelectorAll("[data-tt2]").forEach(b => b.setAttribute("aria-selected", b.dataset.tt2 === TTAB));
     const L = $("#tList");
     if (TTAB === "schedule"){
-      const up = t.games.filter(x => x.state !== "post"), done = t.games.filter(x => x.state === "post").reverse();
-      L.innerHTML = constellationHtml(t) + (up.length ? `<div class="pgrp">Coming up</div>${up.slice(0, 25).map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") + (done.length ? `<div class="pgrp">Results</div>${done.map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") || `<div class="teamnote">No games scheduled.</div>`;
+      const up = t.games.filter(x => x.state !== "post" && !x.off), done = t.games.filter(x => x.state === "post" || x.off).reverse();
+      L.innerHTML = constellationHtml(t, lg) + (up.length ? `<div class="pgrp">Coming up</div>${up.slice(0, 25).map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") + (done.length ? `<div class="pgrp">Results</div>${done.map(x => schedRow(x, lg, teamShielded(lg, t.name))).join("")}` : "") || `<div class="teamnote">No games scheduled.</div>`;
     } else if (TTAB === "roster"){
       L.innerHTML = t.roster.length ? (t.coach ? `<p class="bnote">Head coach: <b>${esc(t.coach)}</b></p>` : "") + t.roster.map(gr => `<div class="pgrp">${esc(gr.name)} <span>${gr.players.length}</span></div>${gr.players.map(p => `<div class="rrow"><span class="pchip" style="--tc:${esc(col)}">${p.photo ? `<img class="ph" src="${esc(p.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(p.name)}</b><small>${esc([p.jersey ? "#" + p.jersey : "", p.pos, p.age ? "Age " + p.age : "", p.ht, p.wt].filter(Boolean).join(" · "))}</small></div>${p.hurt ? `<em class="${/out|reserve/i.test(p.hurt) ? "out" : "q"}">${esc(p.hurt)}</em>` : ""}</div>`).join("")}`).join("") : `<div class="teamnote">No roster available.</div>`;
     } else {
@@ -4869,14 +4879,25 @@ async function openTeam(lg, id){
   body.onclick = e => { const r = e.target.closest("[data-game]"); if (r) openGame(lg, r.dataset.game); };
   drawTab();
 }
+// a live game's score on a team page: team schedules don't carry it, so it comes from the scoreboard already loaded (A24)
+function liveOf(x, lg){
+  if (x.us != null && x.them != null) return x;
+  const g = [...(SB[lg]?.games || []), ...(UNI || [])].find(y => String(y.id) === String(x.id));
+  if (!g) return x; const me = x.home ? g.home : g.away, op = x.home ? g.away : g.home;
+  return { us: me?.score ?? null, them: op?.score ?? null };
+}
+// a team's next game: the first one not finished or called off (A11)
+const teamNext = games => games.find(x => x.state !== "post" && !x.off && !(x.state === "pre" && Date.parse(x.date) < Date.now() - 12 * 3600e3));
+const offTxt = x => `<b class="offtxt">${esc(/cancel/i.test(x.detail) ? "Cancelled" : /suspend/i.test(x.detail) ? "Suspended" : "Postponed")}</b>`;
 function gameLine(x, lg, hide){
+  if (x.off) return `<button class="gline" type="button" data-game="${esc(x.id)}">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<span class="gn">${esc(x.opp.short || x.opp.name)}</span>${offTxt(x)}</button>`;
   if (hide && x.state !== "pre") return `<button class="gline" type="button" data-game="${esc(x.id)}">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<span class="gn">${esc(x.opp.short || x.opp.name)}</span><b class="hidtxt">🛡️ Hidden</b></button>`;
-  const res = x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"} ${esc(x.us ?? "")}–${esc(x.them ?? "")}</b>` : x.state === "in" ? `<b class="livetxt">${esc(x.us ?? "")}–${esc(x.them ?? "")}</b>` : `<b>${esc(new Date(x.date).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</b>`;
+  const res = x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"} ${esc(x.us ?? "")}–${esc(x.them ?? "")}</b>` : x.state === "in" ? `<b class="livetxt">${esc(liveOf(x, lg).us ?? "")}–${esc(liveOf(x, lg).them ?? "")}</b>` : `<b>${esc(new Date(x.date).toLocaleString([], x.tbd ? { weekday: "short", month: "short", day: "numeric" } : { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}${x.tbd ? " · TBD" : ""}</b>`;
   return `<button class="gline" type="button" data-game="${esc(x.id)}">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<span class="gn">${esc(x.opp.short || x.opp.name)}</span>${res}</button>`;
 }
 function schedRow(x, lg, hide){
   const d = new Date(x.date), when = d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
-  const res = hide && x.state !== "pre" ? `<b class="hidtxt">🛡️ Hidden</b>` : x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"}</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : x.state === "in" ? `<b class="livetxt">Live</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : `${esc(d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}${x.tv ? ` · ${esc(x.tv)}` : ""}`;
+  const res = x.off ? offTxt(x) : hide && x.state !== "pre" ? `<b class="hidtxt">🛡️ Hidden</b>` : x.state === "post" ? `<b class="${x.won ? "w" : x.lost ? "l" : ""}">${x.won ? "W" : x.lost ? "L" : "T"}</b> ${esc(x.us ?? "")}–${esc(x.them ?? "")}` : x.state === "in" ? `<b class="livetxt">Live</b> ${esc(liveOf(x, lg).us ?? "")}–${esc(liveOf(x, lg).them ?? "")}` : `${x.tbd ? "TBD" : esc(d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}${x.tv ? ` · ${esc(x.tv)}` : ""}`;
   return `<button class="srow" type="button" data-game="${esc(x.id)}"><span class="sd">${esc(when)}${x.label ? `<small>${esc(x.label)}</small>` : ""}</span><span class="so">${x.home ? "vs" : "at"} ${logoChip(x.opp, "sm", lg)}<b>${esc(x.opp.short || x.opp.name)}</b></span><span class="sr">${res}</span></button>`;
 }
 
@@ -4893,8 +4914,8 @@ async function renderFollowing(){
     try {
       const id = (p.rated && p.rated.espn_id) || await resolveTeamId(p.lg, p.name);
       const t = await espnOr(() => ESPN_DIRECT.team(p.lg, id), `${ALERTS_URL}/sports/${p.lg}/team/${id}`);
-      const next = t.games.find(x => x.state !== "post"), last = [...t.games].reverse().find(x => x.state === "post");
-      card.querySelector("small").textContent = [LG_NAME[p.lg], t.record, t.standing].filter(Boolean).join(" · ");
+      const next = teamNext(t.games), last = [...t.games].reverse().find(x => x.state === "post" && !x.off);
+      card.querySelector("small").textContent = [LG_NAME[p.lg], ...(teamShielded(p.lg, t.name) ? [] : [t.record, t.standing])].filter(Boolean).join(" · ");
       card.querySelector(".fbody").innerHTML = `${next && next.state === "in" ? `<div class="flive">Live now</div>` : ""}${last ? `<div><small>Last</small>${gameLine(last, p.lg, teamShielded(p.lg, p.name))}</div>` : ""}${next ? `<div><small>${next.state === "in" ? "Now" : "Next"}</small>${gameLine(next, p.lg, teamShielded(p.lg, p.name))}</div>` : ""}<button class="btn" type="button" data-open="1">Team page</button>`;
       card.onclick = e => { const g = e.target.closest("[data-game]"); if (g) return openGame(p.lg, g.dataset.game); if (e.target.closest("[data-open]")) openTeam(p.lg, t.id); };
     } catch { card.querySelector(".fbody").textContent = "Couldn't load this team right now."; }
@@ -5069,7 +5090,7 @@ async function playerOpen(id){
   const stats = Object.entries(p.s || {}).filter(([k, v]) => v != null && v !== "" && !(sp === "epl" && ((key === "attackers" && (k === "cs" || k === "sv")) || (key === "keepers" && (k === "g" || k === "a")))));
   $("#infoBody").innerHTML = `<div class="plhead"><span class="plpic">${p.img ? `<img src="${esc(p.img)}" alt="" data-err="rm">` : ""}<b>${esc(p.name.split(" ").map(w => w[0]).join("").slice(0, 2))}</b></span>
       <div><h2 id="infoTitle">${esc(p.name)}</h2><p>${esc(p.team)} · ${esc(p.pos || "")} · ${esc(LEAGUE_LABEL[sp] || "")}</p><p class="plline">${esc(p.line || "")}</p></div></div>
-    ${stats.length ? `<h3 class="plh">This season <small>${esc(SD.data.sports[sp]?.season || "")}</small></h3><div class="plstats">${stats.map(([k, v]) => `<span><b>${esc(statFmt(sp, k, v))}</b><small>${esc(STAT_LABEL[k] || k)}</small></span>`).join("")}</div>` : ""}
+    ${stats.length ? `<h3 class="plh">This season <small>${esc(SD.data.sports[sp]?.season || "")}</small></h3><div class="plstats">${stats.map(([k, v]) => `<span><b>${esc(statFmt(sp, k, v))}</b><small>${esc(sp === "epl" && k === "sv" ? "Saves" : STAT_LABEL[k] || k)}</small></span>`).join("")}</div>` : ""}
     <h3 class="plh">Among the league's best <small>percentile against the top players at the position, 60 to 99</small></h3>
     <div class="plrates">${Object.entries(p.r || {}).map(([k, v]) => `<div><span>${esc(RATE_LABEL[k] || k)}</span><i><b style="width:${Math.round((v - 50) / 49 * 100)}%"></b></i><em>${v}</em></div>`).join("")}<div class="ovr"><span>Overall</span><i><b style="width:${Math.round((p.ovr - 50) / 49 * 100)}%"></b></i><em>${p.ovr}</em></div></div>
     <div class="pkfoot"><small>Stats update every night.</small><button class="btn primary" type="button" data-info="close">Close</button></div>`;
@@ -5642,7 +5663,7 @@ async function remSchedule(){
   const list = [], now = Date.now();
   if (REM.games){
     for (const lg of Object.keys(FAV)){ if (!(FAV[lg] || []).length || !LG_NAME[lg]) continue;
-      for (let d = 0; d < 3; d++){ let b; try { b = await fetchBoard(lg, ymd(new Date(now + d * 864e5))); } catch { continue; }
+      for (let d = 0; d < 3; d++){ let b; try { b = await fetchBoard(lg, ymdShift(sportsDay(now), d)); } catch { continue; }
         for (const g of (b && b.games) || []){ const at = Date.parse(g.date) - 60 * 60e3;
           if (!(g.status && g.status.state === "pre") || !(at > now + 60e3) || ![g.home, g.away].some(t => t && isFav(lg, t.name))) continue;
           const p = gamePred(lg, g), fav = p && (p.home >= p.away ? g.home : g.away), pick = p && p.home != null ? ` Cosmo gives ${fav.short || fav.name} a ${Math.round(Math.max(p.home, p.away) * 100)}% chance.` : "";
@@ -6662,7 +6683,10 @@ async function loadTrack(force){
   if (SPORT === "record") drawTrack();
 }
 const trDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
-const trMl = ml => ml == null ? "" : ml > 0 ? "+" + ml : "−" + Math.abs(ml);
+// moneylines follow the odds setting everywhere (A27)
+const mlDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
+const trMl = ml => ml == null || !+ml ? "" : SET.odds === "dec" ? fmtOdds(mlDec(+ml)) : ml > 0 ? "+" + ml : "−" + Math.abs(ml);
+const oddsText = t => SET.odds === "dec" ? String(t).replace(/([+\-−])(\d{3,})\b/g, (m, sg, n) => fmtOdds(mlDec(sg === "+" ? +n : -n))) : t;   // "NYY -150" → "NYY 1.67"
 // one pick, graded: the model's side, the market's favourite, and how it scores against the odds
 function trGrade(k){
   const outs = k.p.length === 3 ? ["home", "draw", "away"] : ["home", "away"], two = outs.length === 2;
@@ -6903,6 +6927,14 @@ function shielded(lg, g){
   if (!SPOIL.on || !g || g.status?.state === "pre" || REVEALED.has(lg + "/" + g.id)) return false;
   return SPOIL.scope === "all" || isFav(lg, g.home?.name) || isFav(lg, g.away?.name);
 }
+// a pick's result, hidden while the shield covers its game (A12). Older picks carry only abbreviations, so names are looked up
+const teamByAbbr = (lg, ab) => LG_TEAMS(lg).find(t => tkey(t.abbr || t.short || "") === tkey(ab || "") || tkey(t.name) === tkey(ab || ""));
+function pickHidden(P, an, hn){
+  if (!SPOIL.on || !P || !P.result || REVEALED.has(P.lg + "/" + P.id)) return false;
+  if (SPOIL.scope === "all") return true;
+  const names = [an || P.an || teamByAbbr(P.lg, P.a)?.name, hn || P.hn || teamByAbbr(P.lg, P.h)?.name];
+  return names.some(n => n && isFav(P.lg, n));
+}
 function shieldCover(g, lg){
   return `<div class="shield"><div class="shieldin"><span class="shico" aria-hidden="true">🛡️</span><b>Spoiler shield is on</b>
     <p>${esc(g.away?.name || "")} at ${esc(g.home?.name || "")} · ${g.status?.state === "in" ? "in progress" : "finished"}${g.pulse != null || true ? "" : ""}</p>
@@ -6928,7 +6960,7 @@ function dailyPick(){
 function dailyState(day){
   const D = DAILY[day]; if (!D) return null;
   const rows = D.games.map(x => ({ ...x, P: PICKS[x.lg + "/" + x.id] }));
-  const picked = rows.filter(r => r.P).length, graded = rows.filter(r => r.P && r.P.result), right = graded.filter(r => r.P.pick === r.P.result).length;
+  const picked = rows.filter(r => r.P).length, graded = rows.filter(r => r.P && r.P.result && !pickHidden(r.P, r.an, r.hn)), right = graded.filter(r => r.P.pick === r.P.result).length;
   return { D, rows, picked, graded: graded.length, right, done: graded.length === rows.length && rows.length > 0 };
 }
 function dailyStreak(){   // days in a row with all of the Daily picked
@@ -6938,7 +6970,7 @@ function dailyStreak(){   // days in a row with all of the Daily picked
     d.setDate(d.getDate() - 1); }
   return n;
 }
-const dailyGrid = s => s.rows.map(r => !r.P ? "⬜" : !r.P.result ? "🟦" : r.P.pick === r.P.result ? "🟩" : "🟥").join("");
+const dailyGrid = s => s.rows.map(r => !r.P ? "⬜" : !r.P.result || pickHidden(r.P, r.an, r.hn) ? "🟦" : r.P.pick === r.P.result ? "🟩" : "🟥").join("");
 function duelLink(day){
   const s = dailyState(day); if (!s) return APP_URL();
   const payload = { d: day, p: s.rows.filter(r => r.P).map(r => [r.lg, r.id, r.P.pick === "home" ? 1 : r.P.pick === "away" ? 0 : 2]) };
@@ -6956,11 +6988,11 @@ function dailyHtml(compact){
   if (!D) return `<section class="usec daily"><h3>Daily 3</h3><p class="dnote">Today's Daily 3 appears when there are games left to pick. Check back later, or play Rating Rumble below.</p></section>`;
   const s = dailyState(k), streak = dailyStreak(), duels = DUELS[k] || [];
   const side = (r, sd) => { const on = r.P?.pick === sd, name = sd === "home" ? r.h : r.a, logo = sd === "home" ? r.hl : r.al;
-    const res = r.P?.result ? (r.P.result === sd ? " win" : " lose") : "";
+    const res = r.P?.result && !pickHidden(r.P, r.an, r.hn) ? (r.P.result === sd ? " win" : " lose") : "";
     return `<button type="button" class="dside${on ? " on" : ""}${res}" data-dpick="${sd}" data-lg="${r.lg}" data-gid="${esc(r.id)}" ${r.P?.result || new Date(r.date) < new Date() ? "disabled" : ""}>${logoChip({ name: sd === "home" ? r.hn : r.an, logo }, "", r.lg)}<b>${esc(name)}</b></button>`; };
   const rows = s.rows.map(r => { const vs = duels.map(d => d.find(x => x.id === r.id)).filter(Boolean)[0];
     return `<div class="drow"><span class="dmeta">${LG_ICON[r.lg] || ""} ${esc(LG_NAME[r.lg] || "")} · ${esc(new Date(r.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}</span>${side(r, "away")}<span class="dat">at</span>${side(r, "home")}
-      <span class="dres">${r.P?.result ? (r.P.pick === r.P.result ? "✓" : "✗") : r.P ? `<small>Model: ${esc(r.P.model === "home" ? r.h : r.P.model === "away" ? r.a : "–")}</small>` : ""}${vs ? `<small class="dvs">Friend: ${esc(vs.pick === "home" ? r.h : r.a)}</small>` : ""}</span></div>`; }).join("");
+      <span class="dres">${r.P?.result && pickHidden(r.P, r.an, r.hn) ? "🛡️" : r.P?.result ? (r.P.pick === r.P.result ? "✓" : "✗") : r.P ? `<small>Model: ${esc(r.P.model === "home" ? r.h : r.P.model === "away" ? r.a : "–")}</small>` : ""}${vs ? `<small class="dvs">Friend: ${esc(vs.pick === "home" ? r.h : r.a)}</small>` : ""}</span></div>`; }).join("");
   const status = s.done ? `<b>${s.right}/${s.rows.length}</b> today ${dailyGrid(s)}` : s.picked < s.rows.length ? `${s.rows.length === 1 ? "Pick the winner before it starts" : `Pick all ${s.rows.length} before they start`} · ${s.picked}/${s.rows.length} picked` : `All picked ${dailyGrid(s)} · results as games finish`;
   return `<section class="usec daily${compact ? " compact" : ""}"><h3>Daily 3 <small>${esc(new Date().toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" }))}</small>${streak ? `<span class="pbadge">${streak}-day streak</span>` : ""}</h3>
     <p class="dnote">Today's three closest calls. Pick a winner in each; results come in as games finish.</p>
@@ -7109,11 +7141,11 @@ function tickLaunch(){
   const now = Date.now();
   document.querySelectorAll("[data-launch]").forEach(el => {
     const d = new Date(el.dataset.launch) - now; let s;
-    if (isNaN(d)) s = ""; else if (d <= 0) s = "Starting";
+    if (isNaN(d)) s = ""; else if (d <= 0) s = "Starting soon";     // no "Starts in Starting" (A26)
     else if (d > 864e5 && !el.dataset.big) s = "";
     else { const h = Math.floor(d / 36e5), m = Math.floor(d % 36e5 / 6e4), sec = Math.floor(d % 6e4 / 1e3);
       s = h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h` : h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}:${String(sec).padStart(2, "0")}`;
-      if (!el.dataset.big) s = "in " + s; }
+      if (!el.dataset.big) s = "in " + s; else s = (el.dataset.pre || "") + s; }
     if (el.textContent !== s) el.textContent = s;
   });
 }
@@ -7133,8 +7165,9 @@ function starHtml(g, lg){
 }
 
 /* ---- Season constellation: every game a star, wins above the horizon ---- */
-function constellationHtml(t){
-  const done = t.games.filter(x => x.state === "post" && x.us != null && x.them != null && !isNaN(+x.us) && !isNaN(+x.them));
+function constellationHtml(t, lg){
+  const hideAll = lg && teamShielded(lg, t.name);             // the shield is on for this team: only results already revealed (A12)
+  const done = t.games.filter(x => x.state === "post" && !x.off && x.us != null && x.them != null && !isNaN(+x.us) && !isNaN(+x.them) && (!hideAll || REVEALED.has(lg + "/" + x.id)));
   if (done.length < 2) return "";
   const W = 600, H = 170, mid = 85, n = done.length, mx = Math.max(1, ...done.map(x => Math.abs(+x.us - +x.them)));
   const pts = done.map((x, i) => { const m = +x.us - +x.them; return { x: 22 + (W - 44) * i / (n - 1), y: mid - (m / mx) * 64, m, g: x }; });
@@ -7193,7 +7226,7 @@ function gameProgress(g, lg){
 }
 // Cosmo Pulse: how gripping a game is, 0 to 100, from how close it is, how late it is, upsets in the making and overtime
 function pulseOf(g, lg, pred){
-  const st = g.status?.state; if (st !== "in" && st !== "post") return null;
+  const st = g.status?.state; if ((st !== "in" && st !== "post") || g.status?.off || shielded(lg, g)) return null;   // no excitement hints on shielded games (A12)
   const hs = +g.home?.score, as = +g.away?.score; if (isNaN(hs) || isNaN(as)) return null;
   const prog = gameProgress(g, lg), m = Math.abs(hs - as);
   let v = Math.exp(-m / ((PULSE_SCALE[lg] || 3) * (1 + 1.6 * (1 - prog)))) * (.3 + .7 * Math.pow(prog, 1.3));
@@ -7213,28 +7246,30 @@ const abbrOf = T => (T && (T.abbr || T.short || T.name)) || "";
 
 /* ---- Cosmo Picks: call the winner before the game, then see how you stack up against the model ---- */
 let PICKS = lsGet("picks", {}) || {};
+// picks graded as a 0-0 "draw" in leagues without draws came from postponed games: reopen them for the makeup game (A11)
+for (const P of Object.values(PICKS)) if (P && P.result === "draw" && P.final === "0-0" && P.lg !== "epl"){ delete P.result; delete P.final; }
 const savePicks = () => lsSet("picks", PICKS);
 function modelPick(p){ if (!p) return null; const o = [["away", p.away], ["home", p.home]]; if (p.draw != null) o.push(["draw", p.draw]); return o.sort((a, b) => b[1] - a[1])[0][0]; }
 function makePick(lg, g, side, pred){
   const k = lg + "/" + g.id;
   if (PICKS[k] && PICKS[k].pick === side){ delete PICKS[k]; savePicks(); toast("Pick cleared"); return; }
-  PICKS[k] = { lg, id: g.id, date: g.date, pick: side, model: modelPick(pred), a: abbrOf(g.away), h: abbrOf(g.home), al: g.away.logo || null, hl: g.home.logo || null, t: Date.now() };
+  PICKS[k] = { lg, id: g.id, date: g.date, pick: side, model: modelPick(pred), a: abbrOf(g.away), h: abbrOf(g.home), an: g.away.name, hn: g.home.name, al: g.away.logo || null, hl: g.home.logo || null, t: Date.now() };
   savePicks();
   const m = PICKS[k].model, mine = side === "draw" ? "a draw" : abbrOf(sideTeam(g, side));
   toast(m == null ? `Picked ${mine}` : m === side ? `Picked ${mine} · the model agrees` : `Picked ${mine} · the model picks ${m === "draw" ? "a draw" : abbrOf(sideTeam(g, m))}`);
 }
 function gradePicks(lg, games){
   let n = 0;
-  for (const g of games || []){ const P = PICKS[lg + "/" + g.id]; if (!P || P.result || g.status?.state !== "post") continue;
+  for (const g of games || []){ const P = PICKS[lg + "/" + g.id]; if (!P || P.result || g.status?.state !== "post" || g.status?.off) continue;   // postponed: stays open for the makeup game
     const hs = +g.home.score, as = +g.away.score; if (isNaN(hs) || isNaN(as)) continue;
     P.result = hs > as ? "home" : as > hs ? "away" : "draw"; P.final = `${as}-${hs}`; n++;  }
   if (n) savePicks(); return n;
 }
 function pickStats(){
-  const all = Object.values(PICKS), done = all.filter(p => p.result).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const all = Object.values(PICKS), done = all.filter(p => p.result && !pickHidden(p)).sort((a, b) => new Date(b.date) - new Date(a.date));
   let streak = 0; for (const p of done){ if (p.pick === p.result) streak++; else break; }
   let best = 0, run = 0; for (const p of [...done].reverse()){ run = p.pick === p.result ? run + 1 : 0; best = Math.max(best, run); }
-  return { all, done, best, you: done.filter(p => p.pick === p.result).length, cosmo: done.filter(p => p.model === p.result).length, streak, pending: all.filter(p => !p.result) };
+  return { all, done, best, you: done.filter(p => p.pick === p.result).length, cosmo: done.filter(p => p.model === p.result).length, streak, pending: all.filter(p => !p.result || pickHidden(p)) };
 }
 // picks from past days that no loaded scoreboard has graded yet
 async function gradeOldPicks(){
@@ -7251,6 +7286,7 @@ function pickRow(g, lg, pred){
     return `<div class="gpick"><span>${P ? "Your pick" : "Pick the winner"}</span>${b("away", abbrOf(g.away))}${pred?.draw != null ? b("draw", "Draw") : ""}${b("home", abbrOf(g.home))}${P && P.model ? `<small>Cosmo: ${esc(P.model === "draw" ? "Draw" : abbrOf(sideTeam(g, P.model)))}</small>` : ""}</div>`;
   }
   if (!P) return "";
+  if (g.status?.off) return `<div class="gpick"><span>Your pick</span><em>${esc(P.pick === "draw" ? "Draw" : abbrOf(sideTeam(g, P.pick)))}</em><b>Waiting for the makeup game</b></div>`;
   const hs = +g.home.score, as = +g.away.score, now = hs > as ? "home" : as > hs ? "away" : "draw";
   const nm = P.pick === "draw" ? "Draw" : abbrOf(sideTeam(g, P.pick));
   const res = st === "post" ? (now === P.pick ? `<b class="ok">✓ Correct</b>` : `<b class="no">✗ Wrong</b>`) : now === P.pick ? `<b class="ok">Leading</b>` : `<b class="no">Trailing</b>`;
@@ -7261,8 +7297,9 @@ function picksHtml(){
   const badge = n >= 3 && s.you > s.cosmo ? `<span class="pbadge">Ahead of the model</span>` : "";
   const recent = [...s.pending.sort((a, b) => new Date(a.date) - new Date(b.date)), ...s.done].slice(0, 8);
   const row = p => { const nm = p.pick === "draw" ? "Draw" : p.pick === "home" ? p.h : p.a;
-    const res = !p.result ? `<small>${esc(new Date(p.date).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }))}</small>` : p.pick === p.result ? `<b class="ok">✓</b>` : `<b class="no">✗</b>`;
-    return `<button type="button" class="prow" data-lg="${p.lg}" data-id="${esc(p.id)}"><span>${LG_ICON[p.lg] || ""}</span><span class="pm">${esc(p.a)} at ${esc(p.h)}${p.final ? ` <small>${esc(p.final.replace("-", "–"))}</small>` : ""}</span><span>Picked <b>${esc(nm)}</b></span>${res}</button>`; };
+    const hide = pickHidden(p);
+    const res = !p.result ? `<small>${esc(new Date(p.date).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }))}</small>` : hide ? `<b class="hidtxt">🛡️</b>` : p.pick === p.result ? `<b class="ok">✓</b>` : `<b class="no">✗</b>`;
+    return `<button type="button" class="prow" data-lg="${p.lg}" data-id="${esc(p.id)}"><span>${LG_ICON[p.lg] || ""}</span><span class="pm">${esc(p.a)} at ${esc(p.h)}${p.final && !hide ? ` <small>${esc(p.final.replace("-", "–"))}</small>` : ""}</span><span>Picked <b>${esc(nm)}</b></span>${res}</button>`; };
   return `<section class="usec"><h3>Your picks ${badge}</h3>
     <div class="pstats"><div><b>${s.you}-${n - s.you}</b><small>You · ${pc(s.you)}</small></div><div><b>${s.cosmo}-${n - s.cosmo}</b><small>Model · ${pc(s.cosmo)}</small></div><div><b>${s.streak}</b><small>Current streak</small></div></div>
     ${recent.length ? `<div class="plist">${recent.map(row).join("")}</div>` : `<div class="teamnote"><b>No picks yet</b>Pick winners with the buttons under any upcoming game. Results are graded automatically and compared with the model.</div>`}</section>`;
@@ -7281,7 +7318,9 @@ async function loadUniverse(){
       let d; try { d = await fetchBoard(lg, ""); } catch { if (!isCollege(lg)) failed++; return []; }
       if (d.stale) stale = d.stale;
       try { learnLogos(lg, (d.games || []).flatMap(x => [x.home, x.away])); gradePicks(lg, d.games); } catch (e) { console.warn(e); }
-      return (d.games || []).filter(g => keep(lg, g)).map(g => ({ ...g, lg })); }));
+      // football's week view: only today's games (and any still going) belong on Today (A14)
+      const today = sportsDay(), onToday = g => !WEEKLY.has(lg) || g.status?.state === "in" || sportsDay(Date.parse(g.date)) === today;
+      return (d.games || []).filter(g => keep(lg, g) && onToday(g)).map(g => ({ ...g, lg })); }));
     for (const lg of Object.keys(LEAGUE_LABEL)) loadInj(lg);
     UNI_ERR = failed === Object.keys(LEAGUE_LABEL).length && !(UNI && UNI.length); UNI_STALE = stale;
     if (failed === Object.keys(LEAGUE_LABEL).length && UNI && UNI.length) return;   // keep what's on screen
@@ -7337,7 +7376,7 @@ function drawUniverse(){
   const teaser = cometTeaserHtml();
   const live = UNI.filter(g => g.status.state === "in").sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
   const soon = UNI.filter(g => g.status.state === "pre").sort((a, b) => new Date(a.date) - new Date(b.date));
-  const done = UNI.filter(g => g.status.state === "post").sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
+  const done = UNI.filter(g => g.status.state === "post" && !g.status.off).sort((a, b) => (b.pulse || 0) - (a.pulse || 0));
   const sky = [...live, ...soon].slice(0, 12), inner = sky.slice(0, Math.min(4, sky.length)), outer = sky.slice(inner.length, inner.length + 8);
   const top = live[0];
   const core = document.querySelector(".brand svg")?.outerHTML.replace(/id="([^"]+)"/g, 'id="u$1"').replace(/url\(#([^)]+)\)/g, "url(#u$1)").replace(/href="#([^"]+)"/g, 'href="#u$1"') || "";

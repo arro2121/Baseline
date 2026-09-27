@@ -316,7 +316,8 @@ export async function tick(env, fetchImpl = fetch) {
   const prev = JSON.parse(await db.get("live") || '{"matches":[]}');
   const alerts = diffEvents(prev.matches, matches);
   const snapshot = { asof: new Date().toISOString().replace(/\.\d+Z$/, "Z"), matches };
-  if (JSON.stringify(prev.matches) !== JSON.stringify(matches)) await db.put("live", JSON.stringify(snapshot)).catch(e => console.log("save live:", e.message));
+  // saved when the matches change, and at least every 10 minutes so the feed's time shows it's alive (A23)
+  if (JSON.stringify(prev.matches) !== JSON.stringify(matches) || !(Date.now() - Date.parse(prev.asof || 0) < 600e3)) await db.put("live", JSON.stringify(snapshot)).catch(e => console.log("save live:", e.message));
   let sent = 0;
   if (alerts.length) {
     const subs = await db.subs();
@@ -498,10 +499,13 @@ function team(c = {}) {
     color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null, logo: t.logo || t.logos?.[0]?.href || null, score: c.score != null ? String(c.score?.displayValue ?? c.score) : null,
     record: c.records?.[0]?.summary || c.record?.[0]?.displayValue || null, winner: c.winner === true };
 }
+// postponed, cancelled, suspended or forfeited: ESPN and MLB mark these finished with a 0-0 score, but nothing was decided (A11)
+export const OFF_RE = /postpon|cancel|suspend|forfeit|abandon/i;
+export const isOff = t => OFF_RE.test(`${t?.name || ""} ${t?.description || ""} ${t?.detail || ""}`);
 function status(s = {}) {
-  const t = s.type || {};
-  return { state: t.state || "pre", detail: t.detail || t.description || "", short: t.shortDetail || t.detail || "", completed: !!t.completed,
-    clock: s.displayClock || null, period: s.period || null };
+  const t = s.type || {}, off = isOff(t);
+  return { state: t.state || "pre", detail: t.detail || t.description || "", short: t.shortDetail || t.detail || "", completed: !!t.completed && !off,
+    clock: s.displayClock || null, period: s.period || null, ...(off ? { off: true } : {}) };
 }
 function situation(sit, lg) {
   if (!sit) return null;
@@ -518,7 +522,7 @@ export function normScoreboard(d, lg) {
     const c = e.competitions?.[0] || {}, cs = c.competitors || [];
     const home = cs.find(x => x.homeAway === "home") || cs[0] || {}, away = cs.find(x => x.homeAway === "away") || cs[1] || {};
     const o = (c.odds || [])[0];
-    return { id: String(e.id), date: e.date, name: e.shortName || e.name, status: status(e.status || c.status), home: team(home), away: team(away),
+    return { id: String(e.id), date: e.date, ...(c.timeValid === false || e.timeValid === false ? { tbd: true } : {}), name: e.shortName || e.name, status: status(e.status || c.status), home: team(home), away: team(away),
       neutral: !!c.neutralSite, venue: c.venue?.fullName || null, tv: (c.broadcasts || []).flatMap(b => b.names || []).slice(0, 2),
       odds: o ? { details: o.details || null, overUnder: o.overUnder ?? null, homeML: o.homeTeamOdds?.moneyLine ?? o.moneyline?.home?.close?.odds ?? null,
                   awayML: o.awayTeamOdds?.moneyLine ?? o.moneyline?.away?.close?.odds ?? null, drawML: o.drawOdds?.moneyLine ?? o.moneyline?.draw?.close?.odds ?? null,
@@ -898,15 +902,17 @@ function mlbStatus(st, ls, date) {
   const state = a === "Live" ? "in" : a === "Final" || /postponed|cancel|suspended/i.test(det) ? "post" : "pre";
   const half = ls?.inningState ? ({ Middle: "Mid", Bottom: "Bot" }[ls.inningState] || ls.inningState) : "";
   const short = state === "in" ? `${half} ${ls?.currentInningOrdinal || ""}`.trim() : state === "post" ? (/postponed|cancel|suspended/i.test(det) ? det : (ls?.currentInning || 9) > 9 ? `Final/${ls.currentInning}` : "Final") : kickoff(date);
-  return { state, detail: state === "in" ? `${ls?.inningState || ""} of the ${ls?.currentInningOrdinal || ""}`.trim() : det, short, completed: state === "post", clock: null, period: ls?.currentInning ?? null };
+  const off = /postponed|cancel|suspended/i.test(det);
+  return { state, detail: state === "in" ? `${ls?.inningState || ""} of the ${ls?.currentInningOrdinal || ""}`.trim() : det, short, completed: state === "post" && !off, clock: null, period: ls?.currentInning ?? null, ...(off ? { off: true } : {}) };
 }
 const mlbSit = ls => ls ? { balls: ls.balls ?? 0, strikes: ls.strikes ?? 0, outs: ls.outs ?? 0, bases: [!!ls.offense?.first, !!ls.offense?.second, !!ls.offense?.third],
   batter: ls.offense?.batter?.fullName || null, pitcher: ls.defense?.pitcher?.fullName || null, last: null } : null;
 export function normMlbSchedule(d) {
   const games = (d.dates || []).flatMap(x => x.games || []).map(g => {
-    const ls = g.linescore, st = mlbStatus(g.status, ls, g.gameDate), H = g.teams.home, A = g.teams.away, pre = st.state === "pre";
+    const ls = g.linescore, st = mlbStatus(g.status, ls, g.gameDate), H = g.teams.home, A = g.teams.away, pre = st.state === "pre", tbd = pre && !!g.status?.startTimeTBD;
+    if (tbd) st.short = "TBD";                                        // no start time yet (postseason games) (A20)
     const tv = (g.broadcasts || []).filter(b => b.type === "TV"), nat = tv.filter(b => b.isNational);
-    return { id: "m" + g.gamePk, date: g.gameDate, name: `${A.team.abbreviation} @ ${H.team.abbreviation}`, status: st,
+    return { id: "m" + g.gamePk, date: g.gameDate, ...(tbd ? { tbd: true } : {}), gnum: g.gameNumber || 1, dh: g.doubleHeader || "N", name: `${A.team.abbreviation} @ ${H.team.abbreviation}`, status: st,
       home: mlbTeamObj(H.team, pre ? null : H.score ?? 0, H.leagueRecord, H.isWinner), away: mlbTeamObj(A.team, pre ? null : A.score ?? 0, A.leagueRecord, A.isWinner),
       neutral: false, venue: g.venue?.name || null, tv: [...new Set((nat.length ? nat : tv).map(b => b.name))].slice(0, 2), odds: null,
       situation: st.state === "in" ? mlbSit(ls) : null,
@@ -1090,7 +1096,12 @@ export function normNhlGame(pbp, box) {
     lines, date: pbp.startTimeUTC || null, neutral: false, tv: (pbp.tvBroadcasts || [])[0]?.network || null, situation: null, videos: [], plays: plays.slice(0, 300), count: plays.length, swings };
 }
 const ymdDash = s => /^\d{8}$/.test(s || "") ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : null;
-const todayUS = () => new Date(Date.now() - 5 * 3600e3).toISOString().slice(0, 10);   // the US sports day rolls over a few hours after midnight UTC
+// the sports day, in US Eastern time (daylight saving included), rolling over at 6 am ET so late West Coast games stay on
+// "today" (A14/A15). The same on every device, whatever its time zone
+const ET_FMT = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
+export const sportsDay = (t = Date.now(), cutoffH = 6) => { const f = ET_FMT.formatToParts(new Date(+new Date(t) - cutoffH * 3600e3)), g = k => f.find(x => x.type === k).value; return g("year") + g("month") + g("day"); };
+export const ymdShift = (s, n) => new Date(Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8) + n)).toISOString().slice(0, 10).replace(/-/g, "");
+const todayUS = () => ymdDash(sportsDay());
 async function mlbScoreboard(dates, fetchImpl) {
   return normMlbSchedule(await getJSON(`${MLB_API}v1/schedule?sportId=1&date=${ymdDash(dates) || todayUS()}&hydrate=linescore,team,broadcasts(all),probablePitcher`, fetchImpl));
 }
@@ -1189,9 +1200,10 @@ const STAND_COLS = {
   cbb: [["vsconf", "CONF"], ["total", "OVR"], ["avgpointsfor", "PPG"], ["avgpointsagainst", "OPP"], ["streak", "STRK"]],
 };
 export function normStandings(d, lg) {
-  const cols = STAND_COLS[lg] || [], groups = [];
+  const cols = STAND_COLS[lg] || [], groups = []; let pre = false;
   const walk = (node, label) => {
     const entries = node.standings?.entries || [];
+    if (+node.standings?.seasonType === 1) pre = true;              // ESPN's standings for preseason games (A21)
     if (entries.length) {
       const rows = entries.map(e => { const m = {}; for (const s of e.stats || []) { const k = SPORT_OF[lg] ? s.type : s.name; if (k && !(k in m)) m[k] = s.displayValue ?? s.summary ?? ""; }
         const logo = (e.team?.logos || [])[0]?.href || null;
@@ -1206,7 +1218,8 @@ export function normStandings(d, lg) {
     for (const c of node.children || []) walk(c, c.name);
   };
   walk(d, d.name);
-  return { league: lg, cols: cols.map(c => c[1]), groups, season: d.seasons?.[0]?.displayName || null };
+  if (+d.seasons?.[0]?.type === 1 || +d.season?.type === 1) pre = true;
+  return { league: lg, cols: cols.map(c => c[1]), groups, season: d.seasons?.[0]?.displayName || null, ...(pre ? { pre: true } : {}) };
 }
 // view "div": divisions (ESPN's level=3: 8 NFL, 6 NBA, 6 MLB, 4 NHL); otherwise ESPN's default, conferences (MLB: leagues)
 export const STAND_DIV = ["nfl", "nba", "mlb", "nhl"];
@@ -1232,11 +1245,11 @@ export function normTeam(t, sched, roster, lg) {
     const c = (e.competitions || [])[0] || {}, cs = c.competitors || [], me = cs.find(x => String(x.id || x.team?.id) === String(t.id)) || cs[0] || {}, op = cs.find(x => x !== me) || {};
     const sc = x => x.score == null ? null : typeof x.score === "object" ? x.score.displayValue ?? x.score.value : String(x.score);
     const st = c.status?.type || e.status?.type || {};
-    return { id: String(e.id), date: e.date, home: me.homeAway === "home", state: st.state || "pre", detail: st.shortDetail || st.detail || "",
+    return { id: String(e.id), date: e.date, ...(c.timeValid === false || e.timeValid === false ? { tbd: true } : {}), home: me.homeAway === "home", state: st.state || "pre", detail: st.shortDetail || st.detail || "", ...(isOff(st) ? { off: true } : {}),
       opp: { id: String(op.team?.id || op.id || ""), name: op.team?.displayName || "", short: op.team?.shortDisplayName || "", abbr: op.team?.abbreviation || "", logo: (op.team?.logos || [])[0]?.href || op.team?.logo || null },
       us: sc(me), them: sc(op), won: me.winner === true, lost: op.winner === true, tv: (c.broadcasts || []).map(b => b.media?.shortName || b.names?.[0]).filter(Boolean)[0] || null,
       label: e.week?.text || e.seasonType?.name || "" };
-  });
+  }).sort((a, b) => String(a.date).localeCompare(String(b.date)));   // oldest first, whatever order the feed used (soccer's is newest first) (A13)
   const groups = [];
   const people = roster?.athletes || [];
   const person = x => ({ id: String(x.id || ""), name: x.displayName || x.fullName || "", jersey: x.jersey || "", pos: x.position?.abbreviation || "", age: x.age || null,
@@ -1251,13 +1264,43 @@ export function normTeam(t, sched, roster, lg) {
   return { league: lg, id: String(t.id || ""), name: t.displayName || "", short: t.shortDisplayName || "", abbr: t.abbreviation || "", logo,
     color: t.color ? "#" + t.color : null, alt: t.alternateColor ? "#" + t.alternateColor : null,
     // before a team has played ("0-0") ESPN still says "1st in Atlantic Division"; there's no standing until games are played
-    record: t.record?.items?.[0]?.summary || null, standing: /[1-9]/.test(t.record?.items?.[0]?.summary || "") ? t.standingSummary || null : null, games, roster: groups,
+    ...(() => { const played = games.filter(x => x.state === "post" && !x.off), pre = played.length > 0 && played.every(x => /pre-?season/i.test(x.label || ""));
+      const rec = t.record?.items?.[0]?.summary || null;
+      return { record: rec && pre ? `Preseason ${rec}` : rec, standing: !pre && /[1-9]/.test(rec || "") ? t.standingSummary || null : null, ...(pre ? { preseason: true } : {}) }; })(), games, roster: groups,
     coach: roster?.coach?.[0] ? `${roster.coach[0].firstName || ""} ${roster.coach[0].lastName || ""}`.trim() : null };
 }
 export async function espnTeam(lg, id, fetchImpl = fetch) {
   const base = `${ESPN_WEB}${LEAGUES[lg]}/teams/${id}`, soft = p => p.catch(() => null);
-  const [t, s, r] = await Promise.all([getJSON(base, fetchImpl), soft(getJSON(base + "/schedule", fetchImpl)), soft(getJSON(base + "/roster", fetchImpl))]);
-  return normTeam(t, s, r, lg);
+  // soccer schedules list results only; the upcoming fixtures are a separate request (A13)
+  const [t, s, r, fx] = await Promise.all([getJSON(base, fetchImpl), soft(getJSON(base + "/schedule", fetchImpl)), soft(getJSON(base + "/roster", fetchImpl)),
+    lg === "epl" ? soft(getJSON(base + "/schedule?fixture=true", fetchImpl)) : null]);
+  const seen = new Set(), events = [...(s?.events || []), ...(fx?.events || [])].filter(e => e && !seen.has(String(e.id)) && seen.add(String(e.id)));
+  return normTeam(t, s || fx ? { ...(s || fx), events } : null, r, lg);
+}
+const mkey = n => String(n || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/\b(fc|afc)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
+const INJ_W = { nfl: { qb: 75, star: 10, cap: 110 }, nba: { top: 95, low: 25, cap: 170 }, nhl: { top: 30, low: 8, cap: 55 }, mlb: { top: 10, low: 4, cap: 25 }, epl: { top: 28, low: 8, cap: 55 } };
+export function injuryPenalty(lg, list, stars) {
+  const W = INJ_W[lg]; let total = 0; const out = [];
+  for (const p of list) {
+    const st = String(p.status || ""), share = /\bout\b|injured reserve|\bir\b|suspend|season/i.test(st) ? 1 : /doubtful/i.test(st) ? .75 : 0; if (!share) continue;
+    const s = stars.get(mkey(p.name)); let pen = 0;
+    if (lg === "nfl") pen = p.pos === "QB" && s && s.pool === "qbs" ? W.qb : s ? W.star : 0;
+    else if (s) pen = W.low + (W.top - W.low) * (1 - s.rank / Math.max(1, s.size - 1));
+    if (pen) { pen = Math.round(pen * share); total += pen; out.push({ name: p.name, pos: p.pos, status: st, pen }); }
+  }
+  return { pen: Math.min(W.cap, total), out: out.sort((a, b) => b.pen - a.pen) };
+}
+// the stars list (allstars.json) as a lookup, and ESPN's injury report turned into each team's rating penalty; shared with the
+// page, which reads ESPN itself when ESPN turns the alerts service away (A9)
+export function starsFrom(A, lg) { const m = new Map(); for (const [pool, l] of Object.entries(((A || {}).sports || {})[lg] || {})) if (Array.isArray(l)) l.forEach((p, i) => { if (!m.has(mkey(p.name))) m.set(mkey(p.name), { pool, rank: i, size: l.length }); }); return m; }
+export function normInjuries(lg, d, stars) {
+  const teams = {};
+  for (const t of (d && d.injuries) || []) {
+    const name = t.displayName || t.team?.displayName; if (!name) continue;
+    const list = (t.injuries || []).map(x => ({ name: x.athlete?.displayName || "", pos: x.athlete?.position?.abbreviation || "", status: x.status || x.type?.description || "" })).filter(x => x.name);
+    const r = injuryPenalty(lg, list, stars); if (r.pen) teams[name] = r;
+  }
+  return { lg, asof: new Date().toISOString(), teams };
 }
 async function cached(req, ctx, ttl, make) {
   const cache = typeof caches !== "undefined" ? caches.default : null, k = new Request(req.url, { method: "GET" });
@@ -1415,7 +1458,6 @@ export const dayAfter = ymd => { const d = new Date(Date.UTC(+ymd.slice(0, 4), +
 export const dayBefore = ymd => { const d = new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8) - 1)); return d.toISOString().slice(0, 10).replace(/-/g, ""); };
 const ymdMs = s => Date.UTC(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
 const gapDays = (last, when) => last ? Math.round((ymdMs(etDay(when)) - ymdMs(last)) / 864e5) : null;
-const mkey = n => String(n || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/\b(fc|afc)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim();
 function modelTeam(M, name) {
   if (!M._keys) { M._keys = {}; for (const n of Object.keys(M.state)) M._keys[mkey(n)] = n; }
   const k = mkey(name), alt = Object.keys(M._keys).find(x => x.endsWith(" " + k) || k.endsWith(" " + x)), n = M._keys[k] || (alt && M._keys[alt]);
@@ -1434,34 +1476,14 @@ function pois3(lh, la, rho) {
    an NFL starting quarterback, and the stars in allstars.json, weighted by how high they rank. The sizes are estimates in
    Elo points (roughly: 25 points is one point of spread in the NBA), not fitted on past games: there is no free history of
    injury reports to test them on. A team's total is capped. */
-const INJ_W = { nfl: { qb: 75, star: 10, cap: 110 }, nba: { top: 95, low: 25, cap: 170 }, nhl: { top: 30, low: 8, cap: 55 }, mlb: { top: 10, low: 4, cap: 25 }, epl: { top: 28, low: 8, cap: 55 } };
 const INJ_CACHE = new Map();
-export function injuryPenalty(lg, list, stars) {
-  const W = INJ_W[lg]; let total = 0; const out = [];
-  for (const p of list) {
-    const st = String(p.status || ""), share = /\bout\b|injured reserve|\bir\b|suspend|season/i.test(st) ? 1 : /doubtful/i.test(st) ? .75 : 0; if (!share) continue;
-    const s = stars.get(mkey(p.name)); let pen = 0;
-    if (lg === "nfl") pen = p.pos === "QB" && s && s.pool === "qbs" ? W.qb : s ? W.star : 0;
-    else if (s) pen = W.low + (W.top - W.low) * (1 - s.rank / Math.max(1, s.size - 1));
-    if (pen) { pen = Math.round(pen * share); total += pen; out.push({ name: p.name, pos: p.pos, status: st, pen }); }
-  }
-  return { pen: Math.min(W.cap, total), out: out.sort((a, b) => b.pen - a.pen) };
-}
 async function starsOf(env, lg, fetchImpl = fetch) {
-  const m = new Map(); try { const r = await siteGet(env, "/allstars.json", fetchImpl); const A = r.ok ? await r.json() : {};
-    for (const [pool, l] of Object.entries((A.sports || {})[lg] || {})) if (Array.isArray(l)) l.forEach((p, i) => { if (!m.has(mkey(p.name))) m.set(mkey(p.name), { pool, rank: i, size: l.length }); }); } catch {}
-  return m;
+  try { const r = await siteGet(env, "/allstars.json", fetchImpl); return starsFrom(r.ok ? await r.json() : {}, lg); } catch { return new Map(); }
 }
 export async function injuries(env, lg, fetchImpl = fetch) {
   const c = INJ_CACHE.get(lg); if (c && Date.now() - c.at < 20 * 60e3) return c.v;
   const [d, stars] = await Promise.all([getJSON(`${ESPN}${LEAGUES[lg]}/injuries`, fetchImpl), starsOf(env, lg, fetchImpl)]);
-  const teams = {};
-  for (const t of d.injuries || []) {
-    const name = t.displayName || t.team?.displayName; if (!name) continue;
-    const list = (t.injuries || []).map(x => ({ name: x.athlete?.displayName || "", pos: x.athlete?.position?.abbreviation || "", status: x.status || x.type?.description || "" })).filter(x => x.name);
-    const r = injuryPenalty(lg, list, stars); if (r.pen) teams[name] = r;
-  }
-  const v = { lg, asof: new Date().toISOString(), teams }; INJ_CACHE.set(lg, { at: Date.now(), v }); return v;
+  const v = normInjuries(lg, d, stars); INJ_CACHE.set(lg, { at: Date.now(), v }); return v;
 }
 export function injuryFor(inj, name) { if (!inj || !inj.teams) return null; const k = mkey(name); for (const [n, v] of Object.entries(inj.teams)) if (mkey(n) === k) return v; return null; }
 // the model's win chances and projected score for one scoreboard game (null when the model doesn't know a team)
