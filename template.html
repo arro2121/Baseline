@@ -44,6 +44,9 @@ body::after{background:
 @keyframes twinkle{from{opacity:.35}to{opacity:1}}
 @media (prefers-reduced-motion: reduce){body::after{animation:none}}
 body.vplay::after,body.vplay::before,body.vplay .shooting *,body.vplay .gspin,body.vplay [class^="nb-"]{animation-play-state:paused!important}
+/* while a clip plays, everything else holds still and no blur is recomputed behind it (A29) */
+body.vplay *,body.vplay *::before,body.vplay *::after{animation-play-state:paused!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.vplay dialog::backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -59,6 +62,7 @@ button{cursor:pointer}
 .muted{color:var(--muted)}
 [hidden]{display:none!important}
 body{overflow-x:clip}                  /* nothing can make the page scroll sideways on a phone (clip keeps sticky headers working) */
+html{overflow-x:clip}.skywrap{overflow:clip}   /* the Today orbit and its decorations stay inside the screen too (L1) */
 
 /* ---------- header ---------- */
 .top{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
@@ -2105,7 +2109,7 @@ table.cmp{display:table;gap:0;padding:0}
 /* ---------- spoiler shield ---------- */
 .gteam .sc.hid{color:var(--faint);letter-spacing:.1em}
 .hidnote{justify-content:space-between;align-items:center}.hidnote .ghost{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;padding:4px 10px;font-weight:700;font-size:.76rem}
-.hidtxt{color:var(--muted);font-weight:700}.offtxt{color:#fbbf24;font-weight:700}
+.hidtxt{color:var(--muted);font-weight:700}.prlab{text-align:right;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 2px -2px}.gcosmo{font-size:.78rem;color:var(--muted);margin:6px 2px 0}.gcosmo .ok{color:#34d399}.gcosmo .no{color:#f87171}.gcard[role=button]{cursor:pointer}.gcard[role=button]:focus-visible{outline:2px solid var(--accent,#b98bff);outline-offset:2px}.offtxt{color:#fbbf24;font-weight:700}
 .shield{min-height:100%;display:grid;place-items:center;padding:60px 24px;background:radial-gradient(ellipse at 50% 30%,rgba(122,61,245,.3),transparent 60%)}
 .shieldin{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:34ch}
 .shico{font-size:2.4rem;filter:drop-shadow(0 0 12px rgba(185,139,255,.8))}.shieldin b{font-size:1.2rem}.shieldin p{margin:0 0 8px;color:var(--muted)}.shieldin small{color:var(--faint);font-size:.74rem}
@@ -2177,7 +2181,7 @@ dialog.onb p{margin:0 0 12px}
     </div>
     <span class="pill" id="asof"><i></i><span></span></span>
     <button class="livepill" id="openLive"><i></i><span id="liveCount">Live</span></button>
-    <button class="btn" id="installBtn" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg>Install app</button>
+    <button class="btn" id="installBtn" hidden title="Adds it to your home screen: free, no App Store" aria-label="Get the app: adds it to your home screen, free, no App Store"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg>Get the app</button>
     <button class="btn" id="openUpdate"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Update rankings</button>
     <button class="iconbtn" id="searchBtn" aria-label="Find a team" data-ui="search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5"/></svg></button>
     <button class="iconbtn" id="helpBtn" aria-label="How Cosmo Sports works"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.9 7.6a2.2 2.2 0 0 1 4.2.8c0 1.5-2.1 1.9-2.1 3.3M10 14.4v.1"/></svg></button>
@@ -3967,7 +3971,13 @@ function drawGames(){
     const prev = PREV_SCORE[g.id], now = `${g.away.score}-${g.home.score}`, bumped = prev != null && prev !== now; PREV_SCORE[g.id] = now;
     const hid = shielded(SPORT, g);
     const row = (t, pr, won, changed) => `<div class="gteam"><i style="background:${t.color || "var(--line)"}"></i><div class="nm">${logoChip(t)}<span>${t.rank ? `<em class="aprk" title="AP Top 25">${t.rank}</em>` : ""}${esc(t.short || t.name)}</span><small>${esc(t.record || "")}</small><button class="fav" type="button" data-fav="${esc(t.name)}" aria-pressed="${isFav(SPORT, t.name)}" aria-label="${isFav(SPORT, t.name) ? "Unfollow" : "Follow"} ${esc(t.name)}">${isFav(SPORT, t.name) ? "★" : "☆"}</button></div>
-      <div class="sc ${post && !won && !hid ? "lose" : ""} ${changed && !hid ? "bump" : ""} ${hid ? "hid" : ""}">${g.status.state === "pre" ? "" : hid ? "•" : esc(t.score ?? "")}</div><div class="pr">${pr == null ? "" : Math.round(pr*100) + "%"}</div></div>`;
+      <div class="sc ${post && !won && !hid ? "lose" : ""} ${changed && !hid ? "bump" : ""} ${hid ? "hid" : ""}">${g.status.state === "pre" ? "" : hid ? "•" : esc(t.score ?? "")}</div><div class="pr">${pr == null || post ? "" : Math.round(pr*100) + "%"}</div></div>`;
+    // what the percentages are (B2): Cosmo's pre-game chances before and during the game (or ESPN's live chance where it has one);
+    // after the final they give way to what Cosmo picked and whether it was right
+    const lw = live && g.homeWinProb != null ? { home: g.homeWinProb, away: 1 - g.homeWinProb } : null;
+    const prLab = post || !(p || lw) ? "" : `<div class="prlab">${lw ? "Live win chance" : "Cosmo pre-game"}</div>`;
+    const mPick = post && p && !hid && !g.status.off ? modelPick(p) : null, mWon = mPick && (hs > as ? "home" : as > hs ? "away" : "draw");
+    const cosmoLine = mPick ? `<div class="gcosmo">Cosmo picked ${esc(mPick === "draw" ? "a draw" : abbrOf(sideTeam(g, mPick)))} (${Math.round(p[mPick] * 100)}%) <b class="${mPick === mWon ? "ok" : "no"}">${mPick === mWon ? "✓" : "✗"}</b></div>` : "";
     const sit = g.situation, sitHtml = live && sit ? (SPORT === "mlb" && sit.outs != null
       ? `<div class="gsit"><span>${sit.balls ?? 0}-${sit.strikes ?? 0}, ${sit.outs} out${sit.outs===1?"":"s"}<span class="bases"><b class="${sit.bases?.[1]?"on":""}"></b><b class="${sit.bases?.[0]?"on":""}"></b><b class="${sit.bases?.[2]?"on":""}"></b><b></b></span></span><span>${esc(sit.batter || "")}</span></div>`
       : sit.text || sit.last ? `<div class="gsit"><span>${esc(sit.text || sit.last)}</span></div>` : "") : "";
@@ -3977,11 +3987,11 @@ function drawGames(){
     const pl = pulseOf(g, SPORT, p);
     const burst = bumped && !hid ? scoreBurst(SPORT, prev, as, hs, g) : "";
     const bar = p && g.status.state !== "post" ? `<div class="gwin" title="Cosmo's pre-game win chances"><i style="width:${p.away * 100}%;background:${ac}"></i>${p.draw != null ? `<i style="width:${p.draw * 100}%;background:var(--line)"></i>` : ""}<i style="width:${p.home * 100}%;background:${hc}"></i></div>` : "";
-    return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""} ${pl >= 82 && live ? "hotg" : ""} ${burst ? "scored" : ""}" data-gid="${esc(g.id)}" style="--ac:${ac};--hc:${hc}">${burst}<div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${WEEKLY.has(SPORT) && !live && sportsDay(Date.parse(g.date)) !== sportsDay() && !/\d+\/\d+/.test(g.status.short || "") ? `${esc(fromYmd(sportsDay(Date.parse(g.date))).toLocaleDateString([], { weekday: "short" }))} · ` : ""}${esc(g.status.short || "")}${pulseChip(pl, g.status.state)}${g.status.state === "pre" ? `<span class="launch"><b data-launch="${esc(g.date)}"></b></span>` : ""}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
-      ${row(g.away, p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${bar}${hid ? "" : sitHtml}${hid ? `<div class="gsit hidnote"><span>🛡️ Score hidden</span><button type="button" class="ghost" data-reveal="${esc(g.id)}">Reveal</button></div>` : pickRow(g, SPORT, p)}
+    return `<div class="gcard ${live ? "live" : ""} ${fav ? "favg" : ""} ${pl >= 82 && live ? "hotg" : ""} ${burst ? "scored" : ""}" data-gid="${esc(g.id)}" style="--ac:${ac};--hc:${hc}">${burst}<div class="gtop"><span>${live ? `<span class="stat-live"><i></i>Live</span> ` : ""}${WEEKLY.has(SPORT) && !live && sportsDay(Date.parse(g.date)) !== sportsDay() && !/\d+\/\d+|\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/i.test(g.status.short || "") ? `${esc(fromYmd(sportsDay(Date.parse(g.date))).toLocaleDateString([], { weekday: "short" }))} · ` : ""}${esc(g.status.short || "")}${pulseChip(pl, g.status.state)}${g.status.state === "pre" ? `<span class="launch"><b data-launch="${esc(g.date)}"></b></span>` : ""}</span><span>${esc(g.tv?.[0] || g.venue || "")}</span></div>
+      ${prLab}${row(g.away, lw ? lw.away : p ? p.away : null, as > hs, bumped && prev.split("-")[0] !== String(g.away.score))}${row(g.home, lw ? lw.home : p ? p.home : null, hs > as, bumped && prev.split("-")[1] !== String(g.home.score))}${cosmoLine}${bar}${hid ? "" : sitHtml}${hid ? `<div class="gsit hidnote"><span>🛡️ Score hidden</span><button type="button" class="ghost" data-reveal="${esc(g.id)}">Reveal</button></div>` : pickRow(g, SPORT, p)}
       <div class="gfoot"><span>${g.odds?.details ? `Line ${esc(oddsText(g.odds.details))}${g.odds.overUnder ? `, O/U ${g.odds.overUnder}` : ""}` : ""}${mk != null && p ? ` · market ${Math.round(mk*100)}% home` : ""}${p?.draw != null ? ` · draw ${Math.round(p.draw*100)}%` : ""}</span>
         <span class="gbtns">${g.status.state !== "post" ? bellBtn(SPORT, g) : ""}${g.status.state === "pre" ? `<button class="ghost" data-cal="${g.id}" aria-label="Add to calendar">📅</button><button data-pbp="${g.id}">Preview</button>` : `<button data-pbp="${g.id}">${g.status.state === "post" ? "Recap" : "Play-by-play"}</button>`}</span></div></div>`; }).join("")}</div>
-    <p class="condNote" style="margin-top:12px">Percentages and the colored bar are Cosmo's pre-game prediction; ⚡ is how exciting a game is right now, 0 to 100. Tap ☆ to put a team's games first. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${day ? "" : "; refreshes every 30 seconds"}.</p>`;
+    <p class="condNote" style="margin-top:12px">Percentages are labeled on each card: Cosmo's pre-game win chances, or the live win chance during a game where ESPN has one; after the final, the card shows what Cosmo picked. ⚡ is how exciting a game is right now, 0 to 100. Tap a card to open the game, or ☆ to put a team's games first. Updated ${new Date(d.asof).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}${day ? "" : "; refreshes every 30 seconds"}.</p>`;
   $("#tt-games").querySelectorAll("[data-pbp]").forEach(b => b.onclick = () => openGame(SPORT, b.dataset.pbp));
   $("#tt-games").querySelectorAll("[data-fav]").forEach(b => b.onclick = e => { e.stopPropagation(); toggleFav(SPORT, b.dataset.fav); });
   $("#tt-games").querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { const g = d.games.find(x => x.id === b.closest(".gcard").dataset.gid); if (!g) return;
@@ -3990,6 +4000,12 @@ function drawGames(){
   $("#tt-games").querySelectorAll("[data-bell]").forEach(b => b.onclick = async () => { const g = d.games.find(x => x.id === b.dataset.bell); if (g && await toggleBell(SPORT, g)) drawGames(); });
   $("#tt-games").querySelectorAll("[data-cal]").forEach(b => b.onclick = () => { const g = d.games.find(x => x.id === b.dataset.cal); if (g) downloadIcs([{ ...g, lg: SPORT }]); });
   $("#tt-games").querySelectorAll(".gteam .nm > span").forEach(n => { n.classList.add("tlink"); n.onclick = () => openTeamByName(SPORT, n.closest(".gteam").querySelector("[data-fav]").dataset.fav); });
+  // the whole card opens the game; its own controls (pick, bell, calendar, follow, team names) keep their jobs (B1)
+  $("#tt-games").querySelectorAll(".gcard").forEach(c => { const g = d.games.find(x => x.id === c.dataset.gid); if (!g) return;
+    c.setAttribute("role", "button"); c.tabIndex = 0; c.setAttribute("aria-label", `Open ${g.away.name} at ${g.home.name}`);
+    const inner = e => e.target.closest("button, a, input, select, .tlink, [data-pick]") && e.target !== c;
+    c.addEventListener("click", e => { if (!inner(e)) openGame(SPORT, g.id); });
+    c.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target === c){ e.preventDefault(); openGame(SPORT, g.id); } }); });
   bindDateBar(); tickLaunch();
 }
 async function openGame(lg, id){
@@ -4009,7 +4025,7 @@ async function openGame(lg, id){
     catch { if (!GSEEN.size) $("#gbody").innerHTML = `<div class="plays"><div class="teamnote"><b>Couldn't load play-by-play</b>The score services didn't answer on this connection. Cosmo tries again every few seconds; switching between Wi-Fi and mobile data often helps.</div></div>`; }
     finally { busy = false; }
   };
-  await load(); gTimer = setInterval(load, 15000);
+  await load(); gTimer = setInterval(() => { if (!document.body.classList.contains("vplay")) load(); }, 15000);   // no re-render under a playing clip (A29)
 }
 function drawTennisGame(g, lg){
   const first = !GSEEN.size, live = g.status?.state === "in";
@@ -4492,8 +4508,11 @@ function playClip(g, lg, i){
   const c = (g.videos || [])[i], el = $("#gScene"); if (!c || !el) return;
   SCENE_VIDEO = c.id; el.hidden = false; FX.forEach(a => { try { a.cancel(); } catch {} }); FX.length = 0;
   // the adaptive (HLS) stream where the browser plays it natively (Safari, iPhone, Android and newer Chrome), else the MP4
-  const useHls = !!(c.hls && CAN_HLS());
-  el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(useHls ? c.hls : c.mp4)}"></video></div>
+  // On a computer MLB's 60 fps copies come first (the adaptive stream's first rung is 30 fps): its 60 fps stream, else the
+  // 720p60 MP4. Phones keep the adaptive stream for their connection (A29)
+  const desk = matchMedia("(pointer:fine)").matches && innerWidth >= 900;
+  const src = desk ? (c.hls60 && CAN_HLS() ? c.hls60 : c.mp4 || c.hls) : (c.hls && CAN_HLS() ? c.hls : c.mp4), useHls = /\.m3u8/.test(src || "");
+  el.innerHTML = `<div class="gvideo"><video controls autoplay playsinline preload="metadata" ${c.thumb ? `poster="${esc(c.thumb)}"` : ""} src="${esc(src)}"></video></div>
     <div class="cap"><div class="ct"><b>Replay</b> · ${esc(c.title)}</div><button class="replay" id="gBack" type="button">← Field view</button></div>` + highlightsStrip(g);
   const v = el.querySelector("video");
   // the space background keeps still while a clip plays, so the phone spends its effort on the video
@@ -4585,9 +4604,12 @@ async function fetchVoice(text){
   const ac = new AbortController(), t = setTimeout(() => ac.abort(), 12000);
   try {
     const r = await fetch(ALERTS_URL + "/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, voice: voiceKind() }), signal: ac.signal });
-    if (!r.ok) throw new Error("voice " + r.status);
+    if (!r.ok){ const j = await r.json().catch(() => ({}));
+      if (j.error === "resting"){ const tmr = new Date(); tmr.setHours(24, 0, 0, 0); LQ.down = +tmr;          // until tomorrow (B3)
+        if (!fetchVoice.told){ fetchVoice.told = true; toast("The studio voice is resting until tomorrow, so your phone's voice is reading the plays."); } }
+      throw new Error("voice " + r.status); }
     return URL.createObjectURL(await r.blob());
-  } catch (e) { LQ.down = Date.now() + 120000; throw e; }          // use the phone's voice for a couple of minutes
+  } catch (e) { LQ.down = Math.max(LQ.down || 0, Date.now() + 120000); throw e; }          // use the phone's voice for a couple of minutes
   finally { clearTimeout(t); }
 }
 function say(text, urgent){
@@ -6477,7 +6499,7 @@ function czBattleShow(b){
   }
   const won = b.winner === mine, mv = b.mvp || [];
   const reveal = () => { $("#infoBody").innerHTML = `<div class="czshow-bt ${won ? "won" : "lost"}"><div class="czsb-side ${b.winner === "a" ? "win" : ""}">${czLineup(b.a, mv[0])}<b>${esc(b.fromName)}</b><small>⚡ ${(b.pow || [])[0] ?? czLinePow(b.a)}</small></div><div class="czsb-vs"><span>VS</span></div><div class="czsb-side ${b.winner === "b" ? "win" : ""}">${czLineup(b.b, mv[1])}<b>${esc(b.byName || "Cosmo AI")}</b><small>⚡ ${(b.pow || [])[1] ?? czLinePow(b.b || [])}</small></div></div>
-    <div class="czverdict ${won ? "won" : "lost"}">${czBsTag(b.sport)}<h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p><small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · the judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}%</small></div>
+    <div class="czverdict ${won ? "won" : "lost"}">${czBsTag(b.sport)}<h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p>${b.judge === "resting" ? `<small class="czrest">The AI judge is resting until tomorrow, so this is a quick recap from the cards' power.</small>` : ""}<small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · the judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}%</small></div>
     <div class="pkfoot"><button class="btn" type="button" data-info="close">Done</button>${b.house ? `<button class="btn primary" type="button" id="czBAgain">Play AI again</button>` : ""}</div>`;
     const ag = $("#czBAgain"); if (ag) ag.onclick = () => czBattleBuild("house");
     sfx(won ? "win" : "lose"); if (won) czConfetti(b.stake >= 500 ? 90 : 50); drawCosmic(); };

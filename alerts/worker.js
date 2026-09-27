@@ -997,9 +997,9 @@ export function normMlbGame(feed, wp, content) {
   // video: MLB's own clips, matched to the plays they show
   const videos = ((content?.highlights?.highlights?.items) || []).map(v => {
     const mp4 = (v.playbacks || []).find(p => p.name === "mp4Avc") || (v.playbacks || []).find(p => /\.mp4/.test(p.url || ""));
-    const hls = (v.playbacks || []).find(p => /\.m3u8/.test(p.url || ""));
+    const hls = (v.playbacks || []).find(p => /\.m3u8/.test(p.url || "")), hls60 = (v.playbacks || []).find(p => p.name === "HTTP_CLOUD_WIRED_60" && /\.m3u8/.test(p.url || ""));   // 60 fps (A29)
     const cut = (v.image?.cuts || []).find(c => c.width <= 800) || (v.image?.cuts || [])[0];
-    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), hls: hls?.url || null, mp4: mp4?.url || null, web: null, geo: null };
+    return { id: String(v.guid || v.slug || v.id || v.headline), title: v.headline || "", thumb: cut?.src || null, dur: hms(v.duration), hls: hls?.url || null, hls60: hls60?.url || null, mp4: mp4?.url || null, web: null, geo: null };
   }).filter(v => v.mp4).slice(0, 20);
   const roster = Object.values({ ...(row("home").players || {}), ...(row("away").players || {}) }).map(p => ({ name: p.person?.fullName || "" }));
   linkVideos(plays, videos, roster);
@@ -1338,6 +1338,8 @@ export function normTennis(e, resolve = n => n) {
 const ASK_CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 // the battle judge on Claude: a small model (a short JSON verdict), only for battles between players, and at most
 // JUDGE_CLAUDE_DAILY a day (default 200); the rest use the free Workers AI model or the power formula
+// Workers AI's free daily allowance ran out (its errors mention the allocation, neurons or quota)
+const AI_RESTING = m => /4006|allocation|neuron|quota|exceed|limit/i.test(m || "");
 const JUDGE_CLAUDE_MODEL = "claude-haiku-4-5", JUDGE_MAX_TOKENS = 1024;
 // Ask on Claude (only when ANTHROPIC_API_KEY is set): a smaller model, short answers, signed-in passkey accounts only, and a daily
 // cap (ASK_CLAUDE_DAILY, default 300 questions) after which Ask carries on with the free Workers AI model
@@ -2759,7 +2761,7 @@ export async function czJudge(env, bt, fetchImpl = fetch) {
     try {
       const r = await env.AI.run(ASK_CF_MODEL, { messages: [{ role: "system", content: CZ_JUDGE_SYSTEM + "\nAnswer with only a JSON object with the keys chance_a, report_if_a_wins, report_if_b_wins, mvp_a, mvp_b." }, { role: "user", content: prompt }], max_tokens: 500 });
       const txt = String(r?.response ?? r ?? ""), m = txt.match(/\{[\s\S]*\}/); const x = m && JSON.parse(m[0]); if (ok(x)) { j = x; judge = "workers-ai"; }
-    } catch (e) { console.log("judge (workers ai):", e.message); }
+    } catch (e) { console.log("judge (workers ai):", e.message); if (AI_RESTING(String(e.message || e))) judge = "resting"; }
   }
   // the AI's call counts, kept within reach of what the cards' power says so a lineup of commons can't be talked into a lock
   // playing the AI is a straight coin flip: it wins half the time and loses half the time, whatever the lineups.
@@ -3200,7 +3202,8 @@ export default {
         const res = new Response(out.bytes, { headers: { "Content-Type": out.type, "Cache-Control": "public, max-age=86400", "X-Voice": out.name, "Access-Control-Expose-Headers": "X-Voice", ...cors } });
         ctx.waitUntil(cache.put(key, res.clone()));
         return res;
-      } catch (e) { return json({ error: "voice unavailable", detail: String(e.message || e).slice(0, 200) }, 503); }
+      } catch (e) { const m = String(e.message || e);                  // the free daily AI allowance is used up: say so, don't just fail (B3)
+        return json({ error: AI_RESTING(m) ? "resting" : "voice unavailable", detail: m.slice(0, 200) }, 503); }
     }
     if (url.pathname === "/subscribe" && req.method === "POST") {
       const d = await req.json().catch(() => null);
