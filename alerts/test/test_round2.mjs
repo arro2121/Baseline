@@ -129,4 +129,12 @@ check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse
   const g2 = { ...tm("New York Yankees", "Baltimore Orioles"), date: "2026-09-25T17:05Z", gnum: 2, dh: "Y", status: { state: "pre" } };   // placeholder time
   check("A10 game 2 of a doubleheader gets game 2's line", W.mlbEspnMatch(espn, g2)?.odds?.details === "G2" && W.mlbEspnMatch(espn, g1)?.odds?.details === "G1", W.mlbEspnMatch(espn, g2));
   check("A10 game 2 isn't locked while game 1 is still going", W.dhWaiting(g2, [g1, g2]) === true && W.dhWaiting(g2, [{ ...g1, status: { state: "post" } }, g2]) === false); }
+
+// ---- batch 4 ----
+// B3: when the free AI allowance is used up, the voice says it's resting (so the app can say so) instead of a bare failure
+{ globalThis.caches = globalThis.caches || { default: { match: async () => undefined, put: async () => {} } };
+  const env = { KV: { get: async () => null, put: async () => {} }, AI: { run: async () => { throw new Error("4006: you have used up your daily free allocation of 10,000 neurons"); } } };
+  const r = await W0.default.fetch(new Request("https://w.dev/tts", { method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "9.9.9.9" }, body: JSON.stringify({ text: "Touchdown, Chiefs!" }) }), env, { waitUntil() {} });
+  const j = await r.json().catch(() => ({}));
+  check("B3 the voice reports it's resting when the daily AI allowance is used up", r.status === 503 && j.error === "resting", [r.status, j.error]); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
