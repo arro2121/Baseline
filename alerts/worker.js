@@ -1830,7 +1830,15 @@ export async function czTx(st, a) {
     const H = await get("cz:hot", {}), t = a.now || Date.now();                                 // each card's latest big game, kept 36 hours
     for (const [k, v] of Object.entries(a.hot || {})) H[k] = { ...v, lv: L[k] || 0 };
     await st.put("cz:hot", Object.fromEntries(Object.entries(H).filter(([, v]) => t - v.at < 36 * 3600e3).sort((x, y) => y[1].at - x[1].at).slice(0, 600)));
+    const PF = await get("cz:perf", []);                             // the last three days of big games, for the Daily Drop and milestones
+    await st.put("cz:perf", [...(a.perf || []), ...PF].filter(v => t - v.at < 72 * 3600e3).slice(0, 400));
     await st.put("cz:lvl", L); await st.put("cz:lvdone", [...D, ...(a.done || [])].slice(-4000)); return { ok: true, keys: Object.keys(a.inc || {}).length };
+  }
+  if (a.act === "drops") {                                           // the day's Daily Drop and any new Milestone cards, made once a day
+    if (String(await get("cz:dropday", "")) === String(a.day)) return { already: true };       // stored days can read back as numbers
+    const D = await get("cz:drops", []); await st.put("cz:drops", [...D, ...(a.add || [])].slice(-5000)); await st.put("cz:dropday", a.day);
+    for (const r of (a.add || []).filter(x => x.kind === "ms")) await feed({ kind: "milestone", label: r.name, title: r.title, line: r.line });
+    return { ok: true, added: (a.add || []).length };
   }
   if (a.act === "bsweep") {                                          // challenges nobody answered in 48 hours: stakes back
     const B = await get("cz:bat", []); let n = 0;
@@ -2114,7 +2122,7 @@ export async function czTx(st, a) {
     if (!(start >= 10 && start <= 50000000)) return { error: "Start the bidding between 10 and 50,000,000 coins." };
     const AU = await get("cz:auc", []); if (AU.filter(x => x.seller === u.uid).length >= 10) return { error: "You can run 10 auctions at once." };
     const aid = czRand(6); c.auction = aid;
-    AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, ink: c.ink, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
+    AU.push({ aid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, ink: c.ink, gr: c.gr, seller: u.uid, sellerName: u.name, start, bid: 0, bidder: null, bidderName: null, bids: 0, at: a.now, ends: a.now + hours * 3600e3 });
     await st.put("cz:auc", AU); await st.put("cz:u:" + u.uid, u);
     if (c.supply <= 25) await feed({ kind: "auction", name: u.name, label: c.name, tier: c.tier, n: c.n, supply: c.supply, price: start });
     return { user: czPublic(u), aid };
@@ -2138,6 +2146,18 @@ export async function czTx(st, a) {
     if (x.bidder) return { error: "Someone has bid, so it can't be cancelled." };
     const c = card(x.id); if (c) delete c.auction; await st.put("cz:auc", AU.filter(v => v !== x)); await st.put("cz:u:" + u.uid, u);
     return { user: czPublic(u) };
+  }
+  if (a.act === "grade") {                                           // grade a copy once: pay the fee, get a grade from 4 to 10
+    const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
+    if (busy(c)) return { error: busy(c) };
+    if (c.gr) return { error: "That card has already been graded." };
+    const fee = czGradeFee(a.value, c);
+    if (u.bal < fee && !u.tester) return { error: `Grading this card costs ${fee.toLocaleString()} Cosmic Coins.` };
+    if (!u.tester) u.bal -= fee;
+    c.gr = czGradeRoll(crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32); c.grAt = a.now;
+    await st.put("cz:u:" + u.uid, u); await lb(u);
+    if (c.gr === 10) await feed({ kind: "grade", name: u.name, item: c.id, label: c.name, tier: c.tier, n: c.n, supply: c.supply, gr: 10 });
+    return { user: czPublic(u), grade: c.gr, fee };
   }
   if (a.act === "sell") {                                            // sell back to the shop: coins now, and the copy goes back into packs
     const c = card(a.id); if (!c) return { error: "That card isn't in your collection." };
@@ -2178,7 +2198,7 @@ export async function czTx(st, a) {
     if (!(price >= 10 && price <= 50000000)) return { error: "Ask between 10 and 50,000,000 coins." };
     const M = await get("cz:mkt", []); if (M.filter(x => x.uid === u.uid).length >= 20) return { error: "You can have 20 cards on the market at once." };
     const lid = czRand(6); c.listed = lid;
-    M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, ink: c.ink, price, uid: u.uid, seller: u.name, at: a.now });
+    M.unshift({ lid, id: c.id, n: c.n, supply: c.supply, tier: c.tier, lg: c.lg, name: c.name, kind: c.kind, team: c.team, pos: c.pos, img: c.img, ev: c.ev, evl: c.evl, evc: c.evc, ch: c.ch, ink: c.ink, gr: c.gr, price, uid: u.uid, seller: u.name, at: a.now });
     await st.put("cz:mkt", M.slice(0, 2000)); await st.put("cz:u:" + a.uid, u);
     return { user: czPublic(u), lid };
   }
@@ -2338,17 +2358,33 @@ export const CZ_HOTLINE = {
   nhl: s => [czN(s.G) && `${s.G} G`, czN(s.A) && `${s.A} A`],
   epl: s => [czN(s.G) && `${s.G} goal${s.G > 1 ? "s" : ""}`, czN(s.A) && `${s.A} assist${s.A > 1 ? "s" : ""}`],
 };
+// how big a big game was, to rank last night's performances for the Daily Drop
+export const czPerfScore = (lg, s) => lg === "nba" ? czN(s.PTS) + 1.2 * czN(s.REB) + 1.5 * czN(s.AST) + 2 * (czN(s.STL) + czN(s.BLK))
+  : lg === "nfl" ? czN(s["passing:YDS"]) / 20 + 5 * czN(s["passing:TD"]) + czN(s["rushing:YDS"]) / 8 + czN(s["receiving:YDS"]) / 8 + 7 * (czN(s["rushing:TD"]) + czN(s["receiving:TD"])) + 6 * czN(s["defensive:SACKS"])
+  : lg === "mlb" ? 9 * czN(s["batting:HR"]) + 3 * czN(s["batting:H"]) + 2 * czN(s["batting:RBI"]) + 2.2 * czN(s["pitching:K"])
+  : lg === "nhl" ? 9 * czN(s.G) + 6 * czN(s.A) : lg === "epl" ? 10 * czN(s.G) + 6 * czN(s.A) : 0;
+// milestone feats: the rare single-game marks that get their own one-off Milestone card. [key, title, test]
+export const CZ_FEATS = {
+  nba: [["50pt", "50-Point Game", s => czN(s.PTS) >= 50], ["tdbl", "Triple-Double", s => czN(s.PTS) >= 10 && czN(s.REB) >= 10 && czN(s.AST) >= 10], ["25reb", "25-Rebound Game", s => czN(s.REB) >= 25], ["20ast", "20-Assist Game", s => czN(s.AST) >= 20]],
+  nfl: [["400py", "400-Yard Passer", s => czN(s["passing:YDS"]) >= 400], ["5ptd", "Five TD Passes", s => czN(s["passing:TD"]) >= 5], ["200ry", "200-Yard Rusher", s => czN(s["rushing:YDS"]) >= 200],
+    ["200rec", "200-Yard Receiver", s => czN(s["receiving:YDS"]) >= 200], ["4sack", "Four-Sack Game", s => czN(s["defensive:SACKS"]) >= 4]],
+  mlb: [["3hr", "Three-Homer Game", s => czN(s["batting:HR"]) >= 3], ["5hit", "Five-Hit Game", s => czN(s["batting:H"]) >= 5], ["15k", "15-Strikeout Game", s => czN(s["pitching:K"]) >= 15]],
+  nhl: [["hat", "Hat Trick", s => czN(s.G) >= 3], ["5pt", "Five-Point Night", s => czN(s.G) + czN(s.A) >= 5]],
+  epl: [["hat", "Hat Trick", s => czN(s.G) >= 3], ["3ast", "Three Assists", s => czN(s.A) >= 3]],
+};
+export const czFeats = (lg, s) => (CZ_FEATS[lg] || []).filter(f => f[2](s)).map(f => [f[0], f[1]]);
 export const czHotLine = (lg, st) => (CZ_HOTLINE[lg] ? CZ_HOTLINE[lg](st) : []).filter(Boolean).slice(0, 3).join(" · ");
 export async function czLevels(env, fetchImpl = fetch, now = new Date(), force = false) {
   if (!force && now.getUTCMinutes() % 10 !== 6) return "not time";
-  const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, hot = {}, newDone = []; let fetched = 0;
+  const done = new Set(await czRead(env, "cz:lvdone", [])), inc = {}, hot = {}, perf = [], newDone = []; let fetched = 0;
   for (const lg of TRACK_LEAGUES) for (const day of [dayBefore(etDay(now.getTime())), etDay(now.getTime())]) {
     let games; try { games = (await espnScoreboard(lg, fetchImpl, day)).games || []; } catch { continue; }
     for (const g of games) {
       const key = lg + "/" + g.id; if (done.has(key) || g.status?.state !== "post" || !g.status.completed || fetched >= 16) continue;
       done.add(key); fetched++; let box; try { box = await czBoxStats(lg, g.id, fetchImpl); } catch { done.delete(key); continue; }
       const at = Date.parse(g.date) || now.getTime(), game = `${g.away.short || g.away.name} at ${g.home.short || g.home.name}`;
-      for (const [name, st] of box) if (CZ_BIG[lg](st)) { inc[`${lg}:${name}`] = (inc[`${lg}:${name}`] || 0) + 1; hot[`${lg}:${name}`] = { at, line: czHotLine(lg, st), game, lg }; }
+      for (const [name, st] of box) if (CZ_BIG[lg](st)) { inc[`${lg}:${name}`] = (inc[`${lg}:${name}`] || 0) + 1; hot[`${lg}:${name}`] = { at, line: czHotLine(lg, st), game, lg };
+        perf.push({ k: `${lg}:${name}`, lg, at, line: czHotLine(lg, st), game, score: Math.round(czPerfScore(lg, st) * 10) / 10, feats: czFeats(lg, st), gid: String(g.id) }); }
       const h = parseFloat(g.home.score), a = parseFloat(g.away.score);
       if (isFinite(h) && isFinite(a) && h !== a) { const W = h > a ? g.home : g.away, L = h > a ? g.away : g.home, k = `${lg}:t:${mkey(W.name)}`; inc[k] = (inc[k] || 0) + 1;
         hot[k] = { at, line: `Beat ${L.short || L.name} ${Math.max(h, a)}-${Math.min(h, a)}`, game, lg }; }
@@ -2356,7 +2392,43 @@ export async function czLevels(env, fetchImpl = fetch, now = new Date(), force =
     }
   }
   if (!newDone.length) return { levels: 0 };
-  return cz(env, { act: "levels", inc, hot, done: newDone, now: now.getTime() });
+  return cz(env, { act: "levels", inc, hot, perf, done: newDone, now: now.getTime() });
+}
+/* ---- Daily Drop and Milestones: special cards made from last night's real games ----
+   Each morning (6 am Eastern) the five best performances of the night become Daily Drop cards: 50 numbered copies each,
+   sold for 24 hours, one per collector. A rare single-game feat (CZ_FEATS) becomes a Milestone card: 10 copies, for 48 hours.
+   Each sells at its value: a drop card at 1.25x the player's regular /50, a Milestone at the price of his regular /10 (CZ_DROP). */
+export const CZ_DROP = { drop: { tier: "nebula", prem: 1.25, hours: 24, n: 5, label: "Daily Drop", evl: "🔥 Daily Drop", evc: "#ef4444" },
+  ms: { tier: "supernova", prem: 1, hours: 48, label: "Milestone", evl: "🏆 Milestone", evc: "#eab308" } };
+// the drop's records from the night's performances (perf, from czLevels) and the catalog; used keys never repeat
+export function czMakeDrops(perf, items, day, now, used = new Set()) {
+  const base = new Map(); for (const i of items) if (i.kind === "player" && i.tier === "comet" && !i.legend && !i.moment) base.set(czLvlKey(i), i);
+  const snap = (b, p) => ({ base: b.id, lg: b.lg, name: b.name, team: b.team, pos: b.pos, num: b.num, img: b.img, rc: b.rc, mult: b.mult, line: p.line, game: p.game, at: p.at, day });
+  const fresh = perf.filter(p => now - p.at < 36 * 3600e3 && base.has(p.k)), out = [], seen = new Set();
+  for (const p of fresh.slice().sort((a, b) => b.score - a.score)) { const b = base.get(p.k), key = `dd:${p.k}:${p.at}`;
+    if (seen.has(b.id) || used.has(key) || out.length >= CZ_DROP.drop.n) continue; seen.add(b.id);
+    out.push({ ...snap(b, p), kind: "drop", key, id: `${b.id.replace(/\.comet$/, "")}-dd${day}.${CZ_DROP.drop.tier}`, score: p.score, until: now + CZ_DROP.drop.hours * 3600e3 }); }
+  for (const p of fresh) for (const [fk, title] of p.feats || []) { const b = base.get(p.k), key = `ms:${p.k}:${fk}:${p.at}`; if (used.has(key)) continue; used.add(key);
+    out.push({ ...snap(b, p), kind: "ms", key, feat: fk, title, id: `${b.id.replace(/\.comet$/, "")}-ms${day}${fk}.${CZ_DROP.ms.tier}`, until: now + CZ_DROP.ms.hours * 3600e3 }); }
+  return out;
+}
+// a drop record as a card: the player's card (his current value if he's still on a roster) in its special edition
+export function czDropItem(r, cur) {
+  const D = CZ_DROP[r.kind], T = CZ_TIERS.find(t => t[0] === D.tier), mult = cur ? cur.mult : r.mult || .6, usd = czUsd(T[3] * D.prem, mult, "player", r.lg);
+  return { id: r.id, lg: r.lg, kind: "player", name: r.name, team: cur ? cur.team : r.team, pos: r.pos, num: r.num, img: (cur && cur.img) || r.img, rc: r.rc, no: cur && cur.no,
+    tier: T[0], label: T[1], supply: T[2], mult, usd, price: czCoins(usd), drop: { kind: r.kind, day: r.day, line: r.line, game: r.game, at: r.at, title: r.title, until: r.until } };
+}
+// every drop ever made lives in cz:drops; this puts them in the catalog's lookup (not in packs or the checklist)
+async function czDropsSync(env) {
+  await czCatalog(env); const D = await czRead(env, "cz:drops", []);
+  if (CZ_CAT.dropsN !== D.length) { for (const r of D) CZ_CAT.byId.set(r.id, czDropItem(r, CZ_CAT.byId.get(r.base))); CZ_CAT.dropsN = D.length; }
+  return D;
+}
+export async function czDropTick(env, now = Date.now()) {
+  const day = sportsDay(now); if (String(await czRead(env, "cz:dropday", "")) === day) return "done today";
+  const [items, perf, D] = await Promise.all([czCatalog(env), czRead(env, "cz:perf", []), czRead(env, "cz:drops", [])]);
+  const add = czMakeDrops(perf, items, day, now, new Set(D.map(r => r.key)));
+  return cz(env, { act: "drops", day, add, now });
 }
 export const czLevelOf = (xp, team) => { const T = team ? [3, 8, 15, 25] : [1, 3, 6, 10]; let lv = 1; for (const t of T) if ((xp || 0) >= t) lv++; return lv; };
 const czLvlKey = it => it.kind === "team" ? `${it.lg}:t:${mkey(it.name)}` : `${it.lg}:${mkey(it.name)}`;
@@ -2556,8 +2628,16 @@ export const czCaseMult = ch => (CZ_CASE.inserts.find(i => i[0] === ch) || [])[3
 export const czCasePick = r => { let x = r * CZ_CASE_W; for (const i of CZ_CASE.inserts) { x -= i[4]; if (x < 0) return i[0]; } return CZ_CASE.inserts[CZ_CASE.inserts.length - 1][0]; };
 // Cosmic Ink: a signature-style insert. About 1 player card in 75 comes out signed in gold ink, worth twice the regular card.
 export const CZ_INK = { rate: 1 / 75, mult: 2 };
-// a copy's worth next to the regular card: a case hit 2x to 8x by its design, an ink card 2x
-export const czCopyMult = c => c && c.ch ? czCaseMult(c.ch) : c && c.ink ? CZ_INK.mult : 1;
+// grading: a copy can be sent in once for a grade from 4 to 10, like a real slab. The grade moves its worth: a Gem Mint 10 is
+// 3x, a 9 1.5x, down to 0.6x for a 4. [grade, name, times the ungraded copy, chance in %]. On average a grade adds about 18%,
+// and the fee is 20% of the copy's value (at least 50 coins), so grading is a gamble that slowly takes coins out of the game.
+export const CZ_GRADES = [[10, "Gem Mint", 3, 5], [9, "Mint", 1.5, 20], [8, "NM-MT", 1.1, 30], [7, "Near Mint", 1, 20], [6, "EX-MT", .9, 12], [5, "Excellent", .75, 8], [4, "VG-EX", .6, 5]];
+export const CZ_GRADE_FEE = .2, CZ_GRADE_MIN = 50;
+export const czGradeMult = g => g ? ((CZ_GRADES.find(x => x[0] === g) || [])[2] || 1) : 1;
+export const czGradeRoll = r => { let x = r * 100; for (const g of CZ_GRADES) { x -= g[3]; if (x < 0) return g[0]; } return CZ_GRADES[CZ_GRADES.length - 1][0]; };
+export const czGradeFee = (value, c) => Math.max(CZ_GRADE_MIN, Math.round(value * czCopyMult(c) * CZ_GRADE_FEE));
+// a copy's worth next to the regular card: a case hit 2x to 8x by its design, an ink card 2x, times its grade if it has one
+export const czCopyMult = c => (c && c.ch ? czCaseMult(c.ch) : c && c.ink ? CZ_INK.mult : 1) * czGradeMult(c && c.gr);
 // set checklists: collect one card (any tier) of every player in a set, then claim its reward once
 //   <lg> Superstars: the 12 players collectors chase most in that league (tennis: 6 from each tour)
 //   <lg> Rookie Class: the league's most collected first-year players; QB Club: the 12 most collected quarterbacks
@@ -2608,7 +2688,7 @@ async function czPriceAlerts(env, items) {
 // a card by id, even one whose player has since left the rosters (valued as an ordinary player card of its tier)
 const czTrendOf = it => (CZ_CAT && CZ_CAT.trend[czLvlKey(it)]) || 0;         // % change in the card's price level over the last week
 async function czItem(env, id) {
-  await czCatalog(env); const it = CZ_CAT.byId.get(id); if (it) return it;
+  await czCatalog(env); if (/-(dd|ms)\d{8}/.test(id)) await czDropsSync(env); const it = CZ_CAT.byId.get(id); if (it) return it;
   const tier = CZ_TIERS.find(t => id.endsWith("." + t[0])); if (!tier) return null;
   return { id, tier: tier[0], label: tier[1], supply: tier[2], usd: czUsd(tier[3], .6, "player", id.split(".")[0]), price: czCoins(czUsd(tier[3], .6, "player", id.split(".")[0])), lg: id.split(".")[0], name: "", kind: "player" };
 }
@@ -2763,16 +2843,20 @@ export async function cosmicRoute(req, env, ctx, url) {
   if (p === "/levels" && req.method === "GET") { const [L, H] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {})]);
     return json({ xp: L, hot: Object.fromEntries(Object.entries(H).filter(([, v]) => now - v.at < 30 * 3600e3)) }, 200, { "Cache-Control": "public, max-age=300" }); }
   if (p === "/market" && req.method === "GET") return json({ listings: (await czRead(env, "cz:mkt", [])).slice(0, 600), fee: CZ_FEE }, 200, { "Cache-Control": "no-store" });
+  if (p === "/drops" && req.method === "GET") { const D = await czDropsSync(env), [mint, ret] = await Promise.all([czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]);
+    const live = D.filter(r => now < r.until).map(r => { const it = CZ_CAT.byId.get(r.id), held = (mint[r.id] || 0) - (ret[r.id] || []).length;
+      return { ...it, kind: r.kind, title: r.title, line: r.line, game: r.game, until: r.until, left: Math.max(0, it.supply - held), ev: r.kind, evl: CZ_DROP[r.kind].evl, evc: CZ_DROP[r.kind].evc }; });
+    return json({ now, drops: live.filter(x => x.kind === "drop").sort((a, b) => b.price - a.price), ms: live.filter(x => x.kind === "ms") }, 200, { "Cache-Control": "no-store" }); }
   if (p === "/packs" && req.method === "GET") return json({ prices: (await czCatalog(env), czPackPrices()), ret: CZ_RETURN, now, events: (E => [...E.filter(e => e.status === "live"), ...E.filter(e => e.status === "soon").slice(0, 2)])(czEventsAt(now)).map(e => ({ ...e, price: czEvPrice(e) })), packs: CZ_PACKS, tiers: CZ_TIERS.map(([id, label, supply]) => ({ id, label, supply })), scopes: Object.keys(CZ_SCOPES), kinds: CZ_KINDS });
   // anyone's collection, by player name: their cards (rarest first) and a few public numbers. Nothing private (no coins,
   // bets or account details), the same as what leaderboards and the Market already show.
   if (p === "/collection" && req.method === "GET") { const nm = String(url.searchParams.get("name") || "").toLowerCase().slice(0, 40);
     const uid = (await czRead(env, "cz:names", {}))[nm], who = uid ? await czRead(env, "cz:u:" + uid, null) : null;
     if (!who) return json({ error: "That player isn't in Cosmic." }, 404);
-    await czCatalog(env); const order = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
+    await czDropsSync(env); const order = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
     const items = (who.items || []).map(i => { const c = CZ_CAT.byId.get(i.id) || {};
       return { id: i.id, n: i.n, supply: i.supply, tier: i.tier, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num, rc: i.rc || c.rc,
-        legend: i.legend || c.legend, moment: i.moment || c.moment, rank: i.rank || c.rank, year: i.year || c.year, ch: i.ch, ink: i.ink, ev: i.ev, evl: i.evl, evc: i.evc, at: i.at, value: c.price || 0 }; })
+        legend: i.legend || c.legend, moment: i.moment || c.moment, rank: i.rank || c.rank, year: i.year || c.year, ch: i.ch, ink: i.ink, gr: i.gr, ev: i.ev, evl: i.evl, evc: i.evc, at: i.at, value: c.price || 0 }; })
       .sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier) || !!b.ch - !!a.ch || b.value - a.value);
     return json({ name: who.name, cards: items.length, value: items.reduce((s, i) => s + i.value, 0), packs: who.packs || 0, sets: (who.setsDone || []).length,
       rank: who.sp && who.sp.season === czSeasonOf(now) ? czRankOf(who.sp.pts || 0)[1] : null, items: items.slice(0, 300) }, 200, { "Cache-Control": "no-store" }); }
@@ -3019,6 +3103,14 @@ export async function cosmicRoute(req, env, ctx, url) {
     const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[it.id] || 0) - (ret[it.id] || []).length });
     const r = await cz(env, { act: "sell", uid: u.uid, now, id: it.id, value: V.value }); return json(r, r.error ? 409 : 200);
   }
+  if (p === "/grade" && req.method === "POST") {
+    const d = await czBody(req), it = await czItem(env, String(d.item || ""));
+    if (!it) return json({ error: "That card isn't in Cosmic." }, 404);
+    const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), k = czLvlKey(it);
+    const V = czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[it.id] || 0) - (ret[it.id] || []).length });
+    if (d.preview) { const c = (u.items || []).find(x => x.id === it.id); return json({ fee: czGradeFee(V.value, c), grades: CZ_GRADES }); }
+    const r = await cz(env, { act: "grade", uid: u.uid, now, id: it.id, value: V.value }); return json(r, r.error ? 409 : 200);
+  }
   // Sell all: the cards to sell (up to 500), valued the same way as one at a time. With preview, only says what they'd bring.
   if (p === "/sellmany" && req.method === "POST") {
     const d = await czBody(req), ids = [...new Set((Array.isArray(d.items) ? d.items : []).map(String))].slice(0, 500);
@@ -3048,6 +3140,18 @@ export async function cosmicRoute(req, env, ctx, url) {
     if (E && E.status !== "live") return json({ error: E.status === "soon" ? `The ${E.label} opens soon. Check the countdown on the Packs tab.` : `The ${E.label} has ended.` }, 409);
     const TP = /^tp:(nfl|nba|mlb|nhl|epl):[a-z0-9-]{1,60}$/.test(want) ? (await czTeamPacks(env, want.split(":")[1])).find(t => t.id === want) : null;
     if (want.startsWith("tp:") && !TP) return json({ error: "That team pack isn't available." }, 404);
+    if (want.startsWith("dd:")) {                                   // a Daily Drop or Milestone card: one copy, at its price, while it's on sale
+      const D = await czDropsSync(env), r = D.find(x => x.id === want.slice(3)), it = r && CZ_CAT.byId.get(r.id);
+      if (!r || !it) return json({ error: "That drop isn't available." }, 404);
+      if (now >= r.until) return json({ error: `That ${CZ_DROP[r.kind].label} has ended.` }, 409);
+      const K = CZ_DROP[r.kind], pkd = { id: want, label: r.title ? `${r.title} Milestone` : K.label, price: it.price, cards: 1, odds: CZ_TIERS.map(t => t[0] === it.tier ? 100 : 0), ch: CZ_CASE.rate,
+        ev: r.kind, evl: K.evl, evc: K.evc, max: 1e9 };
+      const pool = [{ id: it.id, tier: it.tier, supply: it.supply, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}) }];
+      const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
+      const res = await cz(env, { act: "pack", uid: u.uid, now, pack: pkd, pool, free: false, rid, count: 1 });
+      if (res && res.cards) res.cards = res.cards.map(c => ({ ...c, value: Math.round(it.price * czCopyMult(c)) }));
+      return json(res && res.error && /every card this pack/.test(res.error) ? { ...res, error: "You already have this one, or it's sold out." } : res, res.error ? 409 : 200);
+    }
     let pk = E ? { id: E.pack, label: E.label, price: E.price, cards: E.cards, odds: E.odds, ch: E.ch, max: E.max, ev: E.id, evl: `${E.emoji} ${E.label.replace(/ Pack$/, "")}`, evc: E.color }
       : TP ? { id: TP.id, label: TP.label, price: TP.price, cards: CZ_TEAM_PACK.cards, odds: CZ_TEAM_PACK.odds, ch: CZ_TEAM_PACK.ch }
       : CZ_PACKS.find(x => x.id === want), scope = E || TP ? "all" : Object.hasOwn(CZ_SCOPES, d.scope) ? d.scope : "all";
@@ -3200,6 +3304,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czNanFix(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
