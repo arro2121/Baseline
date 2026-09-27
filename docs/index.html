@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-KelGL+GPRmaUJPkLYpptqMZUbOB+PE/yT99a5NPGP4I='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-UPCIZujdJDrsaCgVBJKyIKij3+30ZtwmnaucR2BGFps='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1713,7 +1713,10 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.l-2 .czbig{bottom:auto;top:13.5%;left:10%}
 .czcard.czcard.l-3 .czbig{font-size:44cqw;top:8%}
 .czcard.czcard .czat{top:auto;bottom:83%}
-.czcard.czcard.czcard .czc-mid .czhs{bottom:0}.czcard.czcard.legend .czposb{display:none!important}
+/* the photo hangs from the bottom and never reaches the labels above it, so no head is cut off or covered: under the top
+   row on a plain card; below the title band on cards that have one (inserts, Cosmic Ink, the jersey-number layout) */
+.czcard.czcard.czcard .czc-mid .czhs{top:auto;bottom:0;height:98%}
+.czcard.czcard.czcard.ch .czc-mid .czhs,.czcard.czcard.czcard.ink .czc-mid .czhs,.czcard.czcard.czcard.l-3 .czc-mid .czhs,.czcard.czcard.czcard.l-1 .czc-mid .czhs{height:72%}.czcard.czcard.legend .czposb{display:none!important}
 .czink span{font:700 10.5cqw/1 "Cosmo Ink","Dancing Script","Snell Roundhand","Segoe Script","Brush Script MT",cursive;color:#fde68a;white-space:nowrap;overflow:hidden;max-width:100%;text-shadow:0 1px 0 #92400e,0 0 8px rgba(0,0,0,.6),0 0 14px rgba(251,191,36,.5)}
 /* the signature font ships with the app (fonts/), so ink cards are signed in the same cursive on every device */
 @font-face{font-family:"Cosmo Ink";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/dancing-script-700-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2212}
@@ -1808,6 +1811,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
   .czcard.czcard.czcard .czink,.czcard.czcard.czcard .czch-logo,.czcard.czcard.czcard .czbig,.czcard.czcard.czcard .czsnd,.czcard.czcard.czcard .czposb,
   .czcard.czcard.czcard .czno,.czcard.czcard.czcard .czat,.czcard.czcard.czcard .czev,.czcard.czcard.czcard .czc-lg{display:none!important}
   .czcard.czcard.czcard.legend .czc-mid .czhs{top:24%;height:50%}
+  .czcard.czcard.czcard.czcard:not(.legend) .czc-mid .czhs{height:98%}
   /* an ink card this small is signed on its name plate instead: the gold signature takes the printed name's place */
 }
 @container (max-width:90px){ .czcard.czcard.czcard.legend .czc-mid .czhs{top:29%;height:45%} }
@@ -1860,28 +1864,10 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.czcard.czcard.czcard.ch-rift .czch-logo{animation:czglitch 3.4s steps(1) infinite}
 .czcard.czcard.czcard.czcard.ch-kaleido .czch-logo{animation:czhue 8s linear infinite}
 .czcard.czcard.czcard.czcard.ch-aurora .czch-logo{background:linear-gradient(90deg,#6ee7b7,#22d3ee,#a78bfa,#34d399,#6ee7b7) 0 0/300% 100%;-webkit-background-clip:text;background-clip:text;animation:czflow 7s linear infinite}
-/* a printed-card finish: a static metallic frame in the insert's colour with a thin inner keyline, an etched hairline
-   texture and a soft vignette over the art, and clean condensed lettering with one crisp shadow (no flicker, glitch or glow) */
-.czcard.czcard.czcard.czcard.ch{--tf:linear-gradient(150deg,color-mix(in srgb,var(--pe) 65%,#fff),color-mix(in srgb,var(--pe) 55%,#000) 36%,var(--pe) 60%,color-mix(in srgb,var(--pe) 40%,#000));border-width:4px;background-size:auto;animation:none;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 12px 26px -14px #000}
-.czcard.czcard.czcard.czcard.ch.t-singularity{border-width:5px;animation:none;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 14px -4px var(--gl),0 12px 26px -14px #000}
-.czcard.czcard.czcard.czcard.ch .czdz::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(255,255,255,.06) 0 1px,transparent 1px 3.5px),radial-gradient(120% 90% at 50% 42%,transparent 55%,rgba(0,0,0,.42));mix-blend-mode:overlay}
-.czcard.czcard.czcard.czcard.ch .czdz::before{content:"";position:absolute;inset:2.2cqw;z-index:2;border:1px solid color-mix(in srgb,var(--pe) 50%,transparent);border-radius:1.6cqw;pointer-events:none}
-.czcard.czcard.czcard.czcard.ch-neon .czdz::before,.czcard.czcard.czcard.czcard.ch-gold .czdz::before{display:none}
-.czcard.czcard.czcard.czcard.ch .czc-foil{opacity:.3}
-.czcard.czcard.czcard.czcard.ch .czch-logo{font-weight:800;font-stretch:75%;letter-spacing:.12em;font-size:7.2cqw;animation:none;
-  background:linear-gradient(180deg,#fff,color-mix(in srgb,var(--pe) 40%,#fff) 46%,color-mix(in srgb,var(--pe) 85%,#000) 54%,color-mix(in srgb,var(--pe) 60%,#fff));-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 .3cqw 0 rgba(0,0,0,.7))}
-.czcard.czcard.czcard.czcard.ch-crown .czch-logo{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-stretch:100%;letter-spacing:.1em;font-size:6.8cqw}
-.czcard.czcard.czcard.czcard.ch .czch-logo{-webkit-text-fill-color:transparent;text-shadow:none;font-style:normal}
-.czcard.czcard.czcard.czcard.ch-gold .czc-stock{background:repeating-linear-gradient(115deg,rgba(255,247,214,.07) 0 1px,transparent 1px 5px),linear-gradient(160deg,#5c2a06,#a1520a 35%,#c7780f 55%,#6b3307)}
-.czcard.czcard.czcard.czcard.ch-kaleido .czc-stock{background:linear-gradient(rgba(20,13,46,.74),rgba(20,13,46,.74)),conic-gradient(from 0deg at 50% 45%,#f472b6,#fbbf24,#34d399,#38bdf8,#a78bfa,#f472b6)}
-.czcard.czcard.czcard.czcard.ch-kaleido .czdz i{opacity:.35;animation:none}
-.czcard.czcard.czcard.czcard.ch-diamond .czc-stock{background:conic-gradient(from 45deg,#eef2ff 25%,#e0e7ff 0 50%,#f5f7ff 0 75%,#dde3ff 0) 0 0/6cqw 6cqw}
-.czcard.czcard.czcard.czcard.ch-gold .czch-logo{background:linear-gradient(180deg,#fff7d6,#fde68a 46%,#92400e 54%,#fbbf24);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 .3cqw 0 #3b1d04)}
-.czcard.czcard.czcard.czcard.ch-diamond .czch-logo{background:linear-gradient(180deg,#4338ca,#1e1b4b 50%,#312e81);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 .25cqw 0 rgba(255,255,255,.9))}
-.czcard.czcard.czcard.czcard.ch .czch-logo small{display:flex;align-items:center;gap:1.4cqw;font-weight:700;letter-spacing:.34em;font-stretch:100%;color:color-mix(in srgb,var(--pe) 60%,#fff);-webkit-text-fill-color:color-mix(in srgb,var(--pe) 60%,#fff)}
-.czcard.czcard.czcard.czcard.ch .czch-logo small::before,.czcard.czcard.czcard.czcard.ch .czch-logo small::after{content:"";width:5cqw;height:1px;background:currentColor;opacity:.6}
-.czcard.czcard.czcard.czcard.ch-diamond .czch-logo small,.czcard.czcard.czcard.czcard.ch-gold .czch-logo small{color:#312e81;-webkit-text-fill-color:#312e81}.czcard.czcard.czcard.czcard.ch-gold .czch-logo small{color:#451a03;-webkit-text-fill-color:#451a03}
+/* the living details */
+.czchart .czember circle{animation:czemb 3.2s linear infinite}@keyframes czemb{from{transform:translateY(0);opacity:1}to{transform:translateY(-58px);opacity:0}}
+.czchart .czsnow circle{animation:czsnowf 6s linear infinite}@keyframes czsnowf{from{transform:translateY(0)}to{transform:translateY(150px)}}
+.czchart .cztw > g{animation:cztwk 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes cztwk{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
 .czcard.t-comet .czchart *,.czcard.t-comet .czch-logo{animation:none!important}
 @media (prefers-reduced-motion:reduce){.czcard.ch,.czcard.ch *{animation:none!important}}
 
@@ -6195,7 +6181,7 @@ async function czLoad(what = ["me", "board", "vault", "lb", "rookies", "teampack
     if (w === "rookies"){ CZ.rookies = await czApi("/rookies"); return; }
     if (w === "sets"){ const lg = CZ.setlg || "all"; const r = await czApi("/sets?lg=" + lg); (CZ.sets ||= {})[lg] = r.sets; return; }
     if (w === "drops"){ CZ.drops = await czApi("/drops"); return; }
-    if (w === "grails"){ CZ.grails = (await czApi("/grails")).grails; return; }
+    if (w === "grails"){ const r = await czApi("/grails"); CZ.grails = r.grails; CZ.grailOdds = r.odds || []; return; }
     if (w === "teampacks"){ const lg = ["nfl", "nba", "mlb", "nhl", "epl"].includes(CZ.scope) ? CZ.scope : null; CZ.tpacks = lg ? { lg, ...(await czApi("/teampacks?lg=" + lg)) } : null; return; }
     if (w === "me" && czKey()){ const M = await czApi("/me"); CZ.me = M.user; CZ.pxAlerts = M.pxAlerts || []; CZ.meErr = false; lsSet("cz-lastname", CZ.me.name);
       const ob = (CZ.me.outbid || []).filter(o => o.at > lsGet("cz-ob-seen", 0)), wa = (CZ.me.wonAuc || []).filter(o => o.at > lsGet("cz-wa-seen", 0));
@@ -6320,9 +6306,10 @@ const CZ_CASE_NAME = { horizon: "Event Horizon", starfall: "Starfall", crown: "G
 const CZ_CASE_LV = { crown: ["mythic", 8, 2], diamond: ["mythic", 8, 2], horizon: ["legendary", 5, 4], gold: ["legendary", 5, 4],
   starfall: ["epic", 3, 7], flame: ["epic", 3, 7], kaleido: ["epic", 3, 7], rift: ["epic", 3, 7], frost: ["rare", 2, 12], volt: ["rare", 2, 12], neon: ["rare", 2, 12], aurora: ["rare", 2, 12] };
 // grading: [grade, name, times the ungraded copy, chance in %] (the same table as the worker's CZ_GRADES)
-const CZ_GRADES = [[10, "Gem Mint", 3, 5], [9, "Mint", 1.5, 20], [8, "NM-MT", 1.1, 30], [7, "Near Mint", 1, 20], [6, "EX-MT", .9, 12], [5, "Excellent", .75, 8], [4, "VG-EX", .6, 5]];
+const CZ_GRADES = [[10, "Gem Mint", 2.5, 25], [9, "Mint", 1.1, 35], [8, "NM-MT", .8, 20], [7, "Near Mint", .7, 9], [6, "EX-MT", .6, 5], [5, "Excellent", .5, 3], [4, "VG-EX", .4, 1.5], [3, "Very Good", .3, .8], [2, "Good", .25, .4], [1, "Poor", .2, .3]];
+const CZ_GRADE_FEE = .3;                                            // the worker's CZ_GRADE_FEE
 const czGr = g => CZ_GRADES.find(x => x[0] === g) || null, czGrMult = g => (czGr(g) || [0, "", 1])[2];
-const czGrShort = g => g === 10 ? "GEM MT" : g === 9 ? "MINT" : g === 8 ? "NM-MT" : g === 7 ? "NM" : g === 6 ? "EX-MT" : g === 5 ? "EX" : "VG-EX";
+const czGrShort = g => ({ 10: "GEM MT", 9: "MINT", 8: "NM-MT", 7: "NM", 6: "EX-MT", 5: "EX", 4: "VG-EX", 3: "VG", 2: "GOOD", 1: "PR" })[g] || "";
 const CZ_LV_NAME = { mythic: "Mythic", legendary: "Legendary", epic: "Epic", rare: "Rare" }, CZ_LV_COL = { mythic: "#f0abfc", legendary: "#fcd34d", epic: "#a78bfa", rare: "#7dd3fc" };
 const czChLv = ch => { const l = CZ_CASE_LV[ch] || ["epic", 3, 7]; return { id: l[0], name: CZ_LV_NAME[l[0]], x: l[1], w: l[2] }; };
 // how many cards, on average, for one copy of this design: the case-hit rate times its share of case hits
@@ -6338,7 +6325,6 @@ const CZ_CASE_ART = (() => {
   const bolt = (pts, cls = "") => `<g class="bolt ${cls}"><polyline points="${pts}" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".45" stroke-linejoin="round"/><polyline points="${pts}" fill="none" stroke="#fef9c3" stroke-width="1.1" stroke-linejoin="round"/></g>`;
   const bar = (x, y) => `<g><path d="M${x} ${y}h16l-3 -6h-10z" fill="#fde68a"/><path d="M${x} ${y}h16v5h-16z" fill="#b45309"/><path d="M${x + 3} ${y - 6}h10l3 6h-16z" fill="#fbbf24"/><path d="M${x + 4} ${y - 5}h7" stroke="#fff7d6" stroke-width=".8"/></g>`;
   const col = x => `<g><rect x="${x}" y="30" width="11" height="110" fill="#3b0d0d"/><rect x="${x + 2}" y="30" width="2" height="110" fill="#7f1d1d"/><rect x="${x + 7}" y="30" width="1.5" height="110" fill="#1c0505"/><rect x="${x - 2}" y="26" width="15" height="5" fill="#b45309"/><path d="M${x - 1} 26h13l-2 -4h-9z" fill="#fbbf24"/>${flame(x + 5.5, 5, 16, "#f97316", "f2")}</g>`;
-  const LN = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join("");
   const back = {
     horizon: `${dots(40, 7)}<circle cx="50" cy="62" r="30" fill="#f59e0b" opacity=".12"/><circle cx="50" cy="62" r="22" fill="#fb923c" opacity=".22"/>
       <ellipse class="czhzd" cx="50" cy="64" rx="46" ry="9" fill="none" stroke="#fbbf24" stroke-width="5" stroke-dasharray="14 6" opacity=".75"/>
@@ -6348,27 +6334,54 @@ const CZ_CASE_ART = (() => {
       <g class="czsf">${[[82, 46, 30], [62, 50, 22], [97, 58, 26], [30, 52, 18], [75, 80, 20], [20, 66, 16], [55, 92, 14], [98, 96, 22], [12, 88, 12]].map(([x, y, l]) => `<path d="M${x} ${y}L${x - l * .55} ${y + l}" stroke="#fde68a" stroke-width="${(l / 20).toFixed(1)}" stroke-linecap="round" opacity=".35"/><path d="M${x - l * .35} ${y + l * .64}L${x - l * .55} ${y + l}" stroke="#fff" stroke-width="${(l / 14).toFixed(1)}" stroke-linecap="round"/>${star(+(x - l * .55).toFixed(1), y + l, l / 8, "#fff7d6")}`).join("")}</g>`,
     crown: `${dots(40, 11, "#e9d5ff")}<g class="czgx" style="transform-origin:50px 55px">${[0, 30, 60, 90, 120, 150].map(a => `<ellipse cx="50" cy="55" rx="44" ry="14" transform="rotate(${a} 50 55)" fill="none" stroke="#c4b5fd" stroke-width=".8" opacity=".2"/>`).join("")}<path d="M50 55 m-38 0 a38 14 20 0 1 38 -14 a30 12 20 0 1 30 18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/><path d="M50 55 m38 0 a38 14 20 0 1 -38 14 a30 12 20 0 1 -30 -18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/></g>
       <circle cx="50" cy="55" r="20" fill="#a78bfa" opacity=".25"/><circle cx="50" cy="55" r="9" fill="#fde68a" opacity=".45"/>`,
-    flame: `<radialGradient id="czgFl" cx=".5" cy="1" r=".75"><stop offset="0" stop-color="#ea580c" stop-opacity=".55"/><stop offset=".6" stop-color="#7f1d1d" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><rect width="100" height="140" fill="url(#czgFl)"/>${LN(9, i => { const x = 6 + i * 11, h = 50 + (i * 37) % 45; return `<path d="M${x} 142C${x - 7} ${142 - h * .35} ${x + 8} ${142 - h * .6} ${x + 1} ${142 - h}C${x + 5} ${142 - h * .7} ${x + 11} ${142 - h * .45} ${x + 6} 142" fill="none" stroke="${i % 2 ? "#fbbf24" : "#f97316"}" stroke-width="${i % 3 ? .6 : 1}" opacity="${i % 2 ? .45 : .6}"/>`; })}${LN(14, i => `<path d="M0 ${40 + i * 7}H100" stroke="#fed7aa" stroke-width=".15" opacity=".12"/>`)}`,
-    frost: `${LN(22, i => `<path d="M${-40 + i * 7} 0L${i * 7} 140" stroke="#e0f2fe" stroke-width=".22" opacity=".16"/>`)}<path d="M0 0H40L10 62Z" fill="#bae6fd" opacity=".16"/><path d="M100 0H60L90 70Z" fill="#e0f2fe" opacity=".14"/><path d="M40 0L50 24 60 0Z" fill="#fff" opacity=".12"/><path d="M0 140V80L32 140Z" fill="#7dd3fc" opacity=".14"/><path d="M100 140V90L68 140Z" fill="#bae6fd" opacity=".14"/><path d="M0 0H40L10 62ZM100 0H60L90 70ZM0 140V80L32 140ZM100 140V90L68 140Z" fill="none" stroke="#f0f9ff" stroke-width=".35" opacity=".55"/>`,
-    gold: `${LN(40, i => `<path d="M50 62L${(50 + 95 * Math.cos(i * Math.PI / 20)).toFixed(1)} ${(62 + 95 * Math.sin(i * Math.PI / 20)).toFixed(1)}" stroke="#fef3c7" stroke-width=".25" opacity=".22"/>`)}${LN(16, i => `<circle cx="50" cy="62" r="${12 + i * 4}" fill="none" stroke="${i % 2 ? "#fde68a" : "#92400e"}" stroke-width="${i % 4 ? .25 : .5}" opacity=".45"/>`)}${LN(24, i => `<ellipse cx="50" cy="62" rx="30" ry="12" transform="rotate(${i * 7.5} 50 62)" fill="none" stroke="#fff7d6" stroke-width=".18" opacity=".35"/>`)}`,
-    volt: `<g fill="none" stroke="#22d3ee"><circle cx="50" cy="52" r="26" stroke-width=".5" opacity=".6"/><circle cx="50" cy="52" r="34" stroke-width=".3" stroke-dasharray="1 2" opacity=".5"/><circle cx="50" cy="52" r="44" stroke-width=".25" opacity=".35"/></g>${LN(36, i => { const a = i * Math.PI / 18; return `<path d="M${(50 + 28 * Math.cos(a)).toFixed(1)} ${(52 + 28 * Math.sin(a)).toFixed(1)}L${(50 + (46 + i % 3 * 8) * Math.cos(a)).toFixed(1)} ${(52 + (46 + i % 3 * 8) * Math.sin(a)).toFixed(1)}" stroke="#a5f3fc" stroke-width=".25" opacity=".4"/>`; })}<path d="M-4 110Q30 96 50 104T104 92" fill="none" stroke="#fef9c3" stroke-width=".7" opacity=".55"/><path d="M-4 118Q34 104 56 112T104 100" fill="none" stroke="#22d3ee" stroke-width=".4" opacity=".5"/>`,
-    kaleido: `${LN(12, i => `<path d="M50 52L${(50 + 80 * Math.cos(i * Math.PI / 6)).toFixed(1)} ${(52 + 80 * Math.sin(i * Math.PI / 6)).toFixed(1)}L${(50 + 80 * Math.cos((i + 1) * Math.PI / 6)).toFixed(1)} ${(52 + 80 * Math.sin((i + 1) * Math.PI / 6)).toFixed(1)}Z" fill="${["#f472b6", "#fbbf24", "#34d399", "#38bdf8", "#a78bfa", "#fb7185"][i % 6]}" opacity=".13" stroke="#fff" stroke-width=".25" stroke-opacity=".5"/>`)}<circle cx="50" cy="52" r="24" fill="none" stroke="#fff" stroke-width=".4" opacity=".5"/><circle cx="50" cy="52" r="44" fill="none" stroke="#fff" stroke-width=".3" opacity=".35"/>`,
-    rift: `${dots(50, 13)}<path d="M-5 22L22 38 14 50 40 62 32 78 62 88 56 104 105 126" fill="none" stroke="#c026d3" stroke-width="6" opacity=".18" stroke-linejoin="round"/><path d="M-5 22L22 38 14 50 40 62 32 78 62 88 56 104 105 126" fill="none" stroke="#f5d0fe" stroke-width=".9" stroke-linejoin="round"/><path d="M22 38L28 33M40 62L47 58M62 88L69 84" stroke="#22d3ee" stroke-width=".4" opacity=".7"/>`,
-    neon: `${LN(35, i => `<path d="M0 ${i * 4}H100" stroke="#f0abfc" stroke-width=".15" opacity=".1"/>`)}<path d="M0 104H100" stroke="#f0abfc" stroke-width=".6" opacity=".8"/>${LN(11, i => `<path d="M50 104L${-50 + i * 20} 140" stroke="#22d3ee" stroke-width=".35" opacity=".55"/>`)}${LN(5, i => `<path d="M0 ${108 + i * i * 1.6}H100" stroke="#22d3ee" stroke-width=".3" opacity="${(.25 + i * .08).toFixed(2)}"/>`)}`,
-    aurora: `${dots(35, 19)}<path d="M-10 60 C10 20 30 70 50 30 S80 50 110 18 V55 C80 80 60 60 50 75 S20 70 -10 90Z" fill="#34d399" opacity=".28"/><path d="M-10 40 C20 10 40 45 60 15 S90 30 110 5 V30 C85 50 65 35 55 50 S20 45 -10 65Z" fill="#a78bfa" opacity=".22"/>${LN(30, i => `<path d="M${i * 3.5} 8V92" stroke="#d1fae5" stroke-width=".18" opacity=".12"/>`)}<path d="M0 112H100" stroke="#6ee7b7" stroke-width=".4" opacity=".45"/>`,
-    diamond: `${LN(20, i => `<path d="M${-40 + i * 8} 0L${40 + i * 8} 140M${140 - i * 8} 0L${60 - i * 8} 140" stroke="#fff" stroke-width=".22" opacity=".3"/>`)}<g opacity=".38"><path d="M20 38L34 22H66L80 38L50 88Z" fill="#c7d2fe"/><path d="M20 38H80L50 88Z" fill="#a5b4fc"/><path d="M34 22L42 38H58L66 22Z" fill="#fff"/><path d="M58 38H80L50 88Z" fill="#818cf8"/><path d="M20 38L34 22H66L80 38L50 88Z M20 38H80 M42 38L50 88L58 38 M34 22L42 38M66 22L58 38M50 22V38" fill="none" stroke="#fff" stroke-width=".5"/></g>`,
+    flame: `<rect width="100" height="140" fill="#1c0a05"/><path d="M0 30Q50 10 100 30V0H0Z" fill="#450a0a"/><path d="M8 30Q50 12 92 30" fill="none" stroke="#b45309" stroke-width="1.5"/>${col(2)}${col(87)}
+      <path d="M30 140V95h40v45" fill="#2a0a05"/><path d="M26 95h48l-4 -5h-40z" fill="#b45309"/>${flame(50, 30, 70, "#dc2626", "")}${flame(40, 16, 50, "#f97316", "f2")}${flame(60, 16, 55, "#f97316", "f3")}${flame(50, 12, 38, "#fde047", "f2")}`,
+    frost: `<path d="M0 140V100l10 -30 8 34 6 -48 10 44 6 -20 6 60Z" fill="#7dd3fc" opacity=".35"/><path d="M100 140V96l-9 -34 -7 36 -6 -44 -9 42 -6 -18 -5 62Z" fill="#bae6fd" opacity=".35"/>
+      <path d="M6 140l8 -60 6 60M30 140l4 -30 5 30M88 140l-6 -56 -7 56M70 140l-3 -26 -4 26" fill="#e0f2fe" opacity=".5"/>
+      ${flake(10, 50, 5)}${flake(85, 30, 6)}${flake(20, 62, 3.5)}${flake(80, 70, 4)}${flake(50, 12, 3)}${flake(64, 92, 3)}${dots(30, 5, "#e0f2fe")}`,
+    gold: `${Array.from({ length: 16 }, (_, i) => `<path d="M50 55L${(50 + 90 * Math.cos(i * Math.PI / 8)).toFixed(1)} ${(55 + 90 * Math.sin(i * Math.PI / 8)).toFixed(1)}L${(50 + 90 * Math.cos(i * Math.PI / 8 + .18)).toFixed(1)} ${(55 + 90 * Math.sin(i * Math.PI / 8 + .18)).toFixed(1)}Z" fill="#fef3c7" opacity=".16"/>`).join("")}
+      <circle cx="50" cy="66" r="26" fill="none" stroke="#fde68a" stroke-width="2.5" opacity=".7"/><circle cx="50" cy="66" r="22.5" fill="none" stroke="#92400e" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".8"/>
+      ${bar(2, 118)}${bar(18, 118)}${bar(66, 118)}${bar(82, 118)}${bar(10, 111)}${bar(74, 111)}${bar(6, 104)}${bar(78, 104)}`,
+    volt: `<g fill="none" stroke="#22d3ee" opacity=".5"><ellipse cx="50" cy="52" rx="34" ry="34" stroke-width="1" stroke-dasharray="3 4" class="czspin"/><ellipse cx="50" cy="52" rx="42" ry="42" stroke-width=".6" stroke-dasharray="1 5"/><circle cx="50" cy="52" r="26" stroke="#6366f1" stroke-width="3" opacity=".6"/></g>
+      ${bolt("4,44 13,64 6,68 17,92 10,96 20,122")}${bolt("96,46 87,64 94,68 82,92 90,96 80,120", "b2")}${bolt("30,140 36,120 30,118 40,100", "b2")}${bolt("70,140 64,122 71,119 60,102")}`,
+    kaleido: `<g class="czspin" style="transform-origin:50px 52px">${Array.from({ length: 12 }, (_, i) => `<ellipse cx="50" cy="22" rx="8" ry="30" transform="rotate(${i * 30} 50 52)" fill="${["#f472b6", "#fbbf24", "#34d399", "#38bdf8", "#a78bfa", "#fb7185"][i % 6]}" opacity=".45"/>`).join("")}${Array.from({ length: 12 }, (_, i) => `<path d="M50 52L${(50 + 60 * Math.cos(i * Math.PI / 6)).toFixed(1)} ${(52 + 60 * Math.sin(i * Math.PI / 6)).toFixed(1)}" stroke="#fff" stroke-width=".5" opacity=".6"/>`).join("")}</g>
+      <circle cx="50" cy="52" r="24" fill="none" stroke="#fff" stroke-width="1.2" opacity=".6"/><circle cx="50" cy="52" r="46" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 3" opacity=".5"/>`,
+    rift: `${dots(60, 13)}<path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128" fill="none" stroke="#c026d3" stroke-width="16" opacity=".35" stroke-linejoin="bevel"/>
+      <path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128L105 122 58 99 66 86 36 74 44 60 20 49 28 36Z" fill="#f0abfc"/><path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128" fill="none" stroke="#fff" stroke-width="1.6"/>
+      <path d="M22 38L30 30M40 62L50 56M62 88L72 82M32 78L24 86M56 104L48 112" stroke="#22d3ee" stroke-width=".8"/>`,
+    neon: `<circle cx="80" cy="48" r="10" fill="none" stroke="#f0abfc" stroke-width="1.6"/><circle cx="80" cy="48" r="10" fill="#f0abfc" opacity=".12"/>${dots(25, 17)}
+      <path d="M0 140V96h10V84h8v12h6V74h12v22h6V88h10v-24h10v32h8V80h10v16h8V90h12v50Z" fill="#12021f"/>
+      <path d="M0 96h10V84h8v12h6V74h12v22h6V88h10v-24h10v32h8V80h10v16h8V90h12" fill="none" stroke="#22d3ee" stroke-width="1"/>
+      ${Array.from({ length: 22 }, (_, i) => `<rect x="${(2 + (i * 37) % 94).toFixed(0)}" y="${(100 + (i * 13) % 32).toFixed(0)}" width="2" height="2.4" fill="${i % 3 ? "#f0abfc" : "#fde047"}" opacity=".8"/>`).join("")}`,
+    aurora: `${dots(45, 19)}<path class="aur" d="M-10 60 C10 20 30 70 50 30 S80 50 110 18 V55 C80 80 60 60 50 75 S20 70 -10 90Z" fill="#34d399" opacity=".45"/>
+      <path class="aur a2" d="M-10 40 C20 10 40 45 60 15 S90 30 110 5 V30 C85 50 65 35 55 50 S20 45 -10 65Z" fill="#a78bfa" opacity=".35"/>
+      <path d="M0 140V108l14 -18 10 12 16 -26 18 24 10 -10 16 20 16 -8v38Z" fill="#0f172a"/><path d="M40 76l-6 8h4l-4 6h12l-4 -6h4z" fill="#e2e8f0" opacity=".7"/>
+      ${[8, 20, 78, 92].map((x, i) => `<path d="M${x} ${140 - 22 - i % 2 * 4}l-5 10h3l-5 8h14l-5 -8h3z" fill="#022c22"/>`).join("")}`,
+    diamond: `<g opacity=".55"><path d="M20 38L34 22H66L80 38L50 88Z" fill="#c7d2fe"/><path d="M20 38H80L50 88Z" fill="#a5b4fc"/><path d="M34 22L42 38H58L66 22Z" fill="#fff"/><path d="M20 38L42 38 50 88Z" fill="#e0e7ff"/><path d="M58 38H80L50 88Z" fill="#818cf8"/>
+      <path d="M20 38L34 22H66L80 38L50 88Z M20 38H80 M42 38L50 88L58 38 M34 22L42 38M66 22L58 38M50 22V38" fill="none" stroke="#fff" stroke-width=".6"/></g>
+      ${star(18, 16, 5)}${star(84, 60, 4)}${star(14, 92, 3.5)}${star(88, 18, 3)}${star(60, 110, 3)}${dots(30, 23, "#e0e7ff")}`,
   };
   // art in front of the player stays on the card's edges and never on writing; anything that would reach the labels, the
   // name plate or the face is drawn in the back layer instead, behind them
   const front = {
     horizon: `<path d="M0 0H100V140H0Z M6 6V134H94V6Z" fill="#000" opacity=".45" fill-rule="evenodd"/>`,
-    gold: `<rect x="3" y="3" width="94" height="134" rx="4" fill="none" stroke="#fde68a" stroke-width=".7"/><rect x="5" y="5" width="90" height="130" rx="3" fill="none" stroke="#78350f" stroke-width=".35"/>`,
+    gold: `<path d="M0 0H100V140H0Z M3 3V137H97V3Z" fill="#fbbf24" fill-rule="evenodd"/><path d="M3 3H97V137H3Z" fill="none" stroke="#92400e" stroke-width=".6"/>
+      <g transform="translate(13 86)"><circle r="8" fill="#d97706" stroke="#fef3c7" stroke-width="1"/><circle r="6" fill="none" stroke="#fef3c7" stroke-width=".4" stroke-dasharray="1 1"/><text y="2.4" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff7d6" font-family="system-ui">24K</text></g>`,
     kaleido: `<path d="M0 0H100V140H0Z M4 4V136H96V4Z" fill="#fff" opacity=".18" fill-rule="evenodd"/>`,
     neon: `<rect x="3" y="3" width="94" height="134" rx="8" fill="none" stroke="#f0abfc" stroke-width="1.2"/><rect x="5.5" y="5.5" width="89" height="129" rx="6" fill="none" stroke="#22d3ee" stroke-width=".7"/>`,
   };
   // the edge pieces that used to sit in front, now behind the text
-  const behind = {};
+  const behind = { frost: `<path d="M0 0H100V3${Array.from({ length: 16 }, (_, i) => { const x = 100 - i * 6.25 - 3.1, l = [9, 5, 13, 6, 8, 4, 11, 6][i % 8]; return `L${(x + 3.1).toFixed(1)} 3L${x.toFixed(1)} ${3 + l}`; }).join("")}L0 3Z" fill="#e0f2fe" opacity=".92"/><path d="M0 0H100V3H0Z" fill="#fff"/>`, flame: `${flame(4, 7, 26, "#dc2626", "f3")}${flame(96, 7, 30, "#dc2626", "")}${flame(4, 4, 16, "#fbbf24", "")}${flame(96, 4, 18, "#fbbf24", "f2")}`, volt: `${bolt("0,108 6,100 2,98 9,88")}${bolt("100,112 94,103 98,100 91,90", "b2")}`, rift: `<path d="M0 0L10 8 6 14 16 20M100 140L90 132 94 126 84 120" fill="none" stroke="#f0abfc" stroke-width="1.2"/>`, crown: `<g transform="translate(50 21.5) scale(.42)"><path d="M-14 6L-16 -6 -8 0 0 -10 8 0 16 -6 14 6Z" fill="#fbbf24" stroke="#7c2d12" stroke-width=".7"/><rect x="-14" y="5" width="28" height="3.5" rx="1" fill="#d97706" stroke="#7c2d12" stroke-width=".6"/>
+      <circle cx="0" cy="-10" r="1.8" fill="#e879f9"/><circle cx="-16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="0" cy="1.5" r="2" fill="#a78bfa" stroke="#fde68a" stroke-width=".5"/></g>`,
+    starfall: `${star(4, 70, 3.5, "#fde68a")}${star(96, 50, 3, "#fff")}`, diamond: `${star(4, 60, 4)}${star(96, 44, 4)}${star(5, 76, 3)}${star(95, 70, 3)}` };
   for (const k in behind) back[k] += behind[k];
+  // small living details: rising embers, falling snow, twinkling glints (animated in CSS, still when a clip plays)
+  const P = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join("");
+  back.flame += `<g class="czember">${P(12, i => `<circle cx="${8 + i * 7.6}" cy="${128 - (i % 4) * 6}" r="${(.5 + (i % 3) * .35).toFixed(2)}" fill="${i % 2 ? "#fde047" : "#fb923c"}" style="animation-delay:${((i * .41) % 3).toFixed(2)}s"/>`)}</g>`;
+  back.frost += `<g class="czsnow">${P(14, i => `<circle cx="${(4 + i * 7) % 98}" cy="${-4 - (i % 5) * 6}" r="${(.5 + (i % 3) * .3).toFixed(2)}" fill="#fff" style="animation-delay:${((i * .53) % 5).toFixed(2)}s"/>`)}</g>`;
+  back.diamond += `<g class="cztw">${P(8, i => `<g style="animation-delay:${((i * .37) % 2.4).toFixed(2)}s">${star(6 + (i * 13) % 90, 40 + (i * 17) % 70, 2 + (i % 3))}</g>`)}</g>`;
+  back.starfall += `<g class="cztw">${P(6, i => `<g style="animation-delay:${((i * .5) % 3).toFixed(2)}s">${star(8 + (i * 17) % 86, 46 + (i * 23) % 60, 1.6 + (i % 2))}</g>`)}</g>`;
+  back.gold += `<g class="cztw">${P(5, i => `<g style="animation-delay:${((i * .6) % 3).toFixed(2)}s">${star(14 + (i * 19) % 74, 50 + (i * 29) % 56, 2.2, "#fff7d6")}</g>`)}</g>`;
 
   const out = {}; for (const k in back) out[k] = { back: back[k], front: front[k] || "" }; return out;
 })();
@@ -7105,21 +7118,15 @@ function czDropsHtml(){
     ${dd.length ? `<div class="czgrid">${dd.map(tile).join("")}</div>` : `<div class="teamnote"><b>No drop right now</b>There were no big games last night. Check back tomorrow morning.</div>`}
     ${ms.length ? `<h2 class="czevh">🏆 Milestones</h2><p class="sub">A one-off card for a rare feat: ${ms[0].supply} copies each, on sale for 48 hours.</p><div class="czgrid">${ms.map(tile).join("")}</div>` : ""}</section>`;
 }
-// the Grails: one per league, the most valuable cards in the game, sold once each
+// the Grails: one per league, the most valuable cards in the game. They only come out of packs, one copy each
 function czGrailsHtml(){
   const G = CZ.grails; if (!G || !G.length) return "";
-  const mine = new Set((CZ.me.items || []).map(i => i.id));
-  const tile = g => { const own = mine.has(g.id), can = !g.owner && czBal() >= g.price;
-    return `<div class="czitem ${g.owner ? "owned" : ""}">${czCard(g)}<div class="czinfo"><span class="czleft">${esc(CZ_GRAIL_LG[g.lg] || "")} · worth ${czAmt(g.price)}</span>
-      ${own ? `<span class="czownd">In your collection</span>` : g.owner ? `<span class="czleft">Owned by ${czWhoBtn(g.owner)}</span>` : `<button type="button" class="btn ${can ? "primary" : ""} czbuy" data-czgrail="${esc(g.lg)}" ${can ? "" : "disabled"}>${can ? `Buy ${czAmt(g.price)}` : `Need ${czAmt(g.price)}`}</button>`}</div></div>`; };
-  return `<section class="czgrails"><h2 class="czevh">🏆 The Grails</h2><p class="sub">One card for each league: its championship trophy, the single most valuable card in the game. Only one of each exists, and once it's bought it can only change hands on the Market or in an auction.</p><div class="czgrid">${G.map(tile).join("")}</div></section>`;
-}
-async function czBuyGrail(lg){
-  const g = (CZ.grails || []).find(x => x.lg === lg); if (!g) return;
-  if (!confirm(`Buy the ${g.name} Grail, the only one in existence, for ${g.price.toLocaleString()} Cosmic Coins?`)) return;
-  const rid = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, "0")).join("");
-  try { const r = await czApi("/pack", { pack: "grail:" + lg, count: 1, rid }); CZ.me = r.user; czRip({ label: `${g.name} Grail` }, r.cards); czLoad(["grails", "vault"]).then(drawCosmic); drawCosmic(); }
-  catch (e) { toast(e.message); czLoad(["grails"]).then(drawCosmic); }
+  const mine = new Set((CZ.me.items || []).map(i => i.id)), O = (CZ.grailOdds || []).filter(o => o.per), best = O[O.length - 1];
+  const tile = g => `<div class="czitem ${g.owner ? "owned" : ""}">${czCard(g)}<div class="czinfo"><span class="czleft">${esc(CZ_GRAIL_LG[g.lg] || "")} · worth ${czAmt(g.price)}</span>
+      ${mine.has(g.id) ? `<span class="czownd">In your collection</span>` : g.owner ? `<span class="czleft">Pulled by ${czWhoBtn(g.owner)}</span>` : `<span class="czleft">Still in the packs</span>`}</div></div>`;
+  return `<section class="czgrails"><h2 class="czevh">🏆 The Grails</h2><p class="sub">One card for each league: its championship trophy, the single most valuable card in the game. Only one of each exists, and the only way to get one is to pull it from a pack${best ? `: about <b>1 in ${best.per.toLocaleString()}</b> ${esc(best.label)}s, and far rarer in cheaper packs` : ""}. After that it changes hands only on the Market or at auction.</p>
+    ${O.length ? `<details class="czhow"><summary>Grail odds by pack</summary><p>${O.map(o => `${esc(o.label)}: about 1 in ${o.per.toLocaleString()}`).join(" · ")}. League packs only hold that league's Grail.</p></details>` : ""}
+    <div class="czgrid">${G.map(tile).join("")}</div></section>`;
 }
 async function czBuyDrop(id){
   const x = [...((CZ.drops || {}).drops || []), ...((CZ.drops || {}).ms || [])].find(v => v.id === id); if (!x) return;
@@ -7292,12 +7299,12 @@ async function czHistory(id, n){
   const shop = V ? V.shop : null, value = V ? V.value : 0, lv = V && V.level || czLevel(it);
   const face = czCard({ ...it, label: CZ_TIER_NAME[it.tier] }, n, true), back = czCardBack({ ...it, ...(V || {}), ch: it.ch, n: n || it.n, label: CZ_TIER_NAME[it.tier] });
   $("#infoBody").innerHTML = `<div class="czreveal"><div class="czflipcard" id="czFlipCard"><div class="czfc-f">${face}</div><div class="czfc-b">${back}</div></div><button type="button" class="btn czflipbtn" id="czFlipBtn">↻ Flip card</button><h2 id="infoTitle">${esc(it.name || "")}</h2><p class="sub">${it.grail ? `The ${esc(CZ_GRAIL_LG[it.lg] || "")} Grail · the only one in existence${own ? " · it's yours" : ""}</p><p class="sub" hidden>` : ""}${it.evl ? `${esc(it.evl)} edition · ` : ""}${esc(CZ_TIER_NAME[it.tier] || "")} tier · ${it.supply === 1 ? "only 1 exists" : `${(it.supply || 0).toLocaleString()} copies exist`}${own ? ` · you have ${it.supply === 1 ? "it" : `#${n}`}` : ""}${own && it.from ? ` · from ${esc(it.from)}${it.bought ? ` for ${Math.round(it.bought).toLocaleString()}` : ""}` : ""}${lv > 1 ? ` · Level ${lv}` : ""}</p></div>
-    ${it.grail ? `<p class="sub czlvnote">Each league has one Grail: its championship trophy, worth ${CZ_GRAIL_X}× the most valuable card in the game, so it's always the top card in Cosmic. It never comes out of packs, and it isn't graded.</p>` : czPriceWhy(V)}
+    ${it.grail ? `<p class="sub czlvnote">Each league has one Grail: its championship trophy, worth ${CZ_GRAIL_X}× the most valuable card in the game, so it's always the top card in Cosmic. It only comes out of packs, and it isn't graded.</p>` : czPriceWhy(V)}
     ${czHotOf(it) ? `<p class="czhotnote">🔥 <b>${esc(czHotOf(it).line)}</b>${czHotOf(it).game ? ` · ${esc(czHotOf(it).game)}` : ""}. Every copy glows for a day after a big game.</p>` : ""}
     ${it.grail ? "" : `<p class="sub czlvnote">${esc(it.name || "")} has 1,436 cards in all: ${CZ_ORDER.map(t => `${({ singularity: 1, supernova: 10, quasar: 25, nebula: 50, pulsar: 100, stardust: 250, comet: 1000 })[t].toLocaleString()} ${CZ_TIER_NAME[t]}`).join(", ")}. Each is numbered, from 1 up to its tier's total.</p>`}
     ${!it.grail && (lv > 1 || V) ? `<p class="sub czlvnote">Cards level up (to 5) when the real ${it.kind === "team" ? "team wins" : "player has a big game"}. Each level adds 15% to the shop value.</p>` : ""}
     ${!own ? "" : `<div class="czsell">${it.auction ? `<p>Up for auction. Follow it in Market, Auctions.</p>` : it.listed ? `<p>On the market. <button type="button" class="btn" data-czact="unlist">Take it off the market</button></p>` : `
-      ${it.grail ? "" : it.gr ? `<div><b>Graded ${+it.gr} · ${esc(czGr(+it.gr) ? czGr(+it.gr)[1] : "")}</b><small>Worth ${czGrMult(+it.gr)}× an ungraded copy. A card is graded once.</small></div>` : `<div><b>Grade it</b><small>Send it in once for a grade from 4 to 10. A Gem Mint 10 is worth 3×, a 9 1.5×, a low grade less. <a href="#" data-czgrodds>See the odds</a></small><button type="button" class="btn" data-czact="grade" ${value ? "" : "disabled"}>Grade for ${czAmt(Math.max(50, Math.round((value || 0) * .2)))}</button></div>`}
+      ${it.grail ? "" : it.gr ? `<div><b>Graded ${+it.gr} · ${esc(czGr(+it.gr) ? czGr(+it.gr)[1] : "")}</b><small>Worth ${czGrMult(+it.gr)}× an ungraded copy. A card is graded once.</small></div>` : `<div><b>Grade it</b><small>Send it in once for a grade from 1 to 10, graded like PSA: most modern cards come back a 9 or 10. A Gem Mint 10 is worth 2.5×, a 9 1.1×, an 8 or lower less. <a href="#" data-czgrodds>See the odds</a></small><button type="button" class="btn" data-czact="grade" ${value ? "" : "disabled"}>Grade for ${czAmt(Math.max(50, Math.round((value || 0) * CZ_GRADE_FEE)))}</button></div>`}
       <div><b>Sell to the shop</b><small>Coins right away. The copy goes back into packs.</small><button type="button" class="btn" data-czact="shop" ${shop ? "" : "disabled"}>Sell for ${shop ? czAmt(shop) : "…"}</button></div>
       <div><b>Sell to other players</b><small>Set your price. You get it minus 5%, which is retired (taken out of the game) to keep card prices steady.</small><form data-czact="list" class="czlistf"><input class="field" name="price" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) / 10) * 10)}"><button class="btn primary" type="submit">List it</button></form></div>
       <div><b>Auction it</b><small>Players bid; the top bid wins when time runs out (you get it minus the 5% that's retired). No bids and it comes back.</small><form data-czact="auc" class="czlistf"><input class="field" name="start" type="number" inputmode="numeric" min="10" max="1000000" step="10" value="${Math.max(10, Math.round((value || 100) * .6 / 10) * 10)}" aria-label="Starting bid"><select class="field" name="hours" aria-label="Length"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>1 day</option><option value="72">3 days</option></select><button class="btn primary" type="submit">Start</button></form></div>`}</div>`}
@@ -7307,8 +7314,8 @@ async function czHistory(id, n){
   const fail = e => { $("#czErr").textContent = e.message; };
   const shopBtn = body.querySelector('[data-czact="shop"]'); if (shopBtn) shopBtn.onclick = async () => { if (!confirm(`Sell ${it.name} ${CZ_TIER_NAME[it.tier]} ${n}/${it.supply} to the shop for ${shop.toLocaleString()} coins? It goes back into packs.`)) return;
     try { const r = await czApi("/sell", { item: id }); sfx("win"); done(`Sold to the shop for ${r.paid.toLocaleString()} coins`, r); } catch (e) { fail(e); } };
-  const gb = body.querySelector('[data-czact="grade"]'); if (gb) gb.onclick = async () => { const fee = Math.max(50, Math.round((value || 0) * .2));
-    if (!confirm(`Grade ${it.name} ${CZ_TIER_NAME[it.tier]} ${n}/${it.supply} for about ${fee.toLocaleString()} coins? It comes back with a grade from 4 to 10, once and for good.`)) return;
+  const gb = body.querySelector('[data-czact="grade"]'); if (gb) gb.onclick = async () => { const fee = Math.max(50, Math.round((value || 0) * CZ_GRADE_FEE));
+    if (!confirm(`Grade ${it.name} ${CZ_TIER_NAME[it.tier]} ${n}/${it.supply} for about ${fee.toLocaleString()} coins? It comes back with a grade from 1 to 10, once and for good.`)) return;
     gb.disabled = true; try { const r = await czApi("/grade", { item: id }); CZ.me = r.user; czGradeReveal({ ...it, gr: r.grade }, n); drawCosmic(); } catch (e) { gb.disabled = false; fail(e); } };
   body.querySelectorAll("[data-czgrodds]").forEach(a => a.onclick = e => { e.preventDefault(); toast(CZ_GRADES.map(g => `${g[0]} ${g[1]}: ${g[3]}% (${g[2]}×)`).join(" · ")); });
   const lf = body.querySelector('form[data-czact="list"]'); if (lf) lf.onsubmit = async e => { e.preventDefault(); const price = Math.floor(+lf.price.value || 0);
@@ -7330,7 +7337,7 @@ function czGradeReveal(it, n){
   const num = $("#czGrNum"), end = () => { num.textContent = g[0]; num.classList.add("in", "g" + g[0]); $("#infoTitle").textContent = `${g[0]} · ${g[1]}`;
     $("#czGrSub").textContent = `Worth ${g[2]}× an ungraded copy${g[2] > 1 ? "." : g[2] < 1 ? ". Not every card comes back mint." : ", the same as before."}`; sfx(g[0] >= 9 ? "win" : "reveal"); if (g[0] === 10) czConfetti(120); else if (g[0] === 9) czConfetti(40); };
   if (RM()) { end(); return; }
-  let k = 0; const roll = setInterval(() => { num.textContent = 4 + (k++ % 7); sfx("tap"); }, 110); setTimeout(() => { clearInterval(roll); end(); }, 1700);
+  let k = 0; const roll = setInterval(() => { num.textContent = 1 + (k++ % 10); sfx("tap"); }, 110); setTimeout(() => { clearInterval(roll); end(); }, 1700);
 }
 // ---- Market: cards other players are selling
 const czLeft = ms => { const m = Math.max(0, Math.round(ms / 60e3)); return m >= 1440 ? `${Math.floor(m / 1440)}d ${Math.floor(m % 1440 / 60)}h` : m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : m >= 1 ? `${m}m` : "under a minute"; };
@@ -7785,7 +7792,6 @@ function czBind(el){
   el.querySelectorAll("[data-czrookies]").forEach(b => b.onclick = async () => { CZ.vkind = "rookie"; CZ.vtier = "all"; CZ.tab = "check"; drawCosmic(); try { await czVault(); } catch (e) { toast(e.message); } drawCosmic(); });
   el.querySelectorAll("[data-cztp]").forEach(b => b.onclick = () => czOpen(b.dataset.cztp));
   el.querySelectorAll("[data-czdrop]").forEach(b => b.onclick = () => czBuyDrop(b.dataset.czdrop));
-  el.querySelectorAll("[data-czgrail]").forEach(b => b.onclick = () => czBuyGrail(b.dataset.czgrail));
   const f = el.querySelector("[data-czform=join]");
   if (f) f.onsubmit = async e => { e.preventDefault(); const name = f.name.value.trim(), btn = f.querySelector("button"); btn.disabled = true;
     try { const r = await czApi("/join", { name }, { headers: { "X-No-Passkeys": "1" } }); lsSet("cz-auth", r.auth); CZ.me = r.user; toast(`Welcome to Cosmo Sports, ${r.user.name}. You have 1,000 Cosmic Coins.`); drawCosmic(); drawGate(); czLoad(["board", "vault", "lb"]); }
