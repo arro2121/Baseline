@@ -1680,6 +1680,13 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.ch-diamond .czch-logo{background:linear-gradient(180deg,#fff,#c7d2fe 50%,#4f46e5 55%,#eef2ff);-webkit-background-clip:text;background-clip:text}
 /* Cosmic Ink: the name signed across the card in gold, with a small foil stamp */
 .czink{position:absolute;left:4%;right:4%;top:42%;z-index:3;display:grid;justify-items:center;pointer-events:none;transform:rotate(-9deg)}
+/* no writing over the player: the signature sits in the band above his head, and what shared that band steps aside */
+.czcard.czcard.ink .czink{top:13%;transform:rotate(-5deg)}.czcard.czcard.ink .czink span{font-size:9cqw}
+.czcard.ink .czsnd,.czcard.ink .czposb{display:none!important}.czcard.czcard.l-1.ink .czink{left:15%}
+.czcard.czcard.l-2 .czbig{bottom:auto;top:13.5%;left:10%}
+.czcard.czcard.l-3 .czbig{font-size:44cqw;top:8%}
+.czcard.czcard .czat{top:auto;bottom:83%}
+.czcard.czcard.czcard .czc-mid .czhs{bottom:0}.czcard.czcard.legend .czposb{display:none!important}
 .czink span{font:italic 700 10.5cqw/1 "Brush Script MT","Segoe Script","Snell Roundhand",cursive;color:#fde68a;white-space:nowrap;overflow:hidden;max-width:100%;text-shadow:0 1px 0 #92400e,0 0 8px rgba(0,0,0,.6),0 0 14px rgba(251,191,36,.5)}
 .czink small{margin-top:1cqw;padding:.4cqw 2cqw;border-radius:99px;background:linear-gradient(90deg,#fde68a,#f59e0b);color:#1c1206;font:900 2.6cqw/1.3 Archivo,system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase}
 .czcard.ink{box-shadow:0 0 0 1px #fde68a,0 0 16px -4px #fbbf24,0 12px 28px -14px #000}
