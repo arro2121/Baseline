@@ -9,19 +9,19 @@ const card = (id, x = {}) => ({ id, n: 3, supply: 100, tier: id.split(".").pop()
 
 // GR1-GR5: grading
 { const G = W.CZ_GRADES, avg = G.reduce((t, g) => t + g[2] * g[3], 0) / 100;
-  check("GR1 the grade odds add up to 100% and a grade adds less on average than the 20% fee", Math.abs(G.reduce((t, g) => t + g[3], 0) - 100) < 1e-9 && avg > 1 && avg < 1 + W.CZ_GRADE_FEE, avg);
+  check("GR1 the grade odds add up to 100% and a grade adds less on average than the 30% fee", Math.abs(G.reduce((t, g) => t + g[3], 0) - 100) < 1e-9 && avg > 1 && avg < 1 + W.CZ_GRADE_FEE, avg);
   const n = {}; for (let k = 0; k < 1000; k++) { const g = W.czGradeRoll(k / 1000); n[g] = (n[g] || 0) + 1; }
-  check("GR2 grades come out at their odds (5% Gem Mint 10, 30% 8s)", n[10] === 50 && n[8] === 300 && n[4] === 50, n);
-  check("GR3 a grade multiplies the copy's worth, on top of a case hit", W.czCopyMult({ gr: 10 }) === 3 && W.czCopyMult({ gr: 4 }) === .6 && W.czCopyMult({ ch: "gold", gr: 9 }) === 7.5 && W.czCopyMult({}) === 1); }
+  check("GR2 grades come out at PSA-like odds (25% Gem Mint 10, 35% 9s, 20% 8s, down to 0.3% 1s)", n[10] === 250 && n[9] === 350 && n[8] === 200 && n[1] === 3 && Object.keys(n).length === 10, n);
+  check("GR3 a grade multiplies the copy's worth, on top of a case hit", W.czCopyMult({ gr: 10 }) === 2.5 && W.czCopyMult({ gr: 1 }) === .2 && Math.abs(W.czCopyMult({ ch: "gold", gr: 9 }) - 5.5) < 1e-9 && W.czCopyMult({}) === 1); }
 { const { m, st } = mem(), T = a => W.czTx(st, { now, ...a });
   await T({ act: "ident", sub: "S", uid: "S", tok: "t", name: "Slabber" });
   m.set("cz:u:S", { ...m.get("cz:u:S"), bal: 1000, items: [card("nba.p1.pulsar"), card("nba.p2.pulsar", { listed: "L1" }), card("nba.p3.pulsar", { ch: "neon" })] });
   const r = await T({ act: "grade", uid: "S", id: "nba.p1.pulsar", value: 1000 }), U = m.get("cz:u:S"), c = U.items[0];
-  check("GR4 grading charges 20% of the value and gives a grade from 4 to 10", r.fee === 200 && U.bal === 800 && c.gr === r.grade && r.grade >= 4 && r.grade <= 10, r);
-  check("GR4 a card is graded only once", /already been graded/.test((await T({ act: "grade", uid: "S", id: "nba.p1.pulsar", value: 1000 })).error || "") && m.get("cz:u:S").bal === 800);
+  check("GR4 grading charges 30% of the value and gives a grade from 1 to 10", r.fee === 300 && U.bal === 700 && c.gr === r.grade && r.grade >= 1 && r.grade <= 10, r);
+  check("GR4 a card is graded only once", /already been graded/.test((await T({ act: "grade", uid: "S", id: "nba.p1.pulsar", value: 1000 })).error || "") && m.get("cz:u:S").bal === 700);
   check("GR4 a listed card can't be graded", /market/.test((await T({ act: "grade", uid: "S", id: "nba.p2.pulsar", value: 1000 })).error || ""));
   const r2 = await T({ act: "grade", uid: "S", id: "nba.p3.pulsar", value: 100 });
-  check("GR5 the fee counts the case hit's worth, with a 50-coin minimum", r2.fee === 50 && W.czGradeFee(1000, { ch: "neon" }) === 400, r2);
+  check("GR5 the fee counts the case hit's worth, with a 50-coin minimum", r2.fee === 60 && W.czGradeFee(1000, { ch: "neon" }) === 600 && W.czGradeFee(10, {}) === 50, r2);
   m.set("cz:u:S", { ...m.get("cz:u:S"), bal: 10, items: [card("nba.p4.pulsar")] });
   check("GR5 not enough coins, no grade", /costs/.test((await T({ act: "grade", uid: "S", id: "nba.p4.pulsar", value: 1000 })).error || "") && !m.get("cz:u:S").items[0].gr); }
 // graded copies keep their grade on the market and in auctions
@@ -56,16 +56,18 @@ check("DD6 feats and scores from a box score", W.czFeats("nhl", { G: 3, A: 2 }).
 { const cat = [{ id: "nba.p1.singularity", price: 2e6 }, { id: "nba.at-x.singularity", price: 1.5e6 }, { id: "nfl.p2.comet", price: 30 }], G = W.czGrails(cat);
   check("GL1 one Grail per league, each worth 3x the most valuable card in the game", G.length === 6 && new Set(G.map(g => g.lg)).size === 6 && G.every(g => g.price >= 6e6 && g.supply === 1 && g.grail && g.tier === "singularity"), G.map(g => g.price));
   check("GL2 a Grail is valued at exactly its price (no level, hot or scarcity bonus)", W.czValueOf(G[0], { xp: 99, hot: true, held: 1 }).value === G[0].price); }
-{ const { m, st } = mem(), T = a => W.czTx(st, { now, ...a });
+{ const { m, st } = mem(), T = a => W.czTx(st, { now, ...a }), odds = W.CZ_TIERS.map(t => t[0] === "comet" ? 100 : 0);
+  const grail = { id: "nba.grail.singularity", tier: "singularity", supply: 1, lg: "nba", name: "Larry O'Brien Trophy", kind: "grail", grail: true };
+  const pool = [grail, ...Array.from({ length: 20 }, (_, i) => ({ id: `nba.g${i}.comet`, tier: "comet", supply: 1000, lg: "nba", name: "G" + i, kind: "player" })), { id: "nba.s1.singularity", tier: "singularity", supply: 1, lg: "nba", name: "S1", kind: "player" }];
   await T({ act: "ident", sub: "G", uid: "G", tok: "t", name: "Grailer" }); m.set("cz:u:G", { ...m.get("cz:u:G"), bal: 1e8, freePack: false });
-  const pk = { id: "grail:nba", label: "Grail", price: 6e6, cards: 1, odds: W.CZ_TIERS.map(t => t[0] === "singularity" ? 100 : 0), ch: 0 }, pool = [{ id: "nba.grail.singularity", tier: "singularity", supply: 1, lg: "nba", name: "Larry O'Brien Trophy", kind: "grail", grail: true }];
-  const r = await T({ act: "pack", uid: "G", pack: pk, pool, rid: "aaaaaaaaaaaaaaaa" }), c = r.cards && r.cards[0];
-  check("GL3 buying a Grail gives the one copy, never a case hit or ink", c && c.grail && c.n === 1 && !c.ch && !c.ink && m.get("cz:u:G").bal === 1e8 - 6e6, r);
-  check("GL3 a Grail can't be graded", /isn't graded/.test((await T({ act: "grade", uid: "G", id: "nba.grail.singularity", value: 6e6 })).error || ""));
+  const r = await T({ act: "pack", uid: "G", pack: { id: "galaxy", label: "P", price: 100, cards: 3, odds, ch: 0, gc: 1 }, pool, rid: "aaaaaaaaaaaaaaaa" });
+  check("GL3 a pack's grail roll gives the Grail (once), never as a case hit or ink", r.cards.filter(c => c.grail).length === 1 && r.cards.find(c => c.grail).id === grail.id && !r.cards.find(c => c.grail).ch && !r.cards.find(c => c.grail).ink && r.cards.length === 3, r.cards.map(c => c.id));
+  check("GL3 a Grail can't be graded", /isn't graded/.test((await T({ act: "grade", uid: "G", id: grail.id, value: 6e6 })).error || ""));
   await T({ act: "ident", sub: "H", uid: "H", tok: "t", name: "Second" }); m.set("cz:u:H", { ...m.get("cz:u:H"), bal: 1e8, freePack: false });
-  const r2 = await T({ act: "pack", uid: "H", pack: pk, pool, rid: "bbbbbbbbbbbbbbbb" });
-  check("GL4 once it's owned nobody else can buy it", !!r2.error && m.get("cz:u:H").bal === 1e8, r2);
-  let hits = 0; for (let k = 0; k < 40; k++) { const { m: m2, st: s2 } = mem(); await W.czTx(s2, { now, act: "ident", sub: "Z", uid: "Z", tok: "t", name: "Z" }); m2.set("cz:u:Z", { ...m2.get("cz:u:Z"), bal: 1e8, freePack: false });
-    const rr = await W.czTx(s2, { now, act: "pack", uid: "Z", pack: pk, pool, rid: "cccccccccccccccc" }); if (rr.cards[0].ch || rr.cards[0].ink) hits++; }
-  check("GL4 a pack with ch: 0 never rolls a case hit (40 tries)", hits === 0, hits); }
+  const r2 = await T({ act: "pack", uid: "H", pack: { id: "galaxy", label: "P", price: 100, cards: 3, odds, ch: 0, gc: 1 }, pool, rid: "bbbbbbbbbbbbbbbb" });
+  check("GL4 once it's pulled it's gone from every pack", !r2.error && !r2.cards.some(c => c.grail), r2.cards && r2.cards.map(c => c.id));
+  let n = 0; for (let k = 0; k < 30; k++) { const { m: m2, st: s2 } = mem(); await W.czTx(s2, { now, act: "ident", sub: "Z", uid: "Z", tok: "t", name: "Z" }); m2.set("cz:u:Z", { ...m2.get("cz:u:Z"), bal: 1e8, freePack: false });
+    const rr = await W.czTx(s2, { now, act: "pack", uid: "Z", pack: { id: "x", label: "P", price: 100, cards: 2, odds: W.CZ_TIERS.map(t => t[0] === "singularity" ? 100 : 0) }, pool, rid: "cccccccccccccccc" }); if (rr.cards.some(c => c.grail)) n++; }
+  check("GL4 an ordinary 1-of-1 pull never hands out a Grail", n === 0, n);
+  check("GL5 the grail chance scales with the pack's price (about 3% of its value)", Math.abs(W.czGrailChance(100000, 3, 5.7e6) * 5.7e6 * 3 / 100000 - .03) < 1e-9 && W.czGrailChance(100, 1, 5.7e6) < 1e-6 && W.czGrailChance(1e9, 1, 1) === .01); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
