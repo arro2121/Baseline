@@ -1706,7 +1706,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 /* case hit art drawn to match each insert's name */
 .czcard .czchart{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 .czcard.czcard.czcard.czcard.ch .czc-foil{display:none}
-.czcard .czchfr{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;border-radius:10px}
+.czcard .czchfr{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;border-radius:10px}
 .czchart .czhzd{animation:czhzd 3s linear infinite}@keyframes czhzd{to{stroke-dashoffset:-40}}
 .czchart .czsf{animation:czsf 3s linear infinite}@keyframes czsf{from{transform:translate(4px,-8px)}to{transform:translate(-4px,8px)}}
 .czchart .czgx{animation:czspin 40s linear infinite}.czchart .czspin{transform-origin:50px 52px;animation:czspin 24s linear infinite}
@@ -1722,6 +1722,63 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czcard.ch-aurora .czc-stock{background:linear-gradient(180deg,#020617,#0c1a3a 60%,#022c22)}.czcard.ch-rift .czdz i{display:none}
 .czcard.ch-crown .czc-stock{background:radial-gradient(circle at 50% 40%,#4c1d95,#1e0b3b 60%,#0b0420)}
 @media (prefers-reduced-motion:reduce){.czchart *{animation:none!important}}
+/* an organized card: every label has its own band, so no writing sits on other writing or on the player's face.
+   Top row 5-15% (tier, serial, 1-of-1), then RC 15-21%, then the insert name, signature or jersey number, then the photo */
+.czcard.czcard.czcard .czrc{top:15.5%;left:7%;font-size:3.3cqw;line-height:1.3;padding:.2cqw 1.4cqw}
+.czcard.czcard.czcard.ink .czink{top:22%;transform:rotate(-3deg)}.czcard.czcard.czcard.ink .czink small{margin-top:2.2cqw}
+.czcard.czcard.czcard.ink .czbig{display:none}.czcard.czcard.czcard.l-1.ink .czbig{display:block}
+.czcard.czcard.czcard.l-1 .czbig{top:23%}
+.czcard.czcard.czcard.l-2 .czbig{left:auto;right:9%;top:15.5%}
+.czcard.czcard.czcard.l-3 .czbig{font-size:26cqw;top:16%;right:2%}
+.czcard.czcard.czcard.l-4 .czsnd{top:17%;font-size:10cqw}
+.czcard.czcard.czcard.l-0 .czc-lg{padding-right:17cqw}
+.czcard.czcard.czcard.l-4 .czc-lg{margin-top:1cqw}.czcard.czcard.czcard.l-4.ch .czc-name{line-height:1.05}
+/* All-Time and Iconic Moment: one line in its own band between the top row and the photo frame */
+.czcard.czcard.czcard .czat{top:15.5%;bottom:auto;left:22%;right:22%;display:flex;justify-content:center;align-items:baseline;gap:1.4cqw;padding:.6cqw 1.5cqw;border-radius:2cqw}
+.czcard.czcard.czcard .czat b{font-size:4.6cqw}.czcard.czcard.czcard .czat small{font-size:2.4cqw;letter-spacing:.12em;white-space:nowrap}
+.czcard.czcard.czcard.legend .czc-mid .czhs{top:22.5%;height:53%}
+/* the top row scales with the card, and the tier name gives way (with an ellipsis) to the serial and the 1-of-1 mark */
+.czcard.czcard.czcard .czc-top{font-size:min(.66rem,5.2cqw);gap:1.5cqw}.czcard.czcard.czcard .czc-top span{padding:.5cqw 2.2cqw}
+.czcard.czcard.czcard.t-singularity:not(.ch):not(.legend) .czc-top span{max-width:62%}
+/* the signature lies flat, with its ribbon clear underneath */
+.czcard.czcard.czcard.ink .czink{top:21%;transform:none}.czcard.czcard.czcard.ink .czink span{line-height:1.25;font-size:8.5cqw}.czcard.czcard.czcard.ink .czink small{margin-top:.6cqw}
+.czcard.czcard.czcard.l-3 .czbig{top:18%}
+/* names in the insert, legend and moment plates get room for their second line */
+.czcard.czcard.czcard.ch .czc-name,.czcard.czcard.czcard.legend .czc-name{line-height:1.1}.czcard.czcard.czcard.ch .czc-lg,.czcard.czcard.czcard.legend .czc-lg{margin-top:.8cqw}
+/* an event card's banner stays in the middle, clear of the card number */
+.czcard.czcard.czcard .czev{max-width:56%}
+/* inserts: the serial stays light on their dark art (Classic cards print it dark on white), the crown gets its own band above
+   the title, and gold lettering on gold art gets a dark edge so it reads */
+.czcard.czcard.czcard.ch .czc-top em{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.czcard.czcard.czcard.ch-crown .czch-logo{top:22.5%}.czcard.czcard.czcard.ch-crown .czdz i{display:none}.czcard.czcard.czcard.ch-horizon .czdz i,.czcard.czcard.czcard.ch-starfall .czdz i,.czcard.czcard.czcard.ch-volt .czdz i{display:none}
+/* every insert title sits on a soft dark glow (its own layer, under the lettering), so it reads on any art */
+.czch-back{position:absolute;left:4%;right:4%;top:17.5%;height:13%;z-index:5;pointer-events:none;border-radius:50%;background:radial-gradient(closest-side,rgba(5,3,20,.6),rgba(5,3,20,.3) 65%,transparent)}
+.czcard.czcard.czcard.ch-crown .czch-back{top:20%}.czcard.czcard.czcard.ch-frost .czch-back{top:19.5%}
+@container (max-width:115px){ .czch-back{display:none} }
+.czcard.czcard.czcard.ch-gold .czch-logo{filter:drop-shadow(0 0 .25cqw #3b1d04) drop-shadow(0 0 .25cqw #3b1d04) drop-shadow(0 1.5px 0 #3b1d04)}.czcard.czcard.czcard.ch-gold .czch-logo small{color:#fff7d6;-webkit-text-fill-color:#fff7d6}
+/* layers, bottom to top: art, photo, then every label (so an opaque photo never hides one); labels are placed clear of the face */
+.czcard.czcard.czcard .czc-top{position:relative;z-index:5}.czcard.czcard.czcard .czbig{z-index:3}.czcard.czcard.czcard.ch .czc-plate{z-index:4}
+.czcard.czcard.czcard.l-3 .czbig{font-size:22cqw;top:17%}
+.czcard.czcard.czcard .czno,.czcard.czcard.czcard .czone,.czcard.czcard.czcard .czat,.czcard.czcard.czcard .czrc,.czcard.czcard.czcard .czposb,.czcard.czcard.czcard .czch-logo,.czcard.czcard.czcard .czink{z-index:6}
+.czcard.czcard.czcard .czc-top{pointer-events:none}.czcard.czcard.czcard .czc-top > *{pointer-events:auto}
+/* the position bubble sits under the RC badge (left) or under the 1-of-1 mark (right), never on them */
+.czcard.czcard.czcard.l-3 .czposb,.czcard.czcard.czcard.l-4 .czposb{top:22.5%}.czcard.czcard.czcard.l-1 .czposb{top:16.5%}
+.czcard.czcard.czcard .czc-lg{padding-right:0;margin-right:21cqw}.czcard.czcard.czcard.l-5 .czc-lg{margin-left:21cqw}   /* clear of the card number */
+/* tiny cards (a small grid on a narrow phone) keep only what fits: no ribbons or decorative big text, a smaller signature */
+@container (max-width:140px){
+  .czcard.czcard.czcard .czink small,.czcard.czcard.czcard .czch-logo small{display:none}
+  .czcard.czcard.czcard.ink .czink{top:19%}.czcard.czcard.czcard.ink .czink span{font-size:7.5cqw}
+  .czcard.czcard.czcard.ch .czch-logo{top:18.5%;font-size:7.5cqw}
+  .czcard.czcard.czcard.l-2 .czbig,.czcard.czcard.czcard.l-3 .czbig{display:none}
+}
+/* thumbnails (the Home strip on a phone, about 80-110px): tier, serial, photo and name only; the insert still shows by its art */
+@container (max-width:115px){
+  .czcard.czcard.czcard .czink,.czcard.czcard.czcard .czch-logo,.czcard.czcard.czcard .czbig,.czcard.czcard.czcard .czsnd,.czcard.czcard.czcard .czposb,
+  .czcard.czcard.czcard .czno,.czcard.czcard.czcard .czat,.czcard.czcard.czcard .czev,.czcard.czcard.czcard .czc-lg{display:none!important}
+  .czcard.czcard.czcard.legend .czc-mid .czhs{top:24%;height:50%}
+}
+@container (max-width:90px){ .czcard.czcard.czcard.legend .czc-mid .czhs{top:29%;height:45%} }
+
 
 /* ==== the three versions look clearly different, and the rarer the card the more special it looks ==== */
 /* Comet /1000, the base card: a plain matte silver border, flatter art, no shine */
@@ -5286,30 +5343,30 @@ const CZ_CASE_ART = (() => {
   const bar = (x, y) => `<g><path d="M${x} ${y}h16l-3 -6h-10z" fill="#fde68a"/><path d="M${x} ${y}h16v5h-16z" fill="#b45309"/><path d="M${x + 3} ${y - 6}h10l3 6h-16z" fill="#fbbf24"/><path d="M${x + 4} ${y - 5}h7" stroke="#fff7d6" stroke-width=".8"/></g>`;
   const col = x => `<g><rect x="${x}" y="30" width="11" height="110" fill="#3b0d0d"/><rect x="${x + 2}" y="30" width="2" height="110" fill="#7f1d1d"/><rect x="${x + 7}" y="30" width="1.5" height="110" fill="#1c0505"/><rect x="${x - 2}" y="26" width="15" height="5" fill="#b45309"/><path d="M${x - 1} 26h13l-2 -4h-9z" fill="#fbbf24"/>${flame(x + 5.5, 5, 16, "#f97316", "f2")}</g>`;
   const back = {
-    horizon: `${dots(40, 7)}<circle cx="50" cy="50" r="30" fill="#f59e0b" opacity=".12"/><circle cx="50" cy="50" r="22" fill="#fb923c" opacity=".22"/>
-      <ellipse class="czhzd" cx="50" cy="52" rx="46" ry="9" fill="none" stroke="#fbbf24" stroke-width="5" stroke-dasharray="14 6" opacity=".75"/>
-      <ellipse cx="50" cy="50" rx="18" ry="17" fill="none" stroke="#fde68a" stroke-width="2.5" opacity=".8"/><circle cx="50" cy="50" r="15" fill="#000"/><circle cx="50" cy="50" r="15.6" fill="none" stroke="#fff7d6" stroke-width=".8"/>
-      <path d="M4 52 A46 9 0 0 0 96 52" fill="none" stroke="#fde68a" stroke-width="3.2"/><path d="M8 54 A42 7 0 0 0 92 54" fill="none" stroke="#fff" stroke-width=".7" opacity=".7"/>`,
+    horizon: `${dots(40, 7)}<circle cx="50" cy="62" r="30" fill="#f59e0b" opacity=".12"/><circle cx="50" cy="62" r="22" fill="#fb923c" opacity=".22"/>
+      <ellipse class="czhzd" cx="50" cy="64" rx="46" ry="9" fill="none" stroke="#fbbf24" stroke-width="5" stroke-dasharray="14 6" opacity=".75"/>
+      <ellipse cx="50" cy="62" rx="18" ry="17" fill="none" stroke="#fde68a" stroke-width="2.5" opacity=".8"/><circle cx="50" cy="62" r="15" fill="#000"/><circle cx="50" cy="62" r="15.6" fill="none" stroke="#fff7d6" stroke-width=".8"/>
+      <path d="M4 64 A46 9 0 0 0 96 64" fill="none" stroke="#fde68a" stroke-width="3.2"/><path d="M8 66 A42 7 0 0 0 92 66" fill="none" stroke="#fff" stroke-width=".7" opacity=".7"/>`,
     starfall: `${dots(50, 3)}<rect y="105" width="100" height="35" fill="#b45309" opacity=".25"/><path d="M0 128 Q25 118 50 124 T100 120V140H0Z" fill="#0b1026"/>
-      <g class="czsf">${[[82, 8, 30], [60, 20, 22], [95, 40, 26], [40, 2, 18], [75, 60, 20], [25, 30, 16], [55, 75, 14], [98, 85, 22], [15, 70, 12]].map(([x, y, l]) => `<path d="M${x} ${y}L${x - l * .55} ${y + l}" stroke="#fde68a" stroke-width="${(l / 20).toFixed(1)}" stroke-linecap="round" opacity=".35"/><path d="M${x - l * .35} ${y + l * .64}L${x - l * .55} ${y + l}" stroke="#fff" stroke-width="${(l / 14).toFixed(1)}" stroke-linecap="round"/>${star(+(x - l * .55).toFixed(1), y + l, l / 8, "#fff7d6")}`).join("")}</g>`,
-    crown: `${dots(40, 11, "#e9d5ff")}<g class="czgx" style="transform-origin:50px 55px">${[0, 30, 60, 90, 120, 150].map(a => `<ellipse cx="50" cy="55" rx="44" ry="14" transform="rotate(${a} 50 55)" fill="none" stroke="#c4b5fd" stroke-width=".8" opacity=".35"/>`).join("")}<path d="M50 55 m-38 0 a38 14 20 0 1 38 -14 a30 12 20 0 1 30 18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/><path d="M50 55 m38 0 a38 14 20 0 1 -38 14 a30 12 20 0 1 -30 -18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/></g>
+      <g class="czsf">${[[82, 46, 30], [62, 50, 22], [97, 58, 26], [30, 52, 18], [75, 80, 20], [20, 66, 16], [55, 92, 14], [98, 96, 22], [12, 88, 12]].map(([x, y, l]) => `<path d="M${x} ${y}L${x - l * .55} ${y + l}" stroke="#fde68a" stroke-width="${(l / 20).toFixed(1)}" stroke-linecap="round" opacity=".35"/><path d="M${x - l * .35} ${y + l * .64}L${x - l * .55} ${y + l}" stroke="#fff" stroke-width="${(l / 14).toFixed(1)}" stroke-linecap="round"/>${star(+(x - l * .55).toFixed(1), y + l, l / 8, "#fff7d6")}`).join("")}</g>`,
+    crown: `${dots(40, 11, "#e9d5ff")}<g class="czgx" style="transform-origin:50px 55px">${[0, 30, 60, 90, 120, 150].map(a => `<ellipse cx="50" cy="55" rx="44" ry="14" transform="rotate(${a} 50 55)" fill="none" stroke="#c4b5fd" stroke-width=".8" opacity=".2"/>`).join("")}<path d="M50 55 m-38 0 a38 14 20 0 1 38 -14 a30 12 20 0 1 30 18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/><path d="M50 55 m38 0 a38 14 20 0 1 -38 14 a30 12 20 0 1 -30 -18" fill="none" stroke="#e9d5ff" stroke-width="3" opacity=".4"/></g>
       <circle cx="50" cy="55" r="20" fill="#a78bfa" opacity=".25"/><circle cx="50" cy="55" r="9" fill="#fde68a" opacity=".45"/>`,
     flame: `<rect width="100" height="140" fill="#1c0a05"/><path d="M0 30Q50 10 100 30V0H0Z" fill="#450a0a"/><path d="M8 30Q50 12 92 30" fill="none" stroke="#b45309" stroke-width="1.5"/>${col(2)}${col(87)}
       <path d="M30 140V95h40v45" fill="#2a0a05"/><path d="M26 95h48l-4 -5h-40z" fill="#b45309"/>${flame(50, 30, 70, "#dc2626", "")}${flame(40, 16, 50, "#f97316", "f2")}${flame(60, 16, 55, "#f97316", "f3")}${flame(50, 12, 38, "#fde047", "f2")}`,
     frost: `<path d="M0 140V100l10 -30 8 34 6 -48 10 44 6 -20 6 60Z" fill="#7dd3fc" opacity=".35"/><path d="M100 140V96l-9 -34 -7 36 -6 -44 -9 42 -6 -18 -5 62Z" fill="#bae6fd" opacity=".35"/>
       <path d="M6 140l8 -60 6 60M30 140l4 -30 5 30M88 140l-6 -56 -7 56M70 140l-3 -26 -4 26" fill="#e0f2fe" opacity=".5"/>
-      ${flake(14, 22, 5)}${flake(85, 30, 6)}${flake(20, 62, 3.5)}${flake(80, 70, 4)}${flake(50, 12, 3)}${flake(64, 92, 3)}${dots(30, 5, "#e0f2fe")}`,
+      ${flake(10, 50, 5)}${flake(85, 30, 6)}${flake(20, 62, 3.5)}${flake(80, 70, 4)}${flake(50, 12, 3)}${flake(64, 92, 3)}${dots(30, 5, "#e0f2fe")}`,
     gold: `${Array.from({ length: 16 }, (_, i) => `<path d="M50 55L${(50 + 90 * Math.cos(i * Math.PI / 8)).toFixed(1)} ${(55 + 90 * Math.sin(i * Math.PI / 8)).toFixed(1)}L${(50 + 90 * Math.cos(i * Math.PI / 8 + .18)).toFixed(1)} ${(55 + 90 * Math.sin(i * Math.PI / 8 + .18)).toFixed(1)}Z" fill="#fef3c7" opacity=".16"/>`).join("")}
-      <circle cx="50" cy="52" r="30" fill="none" stroke="#fde68a" stroke-width="2.5" opacity=".7"/><circle cx="50" cy="52" r="26.5" fill="none" stroke="#92400e" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".8"/>
+      <circle cx="50" cy="66" r="26" fill="none" stroke="#fde68a" stroke-width="2.5" opacity=".7"/><circle cx="50" cy="66" r="22.5" fill="none" stroke="#92400e" stroke-width="1" stroke-dasharray="1.5 1.5" opacity=".8"/>
       ${bar(2, 118)}${bar(18, 118)}${bar(66, 118)}${bar(82, 118)}${bar(10, 111)}${bar(74, 111)}${bar(6, 104)}${bar(78, 104)}`,
     volt: `<g fill="none" stroke="#22d3ee" opacity=".5"><ellipse cx="50" cy="52" rx="34" ry="34" stroke-width="1" stroke-dasharray="3 4" class="czspin"/><ellipse cx="50" cy="52" rx="42" ry="42" stroke-width=".6" stroke-dasharray="1 5"/><circle cx="50" cy="52" r="26" stroke="#6366f1" stroke-width="3" opacity=".6"/></g>
-      ${bolt("6,0 16,30 8,34 20,62 12,66 24,98")}${bolt("94,4 84,28 92,32 78,60 88,64 76,96", "b2")}${bolt("30,140 36,120 30,118 40,100", "b2")}${bolt("70,140 64,122 71,119 60,102")}`,
+      ${bolt("4,44 13,64 6,68 17,92 10,96 20,122")}${bolt("96,46 87,64 94,68 82,92 90,96 80,120", "b2")}${bolt("30,140 36,120 30,118 40,100", "b2")}${bolt("70,140 64,122 71,119 60,102")}`,
     kaleido: `<g class="czspin" style="transform-origin:50px 52px">${Array.from({ length: 12 }, (_, i) => `<ellipse cx="50" cy="22" rx="8" ry="30" transform="rotate(${i * 30} 50 52)" fill="${["#f472b6", "#fbbf24", "#34d399", "#38bdf8", "#a78bfa", "#fb7185"][i % 6]}" opacity=".45"/>`).join("")}${Array.from({ length: 12 }, (_, i) => `<path d="M50 52L${(50 + 60 * Math.cos(i * Math.PI / 6)).toFixed(1)} ${(52 + 60 * Math.sin(i * Math.PI / 6)).toFixed(1)}" stroke="#fff" stroke-width=".5" opacity=".6"/>`).join("")}</g>
       <circle cx="50" cy="52" r="24" fill="none" stroke="#fff" stroke-width="1.2" opacity=".6"/><circle cx="50" cy="52" r="46" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 3" opacity=".5"/>`,
     rift: `${dots(60, 13)}<path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128" fill="none" stroke="#c026d3" stroke-width="16" opacity=".35" stroke-linejoin="bevel"/>
       <path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128L105 122 58 99 66 86 36 74 44 60 20 49 28 36Z" fill="#f0abfc"/><path d="M-5 20L22 38 14 50 40 62 32 78 62 88 56 104 105 128" fill="none" stroke="#fff" stroke-width="1.6"/>
       <path d="M22 38L30 30M40 62L50 56M62 88L72 82M32 78L24 86M56 104L48 112" stroke="#22d3ee" stroke-width=".8"/>`,
-    neon: `<circle cx="72" cy="24" r="12" fill="none" stroke="#f0abfc" stroke-width="1.6"/><circle cx="72" cy="24" r="12" fill="#f0abfc" opacity=".12"/>${dots(25, 17)}
+    neon: `<circle cx="80" cy="48" r="10" fill="none" stroke="#f0abfc" stroke-width="1.6"/><circle cx="80" cy="48" r="10" fill="#f0abfc" opacity=".12"/>${dots(25, 17)}
       <path d="M0 140V96h10V84h8v12h6V74h12v22h6V88h10v-24h10v32h8V80h10v16h8V90h12v50Z" fill="#12021f"/>
       <path d="M0 96h10V84h8v12h6V74h12v22h6V88h10v-24h10v32h8V80h10v16h8V90h12" fill="none" stroke="#22d3ee" stroke-width="1"/>
       ${Array.from({ length: 22 }, (_, i) => `<rect x="${(2 + (i * 37) % 94).toFixed(0)}" y="${(100 + (i * 13) % 32).toFixed(0)}" width="2" height="2.4" fill="${i % 3 ? "#f0abfc" : "#fde047"}" opacity=".8"/>`).join("")}`,
@@ -5321,22 +5378,21 @@ const CZ_CASE_ART = (() => {
       <path d="M20 38L34 22H66L80 38L50 88Z M20 38H80 M42 38L50 88L58 38 M34 22L42 38M66 22L58 38M50 22V38" fill="none" stroke="#fff" stroke-width=".6"/></g>
       ${star(18, 16, 5)}${star(84, 60, 4)}${star(14, 92, 3.5)}${star(88, 18, 3)}${star(60, 110, 3)}${dots(30, 23, "#e0e7ff")}`,
   };
+  // art in front of the player stays on the card's edges and never on writing; anything that would reach the labels, the
+  // name plate or the face is drawn in the back layer instead, behind them
   const front = {
     horizon: `<path d="M0 0H100V140H0Z M6 6V134H94V6Z" fill="#000" opacity=".45" fill-rule="evenodd"/>`,
-    starfall: `${star(10, 132, 4, "#fde68a")}${star(90, 10, 3, "#fff")}`,
-    crown: `<g transform="translate(50 40)"><path d="M-14 6L-16 -6 -8 0 0 -10 8 0 16 -6 14 6Z" fill="#fbbf24" stroke="#7c2d12" stroke-width=".7"/><rect x="-14" y="5" width="28" height="3.5" rx="1" fill="#d97706" stroke="#7c2d12" stroke-width=".6"/>
-      <circle cx="0" cy="-10" r="1.8" fill="#e879f9"/><circle cx="-16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="0" cy="1.5" r="2" fill="#a78bfa" stroke="#fde68a" stroke-width=".5"/></g>`,
-    flame: `${flame(4, 7, 26, "#dc2626", "f3")}${flame(96, 7, 30, "#dc2626", "")}${flame(4, 4, 16, "#fbbf24", "")}${flame(96, 4, 18, "#fbbf24", "f2")}`,
-    frost: `<path d="M0 0H100V3${Array.from({ length: 16 }, (_, i) => { const x = 100 - i * 6.25 - 3.1, l = [9, 5, 13, 6, 8, 4, 11, 6][i % 8]; return `L${(x + 3.1).toFixed(1)} 3L${x.toFixed(1)} ${3 + l}`; }).join("")}L0 3Z" fill="#e0f2fe" opacity=".92"/><path d="M0 0H100V3H0Z" fill="#fff"/>`,
     gold: `<path d="M0 0H100V140H0Z M3 3V137H97V3Z" fill="#fbbf24" fill-rule="evenodd"/><path d="M3 3H97V137H3Z" fill="none" stroke="#92400e" stroke-width=".6"/>
-      <g transform="translate(13 100)"><circle r="8" fill="#d97706" stroke="#fef3c7" stroke-width="1"/><circle r="6" fill="none" stroke="#fef3c7" stroke-width=".4" stroke-dasharray="1 1"/><text y="2.4" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff7d6" font-family="system-ui">24K</text></g>`,
-    volt: `${bolt("0,108 6,100 2,98 9,88")}${bolt("100,112 94,103 98,100 91,90", "b2")}`,
+      <g transform="translate(13 86)"><circle r="8" fill="#d97706" stroke="#fef3c7" stroke-width="1"/><circle r="6" fill="none" stroke="#fef3c7" stroke-width=".4" stroke-dasharray="1 1"/><text y="2.4" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff7d6" font-family="system-ui">24K</text></g>`,
     kaleido: `<path d="M0 0H100V140H0Z M4 4V136H96V4Z" fill="#fff" opacity=".18" fill-rule="evenodd"/>`,
-    rift: `<path d="M0 0L10 8 6 14 16 20M100 140L90 132 94 126 84 120" fill="none" stroke="#f0abfc" stroke-width="1.2"/>`,
     neon: `<rect x="3" y="3" width="94" height="134" rx="8" fill="none" stroke="#f0abfc" stroke-width="1.2"/><rect x="5.5" y="5.5" width="89" height="129" rx="6" fill="none" stroke="#22d3ee" stroke-width=".7"/>`,
-    aurora: ``,
-    diamond: `${star(8, 8, 5)}${star(92, 8, 5)}${star(8, 132, 4)}${star(92, 132, 4)}`,
   };
+  // the edge pieces that used to sit in front, now behind the text
+  const behind = { frost: `<path d="M0 0H100V3${Array.from({ length: 16 }, (_, i) => { const x = 100 - i * 6.25 - 3.1, l = [9, 5, 13, 6, 8, 4, 11, 6][i % 8]; return `L${(x + 3.1).toFixed(1)} 3L${x.toFixed(1)} ${3 + l}`; }).join("")}L0 3Z" fill="#e0f2fe" opacity=".92"/><path d="M0 0H100V3H0Z" fill="#fff"/>`, flame: `${flame(4, 7, 26, "#dc2626", "f3")}${flame(96, 7, 30, "#dc2626", "")}${flame(4, 4, 16, "#fbbf24", "")}${flame(96, 4, 18, "#fbbf24", "f2")}`, volt: `${bolt("0,108 6,100 2,98 9,88")}${bolt("100,112 94,103 98,100 91,90", "b2")}`, rift: `<path d="M0 0L10 8 6 14 16 20M100 140L90 132 94 126 84 120" fill="none" stroke="#f0abfc" stroke-width="1.2"/>`, crown: `<g transform="translate(50 21.5) scale(.42)"><path d="M-14 6L-16 -6 -8 0 0 -10 8 0 16 -6 14 6Z" fill="#fbbf24" stroke="#7c2d12" stroke-width=".7"/><rect x="-14" y="5" width="28" height="3.5" rx="1" fill="#d97706" stroke="#7c2d12" stroke-width=".6"/>
+      <circle cx="0" cy="-10" r="1.8" fill="#e879f9"/><circle cx="-16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="16" cy="-6" r="1.4" fill="#22d3ee"/><circle cx="0" cy="1.5" r="2" fill="#a78bfa" stroke="#fde68a" stroke-width=".5"/></g>`,
+    starfall: `${star(4, 70, 3.5, "#fde68a")}${star(96, 50, 3, "#fff")}`, diamond: `${star(4, 60, 4)}${star(96, 44, 4)}${star(5, 76, 3)}${star(95, 70, 3)}` };
+  for (const k in behind) back[k] += behind[k];
+
   const out = {}; for (const k in back) out[k] = { back: back[k], front: front[k] || "" }; return out;
 })();
 // card layouts, like the different sets of a real card year: 0 Full Bleed, 1 Vertical, 2 Classic, 3 Jersey Number, 4 Comic Burst,
@@ -5358,7 +5414,7 @@ function czCard(it, ed, big){
   const extra = (it.tier === "singularity" && !it.legend && !it.moment && !it.ch ? `<div class="czone" aria-hidden="true"><b>1</b><small>of</small><b>1</b></div>` : "")
     + (it.legend ? `<div class="czat" aria-hidden="true"><small>All-Time</small><b>#${it.rank || it.no}</b></div>` : "")
     + (it.moment ? `<div class="czat czmo" aria-hidden="true"><small>Iconic moment</small><b>${esc(it.year || "")}</b></div>` : "")
-    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
+    + (it.ink && !it.ch ? `<div class="czink" aria-hidden="true"><span>${esc(it.name)}</span><small>Cosmic Ink</small></div>` : "") + (it.no && !it.legend ? `<div class="czno" aria-hidden="true">${esc(setLg)} <b>#${String(it.no).padStart(3, "0")}</b></div>` : "") + (it.ch ? `<div class="czch-back" aria-hidden="true"></div><div class="czch-logo" aria-hidden="true"><small>Case hit insert</small>${esc(CZ_CASE_NAME[it.ch] || "")}</div>` : "") + `<div class="czbig" aria-hidden="true" style="--n:${Math.max(3, String(bigTxt).length)}">${esc(String(bigTxt).toUpperCase())}</div><div class="czword" aria-hidden="true">COSMIC <b>26</b></div>${L === 4 ? `<div class="czsnd" aria-hidden="true">${CZ_SOUNDS[dz % CZ_SOUNDS.length]}</div>` : ""}<div class="czposb" aria-hidden="true">${esc(player ? it.pos || "★" : "TEAM")}</div>`;
   return `<div class="czcard l-${L} t-${esc(it.tier)} d-${dz} ${it.legend ? "legend" : ""} ${it.moment ? "legend moment" : ""} ${it.ink && !it.ch ? "ink" : ""} ${it.ch ? "ch ch-" + esc(it.ch) : ""} ${big ? "big" : ""} ${lv > 1 ? "lv lv" + lv : ""} ${it.ev ? "evcard" : ""} ${hot ? "hot" : ""}" style="--c1:${esc((st && st.main) || "#7c3aed")};--c2:${esc((T && T.alt) || (st && st.alt) || "#22d3ee")}${evc ? `;--ev:${evc}` : ""}">
     ${it.ev ? `<div class="czev" title="${esc(it.evl || "")} edition">${esc(it.evl || "Event")}</div>` : ""}${hot ? `<div class="czembers" aria-hidden="true">${"<i></i>".repeat(7)}</div><div class="czhot" title="${esc(hot.game || "")}">🔥 ${esc(hot.line)}</div>` : ""}<div class="czc-stock" aria-hidden="true"></div><div class="czdz" aria-hidden="true">${it.ch ? `<i></i><b></b>${CZ_CASE_ART[it.ch] ? `<svg class="czscene czchart" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_CASE_ART[it.ch].back}</svg>` : ""}` : `<svg class="czscene" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">${CZ_SCENE_SVG[dz]}</svg>`}</div><div class="czfx" aria-hidden="true">${czFx(it.tier)}</div><div class="czc-win" aria-hidden="true"></div>${extra}<div class="czc-foil"></div>${it.ch && CZ_CASE_ART[it.ch] && CZ_CASE_ART[it.ch].front ? `<svg class="czscene czchfr" aria-hidden="true" viewBox="0 0 100 140" preserveAspectRatio="none">${CZ_CASE_ART[it.ch].front}</svg>` : ""}${it.ch ? `<div class="czch-ban">CASE HIT<span> · ${esc(CZ_CASE_NAME[it.ch] || "Insert")}</span></div>` : ""}
     ${it.rc ? `<div class="czrc" title="Rookie card: his first season">RC</div>` : ""}<div class="czc-top"><span>${esc(it.label || CZ_TIER_NAME[it.tier] || it.tier)}</span><em>${ed ? `${ed}/${it.supply}` : it.supply === 1 ? "1 exists" : `${Number(it.supply).toLocaleString()} exist`}</em></div>
