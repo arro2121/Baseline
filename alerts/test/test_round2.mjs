@@ -2,7 +2,7 @@
 // Run: node alerts/test/test_round2.mjs
 import * as W0 from "../worker.js";
 // functions added by these fixes are stubbed on older code so every check still runs (and fails) there
-const W = { ...W0, czNanFixTx: W0.czNanFixTx || (async () => ({})), dayBefore: W0.dayBefore || (() => ""), dayAfter: W0.dayAfter || (() => "") };
+const W = { ...W0, isOff: W0.isOff || (() => false), sportsDay: W0.sportsDay || (() => ""), normInjuries: W0.normInjuries || (() => ({})), czNanFixTx: W0.czNanFixTx || (async () => ({})), dayBefore: W0.dayBefore || (() => ""), dayAfter: W0.dayAfter || (() => "") };
 let fails = 0;
 const check = (name, ok, got) => { console.log(`${ok ? "PASS" : "FAIL"}  ${name}${ok ? "" : "  (got " + JSON.stringify(got)?.slice(0, 200) + ")"}`); if (!ok) fails++; };
 const mem = () => { const m = new Map(); return { m, st: { get: async k => structuredClone(m.get(k)), put: async (k, v) => { m.set(k, structuredClone(v)); }, delete: async k => m.delete(k), list: async ({ prefix = "" } = {}) => new Map([...m].filter(([k]) => k.startsWith(prefix))) } }; };
@@ -96,4 +96,28 @@ check("A7 the day before is counted on the calendar", W.dayBefore("20261102") ==
   const v = await W.czJudge(env, { house: true, a: [card("nba.p1.pulsar", 1)], b: [card("nba.p2.pulsar", 1)], fromName: "A", sport: "nba" }, async () => { called++; return new Response("{}"); });
   check("B4 house battles call no model and still get a recap", called === 0 && v.judge === "formula" && v.report.length > 10, { called, judge: v.judge });
   check("B4 the judge model is small (not Opus)", /JUDGE_CLAUDE_MODEL = "claude-haiku-4-5"/.test(src) && !/claude-opus-5"/.test(src.match(/judge[\s\S]{0,400}/i)[0])); }
+
+// ---- batch 2: the shared score normalizers (used by the page and the alerts service) ----
+// A11: postponed, cancelled and suspended games are marked off and never "completed"
+{ const ev = (name, desc) => ({ id: "1", date: "2026-09-22T23:05Z", status: { type: { name, state: "post", completed: true, description: desc, detail: desc, shortDetail: desc } },
+    competitions: [{ competitors: [{ homeAway: "home", score: "0", team: { id: "1", displayName: "Baltimore Orioles" } }, { homeAway: "away", score: "0", team: { id: "2", displayName: "Toronto Blue Jays" } }] }] });
+  const B = W.normScoreboard ? W.normScoreboard({ events: [ev("STATUS_POSTPONED", "Postponed"), { ...ev("STATUS_FINAL", "Final"), id: "2" }] }, "mlb") : null;
+  const g = B && (B.games || B)[0], f = B && (B.games || B)[1];
+  check("A11 a postponed game is off and not completed; a final isn't", !!g && g.status.off === true && !g.status.completed && !f.status.off && f.status.completed, g && g.status);
+  const T = W.normTeam({ id: "1", displayName: "Baltimore Orioles" }, { events: [ev("STATUS_POSTPONED", "Postponed")] }, null, "mlb");
+  check("A11 team schedules mark postponed games too", T.games[0].off === true, T.games[0]); }
+// A13: a soccer schedule that arrives newest-first is put in date order, and fixtures are fetched and merged
+{ const mk = (id, date, st) => ({ id, date, status: { type: { state: st } }, competitions: [{ competitors: [{ homeAway: "home", id: "9", team: { id: "9" } }, { homeAway: "away", team: { id: "8", displayName: "Other" } }] }] });
+  const results = { events: [mk("3", "2026-09-20T14:00Z", "post"), mk("2", "2026-08-30T14:00Z", "post"), mk("1", "2026-08-23T14:00Z", "post")] };
+  const fixtures = { events: [mk("4", "2026-09-27T14:00Z", "pre"), mk("5", "2026-10-04T14:00Z", "pre")] };
+  const fx = async url => new Response(JSON.stringify(/fixture=true/.test(url) ? fixtures : /schedule/.test(url) ? results : /roster/.test(url) ? {} : { team: { id: "9", displayName: "Manchester City" } }));
+  const t = await W.espnTeam("epl", "9", fx), ids = t.games.map(x => x.id).join();
+  const last = [...t.games].reverse().find(x => x.state === "post");
+  check("A13 Premier League team games are in date order with upcoming fixtures", ids === "1,2,3,4,5" && last.id === "3", ids); }
+// A14/A15: the sports day is the Eastern-time date with a 6 am cutoff, whatever the device's zone
+check("A14 the sports day is Eastern time with a 6 am cutoff", W.sportsDay(Date.parse("2026-09-27T03:30:00Z")) === "20260926" && W.sportsDay(Date.parse("2026-09-27T09:30:00Z")) === "20260926" && W.sportsDay(Date.parse("2026-09-27T10:30:00Z")) === "20260927", W.sportsDay(Date.parse("2026-09-27T03:30:00Z")));
+check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse("2026-11-03T10:30:00Z")) === "20261102" && W.sportsDay(Date.parse("2026-11-03T11:30:00Z")) === "20261103", W.sportsDay(Date.parse("2026-11-03T10:30:00Z")));
+// A9: the injury report can be computed from ESPN's data by the page itself
+{ const r = W.normInjuries("nba", { injuries: [{ displayName: "Lakers", injuries: [{ athlete: { displayName: "Star Guy", position: { abbreviation: "G" } }, status: "Out" }] }] }, new Map([["star guy", { pool: "guards", rank: 0, size: 50 }]]));
+  check("A9 injuries are computed from ESPN's report without the alerts service", r.teams && r.teams.Lakers && r.teams.Lakers.pen > 0, r); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
