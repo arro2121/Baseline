@@ -13,6 +13,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { TEAM_COLORS } from "./colors.js";
 import { LEGENDS } from "./legends.js";
 import { MOMENTS } from "./moments.js";
+import { DUALS } from "./duals.js";
 
 const API = "https://api.api-tennis.com/tennis/";
 const TYPES = { "Atp Singles": ["atp", true], "Wta Singles": ["wta", true],
@@ -1601,7 +1602,7 @@ export async function trackAll(db) {
    supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
    no cash value either.
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
-const CZ_SHOP = .4, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;
+const CZ_SHOP = .85, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;   // the shop pays 85% of a card's value (packs return 70% of their price, so selling never beats not buying)
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
 // tiers: [id, name, copies, real-card price in US dollars of an average starter's card in that tier]. Like real parallels: a base
 // card is about $1, a /250 about $4, a /50 about $25, a /10 about $250 and a 1-of-1 about $2,500, before the player's value
@@ -1615,7 +1616,7 @@ export const CZ_TIERS = [["singularity", "Sun", 1, 2500], ["supernova", "Moon", 
 export const CZ_COINS_PER_USD = 50;
 // each sport's card market, next to basketball and football (the biggest hobby markets): baseball a little smaller, soccer
 // and hockey smaller, tennis much smaller. A superstar in a small hobby is still worth a lot, just less than an NBA star.
-export const CZ_SPORT_MKT = { nba: 1, nfl: 1, mlb: .85, epl: .7, nhl: .6, atp: .3, wta: .3 };
+export const CZ_SPORT_MKT = { nba: 1, nfl: 1, mlb: .85, epl: .7, nhl: .6, atp: .3, wta: .3, cfb: .5, cbb: .45 };
 export const czUsd = (base, mult, kind, lg) => Math.round(base * Math.pow(Math.max(.3, mult), 2.2) * (kind === "team" ? .35 : 1) * (CZ_SPORT_MKT[lg] ?? 1) * 100) / 100;
 export const czCoins = usd => Math.max(10, Math.round(usd * CZ_COINS_PER_USD / 10) * 10);
 // packs: the chance (%) that each card is Singularity, Supernova, Quasar, Nebula, Pulsar, Stardust or Comet. Shown in the app.
@@ -1679,7 +1680,7 @@ export const CZ_EV_PRICE = 1500, CZ_EV_MAX = 5, CZ_EV_CARDS = 2, CZ_EV_ODDS = [0
 // the events as packs, with where each one stands at this moment: "soon", "live" or "over"
 export const czEventsAt = now => CZ_EVENTS.map(e => { const starts = Date.parse(e.start), ends = Date.parse(e.end);
   return { ...e, id: e.id, pack: "ev:" + e.id, label: `${e.label} Pack`, price: CZ_EV_PRICE, cards: CZ_EV_CARDS, odds: CZ_EV_ODDS, ch: CZ_EV_CH, max: CZ_EV_MAX, starts, ends, status: now < starts ? "soon" : now < ends ? "live" : "over" }; });
-const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"] }, CZ_KINDS = ["all", "team", "player", "rookie", "legend"];
+const CZ_SCOPES = { all: null, nfl: ["nfl"], nba: ["nba"], mlb: ["mlb"], nhl: ["nhl"], epl: ["epl"], tennis: ["atp", "wta"], college: ["cfb", "cbb"] }, CZ_KINDS = ["all", "team", "player", "rookie", "legend"];
 const czSlug = s => String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const czHash = async s => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))))].map(b => b.toString(16).padStart(2, "0")).join("");
 // leaderboard names are public, so offensive ones are refused (look-alike letters are folded, so "b1tch" or "F.U.C.K" don't get through)
@@ -2010,9 +2011,9 @@ export async function czTx(st, a) {
       if (!open.length) continue;
       const n = open[Math.floor(rnd() * open.length)];
       if (back.includes(n)) ret[it.id] = back.filter(x => x !== n); else { iss.push(n); mint[it.id] = (mint[it.id] || 0) + 1; }
-      const ch = !grail && rnd() < chRate ? czCasePick(rnd()) : null;
-      const ink = !ch && it.kind === "player" && !it.legend && !it.moment && !it.grail && rnd() < CZ_INK.rate;
-      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(it.legend ? { legend: true, rank: it.rank } : {}), ...(it.moment ? { moment: true, rank: it.rank, year: it.year } : {}), ...(it.grail ? { grail: true } : {}), ...(ch ? { ch } : {}), ...(ink ? { ink: true } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
+      const ch = !grail && !it.duo && rnd() < chRate ? czCasePick(rnd()) : null;
+      const ink = !ch && it.kind === "player" && !it.legend && !it.moment && !it.grail && !it.duo && rnd() < CZ_INK.rate;
+      pulled.push({ id: it.id, n, supply: it.supply, tier: it.tier, lg: it.lg, name: it.name, kind: it.kind, team: it.team, pos: it.pos, img: it.img, no: it.no, num: it.num, ...(it.rc ? { rc: true } : {}), ...(it.legend ? { legend: true, rank: it.rank } : {}), ...(it.moment ? { moment: true, rank: it.rank, year: it.year } : {}), ...(it.duo ? { duo: true, rank: it.rank, team2: it.team2 } : {}), ...(it.grail ? { grail: true } : {}), ...(ch ? { ch } : {}), ...(ink ? { ink: true } : {}), rolled: tier, at: a.now, pack: pk.id, ...(pk.ev ? { ev: pk.ev, evl: pk.evl, evc: pk.evc } : {}) });
     }
     if (!pulled.length) return { error: "You've collected every card this pack could give you." };
     const opened = Math.max(1, Math.ceil(pulled.length / pk.cards));          // packs actually filled (charged for), in case supply ran short
@@ -2479,7 +2480,7 @@ async function czCatalog(env, fetchImpl = fetch) {
   // a player card's price follows his real cards' market (CZ_HOBBY) and this season's play (czMarketMult); a team's follows its
   // rating; each tier multiplies it
   const add = (lg, kind, name, mult, extra, key) => { for (const [tier, label, supply, base] of CZ_TIERS) items.push({ id: `${lg}.${key}.${tier}`, lg, kind, name, tier, label, supply, mult: Math.round(mult * 1000) / 1000, usd: czUsd(base, mult, kind, lg), price: czCoins(czUsd(base, mult, kind, lg)), ...extra }); };
-  for (const lg of TRACK_LEAGUES) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo);
+  for (const lg of [...TRACK_LEAGUES, "cfb", "cbb"]) { const st = models[lg]?.state || {}, names = Object.keys(st).sort((a, b) => st[b].elo - st[a].elo).slice(0, lg === "cfb" || lg === "cbb" ? 100 : 1e9);   // Campus Stars: the top 100 programs
     const hi = names.length ? st[names[0]].elo : 0, lo = names.length ? st[names[names.length - 1]].elo : 0;
     names.forEach((n, i) => add(lg, "team", n, .6 + 1.1 * (hi > lo ? (st[n].elo - lo) / (hi - lo) : .5), { rank: i + 1, elo: Math.round(st[n].elo) }, czSlug(n))); }
   try { const r = await siteGet(env, "/players.json", fetchImpl); const P = r.ok ? await r.json() : [];
@@ -2513,12 +2514,23 @@ async function czCatalog(env, fetchImpl = fetch) {
       const mult = Math.round((2.6 - (M.rank - 1) * .03) * 1000) / 1000, usd = czUsd(T[3], mult, "player", M.lg);
       items.push({ id: `${M.lg}.mo-${czSlug(M.name)}.${T[0]}`, lg: M.lg, kind: "player", moment: true, name: M.name, team: M.who, pos: M.year, year: M.year, tier: T[0], label: T[1], supply: 1,
         mult, usd, price: czCoins(usd), rank: M.rank, no: M.rank }); } }
+  // Binary Stars: two players with a real connection on one card, a single 1-of-1 each (duals.js), worth a little more
+  // than the pair's two best cards together would suggest; pairs only where both players are on a roster now
+  { const T = CZ_TIERS[0], base = new Map(), out = [];
+    for (const i of items) if (i.kind === "player" && i.tier === "comet" && !i.legend && !i.moment) base.set(i.lg + ":" + czSlug(i.name), i);
+    for (const D of DUALS) { const a = base.get(D.lg + ":" + czSlug(D.a)), b = base.get(D.lg + ":" + czSlug(D.b)); if (!a || !b) continue;
+      const conn = D.now && a.team !== b.team ? "Former teammates" : D.conn;
+      out.push({ id: `${D.lg}.duo-${czSlug(a.name)}-${czSlug(b.name)}.${T[0]}`, lg: D.lg, kind: "player", duo: true, name: `${a.name} & ${b.name}`, team: a.team, team2: b.team,
+        pos: conn, tier: T[0], label: T[1], supply: 1, pull: Math.sqrt(a.mult * a.mult + b.mult * b.mult) * Math.sqrt(CZ_SPORT_MKT[D.lg] ?? 1) }); }   // a bigger hobby ranks higher
+    // ranked by the pair's combined pull, and valued on the same curve as the All-Time legends (#1 about 3.3)
+    out.sort((x, y) => y.pull - x.pull).forEach(({ pull, ...x }, k) => { const mult = Math.round((3.3 - k * .012) * 1000) / 1000, usd = czUsd(T[3], mult, "player", x.lg);
+      items.push({ ...x, mult, usd, price: czCoins(usd), rank: k + 1, no: k + 1 }); }); }
   // card numbers, like a real set: each league's set (2026 Cosmic NBA...) runs teams first, then players by team and name.
   // A card keeps its number in every tier.
   { const byLg = new Map(); for (const i of items) if (i.tier === "comet") (byLg.get(i.lg) || byLg.set(i.lg, []).get(i.lg)).push(i);
     const noOf = new Map(); for (const [, l] of byLg) l.sort((a, b) => (a.kind === "team" ? 0 : 1) - (b.kind === "team" ? 0 : 1) || String(a.team || "").localeCompare(String(b.team || "")) || a.name.localeCompare(b.name))
       .forEach((i, k) => noOf.set(i.id.replace(/\.comet$/, ""), k + 1));
-    for (const i of items) if (!i.legend && !i.moment) i.no = noOf.get(i.id.replace(/\.[a-z]+$/, "")); }
+    for (const i of items) if (!i.legend && !i.moment && !i.duo) i.no = noOf.get(i.id.replace(/\.[a-z]+$/, "")); }
   const byId = new Map(items.map(i => [i.id, i]));
   // the Grails: one card per league, worth more than any other card in the game (never in packs or the checklist)
   for (const g of czGrails(items)) byId.set(g.id, g);
@@ -2851,8 +2863,8 @@ export async function cosmicRoute(req, env, ctx, url) {
     const held = id => (mint0[id] || 0) - (ret[id] || []).length;
     const val = i => czValueOf(i, { xp: XP[czLvlKey(i)] || 0, hot: !!(HOT[czLvlKey(i)] && now - HOT[czLvlKey(i)].at < 30 * 3600e3), held: held(i.id) });
     const scope = CZ_SCOPES[lg] || null;
-    let list = items.filter(i => (!scope || scope.includes(i.lg)) && (tier === "all" || i.tier === tier) && (kind === "all" || (kind === "rookie" ? i.rc : kind === "legend" ? i.legend : kind === "moment" ? i.moment : i.kind === kind)) && (!term || czSlug(`${i.name} ${i.team || ""}`).includes(term)));
-    if (kind === "legend" || kind === "moment") list.sort((a, b) => a.rank - b.rank); else
+    let list = items.filter(i => (!scope || scope.includes(i.lg)) && (tier === "all" || i.tier === tier) && (kind === "all" || (kind === "rookie" ? i.rc : kind === "legend" ? i.legend : kind === "moment" ? i.moment : kind === "duo" ? i.duo : i.kind === kind)) && (!term || czSlug(`${i.name} ${i.team || ""}`).includes(term)));
+    if (kind === "legend" || kind === "moment" || kind === "duo") list.sort((a, b) => a.rank - b.rank); else
     if (q.get("sort") === "no") list.sort((a, b) => a.lg.localeCompare(b.lg) || (a.no || 0) - (b.no || 0) || a.supply - b.supply); else
     list.sort((a, b) => (held(a.id) >= a.supply) - (held(b.id) >= b.supply) || a.supply - b.supply || (a.kind === "team" ? 0 : 1) - (b.kind === "team" ? 0 : 1) || b.price - a.price);
     const page = list.slice(off, off + lim), owners = {};
@@ -2883,7 +2895,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     await czDropsSync(env); const order = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
     const items = (who.items || []).map(i => { const c = CZ_CAT.byId.get(i.id) || {};
       return { id: i.id, n: i.n, supply: i.supply, tier: i.tier, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img || c.img, no: i.no || c.no, num: i.num || c.num, rc: i.rc || c.rc,
-        legend: i.legend || c.legend, moment: i.moment || c.moment, rank: i.rank || c.rank, year: i.year || c.year, ch: i.ch, ink: i.ink, gr: i.gr, grail: i.grail || c.grail, ev: i.ev, evl: i.evl, evc: i.evc, at: i.at, value: c.price || 0 }; })
+        legend: i.legend || c.legend, moment: i.moment || c.moment, duo: i.duo || c.duo, team2: i.team2 || c.team2, rank: i.rank || c.rank, year: i.year || c.year, ch: i.ch, ink: i.ink, gr: i.gr, grail: i.grail || c.grail, ev: i.ev, evl: i.evl, evc: i.evc, at: i.at, value: c.price || 0 }; })
       .sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier) || !!b.ch - !!a.ch || b.value - a.value);
     return json({ name: who.name, cards: items.length, value: items.reduce((s, i) => s + i.value, 0), packs: who.packs || 0, sets: (who.setsDone || []).length,
       rank: who.sp && who.sp.season === czSeasonOf(now) ? czRankOf(who.sp.pts || 0)[1] : null, items: items.slice(0, 300) }, 200, { "Cache-Control": "no-store" }); }
@@ -3195,7 +3207,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const byTier = {}; for (const i of P) (byTier[i.tier] ||= []).push(i);
     const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n, pool = [];
     for (const list of Object.values(byTier)) { const k = Math.min(160, list.length), pick = new Set(); while (pick.size < k) pick.add(rnd(list.length));
-      for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, no: i.no, num: i.num, ...(i.rc ? { rc: true } : {}), ...(i.legend ? { legend: true, rank: i.rank } : {}), ...(i.moment ? { moment: true, rank: i.rank, year: i.year } : {}) }); } }
+      for (const j of pick) { const i = list[j]; pool.push({ id: i.id, tier: i.tier, supply: i.supply, lg: i.lg, name: i.name, kind: i.kind, team: i.team, pos: i.pos, img: i.img, no: i.no, num: i.num, ...(i.rc ? { rc: true } : {}), ...(i.legend ? { legend: true, rank: i.rank } : {}), ...(i.moment ? { moment: true, rank: i.rank, year: i.year } : {}), ...(i.duo ? { duo: true, rank: i.rank, team2: i.team2 } : {}) }); } }
     const G = CZ_GRAILS.map(([g]) => CZ_CAT.byId.get(`${g}.grail.singularity`)).filter(g => g && (!lgs || lgs.includes(g.lg) || (g.lg === "atp" && lgs.includes("wta"))) && (mint[g.id] || 0) - (ret[g.id] || []).length < 1);
     if (G.length) { pk = { ...pk, gc: czGrailChance(pk.price, pk.cards, G[0].price) }; for (const g of G) pool.push({ id: g.id, tier: g.tier, supply: 1, lg: g.lg, name: g.name, kind: g.kind, grail: true }); }
     const rid = /^[a-f0-9]{16,32}$/.test(d.rid || "") ? d.rid : undefined;
