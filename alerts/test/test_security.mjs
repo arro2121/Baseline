@@ -146,7 +146,7 @@ check("S6 support messages go when the account is deleted", JSON.parse(data.get(
   const cs = [1, 2, 3].map(i => ({ id: `nfl.q${i}.comet`, tier: "comet", supply: 1000, n: i, lg: "nfl", name: "Q" + i, kind: "player" }));
   m.set("cz:u:V", { ...m.get("cz:u:V"), bal: 0, items: cs.map((c, i) => i === 2 ? { ...c, listed: "L1" } : c) });
   const r = await T({ act: "sellmany", uid: "V", cards: cs.map(c => ({ id: c.id, value: 1000 })) }), U = m.get("cz:u:V");
-  check("SA1 sells the free cards and pays shop value (75%)", r.sold === 2 && r.skipped === 1 && U.bal === 1500 && U.items.length === 1 && U.items[0].listed, r);
+  check("SA1 sells the free cards and pays shop value (71%)", r.sold === 2 && r.skipped === 1 && U.bal === 1420 && U.items.length === 1 && U.items[0].listed, r);
   check("SA1 sold copies go back into packs", (m.get("cz:ret") || {})["nfl.q1.comet"]?.[0] === 1);
   check("SA1 cards you don't own can't be sold", !!(await T({ act: "sellmany", uid: "V", cards: [{ id: "nfl.q1.comet", value: 1e6 }] })).error); }
 // RC1 / TP1: rookie premium and team-pack prices
@@ -167,7 +167,7 @@ check("TP1 pack prices round sensibly and every pack returns 70%", W.CZ_RETURN =
   check("SET1 a set pays only once", !!(await T({ act: "setclaim", uid: "K", set })).error && m.get("cz:u:K").bal === 5000);
   m.set("cz:u:K", { ...m.get("cz:u:K"), bal: 0, items: [{ ...mk("nba.p3", "comet"), ch: "starfall" }, mk("nba.p4", "comet")] });
   await T({ act: "sell", uid: "K", id: "nba.p3.comet", value: 1000 }); const b1 = m.get("cz:u:K").bal; await T({ act: "sell", uid: "K", id: "nba.p4.comet", value: 1000 });
-  check("CH1 a case hit sells for 3 times a regular copy", b1 === 2250 && m.get("cz:u:K").bal - b1 === 750, { b1, b2: m.get("cz:u:K").bal });
+  check("CH1 a case hit sells for 3 times a regular copy", b1 === 2130 && m.get("cz:u:K").bal - b1 === 710, { b1, b2: m.get("cz:u:K").bal });
   check("CH1 about 1 card in 100 is a case hit, in 12 designs", Math.abs(W.CZ_CASE.rate - 1 / 100) < 1e-9 && W.CZ_CASE.inserts.length === 12);
   { const I = W.CZ_CASE.inserts, t = I.reduce((x, i) => x + i[4], 0), avg = I.reduce((x, i) => x + i[3] * i[4], 0) / t, n = {};
     for (let k = 0; k < 2000; k++) { const c = W.czCasePick(k / 2000); n[c] = (n[c] || 0) + 1; }

@@ -1602,7 +1602,8 @@ export async function trackAll(db) {
    supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
    no cash value either.
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
-const CZ_SHOP = .75, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;   // the shop pays 75% of a card's value (packs return 70% of their price, so selling never beats not buying)
+export const CZ_EARN = .95;                                        // earning pays 5% under round numbers (see czTrim)
+const CZ_SHOP = .71, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;   // the shop pays 71% of a card's value (packs return 70% of their price, so selling never beats not buying)
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
 // tiers: [id, name, copies, real-card price in US dollars of an average starter's card in that tier]. Like real parallels: a base
 // card is about $1, a /250 about $4, a /50 about $25, a /10 about $250 and a 1-of-1 about $2,500, before the player's value
@@ -1691,11 +1692,11 @@ export const czNameOk = name => { const n = czFold(String(name)), all = n.replac
   return !CZ_BAD.some(w => all.includes(w)) && !words.some(w => CZ_BAD_WORD.includes(w)) && !CZ_BAD_WORD.includes(all); };
 // the Cosmic week, Monday to Sunday (US Eastern): "2026-09-21" is the Monday it starts on
 export const czWeek = t => { const d = etDay(new Date(t).getTime()), u = Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)), dow = (new Date(u).getUTCDay() + 6) % 7; return new Date(u - dow * 864e5).toISOString().slice(0, 10); };
-const CZ_WEEK_PRIZE = [2000, 1000, 500], CZ_REF_BONUS = 500, CZ_REF_MAX = 25;
+const CZ_WEEK_PRIZE = [1900, 950, 475], CZ_REF_BONUS = 500, CZ_REF_MAX = 25;
 const czRand = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
 const czRoll = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32;
 // the daily wheel: eight slices, drawn with these weights (shown in the app)
-export const CZ_WHEEL = [{ coins: 100, w: 22 }, { pack: "comet", w: 15 }, { coins: 250, w: 16 }, { coins: 150, w: 18 }, { coins: 1000, w: 4 }, { coins: 300, w: 12 }, { pack: "supernova", w: 3 }, { coins: 500, w: 10 }];
+export const CZ_WHEEL = [{ coins: 95, w: 22 }, { pack: "comet", w: 15 }, { coins: 238, w: 16 }, { coins: 143, w: 18 }, { coins: 950, w: 4 }, { coins: 285, w: 12 }, { pack: "supernova", w: 3 }, { coins: 475, w: 10 }];
 // seasons: a calendar month (US Eastern). Points for playing; the tier you finish on pays out when the next season starts
 // 21 ranks: Bronze to Diamond in three divisions each, then Master, Grandmaster, Nova, Galaxy, Cosmic and Eternal at the top
 export const CZ_RANKS = [["bronze", "Bronze I", 0, 0], ["bronze-2", "Bronze II", 75, 150], ["bronze-3", "Bronze III", 150, 300],
@@ -1705,6 +1706,7 @@ export const CZ_RANKS = [["bronze", "Bronze I", 0, 0], ["bronze-2", "Bronze II",
   ["diamond", "Diamond I", 3100, 4400], ["diamond-2", "Diamond II", 3800, 5200], ["diamond-3", "Diamond III", 4600, 6000],
   ["master", "Master", 5600, 7500], ["grandmaster", "Grandmaster", 7000, 9000], ["nova", "Nova", 8800, 11000],
   ["galaxy", "Galaxy", 11000, 13500], ["cosmic", "Cosmic", 14000, 16000], ["eternal", "Eternal", 18000, 20000]];
+CZ_RANKS.forEach(r => { r[3] = Math.round(r[3] * CZ_EARN / 5) * 5; });                    // 5% under the round numbers above
 export const czSeasonOf = t => etDay(new Date(t).getTime()).slice(0, 6);                 // "202609"
 export const czRankOf = pts => { let r = CZ_RANKS[0]; for (const x of CZ_RANKS) if (pts >= x[2]) r = x; return r; };
 export function czSeasonRoll(u, now) {                  // a new month: pay last season's tier, start again at zero
@@ -1858,7 +1860,7 @@ export async function czTx(st, a) {
   if (a.act === "daily") {
     if (u.lastDaily === a.day) return { error: "Already claimed today. Come back tomorrow." };
     u.streak = u.lastDaily === a.yday ? Math.min(7, (u.streak || 0) + 1) : 1;
-    const amt = CZ_DAILY + (u.streak - 1) * 50; u.bal += amt; u.lastDaily = a.day; czAddSp(u, 5, a.now);
+    const amt = czDailyAmt(u.streak); u.bal += amt; u.lastDaily = a.day; czAddSp(u, 5, a.now);
     await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), amount: amt };
   }
@@ -2291,6 +2293,10 @@ export function mlbEspnMatch(espnMlb, g) {
 // game 2 of a traditional doubleheader starts when game 1 ends: it isn't locked (or offered) until game 1 is final (A10)
 export const dhWaiting = (g, games) => (g.gnum || 1) > 1 && g.dh === "Y" && (games || []).some(x => x !== g && (x.gnum || 1) < g.gnum && mkey(x.home.name) === mkey(g.home.name) && mkey(x.away.name) === mkey(g.away.name) && x.status?.state !== "post");
 // the prices on offer: the sportsbook's moneyline where there is one, else the model's chance with a small margin
+// every way of earning coins pays 5% under its round number: bet winnings (the profit on a price, not the stake), the
+// daily claim, the wheel, set rewards, season and weekly prizes, and the shop
+export const czTrim = dec => 1 + (dec - 1) * CZ_EARN;
+export const czDailyAmt = streak => Math.round((CZ_DAILY + (Math.max(1, streak) - 1) * 50) * CZ_EARN);
 const czDec = ml => ml > 0 ? 1 + ml / 100 : 1 + 100 / -ml;
 function czOffer(lg, g, models, espnMlb, inj) {
   if (inj) { const iH = injuryFor(inj, g.home.name), iA = injuryFor(inj, g.away.name); g.inj = { home: iH ? iH.pen : 0, away: iA ? iA.pen : 0 }; }
@@ -2299,8 +2305,8 @@ function czOffer(lg, g, models, espnMlb, inj) {
   const book = trackOdds(o, lg === "epl"), p = modelProbs(models, lg, g);
   const sides = lg === "epl" ? ["home", "draw", "away"] : ["home", "away"];
   const r2 = v => Math.round(v * 100) / 100;
-  if (book) return { src: book.book || "Sportsbook", dec: Object.fromEntries(sides.map(s => [s, r2(czDec(book[s[0]]))])), model: p ? Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) : null };
-  if (p) return { src: "Cosmo model", dec: Object.fromEntries(sides.map(s => [s, r2(Math.min(30, Math.max(1.02, 1 / (p[s] * CZ_MARGIN))))])), model: Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) };
+  if (book) return { src: book.book || "Sportsbook", dec: Object.fromEntries(sides.map(s => [s, r2(czTrim(czDec(book[s[0]])))])), model: p ? Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) : null };
+  if (p) return { src: "Cosmo model", dec: Object.fromEntries(sides.map(s => [s, r2(czTrim(Math.min(30, Math.max(1.02, 1 / (p[s] * CZ_MARGIN)))))])), model: Object.fromEntries(sides.map(s => [s, Math.round(p[s] * 1000) / 1000])) };
   return null;
 }
 /* ---- player props: over/under on a star's main stat, or "scores / homers" yes bets, priced from his per-game average ----
@@ -2332,8 +2338,8 @@ export function czPropsFor(lg, g, aux, inj) {
       .map(p => ({ p, avg: avgOf(p, md) })).filter(x => isFinite(x.avg) && x.avg > 0).sort((a, b) => b.avg - a.avg).slice(0, per);
     for (const { p, avg } of list) {
       const base = { key: `${key}:${czSlug(p.name)}`, player: p.name, team: side.name, pos: p.pos, img: p.img, what, labs };
-      if (yes) { const pr = 1 - Math.exp(-avg); if (pr < .04) continue; out.push({ ...base, kind: "yes", line: .5, dec: { yes: r2(Math.min(25, Math.max(1.15, 1 / (pr * 1.07)))) }, p: Math.round(pr * 1000) / 1000 }); }
-      else { const line = Math.floor(avg) + .5; out.push({ ...base, kind: "ou", line, dec: { over: 1.91, under: 1.91 }, avg: Math.round(avg * 10) / 10 }); }
+      if (yes) { const pr = 1 - Math.exp(-avg); if (pr < .04) continue; out.push({ ...base, kind: "yes", line: .5, dec: { yes: r2(czTrim(Math.min(25, Math.max(1.15, 1 / (pr * 1.07))))) }, p: Math.round(pr * 1000) / 1000 }); }
+      else { const line = Math.floor(avg) + .5; out.push({ ...base, kind: "ou", line, dec: { over: r2(czTrim(1.91)), under: r2(czTrim(1.91)) }, avg: Math.round(avg * 10) / 10 }); }
     }
   }
   return out;
@@ -2682,17 +2688,17 @@ async function czSets(env, lg) {
     const LG = { nfl: "NFL", nba: "NBA", mlb: "MLB", nhl: "NHL", epl: "Premier League" }, S = [];
     for (const [l, name] of Object.entries(LG)) {
       const star = comet.filter(i => i.lg === l && i.hobby).sort((a, b) => b.hobby - a.hobby || b.mult - a.mult).slice(0, 12);
-      if (star.length >= 6) S.push({ id: "stars:" + l, lg: l, label: `${name} Superstars`, kind: "curated", reward: 5000, members: star.map(mem) });
+      if (star.length >= 6) S.push({ id: "stars:" + l, lg: l, label: `${name} Superstars`, kind: "curated", reward: 4750, members: star.map(mem) });
       const rk = comet.filter(i => i.lg === l && i.rc && i.hobby).sort((a, b) => b.hobby - a.hobby).slice(0, 12);
-      if (rk.length >= 4) S.push({ id: "rc:" + l, lg: l, label: `${name} Rookie Class`, kind: "curated", reward: 3000, members: rk.map(mem) });
+      if (rk.length >= 4) S.push({ id: "rc:" + l, lg: l, label: `${name} Rookie Class`, kind: "curated", reward: 2850, members: rk.map(mem) });
     }
     const qb = comet.filter(i => i.lg === "nfl" && i.pos === "QB" && i.hobby).sort((a, b) => b.hobby - a.hobby).slice(0, 12);
-    if (qb.length >= 6) S.push({ id: "qb", lg: "nfl", label: "QB Club", kind: "curated", reward: 4000, members: qb.map(mem) });
+    if (qb.length >= 6) S.push({ id: "qb", lg: "nfl", label: "QB Club", kind: "curated", reward: 3800, members: qb.map(mem) });
     const aces = ["atp", "wta"].flatMap(t => comet.filter(i => i.lg === t && i.hobby).sort((a, b) => b.hobby - a.hobby).slice(0, 6));
-    if (aces.length >= 6) S.push({ id: "aces", lg: "tennis", label: "Tennis Aces", kind: "curated", reward: 4000, members: aces.map(mem) });
+    if (aces.length >= 6) S.push({ id: "aces", lg: "tennis", label: "Tennis Aces", kind: "curated", reward: 3800, members: aces.map(mem) });
     const by = new Map(); for (const i of comet) if (i.team && LG[i.lg]) (by.get(i.lg + "|" + i.team) || by.set(i.lg + "|" + i.team, []).get(i.lg + "|" + i.team)).push(i);
     for (const [k, l] of by) { const [tl, team] = k.split("|"); if (l.length < 9) continue;
-      S.push({ id: `team:${tl}:${czSlug(team)}`, lg: tl, label: `${team} Core Nine`, team, kind: "team", reward: 1200, members: l.sort((a, b) => b.mult - a.mult).slice(0, 9).map(mem) }); }
+      S.push({ id: `team:${tl}:${czSlug(team)}`, lg: tl, label: `${team} Core Nine`, team, kind: "team", reward: 1140, members: l.sort((a, b) => b.mult - a.mult).slice(0, 9).map(mem) }); }
     C.sets = S; }
   return lg && lg !== "all" ? C.sets.filter(s => s.lg === lg) : C.sets.filter(s => s.kind === "curated");
 }
