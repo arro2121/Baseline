@@ -1,4 +1,4 @@
-// App Store screenshots from the live site: real games, real logos and player photos.
+// App Store screenshots from the live site: real games and real cards (the app shows no logos or player photos).
 // Signs in with a temporary account (a virtual passkey), turns on the owner's testing switch so it stays off the
 // leaderboards, opens a few packs, takes the screenshots, then deletes the account (its cards go back into packs).
 // Run by .github/workflows/store-shots.yml. Needs COMETS_KEY (the owner key) in the environment.

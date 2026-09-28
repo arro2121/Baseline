@@ -1,5 +1,5 @@
 // Iconic Moments: the greatest moments in the history of the sports in Cosmic, in rank order. Each is a single 1-of-1 card.
-// "Title|league|year|who|Wikipedia page (for the photo)"
+// "Title|league|year|who|Wikipedia page (for reference; cards show no photos)"
 export const MOMENTS_SRC = `Miracle on Ice|nhl|1980|Team USA beats the Soviet Union|Miracle on Ice
 The Catch|nfl|1982|Montana to Clark|The Catch (American football)
 Immaculate Reception|nfl|1972|Franco Harris|Immaculate Reception
@@ -33,5 +33,5 @@ Malcolm Butler's Interception|nfl|2015|Super Bowl XLIX|Super Bowl XLIX
 Djokovic vs Nadal, Melbourne|atp|2012|Five hours and 53 minutes|2012 Australian Open – Men's singles final
 Game 6, 2011 World Series|mlb|2011|David Freese|2011 World Series
 Ray Allen's Corner Three|nba|2013|NBA Finals Game 6|2013 NBA Finals
-Mo Salah's 32|epl|2018|A Premier League record|2017–18 Liverpool F.C. season`;
+Mo Salah's 32|epl|2018|32 league goals in his first Liverpool season|2017–18 Liverpool F.C. season`;
 export const MOMENTS = MOMENTS_SRC.split("\n").map((l, i) => { const [name, lg, year, who, wiki] = l.split("|"); return { rank: i + 1, name, lg, year, who, wiki: wiki || name }; });

@@ -50,7 +50,7 @@ Jerry West|nba|PG|Los Angeles Lakers
 Patrick Mahomes|nfl|QB|Kansas City Chiefs
 Barry Bonds|mlb|LF|San Francisco Giants
 Cristiano Ronaldo|epl|FWD|Manchester United
-Kevin Durant|nba|F|Phoenix Suns
+Kevin Durant|nba|F|Oklahoma City Thunder
 Dan Marino|nfl|QB|Miami Dolphins
 Mark Messier|nhl|C|Edmonton Oilers
 Pete Sampras|atp||Tennis
@@ -143,7 +143,7 @@ Anthony Muñoz|nfl|OT|Cincinnati Bengals
 Patrick Kane|nhl|RW|Chicago Blackhawks
 Frank Robinson|mlb|RF|Cincinnati Reds
 Monica Seles|wta||Tennis
-Chris Paul|nba|PG|Phoenix Suns
+Chris Paul|nba|PG|Los Angeles Clippers
 Gale Sayers|nfl|RB|Chicago Bears
 Paul Coffey|nhl|D|Edmonton Oilers
 Johnny Bench|mlb|C|Cincinnati Reds
