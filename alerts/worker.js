@@ -1786,11 +1786,52 @@ const czFree = c => { delete c.listed; delete c.auction; delete c.battle; return
 const czDecOk = d => Number.isFinite(d) && d >= 1.01 && d <= 1000;       // a real decimal price                          // signed in with a passkey
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], setsDone: u.setsDone || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
-  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, legacyRefund: u.legacyRefund || null, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5) });
+  bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, legacyRefund: u.legacyRefund || null, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5),
+  quests: czQuests(u, Date.now()), plog: (u.plog || []).slice(-40) });
 const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
+/* ---- Daily Quests: three a day (the same three for everyone, picked from the day), done by playing, each paying coins ----
+   Progress is counted after an action succeeds, so a quest can't be faked: czTx runs the action, then moves the quests. */
+export const CZ_QUESTS = [
+  { id: "daily", label: "Claim your daily coins", need: 1, reward: 57 },
+  { id: "spin", label: "Spin the wheel", need: 1, reward: 76 },
+  { id: "pack", label: "Open 2 packs", need: 2, reward: 143 },
+  { id: "bet", label: "Place 2 bets", need: 2, reward: 143 },
+  { id: "parlay", label: "Place a parlay", need: 1, reward: 171 },
+  { id: "sell", label: "Sell a card to the shop", need: 1, reward: 95 },
+  { id: "list", label: "List a card on the Market", need: 1, reward: 114 },
+  { id: "grade", label: "Grade a card", need: 1, reward: 190 },
+  { id: "battle", label: "Play a card battle", need: 1, reward: 143 },
+  { id: "sets", label: "Open 3 packs", need: 3, reward: 190 }];
+export const CZ_QUEST_ALL = 190;                                  // a bonus for all three
+const CZ_QACT = { daily: ["daily"], spin: ["spin"], pack: ["pack", "sets"], bet: ["bet"], parlay: ["parlay", "bet"], sell: ["sell"], sellmany: ["sell"], list: ["list"], grade: ["grade"], bnew: ["battle"], bjoin: ["battle"] };
+export const czQuestIds = day => { let h = 2166136261; for (const c of "q" + day) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  const pool = CZ_QUESTS.map(q => q.id), out = []; while (out.length < 3) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; const id = pool.splice(h % pool.length, 1)[0]; out.push(id); } return out; };
+const czQuestDay = (u, now) => { const day = etDay(now); if (!u.qd || u.qd.day !== day) u.qd = { day, p: {}, c: [] }; return u.qd; };
+export const czQuests = (u, now) => { const day = etDay(now), q = u.qd && u.qd.day === day ? u.qd : { p: {}, c: [] };
+  const list = czQuestIds(day).map(id => { const Q = CZ_QUESTS.find(x => x.id === id); return { ...Q, have: Math.min(Q.need, q.p[id] || 0), claimed: q.c.includes(id) }; });
+  return { day, list, bonus: CZ_QUEST_ALL, bonusClaimed: q.c.includes("all") }; };
 export async function czTx(st, a) {
+  if (a.act === "qclaim") {                                         // collect a finished quest (or the bonus for all three)
+    const u = await st.get("cz:u:" + a.uid); if (!u) return { error: "Sign in to Cosmic first." };
+    const now = typeof a.now === "number" ? a.now : Date.parse(a.now) || Date.now(), q = czQuestDay(u, now), ids = czQuestIds(q.day);
+    if (a.id === "all") { if (q.c.includes("all")) return { error: "Already collected." }; if (!ids.every(id => q.c.includes(id))) return { error: "Collect all three quests first." };
+      q.c.push("all"); u.bal += CZ_QUEST_ALL; await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), reward: CZ_QUEST_ALL }; }
+    const Q = CZ_QUESTS.find(x => x.id === a.id); if (!Q || !ids.includes(Q.id)) return { error: "That isn't one of today's quests." };
+    if (q.c.includes(Q.id)) return { error: "Already collected." }; if ((q.p[Q.id] || 0) < Q.need) return { error: "Finish the quest first." };
+    q.c.push(Q.id); u.bal += Q.reward; await st.put("cz:u:" + u.uid, u); return { user: czPublic(u), reward: Q.reward };
+  }
+  const r = await czTx0(st, a), hit = CZ_QACT[a.act];
+  if (hit && a.uid && r && !r.error && !r.repeat) {
+    const u = await st.get("cz:u:" + a.uid);
+    if (u) { const now = typeof a.now === "number" ? a.now : Date.parse(a.now) || Date.now(), q = czQuestDay(u, now), ids = czQuestIds(q.day), n = a.act === "sellmany" ? (r.sold || 0) : a.act === "pack" ? (r.count || 1) : 1;
+      let moved = false; for (const id of hit) if (ids.includes(id) && n > 0) { q.p[id] = (q.p[id] || 0) + n; moved = true; }
+      if (moved) { await st.put("cz:u:" + u.uid, u); if (r.user) r.user = czPublic(u); } }
+  }
+  return r;
+}
+async function czTx0(st, a) {
   const get = async (k, d) => (await st.get(k)) ?? d;
   const feed = async ev => { const f = await get("cz:feed", []); f.unshift({ ...ev, at: a.now }); await st.put("cz:feed", f.slice(0, 60)); };
   const lb = async u => { const L = await get("cz:lb", {}); L[u.uid] = czLbRow(u); await st.put("cz:lb", L); };
@@ -2067,6 +2108,8 @@ export async function czTx(st, a) {
     if (free) { if (welcome) u.freePack = false; else u.tix[pk.id] = tix - 1; } else if (!u.tester) u.bal -= pk.price * opened;
     if (pk.ev) u.evp = { ...(u.evp || {}), [pk.ev]: evUsed + opened };
     czAddSp(u, 3 * opened, a.now); u.items = [...(u.items || []), ...pulled]; u.packs = (u.packs || 0) + opened;
+    { const best = pulled.reduce((b, c) => !b || c.supply < b.supply ? c : b, null);                                  // the pack history
+      u.plog = [...(u.plog || []), { at: a.now, label: pk.label || pk.id || "Pack", n: pulled.length, packs: opened, best: best && { id: best.id, name: best.name, tier: best.tier, n: best.n, supply: best.supply, lg: best.lg } }].slice(-40); }
     if (a.rid) u.lastPack = { rid: a.rid, cards: pulled };
     for (const c of pulled) {
       const owners = await get("cz:own:" + c.id, []); owners.push({ n: c.n, uid: u.uid, name: u.name, at: a.now }); await st.put("cz:own:" + c.id, owners);
@@ -2793,7 +2836,7 @@ async function czOwnerCheck(req, env, ip) {
   return null;
 }
 // what an account may keep in sync (the app's CZ_SYNC_LS list, followed teams and settings), each capped in size
-export const CZ_SYNC_KEYS = { picks: 60000, daily: 20000, duels: 20000, spoil: 4000, sounds: 100, startSport: 100, voiceKind: 100, voiceRate: 100, rankView: 100, onboarded: 100 };
+export const CZ_SYNC_KEYS = { picks: 60000, daily: 20000, duels: 20000, spoil: 4000, sounds: 100, startSport: 100, voiceKind: 100, voiceRate: 100, rankView: 100, onboarded: 100, czwish: 20000 };
 export function czSyncClean(d) {
   if (!d || typeof d !== "object" || Array.isArray(d) || d.v !== 1) return null;
   const ls = {}, fav = {}, settings = {}, prim = v => v === null || ["string", "number", "boolean"].includes(typeof v);
@@ -3174,6 +3217,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "report", uid: u.uid, name, reason, now }); return json(r, r.error ? 409 : 200);
   }
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
+  if (p === "/quests/claim" && req.method === "POST") { const d = await czBody(req); const r = await cz(env, { act: "qclaim", uid: u.uid, now, id: String(d.id || "") }); return json(r, r.error ? 409 : 200); }
   if (p === "/delete" && req.method === "POST") {                            // delete your account and everything saved with it
     const d = await czBody(req); if (d.confirm !== "DELETE") return json({ error: "Confirm by sending DELETE." }, 400);
     const r = await cz(env, { act: "delete", uid: u.uid, now });

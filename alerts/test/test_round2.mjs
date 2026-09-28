@@ -155,4 +155,19 @@ check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse
   const r2 = await W0.czBackupRestore(st, env, { id: b.id, now: now + 6000 });
   check("BK4 a restore never brings back an account deleted since the backup", r2.redeleted === 1 && !m.has("cz:u:A") && m.get("cz:mkt")[0].lid === "L1", [r2, [...m.keys()]]);
   check("BK3 an unknown backup is refused", !!(await W0.czBackupRestore(st, env, { id: "nope" })).error); }
+// QS1-QS3: Daily Quests: counted after an action succeeds, collected once, the bonus only when all three are collected
+{ const { m, st } = mem(); let t = Date.UTC(2026, 8, 28, 16), day;
+  for (let i = 0; i < 60; i++, t += 864e5) { const d = new Date(t).toLocaleDateString("en-CA", { timeZone: "America/New_York" }).replace(/-/g, ""); if (W0.czQuestIds(d).includes("list")) { day = d; break; } }
+  const T = a => W0.czTx(st, { now: t, ...a }); user(m, "Q", { items: [card("nba.q1.pulsar"), card("nba.q2.pulsar")] });
+  const ids = W0.czQuestIds(day), Q = W0.CZ_QUESTS.find(x => x.id === "list");
+  check("QS1 three different quests a day, the same for everyone", ids.length === 3 && new Set(ids).size === 3 && W0.czQuestIds(day).join() === ids.join());
+  check("QS1 an unfinished quest can't be collected", /Finish/.test((await T({ act: "qclaim", uid: "Q", id: "list" })).error || ""));
+  const bad = await T({ act: "list", uid: "Q", id: "nba.nope.pulsar", price: 100 });
+  check("QS2 a failed action doesn't count", !!bad.error && !(m.get("cz:u:Q").qd?.p?.list));
+  const ok = await T({ act: "list", uid: "Q", id: "nba.q1.pulsar", price: 100 });
+  check("QS2 a listing moves the quest and the answer shows it", !ok.error && m.get("cz:u:Q").qd.p.list === 1 && ok.user.quests.list.find(x => x.id === "list").have === 1, [ok.error, m.get("cz:u:Q").qd]);
+  const bal = m.get("cz:u:Q").bal, c = await T({ act: "qclaim", uid: "Q", id: "list" });
+  check("QS3 collecting pays the reward once", c.reward === Q.reward && m.get("cz:u:Q").bal === bal + Q.reward && /Already/.test((await T({ act: "qclaim", uid: "Q", id: "list" })).error || ""), c);
+  check("QS3 the all-three bonus waits for all three", /all three/.test((await T({ act: "qclaim", uid: "Q", id: "all" })).error || ""));
+  check("QS3 only today's quests can be collected", /today/.test((await T({ act: "qclaim", uid: "Q", id: W0.CZ_QUESTS.find(x => !ids.includes(x.id)).id })).error || "")); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);
