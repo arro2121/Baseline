@@ -176,6 +176,8 @@ export class Store {
     else if (d.op === "rate") v = await this.rate(d);
     else if (d.op === "gc") v = await this.gc();
     else if (d.op === "pwpurge") v = await this.pwpurge();
+    else if (d.op === "backup") v = await czBackupTake(this.state.storage, this.env, d);
+    else if (d.op === "restore") v = await czBackupRestore(this.state.storage, this.env, d);
     return new Response(JSON.stringify({ v }), { headers: { "Content-Type": "application/json" } });
   }
   // attempt limits (sign-ups, owner-key misses, reports, Ask…) for every copy of the worker at once. Short windows are counted
@@ -214,6 +216,49 @@ export async function rateOk(env, k, max, win, mode = "hit") {
 }
 async function pwPurge(env) { if (!env.STORE) return 0; try { const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "pwpurge" }) }); return (await r.json()).v; } catch (e) { return String(e.message || e); } }
 async function storeGc(env) { if (!env.STORE || new Date().getUTCMinutes() >= 2) return 0; return (await store(env).gc?.()) ?? 0; }
+/* ---------------- Backups: a copy of everything the Store keeps, taken every day ----------------
+   All of the Durable Object's records (accounts, cards, the Market, auctions, trades, battles, push subscriptions; not the
+   short-lived attempt counters) are written as one gzipped JSON file to KV, split into parts under KV's size limit. Daily
+   backups are kept 14 days and Sunday's for 90. The owner can list them, take one now, download one, or restore one (which
+   first takes a backup of the current state, so a restore can itself be undone). */
+const BK_PART = 20 * 1024 * 1024, BK_DAY = 14 * 864e5, BK_WEEK = 90 * 864e5;
+const gz = async (bytes, how) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(how === "gunzip" ? new DecompressionStream("gzip") : new CompressionStream("gzip"))).arrayBuffer());
+export async function czBackupTake(st, env, d = {}) {
+  const now = d.now || Date.now(), keys = {}; let n = 0;
+  for (const [k, v] of await st.list()) { if (k.startsWith("rl:")) continue; keys[k] = v; n++; }
+  const raw = new TextEncoder().encode(JSON.stringify({ v: 1, at: now, keys })), z = await gz(raw);
+  const keepFor = d.keep || (new Date(now).getUTCDay() === 0 ? BK_WEEK : BK_DAY), id = d.id || new Date(now).toISOString().replace(/[-:]/g, "").slice(0, 15) + "-" + czRand(3), parts = Math.max(1, Math.ceil(z.length / BK_PART));
+  for (let i = 0; i < parts; i++) await env.KV.put(`bk:${id}:${i}`, z.slice(i * BK_PART, (i + 1) * BK_PART), { expirationTtl: Math.ceil(keepFor / 1000) });
+  const L = JSON.parse(await env.KV.get("bk:index") || "[]").filter(x => x.id !== id && x.until > now);
+  const rec = { id, at: now, keys: n, raw: raw.length, bytes: z.length, parts, until: now + keepFor, why: d.why || "daily" };
+  await env.KV.put("bk:index", JSON.stringify([rec, ...L].slice(0, 60)));
+  return rec;
+}
+export async function czBackupRead(env, id) {
+  const rec = JSON.parse(await env.KV.get("bk:index") || "[]").find(x => x.id === id); if (!rec) return null;
+  const bufs = []; for (let i = 0; i < rec.parts; i++) { const b = await env.KV.get(`bk:${id}:${i}`, { type: "arrayBuffer" }); if (!b) return null; bufs.push(new Uint8Array(b)); }
+  const z = new Uint8Array(bufs.reduce((t, b) => t + b.length, 0)); let o = 0; for (const b of bufs) { z.set(b, o); o += b.length; }
+  return { rec, z };
+}
+export async function czBackupRestore(st, env, d) {
+  const got = await czBackupRead(env, d.id); if (!got) return { error: "That backup isn't there any more." };
+  const snap = JSON.parse(new TextDecoder().decode(await gz(got.z, "gunzip")));
+  if (!snap || snap.v !== 1 || !snap.keys) return { error: "That backup can't be read." };
+  const before = await czBackupTake(st, env, { why: "before restoring " + d.id, keep: BK_WEEK, now: d.now });   // the undo
+  const want = Object.keys(snap.keys), drop = [...(await st.list()).keys()].filter(k => !k.startsWith("rl:") && !(k in snap.keys));
+  for (let i = 0; i < drop.length; i += 128) await st.delete(drop.slice(i, i + 128));
+  for (let i = 0; i < want.length; i += 128) await st.put(Object.fromEntries(want.slice(i, i + 128).map(k => [k, snap.keys[k]])));
+  // accounts deleted since that backup stay deleted: the restore never brings one back
+  let redeleted = 0; for (const x of JSON.parse(await env.KV.get("bk:deleted") || "[]")) if (x.at > snap.at && snap.keys["cz:u:" + x.uid]) { await czTx(st, { act: "delete", uid: x.uid, now: d.now || Date.now() }); redeleted++; }
+  return { restored: d.id, keys: want.length, removed: drop.length, redeleted, undo: before.id };
+}
+async function czBackupTick(env) {                   // once a day, a little after 08:00 UTC (a quiet hour for US games)
+  if (!env.STORE) return 0; const t = new Date(); if (t.getUTCHours() !== 8 || t.getUTCMinutes() >= 4) return 0;
+  const day = t.toISOString().slice(0, 10); if ((await env.KV.get("bk:last")) === day) return 0;
+  await env.KV.put("bk:last", day);
+  const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "backup", why: "daily" }) });
+  return r.ok ? (await r.json()).v : "backup " + r.status;
+}
 export function store(env) {
   if (env.STORE) {
     const stub = env.STORE.get(env.STORE.idFromName("main"));
@@ -3019,6 +3064,27 @@ export async function cosmicRoute(req, env, ctx, url) {
     L.unshift({ id: czRand(6), at: now, message, contact, uid: who ? who.uid : null, name: who ? who.name : null }); await store(env).put("cz:support", JSON.stringify(L.slice(0, 300)));
     return json({ ok: true });
   }
+  // backups: the list, one taken now, a download (gzipped JSON), and a restore (which backs up the current state first)
+  if (p === "/owner/backups" && req.method === "GET") {
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    return json({ backups: JSON.parse(await env.KV.get("bk:index") || "[]").filter(x => x.until > now) }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/owner/backup" && req.method === "POST") {
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "backup", why: "taken by the owner", keep: BK_WEEK }) });
+    return json({ backup: (await r.json()).v });
+  }
+  if (p === "/owner/backup/file" && req.method === "GET") {
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    const got = await czBackupRead(env, String(url.searchParams.get("id") || "")); if (!got) return json({ error: "That backup isn't there any more." }, 404);
+    return new Response(got.z, { headers: { ...cors, "Content-Type": "application/gzip", "Content-Disposition": `attachment; filename="cosmic-backup-${got.rec.id}.json.gz"`, "Cache-Control": "no-store" } });
+  }
+  if (p === "/owner/restore" && req.method === "POST") {
+    const no = await czOwnerCheck(req, env, ip); if (no) return no;
+    const d = await czBody(req); if (d.confirm !== "RESTORE") return json({ error: "Type RESTORE to confirm." }, 400);
+    const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "restore", id: String(d.id || ""), now }) });
+    const v = (await r.json()).v; return json(v, v.error ? 409 : 200);
+  }
   if (p === "/owner/inbox" && req.method === "GET") {                        // reports and support messages, for the site's owner
     const no = await czOwnerCheck(req, env, ip); if (no) return no;
     return json({ reports: await czRead(env, "cz:reports", []), support: await czRead(env, "cz:support", []), supportDays: CZ_SUPPORT_DAYS }, 200, { "Cache-Control": "no-store" });
@@ -3110,7 +3176,15 @@ export async function cosmicRoute(req, env, ctx, url) {
   // the rest of the app's data (followed teams, settings, picks), kept with the account so it follows you to any device
   if (p === "/delete" && req.method === "POST") {                            // delete your account and everything saved with it
     const d = await czBody(req); if (d.confirm !== "DELETE") return json({ error: "Confirm by sending DELETE." }, 400);
-    const r = await cz(env, { act: "delete", uid: u.uid, now }); return json(r, r.error ? 409 : 200);
+    const r = await cz(env, { act: "delete", uid: u.uid, now });
+    if (!r.error) { try { const L = JSON.parse(await env.KV.get("bk:deleted") || "[]").filter(x => now - x.at < BK_WEEK); await env.KV.put("bk:deleted", JSON.stringify([...L, { uid: u.uid, at: now }])); } catch {} }   // so a restore can't bring it back
+    return json(r, r.error ? 409 : 200);
+  }
+  // a copy of everything saved for your account, to keep: your coins, cards (grades, inks, inserts), bets, trophies and
+  // synced settings. Sign-in secrets (passkey ids and keys, only ever stored as hashes) are left out
+  if (p === "/export" && req.method === "GET") {
+    const { toks, ident, ...rec } = u, sync = await czRead(env, "cz:data:" + u.uid, null);
+    return json({ app: "Cosmo Sports", kind: "cosmic-account", exported: new Date(now).toISOString(), account: rec, synced: sync }, 200, { "Cache-Control": "no-store", "Content-Disposition": `attachment; filename="cosmic-${czSlug(u.name) || "account"}.json"` });
   }
   if (p === "/data" && req.method === "GET") return json({ data: await czRead(env, "cz:data:" + u.uid, null) }, 200, { "Cache-Control": "no-store" });
   if (p === "/data" && req.method === "PUT") {
@@ -3364,6 +3438,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env), czBackupTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };

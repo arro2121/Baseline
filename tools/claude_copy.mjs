@@ -82,8 +82,10 @@ const shim = `
   })();
   var storage = {
     get: async function(k){ await ready; return Array.isArray(k) ? new Map(k.filter(function(x){ return data.has(x); }).map(function(x){ return [x, clone(data.get(x))]; })) : clone(data.get(k)); },
-    put: async function(k, v){ await ready; v = local(k, clone(v)); data.set(k, v); save(P, k, JSON.stringify(v)); },
-    delete: async function(k){ await ready; var had = data.delete(k); save(P, k, null); return had; },
+    // like a Durable Object's storage: put takes a key and value or an object of many; delete takes a key or a list of keys
+    put: async function(k, v){ await ready; var one = function(k, v){ v = local(k, clone(v)); data.set(k, v); save(P, k, JSON.stringify(v)); };
+      if (k && typeof k === "object") Object.keys(k).forEach(function(x){ one(x, k[x]); }); else one(k, v); },
+    delete: async function(k){ await ready; var n = 0; (Array.isArray(k) ? k : [k]).forEach(function(x){ if (data.delete(x)) n++; save(P, x, null); }); return Array.isArray(k) ? n : n > 0; },
     list: async function(o){ await ready; var pre = (o && o.prefix) || ""; return new Map(Array.from(data).filter(function(e){ return e[0].indexOf(pre) === 0; }).map(function(e){ return [e[0], clone(e[1])]; })); }
   };
   var base = new URL(".", location.href).href.replace(/\\/$/, "");
