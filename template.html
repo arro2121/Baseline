@@ -1367,6 +1367,7 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czchout{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0}.czchout b{font-size:1.8rem;font-weight:900;color:#fde68a}.czchout span{font-size:.84rem;opacity:.85;flex:1 1 180px}
 .otd{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;padding:8px 0;border-top:1px solid var(--line-2,rgba(255,255,255,.08))}.otd:first-of-type{border-top:0}.otdlg{grid-row:1 / 4;align-self:start;font-size:.64rem;font-weight:850;letter-spacing:.06em;padding:3px 7px;border-radius:99px;background:rgba(167,139,250,.18);color:#c4b5fd;text-transform:uppercase}
 .otd b{font-size:.92rem}.otd small{font-size:.78rem;opacity:.85}.otd em{font-style:normal;font-size:.72rem;opacity:.65}.otdnote{font-size:.72rem;opacity:.6;margin:6px 0 0}
+.czage{flex:1 1 100%;display:flex;gap:8px;align-items:flex-start;font-size:.78rem;line-height:1.35;opacity:.9;margin-top:4px;cursor:pointer}.czage input{margin-top:2px;accent-color:#a855f7;width:16px;height:16px;flex:none}
 .czquests .czq{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08)}.czq>div{flex:1;min-width:0}.czq b{display:block;font-size:.9rem}.czq small{font-size:.74rem;opacity:.75}
 .czq i{display:block;height:5px;margin-top:6px;border-radius:9px;background:linear-gradient(90deg,#a855f7 var(--p),rgba(255,255,255,.12) var(--p))}.czq.got{opacity:.6}.czq.done b{color:#fde68a}.czqok{font-size:1.2rem;color:#34d399;font-weight:900}.czqdot{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:99px;background:#f43f5e;color:#fff;font-size:.72rem;vertical-align:middle}
 .czwishl{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.czwi{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:6px 10px;text-align:left;font:inherit;cursor:pointer}.czwi b{display:block;font-size:.82rem}.czwi small{font-size:.7rem;opacity:.75}.czwi.sale{border-color:#fcd34d;box-shadow:0 0 12px -4px #fcd34d}
@@ -5074,7 +5075,7 @@ function infoHtml(g, lg){
     out += `<div class="bsec"><h3>Betting line <small>${esc(o.provider || "")}</small></h3><div class="odds">
       ${o.details ? `<div><span>Line</span><b>${esc(o.details)}</b></div>` : ""}${o.overUnder != null ? `<div><span>Over/under</span><b>${esc(o.overUnder)}</b></div>` : ""}
       ${o.awayML != null ? `<div><span>${esc(A.abbr || "Away")} moneyline</span><b>${ml(o.awayML)}</b></div>` : ""}${o.homeML != null ? `<div><span>${esc(H.abbr || "Home")} moneyline</span><b>${ml(o.homeML)}</b></div>` : ""}
-      ${o.drawML != null ? `<div><span>Draw</span><b>${ml(o.drawML)}</b></div>` : ""}</div><p class="bnote">For information only. Please bet responsibly.</p></div>`;
+      ${o.drawML != null ? `<div><span>Draw</span><b>${ml(o.drawML)}</b></div>` : ""}</div><p class="bnote">For information only. If you bet, do it legally where you live and only if you're of legal age (21+ in most US states). Gambling problem? Call 1-800-GAMBLER.</p></div>`;
   }
   if ((I.form || []).length) out += `<div class="bsec"><h3>Recent form</h3>${I.form.map(f => { const T = (g.teams || {})[f.team] || {}; return `<div class="form"><span class="fteam">${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</span>${f.results.map(r => `<i class="r${esc(r.r)}" title="${esc(r.score + " vs " + r.opp)}">${esc(r.r)}</i>`).join("")}</div>`; }).join("")}</div>`;
   if ((I.injuries || []).length) out += `<div class="bsec"><h3>Injuries</h3><div class="inj">${I.injuries.map(t => { const T = (g.teams || {})[t.team] || {};
@@ -6040,7 +6041,7 @@ function czAuthHtml(){
   const tabs = `<div class="czauthtabs" role="tablist">${[["new", "Create account"], ["in", "Sign in"]].map(([k, l]) => `<button type="button" role="tab" data-czauth="${k}" aria-selected="${tab === k}">${l}</button>`).join("")}</div>`;
   const body = tab === "new"
     ? `<p class="sub">Free. Pick a name for the leaderboards, then create your passkey with Face ID, your fingerprint or your device's passcode. No email and no password. You start with ${czAmt(1000)} plus a free pack.</p>
-      <form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn primary" type="submit">${czPkIcon()}Create account</button></form>`
+      <form data-czpk="new" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" value="${esc(P.name || "")}" required><button class="btn primary" type="submit">${czPkIcon()}Create account</button><label class="czage"><input type="checkbox" name="adult" required> I'm 18 or older. Cosmic has play-money betting and card packs, so it's for adults.</label></form>`
     : `<p class="sub">Sign in with your passkey: Face ID, your fingerprint or your passcode. Your coins, cards and teams come right back.</p>
       <button type="button" class="btn primary czpkbtn" data-czpk="login">${czPkIcon()}Sign in with a passkey</button>`;
   return `<section class="card czjoin czauth"><h2>${tab === "new" ? "Create your account" : last ? `Welcome back, ${esc(last)}` : "Sign in"}</h2>${tabs}${body}
@@ -6049,7 +6050,7 @@ function czAuthHtml(){
 function czJoinHtml(){
   const P = CZ.pk || {};
   return `<section class="card czjoin"><h2>Join Cosmic</h2><p class="sub">This browser can't make passkeys. You can still play: pick a name and your account is kept by its account key on this device. No email, nothing personal.</p>
-    <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button></form>
+    <form data-czform="join" class="czjf"><input class="field" name="name" maxlength="20" placeholder="Your name" autocomplete="nickname" required><button class="btn primary" type="submit">Start with 1,000 coins</button><label class="czage"><input type="checkbox" name="adult" required> I'm 18 or older. Cosmic has play-money betting and card packs, so it's for adults.</label></form>
     <p class="sub" style="margin:10px 0 0">Until you add a passkey from a phone or computer that supports them, this account stays off the leaderboards and can't collect cards or report players. Save your account key (Cosmic, Account key) so you don't lose it.</p>
     <p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p>
     <p class="sub" style="margin:10px 0 0">Already playing on another device? <button type="button" class="linkbtn" data-cz="usekey">Use your Cosmic key</button></p></section>`;
