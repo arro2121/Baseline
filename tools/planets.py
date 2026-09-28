@@ -110,7 +110,7 @@ def light(n, ldir, wrap=0.0):
 def compose(col, alpha, glow_col, glow_amt, glow_w, r2, extra=None):
     """Globe colour over a soft outer glow, as RGBA."""
     rr = np.sqrt(r2)
-    g = np.exp(-np.clip(rr - 1, 0, None) / glow_w) * (rr > 1) * glow_amt
+    g = np.exp(-np.clip(rr - 1, 0, None) / glow_w) * (rr > 1) * glow_amt * smooth(1 / R - .02, 1.06, rr)   # faded out before the image edge
     rgb = col * alpha[..., None] + np.array(glow_col, float)[None, None, :] / 255 * g[..., None] * (1 - alpha[..., None])
     a = np.clip(alpha + g * (1 - alpha), 0, 1)
     if extra is not None:
@@ -264,7 +264,7 @@ def render(name, v):
         rr = np.sqrt(r2)
         cor = (np.exp(-np.clip(rr - 1, 0, None) / .08) * .8 + np.exp(-np.clip(rr - 1, 0, None) / .25) * .35) * (rr > 1)
         rays = 1 + .15 * np.cos(np.arctan2(n[1], n[0]) * 14 + v) * np.exp(-np.clip(rr - 1, 0, None) / .3)
-        glow = cor * rays
+        glow = cor * rays * smooth(1 / R - .02, 1.06, rr)                   # faded out before the image edge (no square halo)
         rgb = col * a[..., None] + np.array([1, .78, .35])[None, None, :] * (glow * (1 - a))[..., None]
         al = np.clip(a + glow * (1 - a), 0, 1)
         rgb = rgb / np.maximum(al[..., None], 1e-6)
