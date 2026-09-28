@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-zrgADbVgiEB9Y3S4LjA/2bJdrNHkHAAMIRAvxDqMxH0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-cexbuFKvhwhhVtvU2icW1r8smyPmf0GZG50qqthmdiY='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cosmo Sports: live scores, replays and predictions</title>
-<meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<title>Cosmo Sports: collect sports cards and play them</title>
+<meta name="description" content="A sports card game. Collect limited-edition NFL, NBA, MLB, NHL, Premier League, tennis and college cards with free Cosmic Coins, then play them: your lineup plays a whole game, play by play, against real people or the AI, and climbs the game rankings.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#140F3A">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -19,8 +19,8 @@
 <meta name="application-name" content="Cosmo Sports">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cosmo Sports">
-<meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
-<meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<meta property="og:title" content="Cosmo Sports: collect sports cards and play them">
+<meta property="og:description" content="A sports card game. Collect limited-edition cards of real teams and players with free Cosmic Coins, then play them: your lineup plays a whole game, play by play, against real people or the AI.">
 <meta property="og:image" content="https://arro2121.github.io/Baseline/og-image.png">
 <meta property="og:url" content="https://arro2121.github.io/Baseline/">
 <meta name="twitter:card" content="summary_large_image">
@@ -2113,6 +2113,28 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .czsb-vs span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-weight:900;color:#1e0b3a;background:radial-gradient(circle,#fde68a,#f59e0b);box-shadow:0 0 20px #f59e0b}
 .judging .czsb-vs span{animation:czpulse 1s ease-in-out infinite}@keyframes czpulse{50%{transform:scale(1.18);box-shadow:0 0 34px #f59e0b}}
 .czjudge{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;color:var(--muted)}.czjudge-orb{width:22px;height:22px;border-radius:50%;background:conic-gradient(#c084fc,#38bdf8,#fde68a,#c084fc);animation:czspin 1s linear infinite}@keyframes czspin{to{transform:rotate(360deg)}}
+/* Cosmo Sports is the Cosmic game: the old sports sections' navigation stays out of sight */
+.cz-off,body.cosmic-only #sportNav,body.cosmic-only #lgStrip,body.cosmic-only #openUpdate,body.cosmic-only #searchBtn{display:none!important}
+.czgame{display:grid;gap:10px}.czg-top{display:flex;justify-content:space-between;align-items:center}.czg-st{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#f87171}
+.czg-board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(56,189,248,.14),rgba(192,132,252,.14));border:1px solid var(--line-2)}
+.czg-tm{display:grid;justify-items:center;gap:2px}.czg-tm b{font-size:.9rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.czg-tm span{font-size:2.4rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}.czg-tm.me span{color:#fde68a}
+.czg-tm span.czg-hit{animation:czgpop .5s cubic-bezier(.3,1.6,.5,1)}@keyframes czgpop{40%{transform:scale(1.35)}}
+.czg-per{font-size:.8rem;color:var(--muted);text-align:center;min-width:70px}
+.czg-lines{display:grid;gap:4px;font-size:.8rem;color:var(--muted)}.czg-lines b{color:var(--text,inherit);margin-right:4px}
+.czg-feed{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:40vh;overflow:auto}
+.czg-ev{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;padding:8px 10px;border-radius:10px;background:var(--surface-2);border-left:3px solid transparent;animation:czgin .35s ease-out}
+.czg-ev small{color:var(--muted);font-size:.72rem;white-space:nowrap}.czg-ev em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--muted);font-size:.8rem}
+.czg-ev.me{border-left-color:#fde68a}.czg-ev.them{border-left-color:#a78bfa}.czg-ev.k-score span{font-weight:700}.czg-ev.k-end{background:none;border:0;text-align:center;color:var(--muted)}
+@keyframes czgin{from{opacity:0;transform:translateY(-6px)}}
+.czg-ls{overflow-x:auto}.czg-ls table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.85rem}.czg-ls th,.czg-ls td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--line-2)}.czg-ls tbody th{text-align:left;white-space:nowrap}.czg-ls tr.me th{color:#fde68a}
+.czg-elo{margin-top:8px;font-size:.95rem}.czg-elo .pos{color:#34d399;font-weight:800}.czg-elo .neg{color:#f87171;font-weight:800}
+.czg-rank{list-style:none;margin:0;padding:0;display:grid;gap:6px}.czg-rank li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--surface-2)}
+.czg-rank li.me{box-shadow:inset 3px 0 0 #fde68a}.czg-rank li>span:nth-child(2){display:grid;min-width:0}.czg-rank small{color:var(--muted)}
+.czg-mvp{font-style:normal;font-size:.7rem;font-weight:800;color:#1a1a1a;background:#fde68a;border-radius:6px;padding:1px 6px;margin-left:4px}
+.czg-gr{font-style:normal;font-weight:900;font-variant-numeric:tabular-nums;padding:4px 8px;border-radius:8px;min-width:42px;text-align:center}
+.czg-gr.hi{background:rgba(52,211,153,.2);color:#34d399}.czg-gr.ok{background:rgba(56,189,248,.18);color:#38bdf8}.czg-gr.mid{background:var(--surface);color:var(--muted)}.czg-gr.lo{background:rgba(248,113,113,.16);color:#f87171}
+@media (max-width:520px){.czg-tm span{font-size:2rem}}
+@media (prefers-reduced-motion:reduce){.czg-ev,.czg-tm span.czg-hit{animation:none}}
 .czverdict{text-align:center;padding:10px 6px}.czverdict h2{font-size:1.8rem;margin:4px 0}.czverdict.won h2{color:#fde68a;text-shadow:0 0 18px rgba(253,230,138,.6)}.czverdict.lost h2{color:#f87171}.czverdict p{font-size:1rem;line-height:1.5}.czverdict small{color:var(--muted)}
 @media (max-width:520px){.czshow-bt{grid-template-columns:1fr}.czsb-vs{justify-self:center}.czbt-vs{grid-template-columns:1fr}}
 .czbsports{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:0 0 10px}
@@ -2762,41 +2784,15 @@ dialog.onb p{margin:0 0 12px}
   </div>
 </dialog>
 <dialog id="newDlg" class="modal packd" aria-labelledby="newTitle"><div class="dlg">
-  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">What's new in Cosmo Sports</h2><p>Cosmic: bet free coins, rip packs, pull one-of-a-kind cards.</p></div></div>
+  <div class="pkhead"><span>✨</span><div><h2 id="newTitle">Cosmo Sports is now a game</h2><p>Your cards don't just sit in a binder any more. They play.</p></div></div>
   <ul class="newlist">
-    <li><i>🔥</i><span><b>Living cards.</b> When a player or team you own has a big real game, every copy of their card catches fire for a day with the stat line ("327 pass yds · 4 pass TD"), and big games level cards up with a celebration.</span></li>
-    <li><i>✨</i><span><b>A whole new look in motion.</b> A deep, drifting starfield, rare cards with real holographic foil that follows your phone's tilt, touchdown and goal bursts on live scores, and smoother moves between sections.</span></li>
-    <li><i>⏳</i><span><b>Limited-time packs.</b> Event packs for the big moments of the year, with countdowns and cards in an event-only frame.</span></li>
-    <li><i>🏆</i><span><b>Standings by division.</b> Standings now open on the divisions, with a switch to the full conference (MLB: league) tables that decide seeds and wild cards.</span></li>
-    <li><i>🛡️</i><span><b>Safer accounts.</b> Sign out everywhere, make a new account key, and Face ID, fingerprint or passcode is now required for every passkey sign-in. Reported names are reviewed by a person.</span></li>
-    <li><i>🎬</i><span><b>Smoother highlights and a faster start.</b> Clips stream at the quality your connection can handle, and tennis ratings load only when you open Tennis.</span></li>
-    <li><i>⚔️</i><span><b>Card battles, one for each sport.</b> Pick NFL, NBA, MLB, NHL, Premier League or tennis, build a lineup of up to five of your cards from it, and play a real person or the AI. An AI judge sizes up both sides and calls the winner, who takes both stakes.</span></li>
-    <li><i>🎡</i><span><b>Daily spin and parlays.</b> Spin the wheel once a day for coins or a free pack, and combine 2 to 5 picks into one parlay for a bigger payout.</span></li>
-    <li><i>💎</i><span><b>Seasons and suspenseful packs.</b> Climb from Bronze to Cosmic each month for coin rewards. Pack cards now glow brighter the rarer they are before they flip.</span></li>
-    <li><i>🎯</i><span><b>Daily quests.</b> Three new ones every day in Cosmic (open packs, place a parlay, grade a card…), each paying coins, with a bonus for all three.</span></li>
-    <li><i>⭐</i><span><b>Wishlist.</b> Star any card from its page; Cosmic tells you when one is for sale and the Market can show only those.</span></li>
-    <li><i>📊</i><span><b>Collection stats.</b> What your cards are worth and how that moves, your most valuable cards, rarity and league breakdowns, and your last packs.</span></li>
-    <li><i>🎲</i><span><b>Your chances.</b> A calculator on the Packs page: the odds of pulling a Moon, a Sun or anything else over any number of packs.</span></li>
-    <li><i>📅</i><span><b>This week in sports history.</b> The Iconic Moments on their dates, on Today.</span></li>
-    <li><i>💾</i><span><b>Download my data.</b> Save a copy of your Cosmic account any time; the service also backs everything up daily.</span></li>
-    <li><i>📱</i><span><b>Easier to get around.</b> One bar at the bottom (Today, Scores, Cosmic, Following, More), a league strip at the top, swipe between tabs and pull down to refresh.</span></li>
-    <li><i>🏈</i><span><b>College football and basketball.</b> The best 100 programs in each, with live scores, AP rankings, conference standings, news and a Predict page built on every Division I game since 2018.</span></li>
-    <li><i>⏰</i><span><b>Game-day reminders.</b> An hour before your teams play, a heads-up with the start time and Cosmo's pick. Follow a team with ☆ and turn on notifications.</span></li>
-    <li><i>🔑</i><span><b>Sign in with a passkey.</b> Cosmic accounts now use passkeys: Face ID, your fingerprint or your device's passcode. Your coins, cards, followed teams and settings are saved to your account and follow you to any device.</span></li>
-    <li><i>🃏</i><span><b>Every player has cards.</b> Every player on every NFL, NBA, MLB, NHL and Premier League roster now comes in all seven tiers, from 1 of 1,000 to the one-and-only 1 of 1, each drawn as their own planet. Open player packs to chase your favorites.</span></li>
-    <li><i>🛒</i><span><b>Packs and the Market.</b> Rip Jupiter, Venus, Mars, Moon and Sun packs (every rarity is a body in the solar system, up to the 1-of-1 Sun), then keep your pulls, sell them back to the shop, or list them for other collectors.</span></li>
-    <li><i>🪐</i><span><b>Cosmic.</b> Bet free Cosmic Coins on real games at prices set from real sportsbook lines, climb the leaderboards, and spend your winnings on packs of limited-edition team and player cards, from 1 of 1,000 all the way to the one-and-only 1 of 1. Better packs have better odds. Coins have no cash value.</span></li>
-    <li><i>🎲</i><span><b>Season odds.</b> The rest of every season is played out 10,000 times each night: playoff, division and title chances for every team, charted over time, plus what each team's next game is worth. In the new Odds tab of every league.</span></li>
-    <li><i>🔥</i><span><b>Most at stake.</b> The games that swing the playoff races most, on Today and in each Odds tab, with luck (wins above what the scoring says) and the toughest schedules left.</span></li>
-    <li><i>🏈</i><span><b>NFL leaders for 2026,</b> now with rushing, sacks, tackles and interceptions.</span></li>
-    <li><i>📈</i><span><b>Track record.</b> Every pick the model makes is now locked in before the game and graded after it, with its record in each league, how it compares with the betting favorites, and how it does against the odds. In the Record tab.</span></li>
-    <li><i>🧠</i><span><b>A real model for every league.</b> The NFL, NBA, MLB, NHL and Premier League now get the tennis treatment: Elo, opponent-adjusted margin, offense and defense, form, rest and a factor for each sport (starting pitchers, quarterbacks, shots).</span></li>
-    <li><i>📊</i><span><b>A Model tab in every league.</b> Accuracy on seasons it never saw, against Elo and the betting market, a calibration chart and what each factor is worth.</span></li>
-    <li><i>🔎</i><span><b>Why the model leans that way.</b> Every matchup and game page shows each factor's push, a projected score, fair spread and total, form, rating trends and the last meetings.</span></li>
-    <li><i>📰</i><span><b>Comets.</b> Articles and takes from Cosmo Sports, right in the app. The newest one shows on Today.</span></li>
-    <li><i>⚽</i><span><b>Likeliest scores</b> for Premier League matches, plus over 2.5 goals and both teams to score.</span></li>
+    <li><i>⚾</i><span><b>Your cards play whole games.</b> Build a lineup of up to five cards in any sport and it plays a full simulated game: nine innings, four quarters, three periods, ninety minutes or a tennis match, play by play, against a real person or the AI.</span></li>
+    <li><i>📊</i><span><b>Box scores and grades.</b> Every card gets its own stat line and a grade out of 10, and the best is the player of the game. Replay any game from Results.</span></li>
+    <li><i>🏆</i><span><b>Game rankings.</b> A game rating that starts at 1,000 and climbs as you beat other players, with a leaderboard of the best.</span></li>
+    <li><i>🏈</i><span><b>College games too.</b> College football and basketball cards now play their own games.</span></li>
+    <li><i>🪐</i><span><b>Everything is Cosmic.</b> The app is now all about the game: packs, your collection, games, bets on real games, the Market, trades and auctions. Live scores, predictions and team alerts have been retired, so notifications for them have stopped.</span></li>
   </ul>
-  <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">Open Cosmic</button></div>
+  <div class="pkfoot"><small>Everything is explained in More › Guide.</small><button class="btn" type="button" data-new="close">Later</button><button class="btn primary" type="button" data-new="play">Play a game</button></div>
 </div></dialog>
 <div class="offbar" id="offBar" role="status" hidden>📡 Offline · showing the last saved scores</div>
 <dialog id="infoDlg" class="modal packd" aria-labelledby="infoTitle"><div class="dlg" id="infoBody"></div></dialog>
@@ -2804,27 +2800,24 @@ dialog.onb p{margin:0 0 12px}
   <div class="dlg" id="installHow"></div>
 </dialog>
 <nav class="bottombar" aria-label="Sections">
-  <button data-nav="universe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="10" ry="3.6" transform="rotate(-20 12 12)"/></svg><span>Today</span></button>
-  <button data-nav="scores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M7 10v4M17 10v4"/></svg><span>Scores</span><i class="navdot" id="navLiveDot" hidden></i></button>
-  <button data-nav="cosmic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-24 12 12)"/></svg><span>Cosmic</span></button>
-  <button data-nav="following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><span>Following</span></button>
+  <button data-nav="cz:home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.6" transform="rotate(-24 12 12)"/></svg><span>Home</span></button>
+  <button data-nav="cz:battle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5 18.5 12 8 18.5z"/></svg><span>Play</span><i class="navdot" id="navPlayDot" hidden></i></button>
+  <button data-nav="cz:packs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M5 8h14M12 12.2l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z"/></svg><span>Packs</span></button>
+  <button data-nav="cz:coll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="11" height="14" rx="2"/><path d="M8 3.5h10.5a2 2 0 0 1 2 2V17"/></svg><span>Cards</span></button>
   <button data-nav="more"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg><span>More</span></button>
 </nav>
 <dialog id="moreDlg" class="sheet" aria-label="More">
   <div class="sheetin">
     <div class="grab"></div>
-    <button class="sheetrow" data-go="universe"><b>Today &amp; picks</b><span>Every game across the five leagues, and your picks against the model</span></button>
-    <button class="sheetrow" data-go="cosmic"><b>🪐 Cosmic</b><span>Bet free Cosmic Coins on real games and collect limited-edition team and player cards</span></button>
-    <button class="sheetrow" data-go="record"><b>📈 Track record</b><span>Every pick since launch, locked in before the game, and how it does against the odds</span></button>
-    <button class="sheetrow" data-go="comets"><b>📰 Comets</b><span>Articles and takes from Cosmo Sports</span></button>
-    <button class="sheetrow" data-go="play"><b>Picks</b><span>The Daily 3 and your record against the Cosmo model</span></button>
-    <button class="sheetrow" data-go="account"><b id="moreAcct">👤 Sign in</b><span>Your Cosmic account: coins, cards, and your teams and settings on every device</span></button>
-    <button class="sheetrow" data-go="settings"><b>Notifications</b><span>Alerts for your teams, close finishes and final scores</span></button>
-    <button class="sheetrow" data-go="following"><b>★ Following</b><span>Your teams' live scores, results and next games</span></button>
-    <button class="sheetrow" data-go="search"><b>Find a team</b><span>Any NFL, NBA, MLB, NHL or Premier League team</span></button>
-    <button class="sheetrow" data-go="accuracy"><b>Model accuracy</b><span>How well the predictions hold up</span></button>
-    <button class="sheetrow" data-go="help"><b>Guide</b><span>How the predictions work, reading the numbers, alerts and picks</span></button>
-    <button class="sheetrow" data-go="settings"><b>Settings</b><span>Alerts, spoiler shield, sounds, replays, voice and your start page</span></button>
+    <button class="sheetrow" data-go="cz:bet"><b>🎯 Bet</b><span>Free Cosmic Coins on real games, props and parlays</span></button>
+    <button class="sheetrow" data-go="cz:mine"><b>My bets</b><span>Your open and settled bets</span></button>
+    <button class="sheetrow" data-go="cz:market"><b>🛒 Market</b><span>Buy and sell cards with other collectors, and auctions</span></button>
+    <button class="sheetrow" data-go="cz:trades"><b>🔁 Trades</b><span>Swap cards with other players</span></button>
+    <button class="sheetrow" data-go="cz:check"><b>Checklist</b><span>Every card in every set, and who holds the one-of-ones</span></button>
+    <button class="sheetrow" data-go="cz:lb"><b>🏆 Leaders</b><span>Game rankings, seasons, the week's winners and collectors</span></button>
+    <button class="sheetrow" data-go="account"><b id="moreAcct">👤 Sign in</b><span>Your Cosmic account: coins and cards on every device</span></button>
+    <button class="sheetrow" data-go="help"><b>Guide</b><span>How the games, cards, coins and rankings work</span></button>
+    <button class="sheetrow" data-go="settings"><b>Settings</b><span>Sounds, odds format and your account</span></button>
     <button class="sheetrow webonly" data-go="getapp"><b>Get the app</b><span>Put Cosmo Sports on your home screen</span></button>
     <button class="sheetrow" data-go="about"><b>About Cosmo Sports</b><span>Data sources, privacy and terms</span></button>
   </div>
@@ -2833,42 +2826,42 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="settingsDlg" class="modal" aria-labelledby="setTitle">
   <div class="dlg">
     <h2 id="setTitle">Settings</h2>
-    <div id="ntfBox"></div>
-    <div class="setrow wrapr"><div><b>Spoiler shield</b><small>Hide scores until you tap to reveal them, in the app and in alerts</small></div>
+    <div id="ntfBox" class="cz-off"></div>
+    <div class="setrow wrapr cz-off"><div><b>Spoiler shield</b><small>Hide scores until you tap to reveal them, in the app and in alerts</small></div>
       <div class="seg" role="group" aria-label="Spoiler shield"><button type="button" data-spoil="off">Off</button><button type="button" data-spoil="mine">My teams</button><button type="button" data-spoil="all">All games</button></div></div>
-    <div class="setrow"><div><b>Sound effects</b><small>Short sounds for scores, picks and games</small></div>
+    <div class="setrow"><div><b>Sound effects</b><small>Short sounds for packs, plays and wins</small></div>
       <div class="seg" role="group" aria-label="Sound effects"><button type="button" data-snd="0">Off</button><button type="button" data-snd="1">On</button></div></div>
-    <div class="setrow wrapr" id="voiceRow"><div><b>Listen Live voice</b><small>Who reads the plays when you tap 🎧 Listen in a live game. Tap one to hear it.</small></div>
+    <div class="setrow wrapr cz-off" id="voiceRow"><div><b>Listen Live voice</b><small>Who reads the plays when you tap 🎧 Listen in a live game. Tap one to hear it.</small></div>
       <div class="seg" role="group" aria-label="Voice"><button type="button" data-vkind="male">Announcer</button><button type="button" data-vkind="female">Anchor</button><button type="button" data-vkind="device">Phone voice</button></div></div>
-    <div class="setrow wrapr" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
+    <div class="setrow wrapr cz-off" id="voiceRow2"><div><b>Voice speed</b><small>How fast plays are read aloud</small></div>
       <div class="seg" role="group" aria-label="Voice speed"><button type="button" data-vrate="0.9">Slower</button><button type="button" data-vrate="1.05">Normal</button><button type="button" data-vrate="1.25">Faster</button></div></div>
-    <div class="setrow"><div><b>Start on</b><small>What the app shows when it opens</small></div>
+    <div class="setrow cz-off"><div><b>Start on</b><small>What the app shows when it opens</small></div>
       <select class="field" id="startSel" aria-label="Start page" style="max-width:170px"><option value="">Last page</option><option value="universe">Today (all leagues)</option><option value="play">Picks</option><option value="cosmic">Cosmic</option><option value="record">Track record</option><option value="comets">Comets</option><option value="following">★ Following</option><option value="tennis">Tennis</option><option value="nfl">NFL</option><option value="nba">NBA</option><option value="mlb">MLB</option><option value="nhl">NHL</option><option value="epl">Premier League</option><option value="cfb">College Football</option><option value="cbb">College Basketball</option></select></div>
     <div class="setrow" id="acctRow" hidden><div><b>Account</b><small id="acctSummary">Signed in</small></div><div class="setbtns"><button class="btn primary" type="button" id="acctIn" hidden>Sign in</button><button class="btn" type="button" id="acctOut">Sign out</button><button class="btn danger" type="button" id="acctDel">Delete account</button></div></div>
-    <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about a player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
-    <div class="setrow"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" data-ui="close search">Manage</button></div>
-    <div class="setrow"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
+    <div class="setrow"><div><b>Help and support</b><small>Questions, problems, or a report about another player</small></div><a class="btn" href="support.html" target="_blank" rel="noopener">Support</a></div>
+    <div class="setrow cz-off"><div><b>Following</b><small id="favSummary">Teams you follow</small></div><button class="btn" type="button" data-ui="close search">Manage</button></div>
+    <div class="setrow cz-off"><div><b>Tennis tour</b><small>The tour shown when tennis opens</small></div>
       <div class="seg" role="group" aria-label="Default tour"><button data-deftour="atp">Men</button><button data-deftour="wta">Women</button></div></div>
-    <div class="setrow"><div><b>Odds format</b><small>How prices are shown</small></div>
+    <div class="setrow"><div><b>Odds format</b><small>How bet prices are shown</small></div>
       <div class="seg" role="group" aria-label="Odds format"><button data-oddsfmt="us">American</button><button data-oddsfmt="dec">Decimal</button></div></div>
-    <div class="setrow"><div><b>Your data</b><small>Your teams, picks and settings are saved to your account. Reset clears this device's copy and chat, turns off alerts and signs you out here</small></div><button class="btn" id="resetData">Reset</button></div>
-    <div class="setrow"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" data-ui="close tour">Start</button></div>
+    <div class="setrow"><div><b>Your data</b><small>Your coins, cards and settings are saved to your account. Reset clears this device's copy and signs you out here</small></div><button class="btn" id="resetData">Reset</button></div>
+    <div class="setrow cz-off"><div><b>Welcome tour</b><small>Pick your teams and alerts again</small></div><button class="btn" type="button" data-ui="close tour">Start</button></div>
     <div class="dlgfoot" style="margin-top:14px"><small id="verInfo"></small><button class="btn" id="setClose">Done</button></div>
   </div>
 </dialog>
 
 <dialog id="aboutDlg" class="modal wide" aria-labelledby="aboutTitle">
   <div class="dlg helpbody">
-    <div class="aboutbrand"><img src="icon-192.png" alt="" width="64" height="64"><div><h2 id="aboutTitle">Cosmo Sports</h2><p>Every game, every league, one app.</p></div></div>
-    <p>Cosmo Sports brings live scores, play-by-play with animated replays, box scores, standings, team pages, news and data-driven predictions for tennis, the NFL, NBA, MLB, NHL and the Premier League together in one place, with alerts for your teams and daily picks and games.</p>
+    <div class="aboutbrand"><img src="icon-192.png" alt="" width="64" height="64"><div><h2 id="aboutTitle">Cosmo Sports</h2><p>Collect the cards. Play the game.</p></div></div>
+    <p>Cosmo Sports is a sports card game. Collect limited-edition cards of real teams and players from the NFL, NBA, MLB, NHL, Premier League, tennis and college sports with free Cosmic Coins, then play them: build a lineup, and it plays a whole simulated game against a real person or the AI, play by play, with a box score, a grade for every card and a place in the game rankings. You can also bet coins on real games, trade, sell and grade your cards.</p>
     <h3>Where the data comes from</h3>
-    <p>Baseball comes from MLB's official Stats API. Other live scores, play-by-play, box scores, standings, schedules, rosters and news headlines come from ESPN's public sports data, with the NHL's official API as a backup for hockey; news articles open on ESPN. Cosmo Sports shows no team logos, player photos or video clips. Tennis results and ratings are built from Jeff Sackmann's Tennis Abstract data and API-Tennis; NFL history from nflverse; Premier League history from openfootball.</p>
-    <h3>Predictions</h3>
-    <p>Win chances come from Cosmo Sports' own rating models and are estimates, not guarantees. Betting lines are shown for information only. If you bet, bet only what you can afford to lose; in the US, call 1-800-GAMBLER for help.</p>
+    <p>Rosters, results and this season's player ratings (which set card values and game ratings) come from ESPN's public sports data and MLB's official Stats API. Betting prices for real games are set from public sportsbook lines. Tennis players come from Jeff Sackmann's Tennis Abstract data. Cosmo Sports shows no team logos, player photos, league marks or video clips; each card's art is a planet drawn for the app.</p>
+    <h3>Play money only</h3>
+    <p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside the game. The simulated games are made up: they're played out by the app from the cards' ratings and aren't predictions of real results. Cosmic is for adults 18 and over. If you bet real money elsewhere, bet only what you can afford to lose; in the US, call 1-800-GAMBLER for help.</p>
     <h3>Not affiliated</h3>
-    <p>Cosmo Sports is an independent app. It isn't affiliated with or endorsed by ESPN, the NFL, NBA, MLB, NHL, the Premier League, the ATP, the WTA or any team. Team and player names are used only to identify them; the app shows no team logos, player photos, league marks or video clips.</p>
+    <p>Cosmo Sports is an independent app. It isn't affiliated with or endorsed by ESPN, the NFL, NBA, MLB, NHL, the Premier League, the NCAA, the ATP, the WTA, any team or any player. Team and player names are used only to identify them.</p>
     <h3>Your privacy</h3>
-    <p>No ads and no tracking. Your account keeps your teams, picks, settings and Cosmic cards so they follow you to any device, and you can delete it any time in Settings. Alerts send only what they need. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
+    <p>No ads and no tracking. Your account keeps your coins, cards and settings so they follow you to any device, and you can delete it any time. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="terms.html" target="_blank" rel="noopener">Terms of use</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
     <div class="dlgfoot"><small id="aboutVer"></small><button class="btn" type="button" data-ui="close">Done</button></div>
   </div>
 </dialog>
@@ -2876,34 +2869,27 @@ dialog.onb p{margin:0 0 12px}
 <dialog id="helpDlg" class="modal wide" aria-labelledby="helpTitle">
   <div class="dlg helpbody">
     <h2 id="helpTitle">How Cosmo Sports works</h2>
-    <nav class="helptoc" aria-label="Guide sections"><a href="#h-around">Getting around</a><a href="#h-predict">Predictions</a><a href="#h-numbers">Reading the numbers</a><a href="#h-model">The Model tab</a><a href="#h-games">Games</a><a href="#h-comets">Comets</a><a href="#h-alerts">Alerts</a><a href="#h-picks">Picks</a><a href="#h-bet">Betting terms</a></nav>
+    <nav class="helptoc" aria-label="Guide sections"><a href="#h-around">Getting around</a><a href="#h-coins">Coins</a><a href="#h-cards">Cards</a><a href="#h-games">Games</a><a href="#h-rank">Rankings</a><a href="#h-bet">Betting</a><a href="#h-trade">Trading</a><a href="#h-terms">Betting terms</a></nav>
     <h3 id="h-around">Getting around</h3>
-    <p>The bar at the bottom has five stops. <b>Today</b> shows every game across the leagues. <b>Scores</b> opens the league you looked at last; switch leagues with the chips at the top. <b>Picks</b> has the Daily 3 and your record against the model. <b>Following</b> gathers your teams. <b>More</b> has search, settings and this guide. In a league, the tabs are Games, Standings, News, Leaders, Ratings, <b>Model</b> and <b>Predict</b>.</p>
-    <h3 id="h-predict">How the predictions work</h3>
-    <p>Every league has its own model, built the same way as the tennis one: walk through every game in date order, record what was known about both teams <i>before</i> each game, fit the model on older seasons and test it on seasons it never saw.</p>
-    <p>What the team models know before a game: an <b>Elo rating</b> that moves after every result (by more for upsets and big wins) and drifts back toward average between seasons; an <b>opponent-adjusted scoring margin</b>, where recent games count most; <b>offense and defense</b>; <b>form</b> over the last 10 games; <b>rest</b> (and back-to-backs in the NBA and NHL); <b>home advantage</b>; and a factor for each sport: <b>starting pitchers</b> in MLB (runs allowed in their recent starts), <b>starting quarterback</b> continuity in the NFL, <b>shot share</b> in the NHL, <b>shots on target</b> in the Premier League and <b>shooting</b> in the NBA. A factor is kept only if it improves the predictions on a separate validation season.</p>
-    <p>The Premier League model predicts each side's goals, which gives win, draw and loss chances, the likeliest scores, over 2.5 goals and both teams to score. Every model also projects each side's score, so you get a fair spread and total.</p>
-    <p><b>Tennis</b> goes further still. Every player has an <b>Elo rating</b>: a number that goes up when they win and down when they lose, by more when the result is a surprise. Cosmo Sports keeps one overall rating and one for each surface, built from every tour-level, Challenger, WTA 125, ITF and qualifying match since 2012.</p>
-    <p>A model then combines 20 factors, including those ratings, serve and return, head-to-head, momentum, rest, workload, age, experience, height, home crowd and the Grand Slam stage. Each factor's weight was learned from 2015–2023 matches and tested on 2024–26 matches the model never saw, where it picks about two-thirds of winners.</p>
-    <h3 id="h-numbers">Reading the numbers</h3>
-    <p><b>Win chance</b> is the model's estimate, not a certainty: a 70% favorite still loses 3 times in 10. <b>Fair price</b> is the betting price that would exactly match that chance. In <b>Why the model leans this way</b>, each bar is how far one factor moves the win chance on its own, toward the away team (left) or the home team (right). The <b>projected score</b> comes with the typical miss on unseen games, so you can see how much a single game varies.</p>
-    <h3 id="h-model">The Model tab</h3>
-    <p>Each league's report card: how often it picked the winner on seasons it never saw, its log-loss and Brier scores (lower is better; they punish confident misses), the same numbers for Elo alone and, where we have them, for the betting market on the same games. The <b>calibration</b> chart checks that when the model says 70%, it happens about 70% of the time. <b>What the model weighs</b> shows how much each factor helps.</p>
-    <h3 id="h-games">Games, box scores and replays</h3>
-    <p>Tap any game for its page: an animated field that replays each play, the win-probability chart with its turning points, the box score, team stats and game info. Before and during a game, Game info shows the model's reasons, the projected score and how the model compares with the betting line. Tap ☆ next to a team to follow it. <b>🎧 Listen</b> in a live game reads each play aloud like a radio call.</p>
-    <h3 id="h-comets">Comets</h3>
-    <p><b>Comets</b> (in the top chips and in More) has articles and takes from Cosmo Sports, written for everyone who uses the app. The newest one also shows on Today, and with notifications on you'll hear when a new one is published (turn that off in Settings). Share any article with its link.</p>
-    <h3 id="h-alerts" class="webonly">Alerts and the morning briefing</h3>
-    <p class="webonly">Turn on alerts in Settings (on iPhone, add the app to your home screen first). You'll hear when your teams start, score, head into a close finish and finish, plus a short briefing each morning. The <b>spoiler shield</b> hides scores in the app and in alerts until you tap to reveal them.</p>
-    <h3 id="h-picks">Picks</h3>
-    <p>The <b>Daily 3</b> is the day's three closest calls. Pick a winner in each before they start, keep a streak, and send your picks to a friend. Every pick you make anywhere is graded and compared with the model's.</p>
-    <h3 id="h-bet">Betting terms</h3>
-    <p><b>Bookmaker's cut:</b> the margin built into the odds; Cosmo Sports removes it to find the market's true view. <b>Edge:</b> how much higher the model's chance is than the market's. <b>Fair price:</b> the odds that match the model's own chance. <b>Closing line value:</b> whether the odds moved your way before the match started, the most reliable early sign of a real edge.</p>
-    <h3>Privacy</h3>
-    <p>Your settings are stored only on your device. There are no accounts, ads or tracking.</p>
-    <h3>Please bet responsibly</h3>
-    <p>Predictions are estimates. Only bet what you can afford to lose, and if gambling stops being fun, contact a support service such as 1-800-GAMBLER (US) or BeGambleAware (UK).</p>
-    <p class="fine">Match data: Jeff Sackmann / Tennis Abstract (CC BY-NC-SA 4.0), official tournament draws, and live-score feeds. Cosmo Sports is independent and not affiliated with the ATP, WTA or any tournament.</p>
+    <p>The bar at the bottom (the tabs at the top on a computer) has five stops. <b>Home</b> shows what to do next, your quests and your best cards. <b>Play</b> is where your cards play games. <b>Packs</b> is the shop. <b>Cards</b> is your collection. <b>More</b> has betting, the Market, trades, the checklist, the leaderboards, your account and this guide.</p>
+    <h3 id="h-coins">Cosmic Coins</h3>
+    <p>Coins are free play money: you get some when you join, more every day you claim them, from the daily wheel, quests, winning games and bets, and selling cards. They have no cash value and can't be bought or cashed out.</p>
+    <h3 id="h-cards">Cards</h3>
+    <p>Every team and every rostered player comes in seven rarities, each a body in the solar system, from the commonest to the rarest: Jupiter, Venus, Neptune, Mars, Earth, the Moon and the one-and-only Sun (1 of 1). There are also All-Time legends, Iconic Moments, Binary Stars (two players on one card) and college teams. A card's value follows how rare it is, how the real player or team is doing this season, and its level, which rises when the real player has big games. Grade a card for a chance at a Gem Mint 10.</p>
+    <h3 id="h-games">Cosmic Games</h3>
+    <p>Pick a sport and build a lineup of up to five of your cards from it. Each card has a <b>game rating</b> from its rarity, its level and how good the real athlete or team is. Your lineup's strength is the average of its five spots (an empty spot plays like a replacement-level player, so fill all five). Then the two lineups play a whole game, at-bat by at-bat or possession by possession: nine innings in baseball, four quarters in football and basketball (two halves in college basketball), three periods in hockey with overtime and a shootout, ninety minutes in soccer with penalties if it's level, and a singles match for each pair of tennis players.</p>
+    <p>The stronger lineup usually wins, but upsets happen. Positions decide who gets the credit (pitchers pitch, quarterbacks throw, goalies make saves), not who wins. Every card gets a box score line and a grade out of 10, and the best one is the player of the game. Watch the plays as they happen or skip to the final, and replay any game later from Results.</p>
+    <p>Against the AI, its lineup is rated to match yours, so every game is a true 50/50. Against a person, send a challenge by name or post an open one; the winner takes both stakes.</p>
+    <h3 id="h-rank">Game rankings</h3>
+    <p>Everyone starts with a game rating of 1,000. Beating a player raises it and losing lowers it, by more when the result is a surprise (up to 32 points). A game against the AI moves it 8. The Leaders page ranks every player by game rating, and monthly seasons pay coins for points from games, bets, packs and spins.</p>
+    <h3 id="h-bet">Betting on real games</h3>
+    <p>In <b>Bet</b>, put coins on real NFL, NBA, MLB, NHL, Premier League, tennis and college games and player props, or combine picks into a parlay. Prices come from real sportsbook lines, and bets settle when the real game ends.</p>
+    <h3 id="h-trade">Selling, trading and auctions</h3>
+    <p>Sell a card back to the shop for coins, list it on the Market for other collectors, put it up for auction, or offer a trade. Cards can only change hands for coins inside the game.</p>
+    <h3 id="h-terms">Betting terms</h3>
+    <p><b>Price:</b> how many coins you get back for each coin staked if you win (2.50 means a 100-coin bet returns 250). <b>Favorite:</b> the side the sportsbooks expect to win. <b>Parlay:</b> several picks in one bet; every pick has to win, and the prices multiply.</p>
+    <h3>Play responsibly</h3>
+    <p>Cosmic is play money for adults 18 and over. If betting real money elsewhere stops being fun, contact a support service such as 1-800-GAMBLER (US) or BeGambleAware (UK).</p>
     <div class="dlgfoot"><small></small><button class="btn" id="helpClose">Close</button></div>
   </div>
 </dialog>
@@ -4623,7 +4609,11 @@ function teamPredict(H, A, neutral, ctx){
 const recStr = t => t.w == null ? "—" : SPORT === "epl" ? `${t.w}-${t.d}-${t.l}` : `${t.w}-${t.l}${t.otl && SPORT === "nhl" ? "-" + t.otl : ""}${t.t && SPORT === "nfl" ? "-" + t.t : ""}`;   // a third number only where the sport has one (A22)
 // each section keeps its own scroll position, like the tabs of a phone app
 const SCROLLS = {}, isPhone = () => matchMedia("(max-width:760px)").matches;
+// Cosmo Sports is the Cosmic game now: the scores, predictions and team sections are retired, so every route opens Cosmic
+const COSMIC_ONLY = true;
+if (COSMIC_ONLY) document.body.classList.add("cosmic-only");
 function setSport(sp){
+  if (COSMIC_ONLY) sp = "cosmic";
   if (SPORT !== sp){ SCROLLS[SPORT] = window.scrollY; requestAnimationFrame(() => setTimeout(() => window.scrollTo({ top: SCROLLS[sp] || 0 }), 0)); }
   { const strip = $("#lgStrip"); if (strip){ strip.hidden = !(sp === "tennis" || (SPORTS.leagues[sp] && !["universe", "following", "play", "comets", "record", "cosmic"].includes(sp)));
     const on = strip.querySelector(`[data-sport="${sp}"]`); if (on && !strip.hidden && on.scrollIntoView) on.scrollIntoView({ block: "nearest", inline: "center" }); } }
@@ -6214,7 +6204,7 @@ function bellBtn(lg, g, cls = "ghost bell"){
   return `<button type="button" class="${cls}" data-bell="${esc(g.id)}" aria-pressed="${on}" aria-label="${on ? "Turn off" : "Turn on"} alerts for this game" title="${on ? "Alerts on" : "Get alerts for this game"}">${BELL(on)}</button>`;
 }
 function renderNtf(){
-  const box = $("#ntfBox"); if (!box) return; if (NATIVE){ renderRem(box); return; }
+  const box = $("#ntfBox"); if (!box) return; if (NATIVE){ box.classList.toggle("cz-off", false); renderRem(box); return; }
   const nTeams = Object.values(FAV).reduce((n, a) => n + a.length, 0), nGames = NTF.games.length;
   const P = [["remind", "Game-day reminders", "an hour before your teams play, with Cosmo's pick"], ["start", "Game starts"], ["score", "Scoring plays", "every score in football, baseball, hockey and soccer; quarter breaks in basketball"], ["close", "Close finishes", "when a game is close late"], ["final", "Final scores"], ["daily", "Morning briefing", "around 9 AM Eastern: your teams' results and today's games"], ["anyClose", "Close finishes in any game", "not just your teams"], ["comets", "Comets articles", "when a new article is published"]];
   box.innerHTML = `<div class="setrow"><div><b>Notifications</b><small>${NTF.on && "Notification" in window && Notification.permission !== "granted" ? `<span style="color:var(--bad,#FF7D8E)">Blocked in your phone's settings. Allow notifications for Cosmo Sports, then turn this off and on.</span> · ` : ""}${NTF.on ? `On · ${nTeams} team${nTeams === 1 ? "" : "s"} followed${nGames ? `, ${nGames} game${nGames === 1 ? "" : "s"} with alerts` : ""}` : "Alerts for your teams and any game you tap the bell on, even when the app is closed"}</small></div>
@@ -6378,7 +6368,7 @@ function czLevelUps(){
   $("#infoBody").innerHTML = `<div class="czlvup" role="status"><div class="czlvup-rays" aria-hidden="true"></div><div class="czlvup-ring" aria-hidden="true"></div><div class="czlvup-ring r2" aria-hidden="true"></div>
       <div class="czlvup-card">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n, true)}</div>
       <div class="czlvup-word"><small>Level up</small><b>Level ${lv}</b></div>${Array.from({ length: 14 }, (_, k) => `<i class="czlvup-spark" style="--a:${k * 26}deg;--d:${90 + (k % 4) * 30}px;--t:${(k % 5) * .06}s"></i>`).join("")}</div>
-    <h2 id="infoTitle" class="czlvup-t">${esc(i.name)} reached level ${lv}</h2><p class="sub" style="text-align:center">${h ? `After ${esc(h.line)}${h.game ? ` (${esc(h.game)})` : ""}. ` : ""}Every level adds 15% to the card's value and power in battles.${up.length > 1 ? ` ${up.length - 1} more of your cards levelled up too.` : ""}</p>
+    <h2 id="infoTitle" class="czlvup-t">${esc(i.name)} reached level ${lv}</h2><p class="sub" style="text-align:center">${h ? `After ${esc(h.line)}${h.game ? ` (${esc(h.game)})` : ""}. ` : ""}Every level adds 15% to the card's value and raises its game rating.${up.length > 1 ? ` ${up.length - 1} more of your cards levelled up too.` : ""}</p>
     <div class="pkfoot"><span></span><button class="btn primary" type="button" data-info="close">Awesome</button></div>`;
   $("#infoDlg").showModal(); sfx("win"); haptic("win");
 }
@@ -6695,7 +6685,7 @@ const czToday = () => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "
 function czRank(){ const L = CZ.lb && CZ.lb.rich; if (!L || !CZ.me) return null; const i = L.findIndex(r => r.uid === CZ.me.uid); return i < 0 ? null : { n: i + 1, of: CZ.lb.players }; }
 function czHeader(){
   const me = CZ.me;
-  if (!me) return `<div class="lghead czhead"><div><h1>Cosmic</h1><p>Bet free Cosmic Coins on real games, climb the leaderboards, and rip packs of limited-edition team and player cards, down to the one-and-only 1 of 1.</p></div></div>`;
+  if (!me) return `<div class="lghead czhead"><div><h1>Cosmic</h1><p>Rip packs of limited-edition team and player cards, down to the one-and-only 1 of 1, then play them: your lineup plays a whole game against real people or the AI and climbs the game rankings. All with free Cosmic Coins.</p></div></div>`;
   const claimed = me.lastDaily === czToday(), rk = czRank(), items = me.items || [], rarest = items.reduce((m, i) => Math.min(m, i.supply || 1e9), 1e9), open = (me.bets || []).filter(b => !b.res).length;
   const yday = (() => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(Date.now() - 864e5)); const g = t => p.find(x => x.type === t).value; return g("year") + g("month") + g("day"); })();
   const next = Math.round((CZ_DAILY_BASE + (me.lastDaily === yday ? Math.min(6, me.streak || 0) : 0) * 50) * .95);   // 5% under the round number, as the service pays; the streak bonus only carries on from yesterday
@@ -6716,6 +6706,11 @@ function czAnimBal(){
   const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); b.textContent = Math.round(from + (to - from) * e).toLocaleString(); if (k < 1) requestAnimationFrame(step); else setTimeout(() => b.parentElement.classList.remove("up", "down"), 400); };
   requestAnimationFrame(step);
 }
+// open one of Cosmic's sections (from its tab strip, the bottom bar or More) and load what it shows
+function czGoTab(k){
+  CZ.tab = k; lsSet("cz-tab", k); if (SPORT !== "cosmic") setSport("cosmic"); drawCosmic(); navMark();
+  czLoad(k === "home" ? ["me", "board", "lb", "market", "trades", "bat", "rookies"] : k === "battle" ? ["bat", "me", "lb"] : k === "bet" ? ["board", "me"] : k === "lb" ? ["lb", "me"] : k === "trades" ? ["trades", "me"] : k === "market" ? ["market", "vault", "me"] : k === "packs" ? ["vault", "me", "teampacks", "drops", "grails"] : ["check", "coll"].includes(k) ? ["vault", "me"] : ["me", "board"]);
+}
 function drawCosmic(){
   const el = $("#cosmicView"); if (!el) return;
   if (!ALERTS_URL){ el.innerHTML = czHeader() + `<div class="teamnote"><b>Cosmic needs the live service</b>This copy of the app isn't connected to it.</div>`; return; }
@@ -6732,12 +6727,12 @@ function drawCosmic(){
   czSyncStart();
   const nIn = (CZ.trades || []).filter(t => t.status === "open" && t.to === CZ.me.uid).length;
   const nBat = CZ.bat ? CZ.bat.mine.filter(b => b.status === "open" && b.to === CZ.me.uid).length : 0;
-  const tabs = [["home", "", "Home"], ["bet", "", "Bet"], ["battle", "", "Battles" + (nBat ? ` (${nBat})` : "")], ["mine", "", "My bets"], ["packs", "", "Packs"], ["market", "", "Market"], ["trades", "", "Trades" + (nIn ? ` (${nIn})` : "")], ["coll", "", "Collection"], ["check", "", "Checklist"], ["lb", "", "Leaders"]];
+  const tabs = [["home", "", "Home"], ["battle", "", "Play" + (nBat ? ` (${nBat})` : "")], ["bet", "", "Bet"], ["mine", "", "My bets"], ["packs", "", "Packs"], ["market", "", "Market"], ["trades", "", "Trades" + (nIn ? ` (${nIn})` : "")], ["coll", "", "Collection"], ["check", "", "Checklist"], ["lb", "", "Leaders"]];
   el.innerHTML = czHeader() + `<nav class="cztabs" aria-label="Cosmic">${tabs.map(([k, i, l]) => `<button type="button" data-cztab="${k}" aria-pressed="${CZ.tab === k}">${l}</button>`).join("")}</nav>`
     + ({ home: czHomeHtml, bet: czBetHtml, battle: czBattleHtml, mine: czMineHtml, packs: czPacksHtml, market: czMarketHtml, trades: czTradesHtml, check: czVaultHtml, coll: czCollHtml, lb: czLbHtml }[CZ.tab] || czBetHtml)() + czParlayBar()
     + `<footer class="cmfoot"><div class="czfoot-links">${CZ.me.secured ? `${CZ.me.passkey ? `<button type="button" class="linkbtn" data-czpk="add">Add a passkey on another device</button> · ` : ""}<button type="button" class="linkbtn" data-cz="key">Account key</button> · <button type="button" class="linkbtn" data-cz="signout">Sign out</button> · <button type="button" class="linkbtn" data-cz="signoutall">Sign out everywhere</button> · <button type="button" class="linkbtn" data-cz="delacct">Delete account</button>` : `<button type="button" class="linkbtn" data-cz="key">Use Cosmic on another device</button>`} · <button type="button" class="linkbtn" data-cz="export">Download my data</button> · <button type="button" class="linkbtn" data-cz="owner">${CZ.me.tester ? "Owner: turn off unlimited coins" : "Owner"}</button>${cmKey() ? ` · <button type="button" class="linkbtn" data-cz="inbox">Owner inbox</button>` : ""}</div>
       <details><summary>About Cosmic Coins</summary><p>Cosmic Coins are play money with no cash value. They can't be bought with real money or cashed out, and cards can only be traded for coins inside Cosmic. Selling coins, cards or accounts for real money isn't allowed.${CZ.me.passkey ? " Your account, cards, followed teams, settings and picks are saved and follow you to any device where you sign in." : ""}</p></details></footer>`;
-  czBind(el); czAnimBal(); czSeasonNote();
+  czBind(el); czAnimBal(); czSeasonNote(); if (COSMIC_ONLY) navMark();
   const t = el.querySelector('.cztabs [aria-pressed="true"]'); if (t && t.scrollIntoView) t.scrollIntoView({ block: "nearest", inline: "center" });
 }
 // ---- Home: what to do next, your best cards, the best bets, and what everyone else is up to
@@ -6851,7 +6846,7 @@ function czHomeHtml(){
   const games = (CZ.board || []).length, cheapest = CZ.packs ? CZ.packs.packs.filter(p => p.price <= me.bal).sort((a, b) => b.price - a.price)[0] : null, listings = CZ.market ? CZ.market.listings.filter(l => l.uid !== me.uid).length : null;
   const tile = (go, icon, title, sub, hot) => `<button type="button" class="czact ${hot ? "hot" : ""}" ${go}><span class="czact-i" aria-hidden="true">${icon}</span><b>${title}</b><small>${sub}</small></button>`;
   const edges = czEdges().slice(0, 3), L = CZ.lb, rk = czRank();
-  const feedTxt = f => f.kind === "grade" ? `${czWhoBtn(f.name)} graded ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} a Gem Mint 10` : f.kind === "milestone" ? `🏆 New Milestone card: ${esc(f.label)}, ${esc(f.title || "")}${f.line ? ` (${esc(f.line)})` : ""}` : f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : f.kind === "battle" ? `${czWhoBtn(f.name)} beat ${/^Cosmo/.test(f.loser || "") ? "the AI" : czWhoBtn(f.loser)} in a card battle${f.stake ? ` for ${(f.stake * 2).toLocaleString()} coins` : ""}` : f.kind === "spin" ? `${czWhoBtn(f.name)} spun ${f.pack ? `a free ${f.pack === "supernova" ? "Moon" : "Jupiter"} pack` : `${f.coins.toLocaleString()} coins`} on the wheel` : `${czWhoBtn(f.name)} joined Cosmic`;
+  const feedTxt = f => f.kind === "grade" ? `${czWhoBtn(f.name)} graded ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} a Gem Mint 10` : f.kind === "milestone" ? `🏆 New Milestone card: ${esc(f.label)}, ${esc(f.title || "")}${f.line ? ` (${esc(f.line)})` : ""}` : f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${f.n}/${f.supply} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : f.kind === "battle" ? `${czWhoBtn(f.name)} beat ${/^Cosmo/.test(f.loser || "") ? "the AI" : czWhoBtn(f.loser)} in a Cosmic game${f.stake ? ` for ${(f.stake * 2).toLocaleString()} coins` : ""}` : f.kind === "spin" ? `${czWhoBtn(f.name)} spun ${f.pack ? `a free ${f.pack === "supernova" ? "Moon" : "Jupiter"} pack` : `${f.coins.toLocaleString()} coins`} on the wheel` : `${czWhoBtn(f.name)} joined Cosmic`;
   const A = czAchievements(me), nA = A.filter(a => a.done).length;
   const tix = Object.entries(me.tix || {}).filter(([, n]) => n > 0);
   return `${tix.map(([k, n]) => `<section class="czwelcome"><div><b>You have ${n} free ${k === "comet" ? "Jupiter" : k === "supernova" ? "Moon" : k} pack${n === 1 ? "" : "s"}</b><small>Won on the daily wheel.</small></div><button type="button" class="btn primary" data-czfreepk="${esc(k)}">Open it free</button></section>`).join("")}
@@ -6900,7 +6895,7 @@ const b64uE = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/
 const b64uD = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
 function czPkHtml(link){
   const P = CZ.pk || (CZ.pk = {});
-  if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmo Sports accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets, followed teams and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
+  if (link) return `<section class="card czjoin"><h2>Save your account with a passkey</h2><p class="sub">Cosmo Sports accounts now sign in with a passkey: Face ID, your fingerprint or your device's passcode. Your coins, cards, bets and settings are saved to your account instead of this browser, and your passkey signs you in on your other devices. Nothing to remember, and nobody else can use it.</p>
     <button type="button" class="btn primary czpkbtn" data-czpk="link">${czPkIcon()}Create a passkey</button><p class="czerr" id="czPkErr" role="alert">${esc(P.err || "")}</p></section>`;
   return czAuthHtml();
 }
@@ -6995,7 +6990,7 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-czwh
 const REM = { games: lsGet("rem-games", false), coins: lsGet("rem-coins", false) };
 function renderRem(box){
   const row = (k, title, sub) => `<div class="setrow"><div><b>${title}</b><small>${sub}</small></div><div class="seg" role="group" aria-label="${title}"><button type="button" data-rem="${k}:0" aria-pressed="${!REM[k]}">Off</button><button type="button" data-rem="${k}:1" aria-pressed="${!!REM[k]}">On</button></div></div>`;
-  box.innerHTML = row("games", "Game-day reminders", "An hour before each game of the teams you follow, with Cosmo's pick (tap ☆ on a team to follow it)") + row("coins", "Daily coins reminder", "At 10 AM when your free Cosmic Coins are waiting");
+  box.innerHTML = COSMIC_ONLY ? row("coins", "Daily coins reminder", "At 10 AM when your free Cosmic Coins are waiting") : row("games", "Game-day reminders", "An hour before each game of the teams you follow, with Cosmo's pick (tap ☆ on a team to follow it)") + row("coins", "Daily coins reminder", "At 10 AM when your free Cosmic Coins are waiting");
   box.querySelectorAll("[data-rem]").forEach(b => b.onclick = async () => {
     const [k, v] = b.dataset.rem.split(":"), on = v === "1";
     if (on){ const p = await nat("LocalNotifications", "requestPermissions").catch(() => null);
@@ -7009,7 +7004,7 @@ async function remSchedule(){
   if (!NATIVE) return;
   const old = lsGet("rem-ids", []); if (old.length) await nat("LocalNotifications", "cancel", { notifications: old.map(id => ({ id })) }).catch(() => {});
   const list = [], now = Date.now();
-  if (REM.games){
+  if (REM.games && !COSMIC_ONLY){
     for (const lg of Object.keys(FAV)){ if (!(FAV[lg] || []).length || !LG_NAME[lg]) continue;
       for (let d = 0; d < 3; d++){ let b; try { b = await fetchBoard(lg, ymdShift(sportsDay(now), d)); } catch { continue; }
         for (const g of (b && b.games) || []){ const at = Date.parse(g.date) - 60 * 60e3;
@@ -7545,7 +7540,7 @@ async function czSellAll(){
   const preview = async () => { go.disabled = true; if (ng) ng.disabled = true; const ids = pick(keep()), idsNg = pick(keep(), true);
     if (!ids.length) { $("#czSellSum").textContent = "Nothing to sell with these settings."; if (ng) ng.textContent = label({}); return; }
     try { const [p, q] = await Promise.all([czApi("/sellmany", { items: ids, preview: true }), ng && idsNg.length ? czApi("/sellmany", { items: idsNg, preview: true }) : { count: 0, total: 0 }]);
-      $("#czSellSum").innerHTML = p.count ? `<span><b>${p.count} card${p.count === 1 ? "" : "s"}</b> for ${czAmt(p.total)}</span>${p.busy ? `<small>${p.busy} on the market, in an auction or in a battle stay in your collection.</small>` : ""}${ng ? `<small>Or keep your ${graded.length} graded card${graded.length === 1 ? "" : "s"} and sell ${q.count} for ${q.total.toLocaleString()} coins.</small>` : ""}` : "Every one of these cards is on the market, in an auction or in a battle.";
+      $("#czSellSum").innerHTML = p.count ? `<span><b>${p.count} card${p.count === 1 ? "" : "s"}</b> for ${czAmt(p.total)}</span>${p.busy ? `<small>${p.busy} on the market, in an auction or in a game challenge stay in your collection.</small>` : ""}${ng ? `<small>Or keep your ${graded.length} graded card${graded.length === 1 ? "" : "s"} and sell ${q.count} for ${q.total.toLocaleString()} coins.</small>` : ""}` : "Every one of these cards is on the market, in an auction or in a game challenge.";
       go.textContent = label(p, true); go.disabled = !p.count; if (ng) { ng.textContent = label(q); ng.disabled = !q.count; } } catch (e) { $("#czErr").textContent = e.message; } };
   const k = $("#czKeepRare"); if (k) k.onchange = preview;
   const sell = async (b, noGr) => { go.disabled = true; if (ng) ng.disabled = true; const was = b.textContent; b.textContent = "Selling…";
@@ -7659,19 +7654,20 @@ function czMarketHtml(){
 }
 function czLbHtml(){
   const L = CZ.lb; if (!L) return `<div class="teamnote">${cosmoLoad("Loading the leaderboard…")}</div>`;
-  const me = CZ.me.uid, board = CZ.lbv || "week";
-  const feedTxt = f => f.kind === "grade" ? `${czWhoBtn(f.name)} graded ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} a Gem Mint 10` : f.kind === "milestone" ? `🏆 New Milestone card: ${esc(f.label)}, ${esc(f.title || "")}${f.line ? ` (${esc(f.line)})` : ""}` : f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : f.kind === "battle" ? `${czWhoBtn(f.name)} beat ${/^Cosmo/.test(f.loser || "") ? "the AI" : czWhoBtn(f.loser)} in a card battle${f.stake ? ` for ${(f.stake * 2).toLocaleString()} coins` : ""}` : f.kind === "spin" ? `${czWhoBtn(f.name)} spun ${f.pack ? `a free ${f.pack === "supernova" ? "Moon" : "Jupiter"} pack` : `${f.coins.toLocaleString()} coins`} on the wheel` : `${czWhoBtn(f.name)} joined Cosmic`;
+  const me = CZ.me.uid, board = CZ.lbv || "games";
+  const feedTxt = f => f.kind === "grade" ? `${czWhoBtn(f.name)} graded ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} a Gem Mint 10` : f.kind === "milestone" ? `🏆 New Milestone card: ${esc(f.label)}, ${esc(f.title || "")}${f.line ? ` (${esc(f.line)})` : ""}` : f.kind === "sale" ? `${czWhoBtn(f.name)} bought ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} ${f.n}/${f.supply} from ${czWhoBtn(f.seller)} for ${Math.round(f.price).toLocaleString()}` : f.kind === "pull" ? `${czWhoBtn(f.name)} pulled ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")} from a ${esc(f.pack || "pack")}` : f.kind === "mint" ? `${czWhoBtn(f.name)} collected ${f.supply === 1 ? "the only" : `${f.n}/${f.supply}`} ${esc(f.label)} ${esc(CZ_TIER_NAME[f.tier] || "")}` : f.kind === "win" ? `${czWhoBtn(f.name)} won ${Math.round(f.paid).toLocaleString()} coins on ${esc(f.label)}` : f.kind === "trade" ? `${czWhoBtn(f.name)} and ${czWhoBtn(f.other)} traded ${f.cards} cards` : f.kind === "auction" ? `${czWhoBtn(f.name)} put ${esc(f.label)} ${f.n}/${f.supply} up for auction` : f.kind === "week" ? `Weekly winners: ${(f.winners || []).map(w => `${esc(w.name)} (+${w.prize.toLocaleString()})`).join(", ")}` : f.kind === "battle" ? `${czWhoBtn(f.name)} beat ${/^Cosmo/.test(f.loser || "") ? "the AI" : czWhoBtn(f.loser)} in a Cosmic game${f.stake ? ` for ${(f.stake * 2).toLocaleString()} coins` : ""}` : f.kind === "spin" ? `${czWhoBtn(f.name)} spun ${f.pack ? `a free ${f.pack === "supernova" ? "Moon" : "Jupiter"} pack` : `${f.coins.toLocaleString()} coins`} on the wheel` : `${czWhoBtn(f.name)} joined Cosmic`;
   const left = L.weekEnds ? czLeft(L.weekEnds - Date.now()) : "";
   const boards = { week: ["This week", L.week || [], r => `<span class="${r.week >= 0 ? "pos" : "neg"}">${r.week > 0 ? "+" : ""}${Math.round(r.week).toLocaleString()}</span>`,
       `Coins won betting since Monday. Resets in ${left}. The top three win ${(L.prizes || [1900, 950, 475]).map(v => v.toLocaleString()).join(", ")} coins and a trophy.${(L.lastWinners || []).length ? ` Last week: ${L.lastWinners.map(w => `${esc(w.name)} (${["1st", "2nd", "3rd"][w.place - 1]})`).join(", ")}.` : ""}`],
     rich: ["Most coins", L.rich.slice(0, 50), r => czAmt(r.bal), `${L.players.toLocaleString()} player${L.players === 1 ? "" : "s"}`],
     sharp: ["Sharpest bettors", L.sharp, r => `<span class="${r.profit >= 0 ? "pos" : "neg"}">${r.profit > 0 ? "+" : ""}${Math.round(r.profit).toLocaleString()}</span> <small class="muted">${r.won}–${r.lost}</small>`, "Coins won from betting, at least 5 settled bets"],
     coll: ["Top collectors", L.collectors, r => `${r.cards} card${r.cards === 1 ? "" : "s"}${r.best <= 10 ? ` · 1/${r.best}` : ""}`, "Rarest card first"],
-    season: [`${czSeasonName(L.seasonId || czToday().slice(0, 6))} season`, L.season || [], r => `${czRkBadge(czSeasonInfo(r.sp.pts).cur[0], "sm")} ${r.sp.pts.toLocaleString()} pts`, `Points from bets, parlays, battles, packs and spins. Ends in ${czLeft((L.seasonEnds || czSeasonEnd()) - Date.now())}; every tier pays out when it does.`] };
-  const seg = `<div class="seg trseg czlbseg" role="group" aria-label="Leaderboard">${[["week", "This week"], ["season", "Season"], ["rich", "Coins"], ["sharp", "Bettors"], ["coll", "Collectors"], ["feed", "Activity"]].map(([k, l]) => `<button type="button" data-czlbv="${k}" aria-pressed="${board === k}">${l}</button>`).join("")}</div>`;
+    games: ["Game rankings", L.games || [], r => `${r.gr.toLocaleString()} <small class="muted">${r.bw || 0}–${r.bl || 0}</small>`, "Ranked by game rating, which starts at 1,000. Beating a stronger player moves it most; games against the AI move it 8."],
+    season: [`${czSeasonName(L.seasonId || czToday().slice(0, 6))} season`, L.season || [], r => `${czRkBadge(czSeasonInfo(r.sp.pts).cur[0], "sm")} ${r.sp.pts.toLocaleString()} pts`, `Points from games, bets, parlays, packs and spins. Ends in ${czLeft((L.seasonEnds || czSeasonEnd()) - Date.now())}; every tier pays out when it does.`] };
+  const seg = `<div class="seg trseg czlbseg" role="group" aria-label="Leaderboard">${[["games", "Games"], ["week", "This week"], ["season", "Season"], ["rich", "Coins"], ["sharp", "Bettors"], ["coll", "Collectors"], ["feed", "Activity"]].map(([k, l]) => `<button type="button" data-czlbv="${k}" aria-pressed="${board === k}">${l}</button>`).join("")}</div>`;
   if (board === "feed") return seg + `<section class="card"><h2>Recent activity</h2>${L.feed.length ? `<div class="czfeed">${L.feed.map(f => `<div>${feedTxt(f)}<small>${esc(new Date(f.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</small></div>`).join("")}</div>` : `<p class="sub">Nothing yet.</p>`}</section>`;
   const [title, rows, val, sub] = boards[board] || boards.rich;
-  if (!rows.length) return seg + `<section class="card"><h2>${title}</h2><p class="sub">${board === "week" ? sub + "</p><p class=\"sub\">No bets settled yet this week. Win one and you're on the board." : board === "sharp" ? "Nobody has 5 settled bets yet." : "No cards collected yet."}</p></section>`;
+  if (!rows.length) return seg + `<section class="card"><h2>${title}</h2><p class="sub">${board === "week" ? sub + "</p><p class=\"sub\">No bets settled yet this week. Win one and you're on the board." : board === "sharp" ? "Nobody has 5 settled bets yet." : board === "games" ? "Nobody has played a game yet. Win one and you're on the board." : "No cards collected yet."}</p></section>`;
   const pod = rows.slice(0, 3), podOrder = [pod[1], pod[0], pod[2]].filter(Boolean), mine = rows.findIndex(r => r.uid === me);
   return seg + `<section class="card czlbcard"><h2>${title}</h2><p class="sub">${sub}</p>
     <div class="czpodium">${podOrder.map(r => { const i = rows.indexOf(r); return `<div class="czpod p${i + 1} ${r.uid === me ? "me" : ""}"><span class="czpod-av">${esc((r.name || "?").slice(0, 1).toUpperCase())}<i>${["🥇", "🥈", "🥉"][i]}</i></span>${czWhoBtn(r.name)}<small>${val(r)}</small><div class="czpod-step">${i + 1}</div></div>`; }).join("")}</div>
@@ -7711,7 +7707,7 @@ function czSeasonDlg(){
   $("#infoBody").innerHTML = `<h2 id="infoTitle">${czSeasonName(czToday().slice(0, 6))} season</h2><p class="sub">Earn points all month. When the season ends you're paid for the tier you finished on, and everyone starts again at Bronze. Ends in ${czLeft(czSeasonEnd() - Date.now())}.</p>
     <p class="sub czrankkey">21 ranks, from Bronze I to Eternal. Each row shows the points to reach it and the coins it pays when the season ends.</p>
     <div class="czranks">${CZ_RANKS.map((r, k) => `<div class="czrankrow ${k === info.i ? "me" : k < info.i ? "done" : ""}">${czRkBadge(r[0], "sm")}<b>${r[1]}</b><span>${r[2].toLocaleString()} pts</span><em>${r[3] ? "+" + r[3].toLocaleString() : "—"}</em></div>`).join("")}</div>
-    <h3 class="subh">How to earn points</h3><ul class="czhowpts"><li><b>Win a bet</b> 10 points plus 1 for every 25 coins of profit</li><li><b>Hit a parlay</b> 25 points plus 1 for every 25 coins of profit</li><li><b>Win a battle</b> 30 points (8 for a loss)</li><li><b>Spin the wheel or claim daily coins</b> 5 points each</li><li><b>Open a pack</b> 3 points · <b>Lose a bet</b> 2 points</li></ul>
+    <h3 class="subh">How to earn points</h3><ul class="czhowpts"><li><b>Win a bet</b> 10 points plus 1 for every 25 coins of profit</li><li><b>Hit a parlay</b> 25 points plus 1 for every 25 coins of profit</li><li><b>Win a game</b> 30 points (8 for a loss)</li><li><b>Spin the wheel or claim daily coins</b> 5 points each</li><li><b>Open a pack</b> 3 points · <b>Lose a bet</b> 2 points</li></ul>
     ${top.length ? `<h3 class="subh">Top of the season</h3>${top.slice(0, 10).map((r, i) => { const x = czSeasonInfo(r.sp.pts); return `<div class="czlbr ${r.uid === CZ.me.uid ? "me" : ""}"><span class="ldn">${i + 1}</span>${czRkBadge(x.cur[0], "sm")}${czWhoBtn(r.name)}<span>${r.sp.pts.toLocaleString()} pts</span></div>`; }).join("")}` : ""}
     ${(CZ.me.seasons || []).length ? `<h3 class="subh">Your past seasons</h3>${CZ.me.seasons.slice().reverse().map(s => `<div class="czlbr">${czRkBadge(s.tier, "sm")}<b>${esc(czSeasonName(s.season))}</b><span>${esc(s.label)} · ${s.pts.toLocaleString()} pts · +${s.reward.toLocaleString()}</span></div>`).join("")}` : ""}
     <div class="pkfoot"><button class="btn primary" type="button" data-info="close">Got it</button></div>`;
@@ -7803,15 +7799,21 @@ function czParlaySlip(){
   };
   if (!dlg.open) dlg.showModal();
 }
-/* ---- Card battles: build a lineup of up to five of your cards, stake coins, and the AI judge calls who wins ---- */
-const CZ_BSP = { nfl: ["NFL", "🏈", ["nfl"], "an"], nba: ["NBA", "🏀", ["nba"], "an"], mlb: ["MLB", "⚾", ["mlb"], "an"], nhl: ["NHL", "🏒", ["nhl"], "an"], epl: ["Premier League", "⚽", ["epl"], "a"], tennis: ["Tennis", "🎾", ["atp", "wta"], "a"] };
+/* ---- Cosmic Games: build a lineup of up to five of your cards, stake coins, and the two lineups play out a whole game ---- */
+const CZ_BSP = { nfl: ["NFL", "🏈", ["nfl"], "an"], nba: ["NBA", "🏀", ["nba"], "an"], mlb: ["MLB", "⚾", ["mlb"], "an"], nhl: ["NHL", "🏒", ["nhl"], "an"], epl: ["Premier League", "⚽", ["epl"], "a"], tennis: ["Tennis", "🎾", ["atp", "wta"], "a"],
+  cfb: ["College Football", "🏈", ["cfb"], "a"], cbb: ["College Basketball", "🏀", ["cbb"], "a"] };
+const CZ_BSHORT = { "Premier League": "EPL", "College Football": "CFB", "College Basketball": "CBB" };
+// what a game of each sport is, for the screens (the server plays it: nine innings, four quarters, three periods…)
+const CZ_GLEN = { nfl: "four quarters", cfb: "four quarters", nba: "four quarters", cbb: "two halves", mlb: "nine innings", nhl: "three periods", epl: "ninety minutes", tennis: "a singles match for each pair of cards" };
 CZ.bsport = CZ_BSP[lsGet("cz-bsport", "nfl")] ? lsGet("cz-bsport", "nfl") : "nfl";
 const czBsTag = sp => CZ_BSP[sp] ? `<span class="czbstag">${CZ_BSP[sp][1]} ${esc(CZ_BSP[sp][0])}</span>` : "";
 const czInSport = (c, sp) => !sp || !CZ_BSP[sp] || CZ_BSP[sp][2].includes(c.lg);
 const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
 const czCardPow = c => Math.round((CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || czLevel(c)) - 1)));
 const czLinePow = cs => cs.reduce((s, c) => s + czCardPow(c), 0);
-const czBOdds = (a, b) => { const x = Math.pow(Math.max(1, a), 1.6), y = Math.pow(Math.max(1, b), 1.6); return x / (x + y); };
+const CZ_SIMT = { comet: 60, stardust: 64, pulsar: 68, nebula: 72, quasar: 77, supernova: 83, singularity: 90 };
+const czSimStr = cs => { const r = (cs || []).map(c => (CZ_SIMT[c.tier] || 60) + Math.min(9, 1.5 * ((c.level || czLevel(c)) - 1))).sort((a, b) => b - a).slice(0, 5); while (r.length < 5) r.push(50); return r.reduce((s, x) => s + x, 0) / 5; };
+const czBOdds = (a, b) => 1 / (1 + Math.exp(-.135 * (czSimStr(a) - czSimStr(b))));
 const czLineup = (cs, mvp) => `<div class="czline">${(cs || []).map(c => `<span class="czlc t-${esc(c.tier)} ${mvp && mvp === c.name ? "mvp" : ""}"><i class="czdot t-${esc(c.tier)}"></i><b>${esc(c.name)}</b><small>${esc(CZ_TIER_NAME[c.tier] || c.tier)} ${c.n}/${c.supply}${(c.level || 1) > 1 ? ` · Lv ${c.level}` : ""}</small>${mvp && mvp === c.name ? `<em>MVP</em>` : ""}</span>`).join("")}</div>`;
 function czBattleHtml(){
   const B = CZ.bat, me = CZ.me.uid; if (!B) return `<div class="teamnote">${cosmoLoad("Loading battles…")}</div>`;
@@ -7823,30 +7825,33 @@ function czBattleHtml(){
     return `<div class="czbt"><div class="czbt-h"><span>${czBsTag(b.sport)}${mode === "sent" ? `You challenged <b>${esc(b.to ? b.toName : "anyone")}</b>` : `${czWhoBtn(b.fromName)} challenges ${mode === "inc" ? "you" : "anyone"}`}</span><em>${b.stake ? czAmt(b.stake) + " each" : "Friendly (no coins)"}</em></div>
       ${czLineup(b.a)}<div class="czbt-f"><small>Lineup power ${pw} · expires in ${czLeft(b.at + 48 * 3600e3 - Date.now())}</small>
       ${mode === "sent" ? `<button type="button" class="btn" data-czbx="cancel|${esc(b.id)}">Cancel</button>${b.to ? "" : `<button type="button" class="btn primary" data-czbx="ai|${esc(b.id)}">Play AI instead</button>`}` : `${mode === "inc" ? `<button type="button" class="btn" data-czbx="decline|${esc(b.id)}">Decline</button>` : ""}<button type="button" class="btn primary" data-czbx="accept|${esc(b.id)}">Accept</button>`}</div></div>`; };
-  const result = b => { const mine = b.from === me ? "a" : "b", won = b.winner === mine, myC = mine === "a" ? b.a : b.b, thC = mine === "a" ? b.b : b.a, mv = b.mvp || [];
-    return `<details class="czbt res ${won ? "won" : "lost"}"><summary><span class="czres ${won ? "win" : "loss"}">${won ? "Won" : "Lost"}</span>${CZ_BSP[b.sport] ? `<span aria-label="${esc(CZ_BSP[b.sport][0])}">${CZ_BSP[b.sport][1]}</span>` : ""}<b>vs ${esc(mine === "a" ? (b.byName || "?") : b.fromName)}</b><em>${b.stake ? (won ? "+" : "−") + b.stake.toLocaleString() : "Friendly"}</em><small>${esc(new Date(b.done || b.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></summary>
+  const result = b => { const mine = b.from === me ? "a" : "b", won = b.winner === mine, myC = mine === "a" ? b.a : b.b, thC = mine === "a" ? b.b : b.a, mv = b.mvp || [], G = b.game;
+    const sc = G ? (mine === "a" ? G.score : G.score.slice().reverse()).join("-") : "";
+    return `<details class="czbt res ${won ? "won" : "lost"}"><summary><span class="czres ${won ? "win" : "loss"}">${won ? "Won" : "Lost"}${sc ? " " + sc : ""}</span>${CZ_BSP[b.sport] ? `<span aria-label="${esc(CZ_BSP[b.sport][0])}">${CZ_BSP[b.sport][1]}</span>` : ""}<b>vs ${esc(mine === "a" ? (b.byName || "?") : b.fromName)}</b><em>${b.stake ? (won ? "+" : "−") + b.stake.toLocaleString() : "Friendly"}</em><small>${esc(new Date(b.done || b.at).toLocaleDateString([], { month: "short", day: "numeric" }))}</small></summary>
       <p class="czbt-rep">${esc(b.report || "")}</p><div class="czbt-vs"><div><h4>You · ${czLinePow(myC)}</h4>${czLineup(myC, mv[mine === "a" ? 0 : 1])}</div><div><h4>${esc(mine === "a" ? (b.byName || "") : b.fromName)} · ${czLinePow(thC || [])}</h4>${czLineup(thC, mv[mine === "a" ? 1 : 0])}</div></div>
-      <small class="muted">The judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}% going in.</small></details>`; };
-  return `<section class="czbhero"><div><h2>Card battles</h2><p>One sport at a time: pick a sport, build a lineup of up to five of your cards from it, put coins on it, and battle. The AI judge pictures a real game between the two lineups and calls the winner, who takes both stakes.</p>
-      <div class="czbrec"><span><b>${CZ.me.bw || 0}</b> won</span><span><b>${CZ.me.bl || 0}</b> lost</span><span class="muted">all sports</span></div></div></section>
-    <div class="czbsports" role="group" aria-label="Sport">${Object.entries(CZ_BSP).map(([k, v]) => { const r = (CZ.me.bsp || {})[k]; return `<button type="button" data-czbs="${k}" aria-pressed="${k === sp}"><span aria-hidden="true">${v[1]}</span><b>${esc(v[0] === "Premier League" ? "EPL" : v[0])}</b><small>${r ? `${r[0]}–${r[1]}` : "—"}</small></button>`; }).join("")}</div>
-    <h3 class="subh czbsh">${S[1]} ${esc(S[0])} battles <small>your record ${rec[0]}–${rec[1]} · ${haveN} ${esc(S[0])} card${haveN === 1 ? "" : "s"}</small></h3>
-    ${haveN ? `<div class="czbchoice"><button type="button" class="czbc" data-czbnew="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI</b><small>${S[3] === "an" ? "An" : "A"} ${esc(S[0])} game against the AI, right now. A true 50/50: it wins half the time and loses half the time.</small></button>
-      <button type="button" class="czbc" data-czreal><span class="czbc-i" aria-hidden="true">👥</span><b>Play a real person</b><small>${openHere.length ? `${openHere.length} player${openHere.length === 1 ? " is" : "s are"} looking for ${S[3]} ${esc(S[0])} battle now` : `Challenge a friend by name or post an open ${esc(S[0])} challenge`}</small></button></div>`
-      : `<div class="teamnote"><b>You don't have any ${esc(S[0])} cards yet</b>Only ${esc(S[0])} cards can play in ${S[3]} ${esc(S[0])} battle. Open ${S[3]} ${esc(S[0])} pack, or pick another sport above.<button type="button" class="btn primary" data-czbpack="${sp}">Open ${S[3]} ${esc(S[0])} pack</button></div>`}
-    ${(CZ.me.items || []).length ? "" : `<div class="teamnote"><b>You need cards to battle</b>Open a pack first, then come back.<button type="button" class="btn primary" data-cztab="packs">Open a pack</button></div>`}
+      <div class="czbt-f"><small class="muted">You had ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}% going in.</small>${b.seed ? `<button type="button" class="btn" data-czgame="${esc(b.id)}">▶ Watch the game</button>` : ""}</div></details>`; };
+  const gr = CZ.me.gr ?? 1000, rk = CZ.lb && CZ.lb.games ? CZ.lb.games.findIndex(r => r.uid === me) : -1;
+  return `<section class="czbhero"><div><h2>Cosmic Games</h2><p>Pick a sport and a lineup of up to five of your cards from it, and put coins on it. Your lineup and your opponent's play a whole game, ${esc(CZ_GLEN[sp] || "start to finish")} for ${esc(S[0])}, play by play. The winner takes both stakes, and every card gets a grade.</p>
+      <div class="czbrec"><span><b>${gr.toLocaleString()}</b> game rating${rk >= 0 ? ` · #${rk + 1}` : ""}</span><span><b>${CZ.me.bw || 0}</b> won</span><span><b>${CZ.me.bl || 0}</b> lost</span></div></div></section>
+    <div class="czbsports" role="group" aria-label="Sport">${Object.entries(CZ_BSP).map(([k, v]) => { const r = (CZ.me.bsp || {})[k]; return `<button type="button" data-czbs="${k}" aria-pressed="${k === sp}"><span aria-hidden="true">${v[1]}</span><b>${esc(CZ_BSHORT[v[0]] || v[0])}</b><small>${r ? `${r[0]}–${r[1]}` : "—"}</small></button>`; }).join("")}</div>
+    <h3 class="subh czbsh">${S[1]} ${esc(S[0])} games <small>your record ${rec[0]}–${rec[1]} · ${haveN} ${esc(S[0])} card${haveN === 1 ? "" : "s"}</small></h3>
+    ${haveN ? `<div class="czbchoice"><button type="button" class="czbc" data-czbnew="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI</b><small>${S[3] === "an" ? "An" : "A"} ${esc(S[0])} game against the AI, right now. Its lineup is rated to match yours, so it's a true 50/50.</small></button>
+      <button type="button" class="czbc" data-czreal><span class="czbc-i" aria-hidden="true">👥</span><b>Play a real person</b><small>${openHere.length ? `${openHere.length} player${openHere.length === 1 ? " is" : "s are"} looking for ${S[3]} ${esc(S[0])} game now` : `Challenge a friend by name or post an open ${esc(S[0])} challenge`}</small></button></div>`
+      : `<div class="teamnote"><b>You don't have any ${esc(S[0])} cards yet</b>Only ${esc(S[0])} cards can play in ${S[3]} ${esc(S[0])} game. Open ${S[3]} ${esc(S[0])} pack, or pick another sport above.<button type="button" class="btn primary" data-czbpack="${sp}">Open ${S[3]} ${esc(S[0])} pack</button></div>`}
+    ${(CZ.me.items || []).length ? "" : `<div class="teamnote"><b>You need cards to play</b>Open a pack first, then come back.<button type="button" class="btn primary" data-cztab="packs">Open a pack</button></div>`}
     ${inc.length ? `<section class="card"><h2>Challenges for you</h2>${inc.map(b => row(b, "inc")).join("")}</section>` : ""}
     ${openHere.length ? `<section class="card"><h2>Open ${esc(S[0])} challenges</h2><p class="sub">Anyone with ${esc(S[0])} cards can take these on.</p>${openHere.map(b => row(b, "open")).join("")}</section>` : ""}
     ${sent.length ? `<section class="card"><h2>Waiting for an answer</h2>${sent.map(b => row(b, "sent")).join("")}</section>` : ""}
-    <section class="card"><h2>Results</h2>${res.length ? res.map(result).join("") : `<p class="sub">No battles yet. The AI is always ready.</p>`}</section>
-    <details class="czhow"><summary>How battles work</summary><p>Every battle is in one sport (NFL, NBA, MLB, NHL, Premier League or tennis), and both lineups use only that sport's cards, so the judge can picture a real game. Each card brings power from its tier (a Sun card is worth five Jupiter cards) and its level. The AI judge sees both lineups, their power and who the athletes and teams really are, and gives each side a chance; the result is drawn from that chance, so the stronger lineup usually wins but upsets happen. Against the AI it's a straight coin flip: you win half the time, whatever the lineups. The winner takes both stakes. Cards stay yours either way, but they can't be sold or listed while they're in a battle that hasn't been answered. Challenges expire after 48 hours and the stake comes back. You can play the AI up to 20 times a day.</p></details>`;
+    <section class="card"><h2>Results</h2>${res.length ? res.map(result).join("") : `<p class="sub">No games yet. The AI is always ready.</p>`}</section>
+    <details class="czhow"><summary>How the games work</summary><p>Every game is in one sport (NFL, NBA, MLB, NHL, Premier League, tennis, college football or college basketball), and both lineups use only that sport's cards. Each card has a game rating from its rarity (a Sun card rates far above a Jupiter), its level, and how good the real athlete or team is this season. A lineup's strength is the average over five spots, and an empty spot plays like a replacement-level player, so a full lineup is stronger. The two lineups then play a whole game, at-bat by at-bat, possession by possession or point by point: nine innings in baseball, four quarters in football, three periods in hockey, ninety minutes in soccer and a singles match for each pair of tennis players. The stronger lineup usually wins, but upsets happen. Positions decide who gets the credit, like a pitcher pitching or a goalie making saves, not who wins. Every card gets a box score line and a grade out of 10.</p>
+      <p>Against the AI, its lineup is rated to match yours, so it's a true 50/50. The winner takes both stakes. Your game rating starts at 1,000: a game against a player moves it up to 32 points, depending on how strong they are, and a game against the AI moves it 8. Cards stay yours either way, but they can't be sold or listed while they're in a challenge that hasn't been answered. Challenges expire after 48 hours and the stake comes back. You can play the AI up to 20 times a day.</p></details>`;
 }
 function czBattleBuild(mode, bt){
   const accept = mode === "accept", house = mode === "house", sp = accept ? bt.sport : CZ.bsport, S = CZ_BSP[sp];
   const mine = (CZ.me.items || []).filter(i => !i.listed && !i.auction && !i.battle && czInSport(i, sp)).map(i => ({ ...i, level: czLevel(i) })).sort((a, b) => czCardPow(b) - czCardPow(a)), pick = [];
   if (!mine.length){ toast(S ? `You need ${S[0]} cards for ${S[3]} ${S[0]} battle. Open ${S[3]} ${S[0]} pack first.` : "You need cards to battle. Open a pack first."); return; }
   $("#infoBody").innerHTML = `<h2 id="infoTitle">${S ? S[1] + " " : ""}${accept ? `Take on ${esc(bt.fromName)}` : house ? `${esc(S[0])}: play AI` : `${esc(S[0])}: challenge a real person`}</h2>
-    ${accept ? `<p class="sub">Their lineup (power ${czLinePow(bt.a)}), for ${bt.stake ? czAmt(bt.stake) + " each" : "no coins"}:</p>${czLineup(bt.a)}` : `<p class="sub">${house ? "The AI deals a lineup of the same tiers as yours and matches your stake. It's a true 50/50: you win half the time and lose half the time." : "Send a challenge by name, or leave it open for anyone."}</p>`}
+    ${accept ? `<p class="sub">Their lineup (power ${czLinePow(bt.a)}), for ${bt.stake ? czAmt(bt.stake) + " each" : "no coins"}:</p>${czLineup(bt.a)}` : `<p class="sub">${house ? "The AI deals a lineup of the same tiers as yours, rated to match it, and matches your stake. It's a true 50/50: you win half the time and lose half the time." : "Send a challenge by name, or leave it open for anyone."}</p>`}
     <h3 class="subh">Your lineup <small id="czBPow"></small></h3><p class="sub">Tap up to five of your ${S ? esc(S[0]) + " " : ""}cards.</p>
     <div class="cztrpick czbpick">${mine.slice(0, 80).map(i => `<button type="button" class="czpickc" data-bk="${esc(i.id)}" aria-pressed="false">${czCard({ ...i, label: CZ_TIER_NAME[i.tier] }, i.n)}<span class="czpw">⚡ ${czCardPow(i)}</span></button>`).join("")}</div>
     ${accept ? "" : `${house ? "" : `<div class="seg trseg" role="group" aria-label="Who"><button type="button" data-bwho="name" aria-pressed="true">A player</button><button type="button" data-bwho="open" aria-pressed="false">Open to anyone</button></div>
@@ -7854,10 +7859,10 @@ function czBattleBuild(mode, bt){
       <label class="czstake">Stake (each side)<input class="field" id="czBStake" type="number" inputmode="numeric" min="0" max="5000" step="10" value="${Math.min(100, czBal())}"></label>
       <div class="czchips">${[0, 50, 100, 250, 500, 1000].map(v => `<button type="button" class="chip" data-bs="${v}">${v ? v : "Friendly"}</button>`).join("")}</div>`}
     <p class="czerr" id="czErr" role="alert"></p>
-    <div class="pkfoot"><small id="czBOdds"></small><button class="btn" type="button" data-info="close">Cancel</button><button class="btn primary" type="button" id="czBGo" disabled>${accept ? "Battle" : house ? "Play AI" : "Send challenge"}</button></div>`;
+    <div class="pkfoot"><small id="czBOdds"></small><button class="btn" type="button" data-info="close">Cancel</button><button class="btn primary" type="button" id="czBGo" disabled>${accept ? "Play the game" : house ? "Play the game" : "Send challenge"}</button></div>`;
   const body = $("#infoBody"), upd = () => { const cs = mine.filter(i => pick.includes(i.id)), pw = czLinePow(cs);
     $("#czBPow").textContent = cs.length ? `· power ${pw}` : ""; $("#czBGo").disabled = !cs.length;
-    $("#czBOdds").textContent = accept && cs.length ? `On power alone you'd win about ${Math.round(czBOdds(pw, czLinePow(bt.a)) * 100)}% of the time. The judge decides.` : house ? "50/50 against the AI." : ""; };
+    $("#czBOdds").textContent = accept && cs.length ? `On paper you'd win about ${Math.round(czBOdds(cs, bt.a) * 100)}% of the time. The game decides.` : house ? "50/50 against the AI." : ""; };
   body.querySelectorAll("[data-bk]").forEach(b => b.onclick = () => { const k = b.dataset.bk, i = pick.indexOf(k); if (i >= 0) pick.splice(i, 1); else if (pick.length < 5) pick.push(k); else { toast("Five cards at most"); return; } b.setAttribute("aria-pressed", pick.includes(k)); upd(); });
   body.querySelectorAll("[data-bs]").forEach(b => b.onclick = () => { $("#czBStake").value = b.dataset.bs; });
   body.querySelectorAll("[data-bwho]").forEach(b => b.onclick = () => { body.querySelectorAll("[data-bwho]").forEach(x => x.setAttribute("aria-pressed", x === b)); $("#czBNameL").hidden = b.dataset.bwho === "open"; });
@@ -7869,7 +7874,7 @@ function czBattleBuild(mode, bt){
       if (accept || house){ const stake = accept ? bt.stake : Math.floor(+$("#czBStake").value || 0), lineup = mine.filter(i => pick.includes(i.id));
         czBattleShow({ judging: true, a: accept ? bt.a : lineup, b: accept ? lineup : null, fromName: accept ? bt.fromName : CZ.me.name, byName: accept ? CZ.me.name : "Cosmo AI", stake });
         const r = await czApi(accept ? "/battle/accept" : "/battle/house", accept ? { id: bt.id, cards: pick } : { cards: pick, stake, sport: sp });
-        if (r.user) CZ.me = r.user; czBattleShow(r.battle); czLoad(["bat", "me"]);
+        if (r.user) CZ.me = r.user; czBattleShow(r.battle, r.sim); czLoad(["bat", "me", "lb"]);
       } else {
         const open = body.querySelector('[data-bwho="open"]').getAttribute("aria-pressed") === "true", to = open ? "" : $("#czBName").value.trim();
         if (!open && !to){ $("#czErr").textContent = "Type their leaderboard name, or pick Open to anyone."; btn.disabled = false; return; }
@@ -7881,9 +7886,9 @@ function czBattleBuild(mode, bt){
 }
 function czBattleReal(){
   const B = CZ.bat || { open: [] }, sp = CZ.bsport, S = CZ_BSP[sp], open = (B.open || []).filter(b => !b.sport || b.sport === sp);
-  $("#infoBody").innerHTML = `<h2 id="infoTitle">Play a real person</h2><p class="sub">${S[1]} ${esc(S[0])} battles</p>
+  $("#infoBody").innerHTML = `<h2 id="infoTitle">Play a real person</h2><p class="sub">${S[1]} ${esc(S[0])} games</p>
     ${open.length ? `<p class="sub">These players are waiting for someone to take them on:</p>${open.slice(0, 8).map(b => `<div class="czbt"><div class="czbt-h"><span>${czWhoBtn(b.fromName)}</span><em>${b.stake ? czAmt(b.stake) + " each" : "Friendly"}</em></div>${czLineup(b.a)}<div class="czbt-f"><small>Lineup power ${czLinePow(b.a)}</small><button type="button" class="btn primary" data-czrx="${esc(b.id)}">Accept</button></div></div>`).join("")}`
-      : `<div class="teamnote"><b>Nobody is looking for ${S[3]} ${esc(S[0])} battle right now</b>Challenge a friend by name, post an open challenge that anyone can take, or play the AI instead.</div>`}
+      : `<div class="teamnote"><b>Nobody is looking for ${S[3]} ${esc(S[0])} game right now</b>Challenge a friend by name, post an open challenge that anyone can take, or play the AI instead.</div>`}
     <div class="czbchoice"><button type="button" class="czbc" data-czrgo="player"><span class="czbc-i" aria-hidden="true">✉️</span><b>Challenge someone</b><small>By their leaderboard name, or open to anyone</small></button>
       <button type="button" class="czbc" data-czrgo="house"><span class="czbc-i" aria-hidden="true">🤖</span><b>Play AI instead</b><small>Right now, 50/50</small></button></div>
     <div class="pkfoot"><button class="btn" type="button" data-info="close">Close</button></div>`;
@@ -7898,25 +7903,71 @@ async function czAiInstead(bt){
   try { const r = await czApi("/battle/cancel", { id: bt.id }); CZ.me = r.user; } catch (e) { toast(e.message); return; }
   const lineup = bt.a;
   czBattleShow({ judging: true, a: lineup, b: null, fromName: CZ.me.name, byName: "Cosmo AI", stake: bt.stake });
-  try { const r = await czApi("/battle/house", { cards: lineup.map(c => c.id), stake: bt.stake, sport: bt.sport || CZ.bsport }); if (r.user) CZ.me = r.user; czBattleShow(r.battle); czLoad(["bat", "me"]); }
+  try { const r = await czApi("/battle/house", { cards: lineup.map(c => c.id), stake: bt.stake, sport: bt.sport || CZ.bsport }); if (r.user) CZ.me = r.user; czBattleShow(r.battle, r.sim); czLoad(["bat", "me", "lb"]); }
   catch (e) { $("#infoDlg").close(); toast(e.message); czLoad(["bat", "me"]); }
 }
-// the showdown: both lineups, the judge thinking, then the call
-function czBattleShow(b){
+// the showdown: both lineups, the game being played, then the game itself (older battles, judged before games were played
+// out, show their recap)
+function czBattleShow(b, g){
   const me = CZ.me.uid, mine = b.from === me || (!b.from && b.fromName === CZ.me.name) ? "a" : "b";
+  if (g && !b.judging) return czGameShow(b, g);
   if (b.judging){
     $("#infoBody").innerHTML = `<div class="czshow-bt judging"><div class="czsb-side">${czLineup(b.a)}<b>${esc(b.fromName)}</b><small>⚡ ${czLinePow(b.a)}</small></div><div class="czsb-vs"><span>VS</span></div><div class="czsb-side">${b.b ? czLineup(b.b) : `<div class="czline"><span class="czlc"><b>Dealing the AI's lineup…</b></span></div>`}<b>${esc(b.byName)}</b><small>${b.b ? "⚡ " + czLinePow(b.b) : ""}</small></div></div>
-      <div class="czjudge"><span class="czjudge-orb" aria-hidden="true"></span><b>The judge is sizing up the lineups…</b></div>`;
+      <div class="czjudge"><span class="czjudge-orb" aria-hidden="true"></span><b>The teams are taking the field…</b></div>`;
     const d = $("#infoDlg"); if (!d.open) d.showModal(); return;
   }
   const won = b.winner === mine, mv = b.mvp || [];
   const reveal = () => { $("#infoBody").innerHTML = `<div class="czshow-bt ${won ? "won" : "lost"}"><div class="czsb-side ${b.winner === "a" ? "win" : ""}">${czLineup(b.a, mv[0])}<b>${esc(b.fromName)}</b><small>⚡ ${(b.pow || [])[0] ?? czLinePow(b.a)}</small></div><div class="czsb-vs"><span>VS</span></div><div class="czsb-side ${b.winner === "b" ? "win" : ""}">${czLineup(b.b, mv[1])}<b>${esc(b.byName || "Cosmo AI")}</b><small>⚡ ${(b.pow || [])[1] ?? czLinePow(b.b || [])}</small></div></div>
-    <div class="czverdict ${won ? "won" : "lost"}">${czBsTag(b.sport)}<h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p>${b.judge === "resting" ? `<small class="czrest">The AI judge is resting until tomorrow, so this is a quick recap from the cards' power.</small>` : ""}<small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · the judge gave you ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}%</small></div>
+    <div class="czverdict ${won ? "won" : "lost"}">${czBsTag(b.sport)}<h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(b.report || "")}</p>${b.judge === "resting" ? `<small class="czrest">The AI judge is resting until tomorrow, so this is a quick recap from the cards' power.</small>` : ""}<small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"} · you had ${Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100)}% going in</small></div>
     <div class="pkfoot"><button class="btn" type="button" data-info="close">Done</button>${b.house ? `<button class="btn primary" type="button" id="czBAgain">Play AI again</button>` : ""}</div>`;
     const ag = $("#czBAgain"); if (ag) ag.onclick = () => czBattleBuild("house");
     sfx(won ? "win" : "lose"); if (won) czConfetti(b.stake >= 500 ? 90 : 50); drawCosmic(); };
   setTimeout(reveal, RM() ? 0 : 900);
   const d = $("#infoDlg"); if (!d.open) d.showModal();
+}
+// ---- a game: the scoreboard, then the plays one at a time (Skip jumps to the end), then the line score, the verdict and every
+// card ranked by its grade
+const czGradeCls = g => g >= 8 ? "hi" : g >= 6.5 ? "ok" : g >= 5 ? "mid" : "lo";
+function czGameShow(b, g, replay){
+  const me = CZ.me.uid, mine = b.from === me || (!b.from && b.fromName === CZ.me.name) ? "a" : "b", them = mine === "a" ? "b" : "a", won = b.winner === mine;
+  const nameOf = s => s === mine ? "You" : s === "a" ? b.fromName : (b.byName || "Cosmo AI"), at = (arr, s) => arr[s === "a" ? 0 : 1];
+  const ev = g.ev || [], sp = b.sport;
+  $("#infoBody").innerHTML = `<div class="czgame">
+    <div class="czg-top">${czBsTag(sp)}<span class="czg-st" id="czgSt">${replay ? "Replay" : "Live"}</span></div>
+    <div class="czg-board"><div class="czg-tm me"><b>You</b><span id="czgS0">0</span></div><div class="czg-per" id="czgPer">${esc(ev[0] ? ev[0].p : "")}</div><div class="czg-tm"><b>${esc(nameOf(them))}</b><span id="czgS1">0</span></div></div>
+    <div class="czg-lines">${[mine, them].map(s => `<div><b>${esc(nameOf(s))}</b>${((s === "a" ? b.a : b.b) || []).map(c => `<i class="czdot t-${esc(c.tier)}"></i>${esc(c.name)}`).join(" · ")}</div>`).join("")}</div>
+    <ol class="czg-feed" id="czgFeed" aria-live="polite"></ol>
+    <div id="czgEnd"></div>
+    <div class="pkfoot" id="czgFoot"><button class="btn" type="button" id="czgSkip">Skip to the final</button></div></div>`;
+  const dlg = $("#infoDlg"); if (!dlg.open) dlg.showModal();
+  const feed = $("#czgFeed"), gap = Math.max(160, Math.min(650, 14000 / Math.max(1, ev.length)));
+  let i = 0, t = null, done = false;
+  const show = (e, live) => { const li = document.createElement("li"); li.className = `czg-ev k-${e.k}${e.s ? (e.s === mine ? " me" : " them") : ""}`;
+    li.innerHTML = `<small>${esc(e.p)}</small><span>${esc(e.t)}</span><em>${at(e.sc, mine)}-${at(e.sc, them)}</em>`; feed.prepend(li);
+    $("#czgS0").textContent = at(e.sc, mine); $("#czgS1").textContent = at(e.sc, them); $("#czgPer").textContent = e.p;
+    if (live && e.k === "score"){ const el = $(e.s === mine ? "#czgS0" : "#czgS1"); el.classList.remove("czg-hit"); void el.offsetWidth; el.classList.add("czg-hit"); } };
+  const step = () => { if (done) return; const e = ev[i++]; if (!e) return end(); show(e, true); t = setTimeout(step, e.k === "score" ? gap * 1.4 : gap); };
+  const end = () => { if (done) return; done = true; clearTimeout(t); while (i < ev.length) show(ev[i++], false);
+    $("#czgS0").textContent = at(g.score, mine); $("#czgS1").textContent = at(g.score, them); $("#czgPer").textContent = g.note || "Final"; $("#czgSt").textContent = "Final";
+    const el = (b.elo || [])[b.house ? 0 : mine === "a" ? 0 : 1], pct = b.chance != null ? Math.round((mine === "a" ? b.chance : 1 - b.chance) * 100) : null;
+    const row = s => `<tr class="${s === mine ? "me" : ""}"><th>${esc(nameOf(s))}</th>${g.line[s].map(x => `<td>${esc(String(x))}</td>`).join("")}<td><b>${at(g.score, s)}</b></td></tr>`;
+    const myN = mine === "a" ? b.fromName : b.byName, recap = !myN ? g.recap : g.recap.startsWith(myN + " beats ") ? "You beat " + g.recap.slice(myN.length + 7) : g.recap.replace(" beats " + myN + " ", " beats you ");
+    $("#czgEnd").innerHTML = `<div class="czverdict ${won ? "won" : "lost"}"><h2 id="infoTitle">${won ? "You win!" : "You lose"}</h2><p>${esc(recap)}</p>
+        <small>${b.stake ? (won ? `+${(b.stake * 2).toLocaleString()} coins` : `−${b.stake.toLocaleString()} coins`) : "A friendly: no coins changed hands"}${pct != null ? ` · you had ${pct}% going in` : ""}</small>
+        ${el ? `<div class="czg-elo">Game rating <b>${el[0].toLocaleString()}</b> → <b>${el[1].toLocaleString()}</b> <span class="${el[1] >= el[0] ? "pos" : "neg"}">${el[1] >= el[0] ? "+" : "−"}${Math.abs(el[1] - el[0])}</span></div>` : ""}</div>
+      <div class="czg-ls scroll"><table><thead><tr><th></th>${g.periods.map(x => `<th>${esc(x)}</th>`).join("")}<th>T</th></tr></thead><tbody>${row(mine)}${row(them)}</tbody></table>${g.pens ? `<small class="muted">Penalties: ${esc(g.pens)}</small>` : ""}</div>
+      <h3 class="subh">Player rankings <small>every card's grade out of 10</small></h3>
+      ${g.rank.length ? `<ol class="czg-rank">${g.rank.map((x, k) => `<li class="${x.s === mine ? "me" : ""}"><span class="ldn">${k + 1}</span><span><b>${esc(x.name)}${g.mvp && g.mvp.id === x.id && g.mvp.s === x.s ? ` <em class="czg-mvp">Player of the game</em>` : ""}</b><small>${esc(nameOf(x.s))} · ${esc(x.line)}</small></span><i class="czg-gr ${czGradeCls(x.g)}">${x.g.toFixed(1)}</i></li>`).join("")}</ol>`
+        : `<p class="sub">Team cards play as the whole team, so there's no box score for single players in this one.</p>`}`;
+    $("#czgFoot").innerHTML = `<button class="btn" type="button" data-info="close">Done</button>${b.house && !replay ? `<button class="btn primary" type="button" id="czBAgain">Play AI again</button>` : ""}`;
+    const ag = $("#czBAgain"); if (ag) ag.onclick = () => czBattleBuild("house");
+    if (!replay){ sfx(won ? "win" : "lose"); if (won) czConfetti(b.stake >= 500 ? 90 : 50); drawCosmic(); } };
+  $("#czgSkip").onclick = end;
+  dlg.addEventListener("close", () => { done = true; clearTimeout(t); }, { once: true });
+  if (RM() || !ev.length) end(); else t = setTimeout(step, 600);
+}
+async function czWatch(id){
+  try { const r = await czApi("/battle/game?id=" + encodeURIComponent(id)); czGameShow(r.battle, r.sim, true); } catch (e) { toast(e.message); }
 }
 /* ---- Pack openings: every card starts face down; tap it and its glow climbs through the tiers until it reaches the card's own,
    so a rare card keeps you waiting (and shaking). Supernovas and Singularities get the full-screen treatment. ---- */
@@ -8022,7 +8073,7 @@ function czFlash(c){
 }
 function czBind(el){
   czTilt(el);
-  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => { CZ.tab = b.dataset.cztab; lsSet("cz-tab", CZ.tab); drawCosmic(); czLoad(CZ.tab === "home" ? ["me", "board", "lb", "market", "trades", "bat", "rookies"] : CZ.tab === "battle" ? ["bat", "me", "lb"] : CZ.tab === "bet" ? ["board", "me"] : CZ.tab === "lb" ? ["lb", "me"] : CZ.tab === "trades" ? ["trades", "me"] : CZ.tab === "market" ? ["market", "vault", "me"] : CZ.tab === "packs" ? ["vault", "me", "teampacks", "drops", "grails"] : ["check", "coll"].includes(CZ.tab) ? ["vault", "me"] : ["me", "board"]); });
+  el.querySelectorAll("[data-cztab]").forEach(b => b.onclick = () => czGoTab(b.dataset.cztab));
   el.querySelectorAll("[data-czlg]").forEach(b => b.onclick = () => { CZ.lg = b.dataset.czlg; drawCosmic(); });
   el.querySelectorAll("[data-czlbv]").forEach(b => b.onclick = () => { CZ.lbv = b.dataset.czlbv; drawCosmic(); });
   el.querySelectorAll("[data-czct]").forEach(b => b.onclick = () => { CZ.ctier = b.dataset.czct; drawCosmic(); });
@@ -8045,8 +8096,9 @@ function czBind(el){
   el.querySelectorAll("[data-czfreepk]").forEach(b => b.onclick = () => { b.disabled = true; czOpen(b.dataset.czfreepk, true); });
   el.querySelectorAll("[data-czbnew]").forEach(b => b.onclick = () => czBattleBuild(b.dataset.czbnew));
   el.querySelectorAll("[data-czreal]").forEach(b => b.onclick = () => czBattleReal());
+  el.querySelectorAll("[data-czgame]").forEach(b => b.onclick = e => { e.preventDefault(); czWatch(b.dataset.czgame); });
   el.querySelectorAll("[data-czbs]").forEach(b => b.onclick = () => { CZ.bsport = b.dataset.czbs; lsSet("cz-bsport", CZ.bsport); sfx("tap"); drawCosmic(); });
-  el.querySelectorAll("[data-czbpack]").forEach(b => b.onclick = () => { CZ.scope = b.dataset.czbpack; lsSet("cz-scope", CZ.scope); CZ.tab = "packs"; lsSet("cz-tab", "packs"); drawCosmic(); czLoad(["vault", "me"]); });
+  el.querySelectorAll("[data-czbpack]").forEach(b => b.onclick = () => { CZ.scope = ["cfb", "cbb"].includes(b.dataset.czbpack) ? "college" : b.dataset.czbpack; lsSet("cz-scope", CZ.scope); CZ.tab = "packs"; lsSet("cz-tab", "packs"); drawCosmic(); czLoad(["vault", "me"]); });
   el.querySelectorAll("[data-czbx]").forEach(b => b.onclick = async () => { const [act, id] = b.dataset.czbx.split("|"), bt = CZ.bat && [...CZ.bat.mine, ...CZ.bat.open].find(x => x.id === id); if (!bt) return;
     if (act === "accept"){ czBattleBuild("accept", bt); return; }
     if (act === "ai"){ czAiInstead(bt); return; }
@@ -8562,15 +8614,15 @@ function maybeOnboard(force){
   drawOnb(); $("#onbDlg").showModal();
 }
 // a one-time look at what's new, for people who already use the app (new people get the welcome tour instead)
-const NEW_V = "2026-09-living1";
+const NEW_V = "2026-09-games1";
 function maybeWhatsNew(){
-  if (lsGet("seen-new", "") === NEW_V) return; if (!lsGet("onboarded", false) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
+  if (lsGet("seen-new", "") === NEW_V) return; if ((!lsGet("onboarded", false) && !czKey()) || navigator.webdriver || !HOSTED){ lsSet("seen-new", NEW_V); return; }
   lsSet("seen-new", NEW_V); setTimeout(() => { if (!document.querySelector("dialog[open]")) $("#newDlg").showModal(); }, 900);
 }
-$("#newDlg").addEventListener("click", e => { const b = e.target.closest("[data-new]"); if (e.target.id === "newDlg" || b) $("#newDlg").close(); if (b && b.dataset.new === "play") setSport("cosmic"); });
+$("#newDlg").addEventListener("click", e => { const b = e.target.closest("[data-new]"); if (e.target.id === "newDlg" || b) $("#newDlg").close(); if (b && b.dataset.new === "play") czGoTab("battle"); });
 // offline: say so, and quietly refresh when the connection comes back
 (() => { const bar = $("#offBar"), set = () => { bar.hidden = navigator.onLine !== false; document.body.classList.toggle("offline", !bar.hidden); };
-  addEventListener("offline", set); addEventListener("online", () => { set(); toast("Back online"); try { if (SPORT === "universe" || SPORT === "play") loadUniverse(); else if (SPORT !== "tennis" && SPORT !== "following") loadScoreboard(true); } catch {} }); set(); })();
+  addEventListener("offline", set); addEventListener("online", () => { set(); toast("Back online"); try { if (SPORT === "cosmic") czLoad(["me"]); else if (SPORT === "universe" || SPORT === "play") loadUniverse(); else if (SPORT !== "tennis" && SPORT !== "following") loadScoreboard(true); } catch {} }); set(); })();
 /* ================= Reset everything this device keeps ================= */
 async function resetAll(){
   if (!confirm("Reset Cosmo Sports on this device? This clears your teams, picks, settings and chat, and turns off notifications.")) return;
@@ -9140,16 +9192,20 @@ function goTab(name){ showTab(name); const el = $("#tab-"+name); if (el) setTime
 // bottom bar: Today, Scores (the league you last looked at), Picks, Following, More
 document.querySelectorAll("[data-nav]").forEach(b => b.addEventListener("click", () => {
   const n = b.dataset.nav; sfx("tap");
+  if (n.startsWith("cz:")){ const k = n.slice(3); if (SPORT === "cosmic" && CZ.tab === k){ window.scrollTo({ top: 0, behavior: "smooth" }); return; } navTo(() => czGoTab(k)); return; }
   if (n === "more"){ const a = $("#moreAcct"); if (a) a.textContent = czKey() && CZ.me ? `👤 ${CZ.me.name}` : "👤 Sign in"; $("#moreDlg").showModal(); return; }
   if (b.getAttribute("aria-current") === "page"){ window.scrollTo({ top: 0, behavior: "smooth" }); if (n === "scores" && SPORT !== "tennis" && TT !== "games") setTT("games"); return; }
   if (n !== "scores"){ if (SPORT !== n) navTo(() => setSport(n)); return; }
   if (n === "scores"){ const lg = ["universe", "following", "play", "comets", "record", "cosmic"].includes(SPORT) ? lsGet("lastLeague", "nfl") : SPORT;
     if (lg === "tennis") navTo(() => { setSport("tennis"); goTab("live"); }); else if (SPORT !== lg) navTo(() => setSport(lg)); }
 }));
-function navMark(){ const cur = ["universe", "following", "cosmic"].includes(SPORT) ? SPORT : SPORT === "comets" || SPORT === "record" || SPORT === "play" ? "more" : "scores"; document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false")); }
+function navMark(){ const cur = COSMIC_ONLY ? (["home", "battle", "packs", "coll"].includes(CZ.tab) ? "cz:" + CZ.tab : "more") : ["universe", "following", "cosmic"].includes(SPORT) ? SPORT : SPORT === "comets" || SPORT === "record" || SPORT === "play" ? "more" : "scores";
+  document.querySelectorAll("[data-nav]").forEach(b => b.setAttribute("aria-current", b.dataset.nav === cur ? "page" : "false"));
+  const dot = $("#navPlayDot"); if (dot) dot.hidden = !(CZ.bat && CZ.me && CZ.bat.mine.some(x => x.status === "open" && x.to === CZ.me.uid)); }
 $("#moreDlg").addEventListener("click", e => { if (e.target.id === "moreDlg") $("#moreDlg").close(); });
 document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
   $("#moreDlg").close(); const g = b.dataset.go;
+  if (g.startsWith("cz:")){ czGoTab(g.slice(3)); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
   if (g === "getapp"){ if (INST.deferred){ INST.deferred.prompt(); INST.deferred = null; } else { $("#installHow").innerHTML = `<h2 id="iosTitle">Get Cosmo Sports</h2>${installCardHtml("sheet")}<div class="dlgfoot"><span></span><button class="btn" id="iosClose">Close</button></div>`; bindInstall($("#installHow")); $("#iosDlg").showModal(); $("#iosClose").onclick = () => $("#iosDlg").close(); } return; }
   if (g === "account"){ if (czKey()){ renderSettings(); $("#settingsDlg").showModal(); } else openSignIn(); return; }
   if (g === "help") $("#helpDlg").showModal(); else if (g === "settings"){ renderSettings(); $("#settingsDlg").showModal(); }
@@ -9201,11 +9257,14 @@ renderFeed();
 { const q = new URLSearchParams(location.search);
   if (TENNIS_READY) tennisInit();
   warpIntro();
-  const sp0 = q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
+  const sp0 = COSMIC_ONLY ? "cosmic" : q.get("sport") || lsGet("startSport", "") || lsGet("sport", HOSTED ? "universe" : "tennis");
   if (["following", "universe", "play", "comets", "record", "cosmic"].includes(sp0) || (sp0 !== "tennis" && SPORTS.leagues[sp0])) setSport(sp0);
-  GATE.after = () => { maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); if (NATIVE) setTimeout(remSchedule, 4000); }; gateStart(); loadModels(); loadComets();
-  handleHash();                                                        // a shared link to a game or team
-  if (q.get("search")) openSearch();                                   // the "Find a team" app shortcut
+  { const t = q.get("tab"); if (COSMIC_ONLY && ["home", "battle", "bet", "mine", "packs", "market", "trades", "coll", "check", "lb"].includes(t)){ CZ.tab = t; lsSet("cz-tab", t); } }
+  setTimeout(navMark, 0);
+  // no welcome tour (it picks teams to follow) and no game-day reminders: Cosmic has its own sign-up
+  GATE.after = () => { if (!COSMIC_ONLY) maybeOnboard(q.get("onboard") === "1"); maybeWhatsNew(); if (NATIVE) setTimeout(remSchedule, 4000); };                       // (with game reminders retired, this also cancels any still scheduled) gateStart(); loadModels(); if (!COSMIC_ONLY) loadComets();
+  if (!COSMIC_ONLY) handleHash();                                      // a shared link to a game or team
+  if (q.get("search") && !COSMIC_ONLY) openSearch();                   // the "Find a team" app shortcut
   $("#teamDlg").addEventListener("close", () => { if (/^#team=/.test(location.hash)) history.replaceState(null, "", APP_URL()); });
   $("#tt-rank").addEventListener("click", e => { const r = e.target.closest("[data-tname]"); if (r) openTeamByName(SPORT, r.dataset.tname); });
 }
