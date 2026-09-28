@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-A7lff7Ff54+fRapX6kxEnWVDBe945ljIxtXEXXEA8sc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pMrk1rimpDWQj0k7fkI5t/wLmDjbj+pTFQZwOhSx8F0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -775,9 +775,10 @@ tr.favrow td:nth-child(2) b::after{content:" ★";color:#E0A106}
 .brand svg.cosmo{width:34px;height:34px;filter:drop-shadow(0 2px 6px rgba(122,61,245,.45))}
 .brand em{font-style:normal;background:linear-gradient(90deg,#8FF3FF,#B98BFF 55%,#FF7AC8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .aboutbrand{display:flex;align-items:center;gap:14px;margin-bottom:6px}.aboutbrand img{border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.25)}.aboutbrand h2{margin:0}.aboutbrand p{margin:2px 0 0;color:var(--muted)}
-/* player photos, highlight clips */
+/* player chips (initials in the team colour: no player photos), highlight clips */
 .pchip{position:relative;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--tc,#DCE2DE);flex:none}
 .pchip > .tl{width:72%;height:72%;object-fit:contain}
+.pchip > .pini{font-style:normal;font-weight:800;font-size:.8rem;letter-spacing:.02em;color:var(--tc,#55656E);filter:brightness(.7)}
 .pchip > .ph{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 12%;background:#E8ECE9}
 .pchip .tb{position:absolute;right:-5px;bottom:-4px;width:18px;height:18px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1.5px var(--tc,#DCE2DE);opacity:0}
 .pchip .tb img{width:78%;height:78%;object-fit:contain}
@@ -2761,7 +2762,7 @@ dialog.onb p{margin:0 0 12px}
     <li><i>🏈</i><span><b>College football and basketball.</b> The best 100 programs in each, with live scores, AP rankings, conference standings, news and a Predict page built on every Division I game since 2018.</span></li>
     <li><i>⏰</i><span><b>Game-day reminders.</b> An hour before your teams play, a heads-up with the start time and Cosmo's pick. Follow a team with ☆ and turn on notifications.</span></li>
     <li><i>🔑</i><span><b>Sign in with a passkey.</b> Cosmic accounts now use passkeys: Face ID, your fingerprint or your device's passcode. Your coins, cards, followed teams and settings are saved to your account and follow you to any device.</span></li>
-    <li><i>🃏</i><span><b>Every player has cards.</b> Every player on every NFL, NBA, MLB, NHL and Premier League roster now comes in all seven tiers, from 1 of 1,000 to the one-and-only 1 of 1, with their headshot. Open player packs to chase your favorites.</span></li>
+    <li><i>🃏</i><span><b>Every player has cards.</b> Every player on every NFL, NBA, MLB, NHL and Premier League roster now comes in all seven tiers, from 1 of 1,000 to the one-and-only 1 of 1, each drawn as their own planet. Open player packs to chase your favorites.</span></li>
     <li><i>🛒</i><span><b>Packs and the Market.</b> Rip Jupiter, Venus, Mars, Moon and Sun packs (every rarity is a body in the solar system, up to the 1-of-1 Sun), then keep your pulls, sell them back to the shop, or list them for other collectors.</span></li>
     <li><i>🪐</i><span><b>Cosmic.</b> Bet free Cosmic Coins on real games at real sportsbook prices, climb the leaderboards, and spend your winnings on packs of limited-edition team and player cards, from 1 of 1,000 all the way to the one-and-only 1 of 1. Better packs have better odds. Coins have no cash value.</span></li>
     <li><i>🎲</i><span><b>Season odds.</b> The rest of every season is played out 10,000 times each night: playoff, division and title chances for every team, charted over time, plus what each team's next game is worth. In the new Odds tab of every league.</span></li>
@@ -5650,7 +5651,7 @@ function performers(g, lg){
     // one line per player, even when they lead several categories
     const byName = []; for (const x of t.items){ const o = byName.find(y => y.name === x.name); if (o) o.lines.push(`${x.cat} ${x.value}`); else byName.push({ ...x, lines: [`${x.cat} · ${x.value}`] }); }
     const items = byName.map(x => ({ ...x, cat: x.lines.length > 1 ? x.lines.map(l => l.replace(" · ", " ")).join(" · ") : x.cat, value: x.lines.length > 1 ? "" : x.value }));
-    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${teamLogo(T, lg) ? `<img class="tl" src="${esc(teamLogo(T, lg))}" alt="">` : ""}${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
+    return `<div class="pteam"><div class="pth">${logoChip(T, "sm", lg)}<span>${esc(T.short || T.name || "")}</span></div>${items.map(x => `<div class="pp"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}"><i class="pini">${esc(x.name ? initials(x.name) : "")}</i></span><div><b>${esc(x.name)}</b><small>${esc(x.cat)}${x.value ? ` · ${esc(x.value)}` : ""}</small></div></div>`).join("")}</div>`; }).join("")}</div>`;
 }
 const CAN_HLS = () => { try { return !!document.createElement("video").canPlayType("application/vnd.apple.mpegurl"); } catch { return false; } };
 function highlightsStrip(g){
@@ -5896,7 +5897,7 @@ function infoHtml(g, lg){
   }
   if ((I.form || []).length) out += `<div class="bsec"><h3>Recent form</h3>${I.form.map(f => { const T = (g.teams || {})[f.team] || {}; return `<div class="form"><span class="fteam">${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</span>${f.results.map(r => `<i class="r${esc(r.r)}" title="${esc(r.score + " vs " + r.opp)}">${esc(r.r)}</i>`).join("")}</div>`; }).join("")}</div>`;
   if ((I.injuries || []).length) out += `<div class="bsec"><h3>Injuries</h3><div class="inj">${I.injuries.map(t => { const T = (g.teams || {})[t.team] || {};
-    return `<div><h4>${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</h4>${t.items.map(x => `<div class="irow"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}">${x.photo ? `<img class="ph" src="${esc(x.photo)}" alt="" loading="lazy" data-err="rm">` : ""}</span><div><b>${esc(x.name)}</b> <small>${esc(x.pos)}</small><small>${esc(x.detail)}</small></div><em class="${/out|reserve/i.test(x.status) ? "out" : "q"}">${esc(x.status)}</em></div>`).join("")}</div>`; }).join("")}</div></div>`;
+    return `<div><h4>${logoChip(T, "sm", lg)}${esc(T.short || T.name || "")}</h4>${t.items.map(x => `<div class="irow"><span class="pchip" style="--tc:${tcolor(T, "#DCE2DE")}"><i class="pini">${esc(x.name ? initials(x.name) : "")}</i></span><div><b>${esc(x.name)}</b> <small>${esc(x.pos)}</small><small>${esc(x.detail)}</small></div><em class="${/out|reserve/i.test(x.status) ? "out" : "q"}">${esc(x.status)}</em></div>`).join("")}</div>`; }).join("")}</div></div>`;
   const when = g.date ? new Date(g.date) : null, facts = [
     when ? ["When", when.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })] : null,
     g.tv ? ["TV", g.tv] : null, I.venue ? ["Venue", I.venue + (I.city ? ", " + I.city : "")] : null, I.grass ? ["Surface", I.grass] : null,
@@ -6229,7 +6230,7 @@ async function sdLoad(){
 }
 function sdPool(sp, key){ return ((SD.data && SD.data.sports[sp]) || {})[key] || []; }
 
-/* ================= League leaders: the real stat leaders, with headshots (from the Showdown player file) ================= */
+/* ================= League leaders: the real stat leaders (from the Showdown player file) ================= */
 const LEADERS = {
   mlb: [["hitters", "hr", "Home runs"], ["hitters", "avg", "Batting average"], ["hitters", "rbi", "RBI"], ["hitters", "sb", "Stolen bases"], ["pitchers", "k", "Strikeouts"], ["pitchers", "era", "ERA", 1]],
   nba: [["players", "ppg", "Points per game"], ["players", "rpg", "Rebounds per game"], ["players", "apg", "Assists per game"], ["players", "tp", "3-point %"], ["players", "spg", "Steals per game"], ["players", "bpg", "Blocks per game"]],
