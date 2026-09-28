@@ -18,7 +18,7 @@ let signedIn = false;
 try {
   await p.goto(SITE, { waitUntil: "load", timeout: 60000 }); await wait(4000);
   for (const name of ["Alex", "Alex R", "Jordan", "Jordan K", "Sam Rivera", "Casey " + Math.floor(Math.random() * 90 + 10)]) {
-    await p.fill("#gate form[data-czpk=new] input", name); await p.click("#gate form[data-czpk=new] button"); await wait(4000);
+    await p.fill("#gate form[data-czpk=new] input[name=name]", name); await p.check("#gate form[data-czpk=new] input[name=adult]"); await p.click("#gate form[data-czpk=new] button"); await wait(4000);
     if (await p.evaluate(() => !!(window.CZ && CZ.me))) { signedIn = true; console.log("signed in as", name); break; }
     console.log("name", name, "didn't work:", await p.evaluate(() => document.querySelector("#gate .czerr")?.textContent));
   }

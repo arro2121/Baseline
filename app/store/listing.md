@@ -66,7 +66,7 @@ Use Apple's standard EULA. Our own terms are at https://cosmosports.app/terms.ht
 - Unrestricted web access: **No**
 - Gambling (real money): **No**
 - Loot boxes: **Yes**. Pack odds are shown in the app before every pack.
-- Expected result: Apple's top age rating (17+/18+) because of frequent simulated gambling and loot boxes. This is set by Apple's questionnaire, separately from our own policy (13 and over), and it's the rating that decides who can download the app. Answer the questionnaire honestly; understating Cosmic's betting and packs is a common rejection reason.
+- Expected result: Apple's top age rating (17+/18+) because of frequent simulated gambling and loot boxes. This is set by Apple's questionnaire, separately from our own policy (13 and over for scores and predictions; 18 and over for Cosmic, confirmed at sign-up), and it's the rating that decides who can download the app. Answer the questionnaire honestly; understating Cosmic's betting and packs is a common rejection reason.
 
 ## App Privacy (the "nutrition label")
 Data collected and **linked to the user** (used only for app functionality, never for tracking or ads):
