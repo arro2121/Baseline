@@ -1988,7 +1988,7 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .czsellsum{font-size:1.05rem;margin:10px 0;display:grid;gap:4px}.czsellsum small{color:var(--muted);font-size:.8rem}
 .czrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:14px 0;perspective:900px}
 .czflip{position:relative;aspect-ratio:5/7;border:0;padding:0;background:none;cursor:pointer;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
-.czflip.on{transform:rotateY(180deg);cursor:default}.czflip>span{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.czflip.on{transform:rotateY(180deg);cursor:default}.czflip.now,.czflip.now>span,.czflip.now .czback *{transition:none!important}.czflip>span{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .czback{display:grid;place-content:center;justify-items:center;gap:6px;border-radius:16px;color:#f5d0fe;background:radial-gradient(80% 60% at 50% 40%,#7c3aed,#1e0b3a 70%);box-shadow:inset 0 0 0 1.5px rgba(233,213,255,.35),0 10px 26px -12px rgba(88,28,135,.9)}
 .czback .czcoin.pk{width:42px;height:42px}.czback b{letter-spacing:.2em;text-transform:uppercase;font-size:.7rem}
 .czfront{transform:rotateY(180deg)}.czfront .czcard{height:100%}
@@ -7004,11 +7004,11 @@ function czRip(pk, cards){
     $("#czRipMsg").innerHTML = best.supply <= 10 ? `🌌 <b>${best.supply === 1 ? "The only one in existence" : `${best.n}/${best.supply}, one of just ${best.supply}`}!</b> ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])}` : `Best pull: ${esc(best.name)} ${esc(CZ_TIER_NAME[best.tier])} ${best.n}/${best.supply}`;
     ["czShareBest", "czAgain"].forEach(id => { const b = $("#" + id); if (b) b.hidden = false; }); const ra = $("#czRevealAll"); if (ra) ra.hidden = true; };
   // the reveal: the team slides in, then the position, then the glow climbs through the tiers until the rarity stamps down,
-  // and only then does the card flip to show the name and picture ("Reveal all" runs it faster)
+  // and only then does the card flip to show the name and picture ("Reveal all" skips all this and turns every card over at once)
   const flip = (el, fast) => new Promise(done => {
     if (el.classList.contains("on") || el.classList.contains("charge")) { done(); return; }
     const t = +el.dataset.t, c = order[+el.dataset.i], S = RM() ? 0 : fast ? .55 : 1, step = 280 * S, clue = k => el.querySelector(".czclue.k-" + k);
-    const at = (ms, f) => setTimeout(f, ms), climb = 1500 * S, stamp = climb + t * step + 250 * S;
+    const at = (ms, f) => (el._tm = el._tm || []).push(setTimeout(f, ms)), climb = 1500 * S, stamp = climb + t * step + 250 * S;
     el.classList.add("charge", "clueing");
     at(150 * S, () => { clue("team").classList.add("in"); sfx("tap"); });
     at(850 * S, () => { clue("pos").classList.add("in"); sfx("tap"); });
@@ -7021,9 +7021,16 @@ function czRip(pk, cards){
       finish(); if (c.ch) { czInsert(c).then(done); return; } if (t >= 5) czFlash(c); else if (t >= 3) czConfetti(24); done(); });
   });
   flips.forEach(f => f.onclick = () => flip(f));
-  const revealAll = async () => { const ra = $("#czRevealAll"); if (ra) ra.disabled = true;
-    if (flips.length <= 6) { for (const f of flips) await flip(f, true); return; }
-    for (let i = 0; i < flips.length; i += 6) await Promise.all(flips.slice(i, i + 6).map(f => flip(f, true))); };
+  // "Reveal all" turns every card face up at once: no clues, no climb, no flip animation (a card already mid-reveal is finished too)
+  const revealAll = () => { const ra = $("#czRevealAll"); if (ra) ra.disabled = true; let top = -1, topCard = null;
+    for (const el of flips) { if (el.classList.contains("on")) continue; const c = order[+el.dataset.i];
+      (el._tm || []).forEach(clearTimeout); el._tm = [];
+      el.classList.add("now"); el.classList.remove("charge", "clueing", "shake", "shake2", "chleak", ...(c.ch ? ["ch-" + c.ch] : []));
+      el.querySelectorAll(".czclue").forEach(x => x.classList.add("in")); el.classList.add("on", "t-" + c.tier);
+      if (+el.dataset.t > top) { top = +el.dataset.t; topCard = c; } }
+    requestAnimationFrame(() => requestAnimationFrame(() => flips.forEach(el => el.classList.remove("now"))));
+    if (!topCard) return; sfx(top >= 4 ? "win" : "reveal"); finish();
+    if (top >= 5) czFlash(topCard); else if (top >= 3) czConfetti(24); };
   $("#czRevealAll").onclick = revealAll;
   // every card gets shown: Done (or Escape) with cards still face down reveals them first
   const dlg = $("#infoDlg"), left = () => flips.some(f => !f.classList.contains("on"));
