@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Seamline</title>
+<meta name="description" content="Your changing room, wherever you shop: see clothes on you, find the size that fits and why, and get style advice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="mark">Seamline</span><span class="tag">Your changing room, wherever you shop</span></div>
+    <div class="seg" role="group" aria-label="Units">
+      <button id="u-cm" type="button">cm</button><button id="u-in" type="button">in</button>
+    </div>
+  </header>
+  <div class="tape" aria-hidden="true"></div>
+
+  <form class="card gate" id="gate" hidden>
+    <h2>Enter the access code</h2>
+    <p class="lede">This changing room is private. Enter the code you were given to use the AI features.</p>
+    <div class="row">
+      <label style="flex:1;min-width:200px">Access code <input type="password" id="gate-code" autocomplete="current-password"></label>
+      <button class="btn primary" type="submit" style="align-self:end">Unlock</button>
+    </div>
+    <span class="status" id="gate-status"></span>
+  </form>
+
+  <nav class="steps" role="tablist" aria-label="Steps">
+    <button role="tab" data-tab="you" id="tab-btn-you"><b>1</b> You</button>
+    <button role="tab" data-tab="item" id="tab-btn-item"><b>2</b> The rack</button>
+    <button role="tab" data-tab="tryon" id="tab-btn-tryon"><b>3</b> Try it on</button>
+  </nav>
+
+  <!-- ============ TRY ON ============ -->
+  <section id="tab-tryon" role="tabpanel" aria-labelledby="tab-btn-tryon">
+    <div class="stack">
+      <div class="note" id="ex-note" hidden></div>
+      <div class="tryon">
+        <div class="mirror">
+          <div class="mirror-head">
+            <h2 id="t-title">Trying on</h2>
+            <div class="seg" role="group" aria-label="View">
+              <button type="button" data-view="ai">AI photo</button>
+              <button type="button" data-view="fit">Fit map</button>
+              <button type="button" data-view="garment">Measured</button>
+            </div>
+          </div>
+          <div class="tryon-bar">
+            <button class="btn primary" id="btn-tryon" type="button">Try it on</button>
+            <span class="status" id="tryon-status"></span>
+          </div>
+          <div class="stage-box"><canvas id="stage" aria-label="You wearing the item"></canvas></div>
+          <div class="legend" id="legend" hidden>
+            <span><i class="dot ok"></i>Fits well</span><span><i class="dot warn"></i>Snug, loose, short or long</span><span><i class="dot bad"></i>Won't work</span>
+          </div>
+          <p class="fine" id="view-note"></p>
+          <h3 class="strip-title">Sizes side by side, drawn to measure</h3>
+          <div class="sizes" id="size-strip" aria-label="Sizes"></div>
+          <label class="check" style="align-items:center">Overlay opacity <input type="range" id="opacity" min="40" max="100" value="100" style="flex:1"></label>
+        </div>
+
+        <div class="stack">
+          <div class="verdict" id="verdict"></div>
+          <div class="card">
+            <h3 id="r-title">Size on you</h3>
+            <ul class="zones" id="zones"></ul>
+          </div>
+          <div class="card">
+            <h3>Other sizes</h3>
+            <ul class="plain" id="others"></ul>
+          </div>
+          <div class="card" id="page-notes-card" hidden>
+            <h3>From the product page</h3>
+            <ul class="plain" id="page-notes"></ul>
+          </div>
+          <a id="buy" class="btn primary" target="_blank" rel="noopener" hidden>Open the store</a>
+          <div class="card">
+            <h3>Style advice</h3>
+            <p class="fine">Claude looks at the item, your measurements, your style notes and your photos, then tells you whether it suits you and what to wear it with.</p>
+            <div class="row">
+              <button class="btn primary" id="btn-style" type="button">Get style advice</button>
+              <span class="status" id="style-status"></span>
+            </div>
+            <div class="style-out" id="style-out"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ YOU ============ -->
+  <section id="tab-you" role="tabpanel" aria-labelledby="tab-btn-you" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h2>Your photo</h2>
+        <p class="lede">Stand straight facing the camera with your whole body in frame, arms a little away from your sides, in fitted clothes, in good light. The AI dresses this exact photo, so a clear one gives the best result.</p>
+        <label class="check"><input type="checkbox" id="consent"> This is a photo of me, and I choose to use it here.</label>
+        <label>Photo <input type="file" id="photo-file" accept="image/*" disabled></label>
+        <canvas class="editor" id="body-editor"></canvas>
+        <p class="fine" id="body-help"></p>
+        <div class="row">
+          <button class="btn" id="btn-body-auto" type="button">Place points with Claude</button>
+          <button class="btn" id="btn-photo-clear" type="button">Remove photo</button>
+          <span class="status" id="body-status"></span>
+        </div>
+        <p class="fine">Your photo and measurements are saved in this browser. They're sent to the server only when you use Try it on, Claude placement or style advice, and it doesn't keep them.</p>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <h2>Measurements</h2>
+          <p class="lede">Use a soft tape measure. These decide the size, so a helper makes them more accurate.</p>
+          <div class="fields" id="body-fields"></div>
+          <label>How you like clothes to fit
+            <select id="pref">
+              <option value="fitted">Close to the body</option>
+              <option value="regular">Regular</option>
+              <option value="relaxed">Relaxed, with room</option>
+            </select>
+          </label>
+          <details>
+            <summary>How to measure</summary>
+            <ul>
+              <li><b>Chest:</b> around the fullest part, under the arms, tape level.</li>
+              <li><b>Waist:</b> around where your pants usually sit.</li>
+              <li><b>Hips:</b> around the fullest part of your seat, feet together.</li>
+              <li><b>Shoulders:</b> across your back from one shoulder tip to the other.</li>
+              <li><b>Inseam:</b> from your crotch to the floor, barefoot.</li>
+              <li><b>Arm:</b> from the shoulder tip down to the wrist bone, arm relaxed.</li>
+            </ul>
+          </details>
+        </div>
+        <div class="card">
+          <h2>Clothes that fit you well</h2>
+          <p class="lede">Lay a top and a pair of pants you love flat on a table and measure them. This is the most accurate way to size, because it records how you like things to fit.</p>
+          <h3>Favorite top</h3>
+          <div class="fields" id="ref-top-fields"></div>
+          <h3>Favorite pants</h3>
+          <div class="fields" id="ref-bottom-fields"></div>
+        </div>
+        <div class="card">
+          <h2>Your style</h2>
+          <label>How you dress, where you'll wear things, colors you like or avoid
+            <textarea id="notes"></textarea>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RACK ============ -->
+  <section id="tab-item" role="tabpanel" aria-labelledby="tab-btn-item" hidden>
+    <div class="stack">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <label style="flex:1;min-width:200px">On the rack
+            <select id="item-select"></select>
+          </label>
+          <div class="row">
+            <button class="btn" id="btn-new-item" type="button">Add an item</button>
+            <button class="btn" id="btn-del-item" type="button">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <form class="card" id="link-form">
+        <h2>Bring it in from a store</h2>
+        <p class="lede">Paste the link to a product page. Seamline reads the size chart, fabric and fit notes, and grabs the product photo.</p>
+        <div class="row">
+          <label style="flex:1;min-width:220px">Product link <input type="url" id="i-url" placeholder="https://" required></label>
+          <button class="btn primary" id="btn-link" type="submit" style="align-self:end">Bring it in</button>
+        </div>
+        <span class="status" id="link-status"></span>
+        <div class="cands" id="cands" hidden></div>
+      </form>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>Product photo</h2>
+          <p class="lede">A flat-lay, ghost-mannequin or plain-background photo works best. You can also upload one you saved.</p>
+          <label>Upload a photo <input type="file" id="g-file" accept="image/*"></label>
+          <canvas class="editor" id="garment-editor"></canvas>
+          <p class="fine" id="g-help"></p>
+          <div class="row">
+            <label class="check" style="align-items:center"><input type="checkbox" id="g-bg"> Remove background</label>
+            <label class="check" style="align-items:center;flex:1;min-width:180px">Tolerance <input type="range" id="g-tol" min="5" max="140" style="flex:1"></label>
+          </div>
+          <div class="row">
+            <button class="btn" id="btn-g-auto" type="button">Place points with Claude</button>
+            <span class="status" id="g-status"></span>
+          </div>
+        </div>
+
+        <div class="stack">
+          <details class="card">
+            <summary>The store blocked the link? Paste the page instead</summary>
+            <label>Page text
+              <textarea id="i-page" placeholder="On the product page, open the size guide, then select all (Ctrl/Cmd + A), copy, and paste here. Reviews help too."></textarea>
+            </label>
+            <div class="row">
+              <button class="btn" id="btn-read" type="button">Read the page with Claude</button>
+              <span class="status" id="read-status"></span>
+            </div>
+          </details>
+
+          <div class="card">
+            <h2>Details</h2>
+            <div class="fields">
+              <label style="grid-column:1/-1">Name <input type="text" id="i-name"></label>
+              <label>Type
+                <select id="i-category">
+                  <option value="top">Top</option><option value="outerwear">Jacket or coat</option>
+                  <option value="dress">Dress</option><option value="bottom">Pants or skirt</option>
+                </select>
+              </label>
+              <label>Cut
+                <select id="i-fitStyle">
+                  <option value="slim">Slim</option><option value="regular">Regular</option><option value="relaxed">Relaxed</option>
+                  <option value="oversized">Oversized</option><option value="cropped">Cropped</option>
+                </select>
+              </label>
+              <label>Stretch
+                <select id="i-stretch">
+                  <option value="none">None</option><option value="low">A little</option><option value="medium">Some</option><option value="high">A lot</option>
+                </select>
+              </label>
+              <label>Runs
+                <select id="i-runs">
+                  <option value="-1">Small</option><option value="0">True to size</option><option value="1">Large</option>
+                </select>
+              </label>
+              <label>Fabric <input type="text" id="i-fabric"></label>
+              <label>Color <input type="text" id="i-color"></label>
+              <label style="grid-column:1/-1">Model on the page <input type="text" id="i-modelNote" placeholder="e.g. Model is 185 cm and wears M"></label>
+            </div>
+            <h3>Size chart</h3>
+            <div class="fields">
+              <label>The chart measures
+                <select id="i-chartType">
+                  <option value="garment">The garment</option><option value="body">The body it fits</option><option value="none">Nothing (sizes only)</option>
+                </select>
+              </label>
+              <label>Units
+                <select id="i-unit"><option value="cm">cm</option><option value="in">in</option></select>
+              </label>
+              <label class="check" style="align-self:end"><input type="checkbox" id="i-flat"> Widths measured flat (pit to pit)</label>
+            </div>
+            <div class="chart-wrap"><table class="chart" id="chart"></table></div>
+            <div class="row"><button class="btn small" id="btn-add-size" type="button">Add a size</button>
+              <span class="fine">Ranges like 96–101 are fine.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<div id="toast" hidden role="status"></div>
+<script src="fit.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

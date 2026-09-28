@@ -1,0 +1,64 @@
+# Seamline, the digital changing room (seamline/): tests it and deploys it to Cloudflare Workers.
+# Separate from the Cosmo Sports workflow; it only runs when seamline/ changes.
+name: Seamline
+on:
+  push:
+    branches: [main]
+    paths: ["seamline/**", ".github/workflows/seamline.yml"]
+  pull_request:
+    paths: ["seamline/**", ".github/workflows/seamline.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: seamline-${{ github.ref }}
+  cancel-in-progress: false
+defaults:
+  run:
+    working-directory: seamline
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: seamline/package-lock.json }
+      - run: npm ci
+      - run: npm test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: seamline/package-lock.json }
+      - run: npm ci
+      - name: Deploy
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then echo "::error::The CLOUDFLARE_API_TOKEN secret is missing."; exit 1; fi
+          npx wrangler deploy
+      - name: Turn on the AI features
+        env:
+          ACCESS_CODE: ${{ secrets.SEAMLINE_ACCESS_CODE }}
+          FASHN_API_KEY: ${{ secrets.FASHN_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # The AI features spend real money, so they only switch on behind an access code.
+          if [ -z "$ACCESS_CODE" ]; then
+            echo "::warning::Add a SEAMLINE_ACCESS_CODE secret (any passphrase) to switch on the AI try-on, link reading and style advice."
+            exit 0
+          fi
+          put() { printf '%s' "$2" | npx wrangler secret put "$1" >/dev/null && echo "Set $1"; }
+          put ACCESS_CODE "$ACCESS_CODE"
+          if [ -n "$ANTHROPIC_API_KEY" ]; then put ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"; else echo "::warning::No ANTHROPIC_API_KEY secret: link reading and style advice stay off."; fi
+          if [ -n "$FASHN_API_KEY" ]; then put FASHN_API_KEY "$FASHN_API_KEY"; else echo "::warning::No FASHN_API_KEY secret: the AI try-on stays off until you add one (fashn.ai)."; fi
+      - name: Check the site answers
+        run: |
+          sleep 5
+          curl -sfm 30 https://seamline.baseline-arro2121-3091.workers.dev/api/config && echo " <- live" || echo "::warning::The site didn't answer yet; it can take a minute."
