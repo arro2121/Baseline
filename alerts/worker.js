@@ -14,6 +14,7 @@ import { TEAM_COLORS } from "./colors.js";
 import { LEGENDS } from "./legends.js";
 import { MOMENTS } from "./moments.js";
 import { DUALS } from "./duals.js";
+import { simGame, simRating, simStrength, simElo, SIM_ELO0 } from "./sim.js";
 
 const API = "https://api.api-tennis.com/tennis/";
 const TYPES = { "Atp Singles": ["atp", true], "Wta Singles": ["wta", true],
@@ -258,6 +259,13 @@ async function czBackupTick(env) {                   // once a day, a little aft
   await env.KV.put("bk:last", day);
   const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "backup", why: "daily" }) });
   return r.ok ? (await r.json()).v : "backup " + r.status;
+}
+// score alerts are retired (Cosmo Sports is the Cosmic game), so the push addresses and alert choices kept for them are
+// deleted; one that arrives later from an old copy of the app is deleted the same way on the next run
+export async function pushRetire(env) {
+  const db = store(env), subs = await db.subs().catch(() => []); let n = 0;
+  for (const s of subs) if (s && s.sub && s.sub.endpoint) { await db.subDel(s.sub.endpoint); n++; }
+  return n;
 }
 export function store(env) {
   if (env.STORE) {
@@ -1382,11 +1390,8 @@ export function normTennis(e, resolve = n => n) {
  * Answers questions about games, teams and the model from live data. Runs on Cloudflare Workers AI (free daily
  * allowance, no key needed) or, when the ANTHROPIC_API_KEY secret is set, on Claude for sharper answers. */
 const ASK_CF_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-// the battle judge on Claude: a small model (a short JSON verdict), only for battles between players, and at most
-// JUDGE_CLAUDE_DAILY a day (default 200); the rest use the free Workers AI model or the power formula
 // Workers AI's free daily allowance ran out (its errors mention the allocation, neurons or quota)
 const AI_RESTING = m => /4006|allocation|neuron|quota|exceed|limit/i.test(m || "");
-const JUDGE_CLAUDE_MODEL = "claude-haiku-4-5", JUDGE_MAX_TOKENS = 1024;
 // Ask on Claude (only when ANTHROPIC_API_KEY is set): a smaller model, short answers, signed-in passkey accounts only, and a daily
 // cap (ASK_CLAUDE_DAILY, default 300 questions) after which Ask carries on with the free Workers AI model
 const ASK_MODEL = "claude-sonnet-5", ASK_MAX_TOKENS = 1200;
@@ -1762,11 +1767,11 @@ export function czSeasonRoll(u, now) {                  // a new month: pay last
   u.sp = { season: cur, pts: 0 }; return true;
 }
 export const czAddSp = (u, n, now) => { czSeasonRoll(u, now); u.sp.pts = Math.max(0, (u.sp.pts || 0) + Math.round(n)); };
-// card battles: each card brings power from its tier and level; the AI judge sees the lineups and these numbers
+// card battles: each card brings power from its tier and level (shown on the lineups); the game itself is played out by sim.js
 export const CZ_POW = { singularity: 100, supernova: 72, quasar: 56, nebula: 44, pulsar: 34, stardust: 26, comet: 20 };
 export const czPower = cards => Math.round(cards.reduce((s, c) => s + (CZ_POW[c.tier] || 20) * (1 + .15 * ((c.level || 1) - 1)), 0));
 export const czOdds = (pa, pb) => { const x = Math.pow(Math.max(1, pa), 1.6), y = Math.pow(Math.max(1, pb), 1.6); return x / (x + y); };
-// battles are played in one sport at a time: every card in both lineups comes from it, and the judge pictures a real game of it
+// battles are played in one sport at a time: every card in both lineups comes from it, and the two lineups play a game of it
 export const CZ_BSPORT = {
   nfl: { name: "NFL", an: "an", lgs: ["nfl"], game: "an NFL football game. Quarterbacks, playmakers and defenders matter, and a team card is that whole team" },
   nba: { name: "NBA", an: "an", lgs: ["nba"], game: "an NBA basketball game. Stars, scoring, size and defense matter, and a team card is that whole team" },
@@ -1774,6 +1779,8 @@ export const CZ_BSPORT = {
   nhl: { name: "NHL", an: "an", lgs: ["nhl"], game: "an NHL hockey game. Scorers, defensemen and goaltending matter, and a team card is that whole team" },
   epl: { name: "Premier League", lgs: ["epl"], game: "a Premier League soccer match. Attackers, midfield control, defending and the goalkeeper matter, and a team card is that whole club" },
   tennis: { name: "Tennis", lgs: ["atp", "wta"], game: "a tennis team contest: the players meet in singles rubbers, stronger players usually win their matches" },
+  cfb: { name: "College Football", lgs: ["cfb"], game: "a college football game" },
+  cbb: { name: "College Basketball", lgs: ["cbb"], game: "a college basketball game" },
 };
 const TESTER_NO = "The owner's test account (unlimited coins) can't trade coins or cards with other players. Turn off unlimited coins first.";
 const CZ_REP_AGE_DAYS = 3, CZ_REP_COOL = 7 * 864e5, CZ_SUPPORT_DAYS = 180;
@@ -1787,8 +1794,8 @@ const czDecOk = d => Number.isFinite(d) && d >= 1.01 && d <= 1000;       // a re
 const czPublic = u => u && ({ uid: u.uid, name: u.name, passkey: !!u.ident, secured: czSecured(u), tester: !!u.tester, bal: u.bal, packs: u.packs || 0, won: u.won || 0, lost: u.lost || 0, profit: u.profit || 0, streak: u.streak || 0, lastDaily: u.lastDaily || null,
   bets: (u.bets || []).slice(-100), items: u.items || [], setsDone: u.setsDone || [], created: u.created, spinDay: u.spinDay || null, tix: u.tix || {}, sp: u.sp || null, seasons: (u.seasons || []).slice(-6), seasonNote: u.seasonNote || null,
   bw: u.bw || 0, bl: u.bl || 0, bsp: u.bsp || {}, evp: u.evp || {}, trades: u.trades || 0, sold: u.sold || 0, legacyRefund: u.legacyRefund || null, freePack: !!u.freePack, refs: u.refs || 0, wkp: u.wkp || {}, trophies: u.trophies || [], outbid: (u.outbid || []).slice(-5), wonAuc: (u.won_auc || []).slice(-5),
-  quests: czQuests(u, Date.now()), plog: (u.plog || []).slice(-40) });
-const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
+  quests: czQuests(u, Date.now()), plog: (u.plog || []).slice(-40), gr: u.gr ?? SIM_ELO0, grPeak: u.grPeak || null });
+const czLbRow = u => ({ uid: u.uid, tester: !!u.tester || undefined, nopk: !czSecured(u) || undefined, name: u.name, sp: u.sp || undefined, bw: u.bw || undefined, bl: u.bl || undefined, gr: u.gr ?? undefined, wkp: u.wkp || undefined, trophies: (u.trophies || []).length || undefined, bal: u.bal, profit: u.profit || 0, won: u.won || 0, lost: u.lost || 0, cards: (u.items || []).length,
   best: (u.items || []).reduce((b, i) => Math.min(b, i.supply || 999), 999) });
 // every change to coins and cards; st is the Durable Object's storage (or a KV stand-in), a is the action
 /* ---- Daily Quests: three a day (the same three for everyone, picked from the day), done by playing, each paying coins ----
@@ -1802,7 +1809,7 @@ export const CZ_QUESTS = [
   { id: "sell", label: "Sell a card to the shop", need: 1, reward: 95 },
   { id: "list", label: "List a card on the Market", need: 1, reward: 114 },
   { id: "grade", label: "Grade a card", need: 1, reward: 190 },
-  { id: "battle", label: "Play a card battle", need: 1, reward: 143 },
+  { id: "battle", label: "Play a Cosmic game", need: 1, reward: 143 },
   { id: "sets", label: "Open 3 packs", need: 3, reward: 190 }];
 export const CZ_QUEST_ALL = 190;                                  // a bonus for all three
 const CZ_QACT = { daily: ["daily"], spin: ["spin"], pack: ["pack", "sets"], bet: ["bet"], parlay: ["parlay", "bet"], sell: ["sell"], sellmany: ["sell"], list: ["list"], grade: ["grade"], bnew: ["battle"], bjoin: ["battle"] };
@@ -1985,7 +1992,7 @@ async function czTx0(st, a) {
     if (!Array.isArray(ids) || !ids.length || ids.length > 5 || new Set(ids).size !== ids.length) return { error: "Pick one to five different cards." };
     for (const id of ids) { const c = (u.items || []).find(x => x.id === id); if (!c) return { error: "One of those cards isn't in your collection." };
       if (S && !S.lgs.includes(c.lg)) return { error: `This is ${S.an || "a"} ${S.name} battle, so only ${S.name} cards can play. ${c.name} isn't one.` };
-      if (c.listed || c.auction || c.battle) return { error: `${c.name} is on the market, in an auction or already in a battle.` };
+      if (c.listed || c.auction || c.battle) return { error: `${c.name} is on the market, in an auction or already in a game challenge.` };
       out.push({ id: c.id, name: c.name, tier: c.tier, n: c.n, supply: c.supply, lg: c.lg, kind: c.kind, pos: c.pos, team: c.team, img: c.img, level: czLevelOf(L[czLvlKey(c)], c.kind === "team") }); }
     return { cards: out };
   };
@@ -2031,7 +2038,12 @@ async function czTx0(st, a) {
     if (!A || (bt.by && !Bu)) {                                       // a player left Cosmic mid-battle: void, the other gets their stake back
       const x = A || Bu; if (x) { if (!x.tester) x.bal += bt.stake; lock(x, x === A ? bt.a : bt.b || [], null); await st.put("cz:u:" + x.uid, x); await lb(x); }
       Object.assign(bt, { status: "void", done: a.now }); await st.put("cz:bat", B); return { battle: bt, user: czPublic(x || u) }; }
-    Object.assign(bt, { status: "done", winner: win, report: String(a.report || "").slice(0, 1200), chance: a.chance, pow: a.pow, judge: a.judge || null, mvp: a.mvp || null, done: a.now });
+    Object.assign(bt, { status: "done", winner: win, report: String(a.report || "").slice(0, 1200), chance: a.chance, pow: a.pow, judge: a.judge || null, mvp: a.mvp || null, done: a.now,
+      seed: a.seed || null, ra: a.ra || null, rb: a.rb || null, game: a.game || null });
+    // the game rating (Elo from 1000): a game against a player moves both, by up to 32; one against the AI (a 50/50) by 8 either way
+    { const up = (x, r0, r1) => { x.gr = Math.max(100, r1); x.grPeak = Math.max(x.grPeak || SIM_ELO0, x.gr); return [r0, x.gr]; };
+      if (bt.house) { if (A) { const r0 = A.gr ?? SIM_ELO0; bt.elo = [up(A, r0, r0 + simElo(r0, r0, win === "a", 16))]; } }
+      else if (A && Bu) { const ra = A.gr ?? SIM_ELO0, rb = Bu.gr ?? SIM_ELO0, d = simElo(ra, rb, win === "a"); bt.elo = [up(A, ra, ra + d), up(Bu, rb, rb - d)]; } }
     const W = win === "a" ? A : Bu, Lz = win === "a" ? Bu : A;
     const rec = (x, k) => { if (!bt.sport) return; x.bsp = x.bsp || {}; const r = x.bsp[bt.sport] || [0, 0]; r[k]++; x.bsp[bt.sport] = r; };
     if (W) { W.bal += bt.stake * 2; W.bw = (W.bw || 0) + 1; rec(W, 0); czAddSp(W, 30, a.now); }
@@ -2163,7 +2175,7 @@ async function czTx0(st, a) {
     await del("cz:data:" + u.uid); await del("cz:u:" + u.uid);
     return { deleted: true };
   }
-  const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : c.battle ? "It's in a battle lineup. Cancel the battle first." : null;
+  const busy = c => c.listed ? "Take it off the market first." : c.auction ? "It's up for auction." : c.battle ? "It's in a game challenge. Cancel the challenge first." : null;
   const moveCard = async (c, from, to, extra) => {                  // one copy changes hands: collections and the owners list
     from.items = (from.items || []).filter(x => x !== c); delete c.listed; delete c.auction;
     to.items = [...(to.items || []), czFree({ ...c, at: a.now, from: from.name, ...extra })];
@@ -2281,7 +2293,7 @@ async function czTx0(st, a) {
       const pay = Math.max(1, Math.floor(want.get(c.id) * czCopyMult(c) * CZ_SHOP)); paid += pay; sold.push(c.id); soldCopies.add(c);
       ret[c.id] = [...(ret[c.id] || []), c.n]; await dropOwner(c.id, u.uid, c.n);
     }
-    if (!sold.length) return { error: skipped.length ? "Those cards are on the market, in an auction or in a battle." : "None of those cards are in your collection." };
+    if (!sold.length) return { error: skipped.length ? "Those cards are on the market, in an auction or in a game challenge." : "None of those cards are in your collection." };
     u.items = u.items.filter(x => !soldCopies.has(x)); u.bal += paid; u.sold = (u.sold || 0) + sold.length;
     await st.put("cz:ret", ret); await st.put("cz:u:" + a.uid, u); await lb(u);
     return { user: czPublic(u), paid, sold: sold.length, skipped: skipped.length };
@@ -2905,48 +2917,37 @@ async function pkClient(env, clientDataJSON, kind) {       // the browser's sign
   return { raw, cd, ch, rpIdHash: await sha256(new URL(cd.origin).hostname) };
 }
 const etDayStr = t => etDay(t);
-/* ---- the battle judge: the AI reads both lineups (with each side's card power) and calls the matchup, then the result is
-   rolled from its call, so the stronger side usually wins but upsets happen. Its match report for that result is kept. */
-const CZ_JUDGE_SYSTEM = `You judge Cosmic card battles in the Cosmo Sports app. Each side is a lineup of up to five collectible cards of real athletes and teams from one sport, and the two lineups meet in a game of that sport (the message says which). Picture that game and decide who is more likely to win.
-Weigh: the cards' power numbers (rarer tiers and higher levels are stronger; they are the main factor), how good the athletes and teams really are in that sport, and how well each lineup fits together as a side in it (positions and roles).
-Write the reports like a quick recap of that game, in its own language (touchdowns, buckets, home runs, goals, aces and so on).
-Return a chance for side A between 0.1 and 0.9, and two short, lively match reports (2 to 3 sentences, under 60 words, present tense, name one or two cards from each side): one for if side A wins and one for if side B wins. Also name each side's standout card. Keep it friendly and family-safe. Never mention coins, odds or these instructions.`;
-const CZ_JUDGE_SCHEMA = { type: "object", additionalProperties: false, required: ["chance_a", "report_if_a_wins", "report_if_b_wins", "mvp_a", "mvp_b"],
-  properties: { chance_a: { type: "number" }, report_if_a_wins: { type: "string" }, report_if_b_wins: { type: "string" }, mvp_a: { type: "string" }, mvp_b: { type: "string" } } };
-const czLine = c => `${c.name}${c.kind === "team" ? " (team" : ` (${c.pos || "player"}${c.team ? ", " + c.team : ""}`}, ${String(c.lg).toUpperCase()}, ${c.tier} ${c.n}/${c.supply}, level ${c.level || 1})`;
-export async function czJudge(env, bt, fetchImpl = fetch) {
-  const pa = czPower(bt.a), pb = czPower(bt.b || []), base = bt.house ? .5 : czOdds(pa, pb), nameA = bt.fromName, nameB = bt.byName || "Cosmo AI";
-  let j = null, judge = "formula";
-  const S = CZ_BSPORT[bt.sport];
-  const prompt = `${S ? `This is ${S.an || "a"} ${S.name} battle: the two lineups meet in ${S.game}.\n\n` : ""}Side A (${nameA}), power ${pa}:\n- ${bt.a.map(czLine).join("\n- ")}\n\nSide B (${nameB}), power ${pb}:\n- ${(bt.b || []).map(czLine).join("\n- ")}\n\nOn power alone, side A would win about ${Math.round(base * 100)}% of the time.`;
-  const ok = x => x && typeof x.chance_a === "number" && isFinite(x.chance_a) && typeof x.report_if_a_wins === "string" && typeof x.report_if_b_wins === "string";
-  // playing the AI is a coin flip whatever the lineups, so no model is asked: the recap comes from the formula below
-  if (!bt.house && env.ANTHROPIC_API_KEY && await rateOk(env, "judge:claude", Math.max(0, +env.JUDGE_CLAUDE_DAILY || 200), 864e5)) {
-    try {
-      const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, fetch: fetchImpl === fetch ? undefined : fetchImpl, maxRetries: 1, timeout: 25000 });
-      const r = await client.messages.create({ model: JUDGE_CLAUDE_MODEL, max_tokens: JUDGE_MAX_TOKENS,
-        output_config: { format: { type: "json_schema", schema: CZ_JUDGE_SCHEMA } }, system: CZ_JUDGE_SYSTEM, messages: [{ role: "user", content: prompt }] });
-      if (r.stop_reason !== "refusal") { const t = (r.content || []).find(b => b.type === "text"); const x = t && JSON.parse(t.text); if (ok(x)) { j = x; judge = "claude"; } }
-    } catch (e) { console.log("judge:", e.message); }
-  }
-  if (!j && !bt.house && env.AI) {
-    try {
-      const r = await env.AI.run(ASK_CF_MODEL, { messages: [{ role: "system", content: CZ_JUDGE_SYSTEM + "\nAnswer with only a JSON object with the keys chance_a, report_if_a_wins, report_if_b_wins, mvp_a, mvp_b." }, { role: "user", content: prompt }], max_tokens: 500 });
-      const txt = String(r?.response ?? r ?? ""), m = txt.match(/\{[\s\S]*\}/); const x = m && JSON.parse(m[0]); if (ok(x)) { j = x; judge = "workers-ai"; }
-    } catch (e) { console.log("judge (workers ai):", e.message); if (AI_RESTING(String(e.message || e))) judge = "resting"; }
-  }
-  // the AI's call counts, kept within reach of what the cards' power says so a lineup of commons can't be talked into a lock
-  // playing the AI is a straight coin flip: it wins half the time and loses half the time, whatever the lineups.
-  // Between two players the AI's call counts, kept within reach of what the cards' power says.
-  const chance = bt.house ? .5 : j ? Math.min(.92, Math.max(.08, Math.min(base + .25, Math.max(base - .25, j.chance_a)))) : base;
-  const winner = czRoll() < chance ? "a" : "b";
-  const best = cs => (cs || []).slice().sort((x, y) => (CZ_POW[y.tier] || 0) - (CZ_POW[x.tier] || 0))[0];
-  const W = winner === "a" ? bt.a : bt.b, Lz = winner === "a" ? bt.b : bt.a, wn = winner === "a" ? nameA : nameB;
-  const report = j ? String(winner === "a" ? j.report_if_a_wins : j.report_if_b_wins).trim()
-    : `${best(W)?.name || "The winners"} leads ${wn}'s lineup past ${best(Lz)?.name || "a tough opponent"}. ${(pw => pw < .4 ? "An upset nobody saw coming." : pw > .6 ? "The stronger lineup takes it." : "A close one, decided late.")(winner === "a" ? chance : 1 - chance)}`;
-  return { winner, chance: Math.round(chance * 1000) / 1000, pow: [pa, pb], report, judge, mvp: j ? [j.mvp_a, j.mvp_b] : [best(bt.a)?.name || "", best(bt.b)?.name || ""] };
+/* ---- Cosmic Games: the two lineups play out a whole game of their sport, play by play (sim.js), and the game decides the
+   battle. Each card's game rating comes from its tier, level and the real athlete or team; against the AI its lineup is
+   rated to match yours, so those games are a true 50/50. The seed is kept, so any game can be replayed exactly. */
+async function czCardRatings(env, cards, fetchImpl) {
+  let cat = null; try { await czCatalog(env, fetchImpl); cat = CZ_CAT && CZ_CAT.byId; } catch {}
+  return (cards || []).map(c => ({ ...c, r: +c.r || simRating(c, cat && cat.get(c.id)) }));
 }
-async function czFinish(env, bt, uid, fetchImpl) { const v = await czJudge(env, bt, fetchImpl); return cz(env, { act: "bdone", uid, id: bt.id, ...v, now: Date.now() }); }
+// the chance side A wins from the two lineups' strengths (fitted to the simulated games: +5 is about 66%, +10 about 79%)
+export const czSimOdds = (sa, sb) => 1 / (1 + Math.exp(-.135 * (sa - sb)));
+export async function czJudge(env, bt, fetchImpl = fetch) {
+  const a = await czCardRatings(env, bt.a, fetchImpl);
+  let b = await czCardRatings(env, bt.b, fetchImpl);
+  if (bt.house) b = b.map((c, i) => ({ ...c, r: a[i] ? a[i].r : c.r }));
+  const seed = bt.seed || czRand(10), names = [bt.fromName || "Side A", bt.byName || "Cosmo AI"], g = simGame(bt.sport, a, b, seed, names);
+  const sa = simStrength(a), sb = simStrength(b), top = s => (g.box[s].slice().sort((x, y) => y.g - x.g)[0] || {}).name || "";
+  return { winner: g.winner, chance: bt.house ? .5 : Math.round(czSimOdds(sa, sb) * 1000) / 1000, pow: [czPower(bt.a), czPower(bt.b || [])], report: g.recap, judge: "sim",
+    mvp: [top("a"), top("b")], seed, ra: a.map(c => c.r), rb: b.map(c => c.r), full: g,
+    game: { score: g.score, line: g.line, periods: g.periods, note: g.note, str: g.str, pens: g.pens } };
+}
+// replay a finished game from its seed and the ratings kept with it
+export function czReplay(bt) {
+  if (!bt || !bt.seed || !bt.ra) return null;
+  const a = bt.a.map((c, i) => ({ ...c, r: bt.ra[i] })), b = (bt.b || []).map((c, i) => ({ ...c, r: (bt.rb || [])[i] }));
+  return simGame(bt.sport, a, b, bt.seed, [bt.fromName || "Side A", bt.byName || "Cosmo AI"]);
+}
+async function czFinish(env, bt, uid, fetchImpl) {
+  const v = await czJudge(env, bt, fetchImpl), full = v.full; delete v.full;
+  const r = await cz(env, { act: "bdone", uid, id: bt.id, ...v, now: Date.now() });
+  if (r && r.battle && r.battle.status === "done") r.sim = full;
+  return r;
+}
 export async function cosmicRoute(req, env, ctx, url) {
   const p = url.pathname.replace(/^\/cosmic/, "") || "/", now = Date.now(), ip = req.headers.get("CF-Connecting-IP") || "anon";
   if (!env.STORE) return json({ error: "Cosmic isn't set up on this server (it needs the STORE Durable Object)." }, 503);
@@ -3036,6 +3037,7 @@ export async function cosmicRoute(req, env, ctx, url) {
     return json({ week, weekStart: wk, weekEnds: Date.parse(wk + "T04:00:00Z") + 7 * 864e5, prizes: CZ_WEEK_PRIZE, lastWinners: lastWin,
       rich: rows.sort((a, b) => b.bal - a.bal).slice(0, 50).map(slim), sharp: rows.filter(r => r.won + r.lost >= 5).sort((a, b) => b.profit - a.profit).slice(0, 25).map(slim),
       collectors: rows.filter(r => r.cards).sort((a, b) => a.best - b.best || b.cards - a.cards).slice(0, 25).map(slim), feed: F.slice(0, 30), players: rows.length,
+      games: rows.filter(r => r.gr != null && (r.bw || 0) + (r.bl || 0) > 0).sort((a, b) => b.gr - a.gr || (b.bw || 0) - (a.bw || 0)).slice(0, 100).map(slim),
       season: rows.filter(r => r.sp && r.sp.season === czSeasonOf(now) && r.sp.pts > 0).sort((a, b) => b.sp.pts - a.sp.pts).slice(0, 25).map(slim), seasonId: czSeasonOf(now),
       seasonEnds: (() => { const d = czSeasonOf(now), y = +d.slice(0, 4), m = +d.slice(4, 6); return Date.UTC(m === 12 ? y + 1 : y, m % 12, 1, 4); })(), ranks: CZ_RANKS, wheel: CZ_WHEEL }, 200, { "Cache-Control": "no-store" });
   }
@@ -3184,6 +3186,11 @@ export async function cosmicRoute(req, env, ctx, url) {
     for (const bt of (sw.stuck || []).slice(0, 3)) await czFinish(env, bt, bt.from).catch(() => {});      // a judge that never finished
     const B = await czRead(env, "cz:bat", []), mine = bt => bt.from === u.uid || bt.by === u.uid || bt.to === u.uid;
     return json({ mine: B.filter(mine).slice(0, 40), open: B.filter(bt => bt.status === "open" && bt.from !== u.uid && !bt.to && now - bt.at < CZ_BAT_TTL).slice(0, 30), max: CZ_BAT_MAX, house: CZ_HOUSE_DAY }, 200, { "Cache-Control": "no-store" });
+  }
+  if (p === "/battle/game" && req.method === "GET") {                          // the full play-by-play of a finished game
+    const B = await czRead(env, "cz:bat", []), bt = B.find(x => x.id === url.searchParams.get("id"));
+    const g = bt && bt.status === "done" ? czReplay(bt) : null;
+    return g ? json({ battle: bt, sim: g }, 200, { "Cache-Control": "no-store" }) : json({ error: "That game can't be replayed (games from before simulated games started only have a recap)." }, 404);
   }
   if (p === "/battle/new" && req.method === "POST") {
     const d = await czBody(req); if (!await rateOk(env, "bt:" + u.uid, 40, 3600e3)) return json({ error: "That's a lot of battles. Take a breather and try again later." }, 429);
@@ -3482,6 +3489,8 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    ctx.waitUntil(Promise.allSettled([tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env), czBackupTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    // Cosmo Sports is the Cosmic game now: no score alerts, reminders or morning briefings go out (tick and sportsTick send
+    // those). The track record's models still run: card values and the betting board use them.
+    ctx.waitUntil(Promise.allSettled([pushRetire(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env), czBackupTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };

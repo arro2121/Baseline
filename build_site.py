@@ -25,8 +25,8 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 <meta name="application-name" content="Cosmo Sports">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cosmo Sports">
-<meta property="og:title" content="Cosmo Sports: live scores, replays and predictions">
-<meta property="og:description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
+<meta property="og:title" content="Cosmo Sports: collect sports cards and play them">
+<meta property="og:description" content="A sports card game. Collect limited-edition cards of real teams and players with free Cosmic Coins, then play them: your lineup plays a whole game, play by play, against real people or the AI.">
 <meta property="og:image" content="__SITE__og-image.png">
 <meta property="og:url" content="__SITE__">
 <meta name="twitter:card" content="summary_large_image">
@@ -35,8 +35,8 @@ PWA_HEAD = """<link rel="manifest" href="manifest.webmanifest">
 
 MANIFEST = {
     "id": "./", "name": "Cosmo Sports", "short_name": "Cosmo Sports", "lang": "en", "dir": "ltr",
-    "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), multi-factor predictions for every game with backtests and a model breakdown, League Leaders, Daily 3 picks, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
-    "categories": ["sports", "news", "entertainment"],
+    "description": "A sports card game. Collect limited-edition cards of real NFL, NBA, MLB, NHL, Premier League, tennis and college teams and players with free Cosmic Coins, then play them: build a lineup and it plays a whole simulated game, play by play, against a real person or the AI, with a box score, grades for every card and game rankings. Bet coins on real games, trade, sell and grade your cards.",
+    "categories": ["games", "sports", "entertainment"],
     "start_url": "./", "scope": "./", "display": "standalone", "display_override": ["standalone"], "orientation": "any",
     "background_color": "#140F3A", "theme_color": "#140F3A",
     "icons": [
@@ -46,11 +46,10 @@ MANIFEST = {
         {"src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png"},
         {"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
     "shortcuts": [
-        {"name": "Today: every game", "short_name": "Today", "url": "./?sport=universe", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Ask Cosmo", "short_name": "Ask", "url": "./?ask=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Picks: the Daily 3", "short_name": "Picks", "url": "./?sport=play", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Following", "short_name": "Following", "url": "./?sport=following", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
-        {"name": "Find a team", "short_name": "Search", "url": "./?search=1", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Play a game", "short_name": "Play", "url": "./?tab=battle", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Open packs", "short_name": "Packs", "url": "./?tab=packs", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "My cards", "short_name": "Cards", "url": "./?tab=coll", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+        {"name": "Game rankings", "short_name": "Rankings", "url": "./?tab=lb", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
         ],
 }
 
