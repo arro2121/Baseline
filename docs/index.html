@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-2iPpKWTfkLXdJp2xU9a94b8MyQ8RNtUC7ClyQwTWDRo='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-nxUyPX9SqlYdVWBP2pKZzqrWFvYEWBKktcHfWTB+sHM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1383,6 +1383,10 @@ html.native .webonly,html.native #installBtn{display:none!important}
 .czpod-step{width:100%;margin-top:6px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,rgba(167,139,250,.35),rgba(124,58,237,.08));font-weight:850;font-size:1.1rem;color:#fff;display:grid;place-items:center}
 .czpod.p1 .czpod-step{height:64px;background:linear-gradient(180deg,rgba(252,211,77,.45),rgba(252,211,77,.06))}.czpod.p2 .czpod-step{height:46px}.czpod.p3 .czpod-step{height:34px}
 .czpod.me .czpod-av{outline:2px solid #f0abfc;outline-offset:3px}.czlbme{margin:10px 0 0}
+.czchf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}.czchf label{display:grid;gap:4px;font-size:.72rem;font-weight:750;opacity:.9}.czchf select{padding:8px}
+.czchout{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0}.czchout b{font-size:1.8rem;font-weight:900;color:#fde68a}.czchout span{font-size:.84rem;opacity:.85;flex:1 1 180px}
+.otd{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;padding:8px 0;border-top:1px solid var(--line-2,rgba(255,255,255,.08))}.otd:first-of-type{border-top:0}.otdlg{grid-row:1 / 4;align-self:start;font-size:.64rem;font-weight:850;letter-spacing:.06em;padding:3px 7px;border-radius:99px;background:rgba(167,139,250,.18);color:#c4b5fd;text-transform:uppercase}
+.otd b{font-size:.92rem}.otd small{font-size:.78rem;opacity:.85}.otd em{font-style:normal;font-size:.72rem;opacity:.65}.otdnote{font-size:.72rem;opacity:.6;margin:6px 0 0}
 .czquests .czq{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08)}.czq>div{flex:1;min-width:0}.czq b{display:block;font-size:.9rem}.czq small{font-size:.74rem;opacity:.75}
 .czq i{display:block;height:5px;margin-top:6px;border-radius:9px;background:linear-gradient(90deg,#a855f7 var(--p),rgba(255,255,255,.12) var(--p))}.czq.got{opacity:.6}.czq.done b{color:#fde68a}.czqok{font-size:1.2rem;color:#34d399;font-weight:900}.czqdot{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:99px;background:#f43f5e;color:#fff;font-size:.72rem;vertical-align:middle}
 .czwishl{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.czwi{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:inherit;border-radius:10px;padding:6px 10px;text-align:left;font:inherit;cursor:pointer}.czwi b{display:block;font-size:.82rem}.czwi small{font-size:.7rem;opacity:.75}.czwi.sale{border-color:#fcd34d;box-shadow:0 0 12px -4px #fcd34d}
@@ -2768,6 +2772,12 @@ dialog.onb p{margin:0 0 12px}
     <li><i>⚔️</i><span><b>Card battles, one for each sport.</b> Pick NFL, NBA, MLB, NHL, Premier League or tennis, build a lineup of up to five of your cards from it, and play a real person or the AI. An AI judge sizes up both sides and calls the winner, who takes both stakes.</span></li>
     <li><i>🎡</i><span><b>Daily spin and parlays.</b> Spin the wheel once a day for coins or a free pack, and combine 2 to 5 picks into one parlay for a bigger payout.</span></li>
     <li><i>💎</i><span><b>Seasons and suspenseful packs.</b> Climb from Bronze to Cosmic each month for coin rewards. Pack cards now glow brighter the rarer they are before they flip.</span></li>
+    <li><i>🎯</i><span><b>Daily quests.</b> Three new ones every day in Cosmic (open packs, place a parlay, grade a card…), each paying coins, with a bonus for all three.</span></li>
+    <li><i>⭐</i><span><b>Wishlist.</b> Star any card from its page; Cosmic tells you when one is for sale and the Market can show only those.</span></li>
+    <li><i>📊</i><span><b>Collection stats.</b> What your cards are worth and how that moves, your most valuable cards, rarity and league breakdowns, and your last packs.</span></li>
+    <li><i>🎲</i><span><b>Your chances.</b> A calculator on the Packs page: the odds of pulling a Moon, a Sun or anything else over any number of packs.</span></li>
+    <li><i>📅</i><span><b>This week in sports history.</b> The Iconic Moments on their dates, on Today.</span></li>
+    <li><i>💾</i><span><b>Download my data.</b> Save a copy of your Cosmic account any time; the service also backs everything up daily.</span></li>
     <li><i>📱</i><span><b>Easier to get around.</b> One bar at the bottom (Today, Scores, Cosmic, Following, More), a league strip at the top, swipe between tabs and pull down to refresh.</span></li>
     <li><i>🏈</i><span><b>College football and basketball.</b> The best 100 programs in each, with live scores, AP rankings, conference standings, news and a Predict page built on every Division I game since 2018.</span></li>
     <li><i>⏰</i><span><b>Game-day reminders.</b> An hour before your teams play, a heads-up with the start time and Cosmo's pick. Follow a team with ☆ and turn on notifications.</span></li>
@@ -7311,6 +7321,18 @@ function czVaultInner(vv){
 }
 // ---- Packs
 const CZ_ORDER = ["singularity", "supernova", "quasar", "nebula", "pulsar", "stardust", "comet"];
+// the chance calculator: your odds of at least one card of a rarity (or rarer) over several packs, from the published odds
+function czChanceHtml(P){
+  const packs = P.packs.map(czPk), C = CZ.chance || (CZ.chance = { pk: packs[0] && packs[0].id, tier: 1, n: 10 }), pk = packs.find(x => x.id === C.pk) || packs[0]; if (!pk) return "";
+  const perCard = pk.odds.slice(0, C.tier + 1).reduce((a, b) => a + b, 0) / 100, one = 1 - Math.pow(1 - perCard, pk.cards), all = 1 - Math.pow(1 - one, C.n);
+  const avg = one > 0 ? Math.ceil(1 / one) : null, tn = CZ_TIER_NAME[P.tiers[C.tier].id];
+  return `<section class="card czchance"><h2>🎯 Your chances</h2><p class="sub">Worked out from the published odds. Every pack is its own roll: opening more doesn't make the next one luckier.</p>
+    <div class="czchf"><label>Pack<select class="field" data-czch="pk">${packs.map(x => `<option value="${esc(x.id)}" ${x.id === pk.id ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
+    <label>At least<select class="field" data-czch="tier">${P.tiers.map((t, i) => `<option value="${i}" ${i === C.tier ? "selected" : ""}>${esc(CZ_TIER_NAME[t.id])}${i ? " or rarer" : ""}</option>`).join("")}</select></label>
+    <label>Packs<select class="field" data-czch="n">${[1, 3, 5, 10, 25, 50, 100].map(n => `<option ${n === C.n ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>
+    <div class="czchout"><b>${all > 0 ? czOddsPct(all * 100) : "0%"}</b><span>chance of at least one ${esc(tn)}${C.tier ? " or rarer" : ""} in ${C.n} ${esc(pk.label)}${C.n === 1 ? "" : "s"} (${(pk.price * C.n).toLocaleString()} coins)</span></div>
+    <p class="sub">${avg ? `On average it takes about ${avg.toLocaleString()} pack${avg === 1 ? "" : "s"} (${(avg * pk.price).toLocaleString()} coins) to get one.` : `A ${esc(pk.label)} never holds a ${esc(tn)}.`}</p></section>`;
+}
 // a pack's case-hit line under its odds: pricier packs hit more often
 const czChLine = pk => pk && pk.ch ? `<li class="czchodds"><i class="czdot ch" aria-hidden="true"></i>💎 Case hit <small>per card</small><b>1 in ${Math.round(1 / pk.ch)}</b></li>` : "";
 const czOddsPct = v => v === 0 ? "—" : v < .1 ? v.toFixed(2) + "%" : v < 1 ? v.toFixed(1) + "%" : Math.round(v * 10) / 10 + "%";
@@ -7341,6 +7363,7 @@ function czPacksHtml(){
         ${(CZ.me.tix || {})[pk.id] ? `<button type="button" class="btn primary czopen glow" data-czfreepk="${esc(pk.id)}">Open free (${CZ.me.tix[pk.id]} from the wheel)</button>` : ""}
         ${czQtyHtml(pk)}</div></article>`; }).join("")}</div>
     ${czTeamPacksHtml(P, bar, perPack)}
+    ${czChanceHtml(P)}
     <details class="czhow"><summary>How packs work</summary><p>Each card's tier is rolled with the odds shown (they're per card). Then a card of that tier you don't own yet is drawn from the copies still out there. If every copy of a tier is gone, that card comes from the next more common tier. Cards you sell to the shop go back into packs. You've opened ${CZ.me.packs || 0} pack${CZ.me.packs === 1 ? "" : "s"}.</p></details>`;
 }
 // Daily Drop and Milestones: special cards from last night's real games, on sale for a day (Milestones two), one per collector
@@ -8038,6 +8061,7 @@ function czBind(el){
     try { const r = await czApi(act === "cancel" ? "/trade/cancel" : "/trade/respond", { tid, accept: act === "accept" }); CZ.me = r.user; toast(act === "accept" ? "Trade done. The cards are yours." : act === "cancel" ? "Offer cancelled" : "Offer declined"); if (act === "accept") sfx("win"); await czLoad(["trades", "me"]); } catch (e) { toast(e.message); czLoad(["trades", "me"]); } });
   el.querySelectorAll("[data-czpack]").forEach(b => b.onclick = () => czOpen(b.dataset.czpack, false, +b.dataset.n || 1));
   el.querySelectorAll("[data-czqty]").forEach(b => b.onclick = () => { const [id, k] = b.dataset.czqty.split("|"); (CZ.qty ||= {})[id] = +k; drawCosmic(); });
+  el.querySelectorAll("[data-czch]").forEach(s => s.onchange = () => { const C = CZ.chance; C[s.dataset.czch] = s.dataset.czch === "pk" ? s.value : +s.value; drawCosmic(); });
   el.querySelectorAll("[data-czms]").forEach(b => b.onclick = () => { CZ.msort = b.dataset.czms; drawCosmic(); });
   el.querySelectorAll("[data-czq]").forEach(b => b.onclick = async () => { b.disabled = true;
     try { const r = await czApi("/quests/claim", { id: b.dataset.czq }); CZ.me = r.user; sfx("win"); czConfetti(b.dataset.czq === "all" ? 90 : 36); toast(`+${r.reward.toLocaleString()} Cosmic Coins`); drawCosmic(); czAnimBal && czAnimBal(); }
@@ -8848,6 +8872,34 @@ function stakeLine(b){
   const live = T.filter(t => !out(t)).map(([n, w, l]) => `${esc(simShort(b.lg, n))} ${oddsPct(w)} or ${oddsPct(l)}`), gone = T.filter(out).map(([n]) => `${esc(simShort(b.lg, n))} out of the race`);
   return [live.length ? live.join(" · ") + " to make the playoffs, win or lose" : "", ...gone].filter(Boolean).join(" · ");
 }
+/* ---- On this day: the Iconic Moments (the same ones as Cosmic's 1-of-1 cards) on their dates. Today's, or the nearest ---- */
+const OTD = [["02-22", 1980, "nhl", "Miracle on Ice", "Team USA beats the Soviet Union at Lake Placid"], ["01-10", 1982, "nfl", "The Catch", "Montana to Clark sends the 49ers to their first Super Bowl"],
+  ["12-23", 1972, "nfl", "Immaculate Reception", "Franco Harris scoops a deflected pass and runs it in"], ["03-02", 1962, "nba", "Wilt's 100-Point Game", "Wilt Chamberlain scores 100 against the Knicks"],
+  ["10-03", 1951, "mlb", "Shot Heard 'Round the World", "Bobby Thomson's walk-off homer wins the pennant for the Giants"], ["07-06", 2008, "atp", "Federer vs Nadal, Wimbledon", "Nadal wins the final in near darkness, 9-7 in the fifth"],
+  ["06-11", 1997, "nba", "The Flu Game", "A sick Michael Jordan scores 38 in Game 5 of the Finals"], ["10-15", 1988, "mlb", "Kirk Gibson's Walk-Off", "A limping Gibson homers to win Game 1 of the World Series"],
+  ["01-22", 2006, "nba", "Kobe's 81", "Kobe Bryant scores 81 against the Raptors"], ["02-05", 2017, "nfl", "28-3 Comeback", "The Patriots come back from 25 down to win Super Bowl LI"],
+  ["05-02", 2016, "epl", "Leicester's 5000-1 Title", "Leicester City are crowned Premier League champions"], ["09-20", 1973, "wta", "Battle of the Sexes", "Billie Jean King beats Bobby Riggs"],
+  ["06-19", 2016, "nba", "The Block", "LeBron James chases down Andre Iguodala in Game 7"], ["10-08", 1956, "mlb", "Don Larsen's Perfect Game", "The only perfect game in World Series history"],
+  ["01-08", 2000, "nfl", "Music City Miracle", "The Titans' kickoff-return lateral beats the Bills"], ["05-13", 2012, "epl", "Agüerooooo", "Sergio Agüero wins Manchester City the title at 93:20"],
+  ["05-10", 1970, "nhl", "Bobby Orr's Flying Goal", "Orr's overtime winner takes the Stanley Cup"], ["01-14", 1973, "nfl", "The Perfect Season", "The Dolphins win Super Bowl VII to finish 17-0"],
+  ["10-20", 2004, "mlb", "Curse Reversed", "The Red Sox finish their comeback from 0-3 against the Yankees"], ["01-14", 2018, "nfl", "Minneapolis Miracle", "Stefon Diggs goes 61 yards on the last play"],
+  ["02-28", 2010, "nhl", "Golden Goal", "Sidney Crosby wins Olympic gold in overtime in Vancouver"], ["01-25", 2003, "wta", "Serena Slam", "Serena Williams wins a fourth straight major"],
+  ["11-02", 2016, "mlb", "Cubs End the Drought", "The Cubs win Game 7 in extra innings, their first title since 1908"], ["02-04", 2018, "nfl", "Philly Special", "Nick Foles catches a touchdown in Super Bowl LII"],
+  ["01-08", 2011, "nfl", "The Beast Quake", "Marshawn Lynch's 67-yard touchdown run"], ["06-24", 2010, "atp", "Isner vs Mahut", "The 11-hour match ends 70-68 in the fifth set"],
+  ["06-14", 1994, "nhl", "Rangers End 54 Years", "The Rangers win the Stanley Cup in Game 7"], ["01-19", 2002, "nfl", "Tuck Rule Game", "The Patriots beat the Raiders in the snow"],
+  ["01-12", 1969, "nfl", "Joe Namath's Guarantee", "The Jets win Super Bowl III"], ["02-01", 2015, "nfl", "Malcolm Butler's Interception", "A goal-line pick wins Super Bowl XLIX"],
+  ["01-29", 2012, "atp", "Djokovic vs Nadal, Melbourne", "Djokovic wins the longest Grand Slam final, 5 hours 53 minutes"], ["10-27", 2011, "mlb", "Game 6, 2011 World Series", "David Freese's triple and walk-off homer save the Cardinals"],
+  ["06-18", 2013, "nba", "Ray Allen's Corner Three", "Allen's three forces overtime in Game 6"], ["05-13", 2018, "epl", "Mo Salah's 32", "Salah's 32nd league goal on the final day"]];
+function onThisDayHtml(){
+  const now = new Date(), y = now.getFullYear(), md = x => new Date(y, +x[0].slice(0, 2) - 1, +x[0].slice(3)), day = 864e5, t0 = new Date(y, now.getMonth(), now.getDate());
+  const dist = x => { let d = Math.round((md(x) - t0) / day); if (d < -182) d += 365; if (d > 182) d -= 365; return d; };
+  const today = OTD.filter(x => dist(x) === 0), near = OTD.filter(x => dist(x) !== 0 && Math.abs(dist(x)) <= 10).sort((a, b) => Math.abs(dist(a)) - Math.abs(dist(b))).slice(0, 2);
+  const next = today.length || near.length ? [] : OTD.filter(x => dist(x) > 0).sort((a, b) => dist(a) - dist(b)).slice(0, 1);
+  const row = x => { const d = dist(x), when = d === 0 ? `Today, ${y - x[1]} years ago` : `${d > 0 ? "In " + d + " day" + (d === 1 ? "" : "s") : -d + " day" + (d === -1 ? "" : "s") + " ago"} · ${md(x).toLocaleDateString([], { month: "short", day: "numeric" })}, ${x[1]}`;
+    return `<div class="otd"><span class="otdlg">${esc(LG_NAME[x[2]] || x[2].toUpperCase())}</span><b>${esc(x[3])}</b><small>${esc(x[4])}</small><em>${esc(when)}</em></div>`; };
+  const L = [...today, ...near, ...next];
+  return L.length ? `<section class="usec otdsec"><h3>${today.length ? "On this day" : "This week in sports history"}</h3>${L.map(row).join("")}<p class="otdnote">Each of these is an Iconic Moment card in Cosmic, a single 1 of 1.</p></section>` : "";
+}
 function drawUniverse(){
   const el = $("#uniView"); if (!el) return;
   const head = `<div class="lghead"><div><h1>Today</h1><p>Every game across the NFL, NBA, MLB, NHL and Premier League, plus college games with a ranked team. The closest and latest games sit nearest the center.</p></div></div><div id="instToday">${installCardHtml("today")}</div>`;
@@ -8873,6 +8925,7 @@ function drawUniverse(){
       ${dailyHtml(true)}
       <section class="usec"><h3>${live.length ? `Live now <small>${live.length} game${live.length === 1 ? "" : "s"}, hottest first</small>` : "Live now"}</h3>${live.length ? `<div class="ulist">${live.map(uniRow).join("")}</div>` : `<div class="teamnote">Nothing live right now. The next games are below.</div>`}</section>
       ${forecastHtml()}
+      ${onThisDayHtml()}
       ${stakesHtml()}
       ${soon.length ? `<section class="usec"><h3>Coming up</h3><div class="ulist">${soon.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
       ${done.length ? `<section class="usec"><h3>Final <small>best games first</small></h3><div class="ulist">${done.slice(0, 8).map(uniRow).join("")}</div></section>` : ""}
