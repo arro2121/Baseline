@@ -19,7 +19,8 @@ The owner keeps a private copy of the site on claude.ai: https://claude.ai/artif
      if they changed).
 - The only intended differences in the copy are what `tools/claude_copy.mjs` adds so it can run on claude.ai: Cosmic runs
   in the page as a local game (claude.ai pages can't reach the Cosmic service), sign-up is by name, and live scores and
-  anything that needs another server are unavailable. Don't add anything else to the copy that the real site lacks.
+  anything that needs another server are unavailable. It's the owner's test copy, so its Cosmic balance never runs out
+  (the owner asked for this; the real site keeps normal coins). Don't add anything else to the copy that the real site lacks.
 - If the copy is ever changed from somewhere else, bring that change into this repository and ship it to the real site,
   then regenerate the copy as above, so the two stay identical.
 
