@@ -2711,6 +2711,13 @@ async function czTeamPacks(env, lg) {
   (CZ_CAT.tp ||= {})[lg] = out; return out;
 }
 // price alerts: the cards you own whose price level moved 5% or more since yesterday, biggest moves first (one per player)
+// each card's value now: its level, whether its player is hot tonight, and how many copies are out
+async function czValuesOf(env, ids, now) {
+  const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), cards = [];
+  for (const id of ids) { const it = await czItem(env, id); if (!it) continue; const k = czLvlKey(it);
+    cards.push({ id, value: czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[id] || 0) - (ret[id] || []).length }).value }); }
+  return cards;
+}
 async function czPriceAlerts(env, items) {
   if (!items.length) return []; try { await czCatalog(env); } catch { return []; }
   const seen = new Set(), out = [];
@@ -3152,12 +3159,16 @@ export async function cosmicRoute(req, env, ctx, url) {
     const r = await cz(env, { act: "grade", uid: u.uid, now, id: it.id, value: V.value }); return json(r, r.error ? 409 : 200);
   }
   // Sell all: the cards to sell (up to 500), valued the same way as one at a time. With preview, only says what they'd bring.
+  // what each of your cards is worth right now (the copy's grade, ink or insert counted), for sorting the Collection by value
+  if (p === "/values" && req.method === "GET") {
+    const mine = new Map((u.items || []).map(x => [x.id, x])), vals = {};
+    for (const c of await czValuesOf(env, [...mine.keys()].slice(0, 2000), now)) vals[c.id] = Math.round(c.value * czCopyMult(mine.get(c.id)));
+    return json({ vals }, 200, { "Cache-Control": "no-store" });
+  }
   if (p === "/sellmany" && req.method === "POST") {
     const d = await czBody(req), ids = [...new Set((Array.isArray(d.items) ? d.items : []).map(String))].slice(0, 500);
     if (!ids.length) return json({ error: "Pick some cards to sell." }, 400);
-    const [XP, HOT, mint0, ret] = await Promise.all([czRead(env, "cz:lvl", {}), czRead(env, "cz:hot", {}), czRead(env, "cz:mint", {}), czRead(env, "cz:ret", {})]), cards = [];
-    for (const id of ids) { const it = await czItem(env, id); if (!it) continue; const k = czLvlKey(it);
-      cards.push({ id, value: czValueOf(it, { xp: XP[k] || 0, hot: !!(HOT[k] && now - HOT[k].at < 30 * 3600e3), held: (mint0[id] || 0) - (ret[id] || []).length }).value }); }
+    const cards = await czValuesOf(env, ids, now);
     if (d.preview) { const mine = new Map((u.items || []).map(x => [x.id, x])), ok = cards.filter(c => mine.has(c.id) && !mine.get(c.id).listed && !mine.get(c.id).auction && !mine.get(c.id).battle);
       return json({ count: ok.length, total: ok.reduce((s, c) => s + Math.max(1, Math.floor(c.value * czCopyMult(mine.get(c.id)) * CZ_SHOP)), 0), busy: cards.filter(c => mine.has(c.id)).length - ok.length }); }
     const r = await cz(env, { act: "sellmany", uid: u.uid, now, cards }); return json(r, r.error ? 409 : 200);
