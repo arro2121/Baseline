@@ -137,4 +137,22 @@ check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse
   const r = await W0.default.fetch(new Request("https://w.dev/tts", { method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "9.9.9.9" }, body: JSON.stringify({ text: "Touchdown, Chiefs!" }) }), env, { waitUntil() {} });
   const j = await r.json().catch(() => ({}));
   check("B3 the voice reports it's resting when the daily AI allowance is used up", r.status === 503 && j.error === "resting", [r.status, j.error]); }
+// BK1-BK3: backups of the whole Store, restore, and the undo backup a restore takes first
+{ const { m, st } = mem(); st.list = async ({ prefix = "" } = {}) => new Map([...m].filter(([k]) => k.startsWith(prefix)).map(([k, v]) => [k, structuredClone(v)]));
+  st.delete = async k => Array.isArray(k) ? k.forEach(x => m.delete(x)) : m.delete(k); const put0 = st.put; st.put = async (k, v) => typeof k === "object" ? Object.entries(k).forEach(([a, b]) => m.set(a, structuredClone(b))) : put0(k, v);
+  const kv = new Map(), env = { KV: { get: async (k, o) => { const v = kv.get(k); if (v == null) return null; return o && o.type === "arrayBuffer" ? v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength) : v; }, put: async (k, v) => { kv.set(k, v); } } };
+  user(m, "A", { items: [{ id: "nba.p1.pulsar", n: 3, gr: 9 }] }); m.set("cz:mkt", [{ lid: "L1" }]); m.set("rl:x", [now]);
+  const b = await W0.czBackupTake(st, env, { now, why: "test" }), idx = JSON.parse(kv.get("bk:index"));
+  check("BK1 a backup keeps every record but the attempt counters, gzipped, and is listed", b.keys === 2 && b.bytes > 0 && b.bytes < b.raw + 50 && idx[0].id === b.id && idx[0].until > now, b);
+  m.get("cz:u:A").items = []; m.set("cz:u:A", { ...m.get("cz:u:A"), bal: 5, items: [] }); m.set("cz:u:Z", { uid: "Z" }); m.delete("cz:mkt");
+  const r = await W0.czBackupRestore(st, env, { id: b.id, now });
+  check("BK2 a restore brings back the saved records exactly and removes ones made since", m.get("cz:u:A").bal === 1000 && m.get("cz:u:A").items[0].gr === 9 && m.get("cz:mkt")[0].lid === "L1" && !m.has("cz:u:Z") && m.has("rl:x") && r.removed === 1, r);
+  const idx2 = JSON.parse(kv.get("bk:index")), undo = idx2.find(x => x.id === r.undo);
+  check("BK3 a restore first backs up what it replaces, so it can be undone", !!undo && /before restoring/.test(undo.why) && (await W0.czBackupRead(env, r.undo)) !== null, idx2);
+  check("BK3 the restored backup is still there too (the undo never replaces it)", idx2.some(x => x.id === b.id) && r.undo !== b.id);
+  // an account deleted after the backup stays deleted when that backup is restored
+  kv.set("bk:deleted", JSON.stringify([{ uid: "A", at: now + 5000 }]));
+  const r2 = await W0.czBackupRestore(st, env, { id: b.id, now: now + 6000 });
+  check("BK4 a restore never brings back an account deleted since the backup", r2.redeleted === 1 && !m.has("cz:u:A") && m.get("cz:mkt")[0].lid === "L1", [r2, [...m.keys()]]);
+  check("BK3 an unknown backup is refused", !!(await W0.czBackupRestore(st, env, { id: "nope" })).error); }
 console.log(fails ? `\n${fails} FAILED` : "\nall passed"); process.exit(fails ? 1 : 0);

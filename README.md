@@ -109,6 +109,12 @@ network blocks ESPN and the alerts service (some school, work and hotel Wi-Fi, V
 app shows that copy, a few minutes behind and labeled as such, instead of an error. All of these allow personal, non-commercial use, so keep
 the app free and ad-free. There is no free official feed with the same detail for the NFL, NBA or Premier League.
 
+**Backups.** The alerts service backs up everything Cosmic keeps (accounts, cards, the Market, auctions, trades, battles and
+push subscriptions) once a day a little after 08:00 UTC, as one gzipped JSON file in KV. Daily backups are kept 14 days and
+Sunday's 90. In Cosmic, **Owner inbox › Backups** (with the owner key) lists them and can take one now, download one, or
+restore one; a restore first backs up the current state, so it can be undone, and accounts deleted since the backup stay
+deleted. Every player can also download their own data (**Download my data** at the bottom of Cosmic).
+
 **Comets (your articles)** are stored by the alerts service and shown to everyone. Only you can write them:
 1. Pick a long passphrase you don't use anywhere else (this is your writer key).
 2. In the GitHub repository go to **Settings › Secrets and variables › Actions › New repository secret**, name it
