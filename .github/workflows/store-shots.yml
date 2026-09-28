@@ -1,4 +1,4 @@
-# App Store screenshots from the live site (real games, logos and player photos), saved to app/store/screenshots.
+# App Store screenshots from the live site (real games and cards), saved to app/store/screenshots.
 # Run it from Actions > App Store screenshots > Run workflow, once the site is live.
 name: App Store screenshots
 on:
@@ -19,10 +19,10 @@ jobs:
         env:
           COMETS_KEY: ${{ secrets.COMETS_KEY }}
           SITE: ${{ vars.SITE_URL || 'https://arro2121.github.io/Baseline/' }}
-        run: node app/store/shots.mjs
+        run: rm -f app/store/screenshots/*.png && node app/store/shots.mjs   # a fresh set, no old screenshot left behind
       - uses: actions/upload-artifact@v4
         with: { name: app-store-screenshots, path: app/store/screenshots }
       - name: Save them to the repository
         run: |
           git config user.name "baseline-bot"; git config user.email "baseline-bot@users.noreply.github.com"
-          git add app/store/screenshots && git commit -q -m "App Store screenshots from the live site" && git push || echo "No changes"
+          git add -A app/store/screenshots && git commit -q -m "App Store screenshots from the live site" && git push || echo "No changes"

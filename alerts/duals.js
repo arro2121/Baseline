@@ -62,7 +62,7 @@ nba|Kawhi Leonard|James Harden|Former Clippers stars
 nba|Devin Booker|Bradley Beal|Former Suns backcourt
 nba|Zion Williamson|Trey Murphy III|@Pelicans core
 nba|Kevin Durant|Stephen Curry|2017 and 2018 champions
-nba|Nikola Jokić|Luka Dončić|European MVPs
+nba|Nikola Jokić|Luka Dončić|European superstars
 nba|Giannis Antetokounmpo|Nikola Jokić|Back-to-back international MVPs
 nfl|Patrick Mahomes|Travis Kelce|@Chiefs quarterback and tight end
 nfl|Joe Burrow|Ja'Marr Chase|LSU champions and Bengals
@@ -90,7 +90,7 @@ nfl|T.J. Watt|Myles Garrett|The league's top pass rushers
 nhl|Connor McDavid|Leon Draisaitl|@Oilers stars
 nhl|Matthew Tkachuk|Brady Tkachuk|Brothers
 nhl|Quinn Hughes|Jack Hughes|Brothers
-nhl|Jack Hughes|Luke Hughes|Brothers and Devils
+nhl|Jack Hughes|Luke Hughes|Brothers
 nhl|Sidney Crosby|Nathan MacKinnon|From Cole Harbour, Nova Scotia
 nhl|Sidney Crosby|Evgeni Malkin|Penguins champions
 nhl|Alex Ovechkin|Evgeni Malkin|Russian rivals

@@ -39,7 +39,7 @@ PICKS
 
 COSMIC
 - Bet free Cosmic Coins on real games at real prices, plus player props, and climb the leaderboards
-- Open packs of limited-edition team and player cards in seven tiers, from Comet (1 of 1,000) to Singularity: only one of each will ever exist
+- Open packs of limited-edition team and player cards in seven rarities, from Jupiter (1 of 1,000) to the Sun: only one of each will ever exist
 - Trade cards with other collectors, run auctions, buy on the Market or sell back to the shop
 - Cards level up when the real player has a big game
 - Cosmic Coins are play money. They can't be bought, and they can't be cashed out. Cards have no cash value.
@@ -92,6 +92,8 @@ In `app/store/screenshots/`, uploaded in this order:
 1. `01-today.png`: every game at once
 2. `02-cosmic.png`: Cosmic home, your showcase
 3. `03-packs.png`: packs and their odds
-4. `04-card.png`: a Supernova card, 1 of 10
-5. `05-nfl.png`: a league with win chances
+4. `04-card.png`: a card up close
+5. `05-bet.png`: betting on real games
+6. `06-predict.png`: a league's win chances
+7. `07-games.png`: a league's scores
 App Store Connect scales these down for smaller iPhones. The app is iPhone-only, so no iPad screenshots are needed.
