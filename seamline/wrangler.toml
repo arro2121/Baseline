@@ -1,0 +1,17 @@
+name = "seamline"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[observability]
+enabled = true
+
+# Secrets (set with `npx wrangler secret put NAME`, or by the deploy workflow):
+#   FASHN_API_KEY      AI try-on (https://fashn.ai)
+#   ANTHROPIC_API_KEY  Claude: reading product pages, placing points, style advice
+#   ACCESS_CODE        code visitors must enter; keeps strangers from spending your credits

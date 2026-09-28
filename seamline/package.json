@@ -1,0 +1,16 @@
+{
+  "name": "seamline",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/test_fit.mjs && node test/test_worker.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.43.0"
+  }
+}
