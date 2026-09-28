@@ -142,14 +142,14 @@ No model is certain. Bet only what you can afford to lose.
 ### Cosmic (social betting with play money)
 
 **More › Cosmic** (or `?sport=cosmic`). Everyone starts with 1,000 Cosmic Coins and can claim more daily (a streak adds up to
-+300). Coins are bet on real NFL, NBA, MLB, NHL and Premier League games at the sportsbook's moneyline (or the model's fair price
-with a 4.5% margin where there's no line), and bets settle automatically after the final. Coins buy numbered cards for every team and
++300, all earnings paying 5% under the round number: `CZ_EARN`). Coins are bet on real NFL, NBA, MLB, NHL and Premier League games at the sportsbook's moneyline (or the model's fair price
+with a 4.5% margin where there's no line), with winnings 5% under that price's profit, and bets settle automatically after the final. Coins buy numbered cards for every team and
 every player on every NFL, NBA, MLB, NHL and Premier League roster (`alerts/rosters.mjs` → `docs/rosters.json`, refreshed nightly), the top 100 players on each tennis tour, and the top 100 college football and basketball programs (Campus Stars), in seven
 rarities, each a body in the solar system: the Sun (1 of 1), the Moon (1 of 10), Earth (1 of 25), Mars (1 of 50), Neptune (1 of 100),
 Venus (1 of 250) and Jupiter (1 of 1,000). There are also 1-of-1 All-Time legends, Iconic Moments and Binary Stars (two connected
 players on one card), and one Grail per league. Cards come from packs (Jupiter 100, Venus 250, Mars 1,000, Moon 5,000, Sun 10,000,
 Solar System 100,000 coins), each with published
-odds per card; a pack can be limited to one league. Cards can be sold back to the shop (75% of the card's value; the copy returns
+odds per card; a pack can be limited to one league. Cards can be sold back to the shop (71% of the card's value; the copy returns
 to packs) or listed on the Market for other players (5% fee). Supply is shared by everyone and enforced by the alerts service's Durable Object, so there is only ever one
 1/1 of each. Coins and cards have no cash value: coins can't be bought with money or cashed out, cards only trade for coins inside
 Cosmic, and the cards are not blockchain NFTs.

@@ -42,6 +42,11 @@ const card = (id, x = {}) => ({ id, n: 3, supply: 100, tier: id.split(".").pop()
   await T({ act: "tresp", uid: "H", tid, accept: true });
   check("GR7 a traded graded copy arrives with its grade", !!tid && m.get("cz:u:H").items.find(i => i.id === "nba.q1.pulsar")?.gr === g2, [off, m.get("cz:u:H").items]); }
 
+// EA1: earning is 5% under the round numbers: the daily claim, bet winnings (the profit only), the wheel, prizes and the shop
+check("EA1 a day-one claim pays 238, a 7-day streak 523", W.czDailyAmt(1) === 238 && W.czDailyAmt(7) === 523, [W.czDailyAmt(1), W.czDailyAmt(7)]);
+check("EA1 a price of 2.00 pays 1.95: the stake back plus 95% of the profit", Math.abs(W.czTrim(2) - 1.95) < 1e-9 && Math.abs(W.czTrim(3.5) - 3.375) < 1e-9);
+check("EA1 wheel coins, season prizes and the shop are 5% lower", W.CZ_WHEEL.filter(x => x.coins).every(x => x.coins % 5 !== 0 || [95, 285, 475, 950].includes(x.coins)) && W.CZ_RANKS.at(-1)[3] === 19000 && W.CZ_EARN === .95);
+
 // DD1-DD6: Daily Drop and Milestones
 const items = [1, 2, 3, 4, 5, 6, 7].flatMap(i => ["comet", "nebula"].map(t => ({ id: `nba.p${i}.${t}`, lg: "nba", kind: "player", tier: t, name: "Player " + i, team: "T", pos: "G", mult: 1 + i / 10, price: 100 * i })));
 const pf = (i, score, x = {}) => ({ k: `nba:player ${i}`, lg: "nba", at: now - 10 * 3600e3, line: `${score} PTS`, game: "A at B", score, feats: [], ...x });
