@@ -121,7 +121,28 @@ await t("a finished job comes back as an image the browser can keep", async () =
   fashnStatus = { id: "pred_123", status: "completed", output: ["https://cdn.fashn.example/out.png"], error: null };
   const r = await (await req("/api/tryon/pred_123")).json();
   assert.equal(r.status, "completed");
-  assert.match(r.output[0], /^data:image\/png;base64,/);
+  assert.equal(r.output[0], "/api/tryon/pred_123/image");
+  const img = await req("/api/tryon/pred_123/image");
+  assert.equal(img.headers.get("content-type"), "image/png");
+  assert.deepEqual(new Uint8Array(await img.arrayBuffer()), PNG_BYTES);
+  assert.equal((await req("/api/tryon/pred_123/image", null, "nope")).status, 401);
+});
+await t("product photos stream through, and non-images are refused", async () => {
+  const ok = await req("/api/image", { url: "https://cdn.shop.example/flat.jpg" });
+  assert.equal(ok.headers.get("content-type"), "image/png");
+  assert.equal((await req("/api/image", { url: "https://shop.example/p" })).status, 415);
+  assert.equal((await req("/api/image", { url: "http://10.0.0.1/x.png" })).status, 400);
+});
+await t("huge pages are read around the size guide", async () => {
+  const filler = "<div>" + "x".repeat(990) + "</div>";
+  const big = "<html><head><title>Big</title></head><body>" + filler.repeat(600) + "<h2>Size guide</h2><table><tr><td>M</td><td>55</td></tr></table>" + filler.repeat(600) + "</body></html>";
+  const t0 = performance.now();
+  const p = parseProductPage(big, "https://shop.example/");
+  const ms = performance.now() - t0;
+  assert.match(p.text, /Size guide/);
+  assert.match(p.text, /M \| 55/);
+  assert.ok(p.text.length < 450_000);
+  console.log(`   (1.2 MB page read in ${ms.toFixed(1)} ms)`);
 });
 await t("a failed job passes on FASHN's reason", async () => {
   fashnStatus = { id: "pred_123", status: "failed", output: null, error: { name: "PoseError", message: "Couldn't find a person" } };

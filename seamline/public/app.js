@@ -90,6 +90,19 @@ async function api(path, body, method) {
   if (!res.ok) throw new Error((data && data.error) || `The server returned an error (${res.status}).`);
   return data;
 }
+// For endpoints that answer with an image instead of JSON.
+async function apiBlob(path, body) {
+  const opts = { method: body ? "POST" : "GET", headers: { "x-access-code": getCode() } };
+  if (body) { opts.headers["content-type"] = "application/json"; opts.body = JSON.stringify(body); }
+  let res;
+  try { res = await fetch(path, opts); } catch (e) { throw new Error("You're offline, or the server can't be reached."); }
+  if (!res.ok) { let data = null; try { data = await res.json(); } catch (e) {} throw new Error((data && data.error) || `The server returned an error (${res.status}).`); }
+  return res.blob();
+}
+async function blobToDataURL(blob, maxDim, bg, quality) {
+  const url = URL.createObjectURL(blob);
+  try { return await srcToDataURL(url, maxDim, bg, quality); } finally { imgCache.delete(url); URL.revokeObjectURL(url); }
+}
 function showGate(msg) { $("#gate").hidden = false; if (msg) setStatus("#gate-status", msg); $("#gate-code").focus(); }
 $("#gate").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -595,7 +608,7 @@ function personCrop() {
   x.drawImage(B.img, -sx * scale, -sy * scale, B.w * scale, B.h * scale);
   const pts = {};
   for (const k in B.pts) pts[k] = { x: ((B.pts[k].x * B.w - sx) * scale) / TRYON_W, y: ((B.pts[k].y * B.h - sy) * scale) / TRYON_H };
-  return { dataUrl: c.toDataURL("image/jpeg", 0.92), pts };
+  return { dataUrl: c.toDataURL("image/jpeg", 0.88), pts };
 }
 let tryonBusy = false;
 $("#btn-tryon").addEventListener("click", async () => {
@@ -619,7 +632,7 @@ $("#btn-tryon").addEventListener("click", async () => {
       if (st.status === "failed") throw new Error(st.error || "The try-on didn't work for this photo.");
     }
     if (!out) throw new Error("The try-on took too long. Try again.");
-    const img = await srcToDataURL(out, 1296, null, 0.9);
+    const img = out.startsWith("data:") ? await srcToDataURL(out, 1296, null, 0.9) : await blobToDataURL(await apiBlob(out), 1296, null, 0.9);
     item.render = { key, img, pts: crop.pts, at: Date.now() };
     item.advice = null;
     S.view = "ai";
@@ -793,8 +806,7 @@ async function pickImage(src) {
   const item = curItem();
   setStatus("#link-status", "Getting the photo…", false, true);
   try {
-    const { dataUrl } = await api("/api/image", { url: src });
-    item.image = await srcToDataURL(dataUrl, 1200, "#ffffff");
+    item.image = await blobToDataURL(await apiBlob("/api/image", { url: src }), 1000, "#ffffff");
     item.imageUrl = src; item.gpts = null; GAR = null; item.render = null;
     save(); await ensureGarment(); renderItem();
     setStatus("#link-status", "Photo added. Check the points on it below.");
@@ -894,7 +906,7 @@ $("#consent").addEventListener("change", async (e) => {
 $("#photo-file").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
-    S.profile.photo = await fileToDataURL(f, 1400, "#ffffff");
+    S.profile.photo = await fileToDataURL(f, 1300, "#ffffff");
     S.profile.pts = defaultBodyPts(); S.profile.example = false;
     save(); await ensureBody(); renderYou();
     if (CONFIG.claude) $("#btn-body-auto").click();
@@ -942,7 +954,7 @@ $("#g-file").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
     const item = curItem();
-    item.image = await fileToDataURL(f, 1200, "#ffffff");
+    item.image = await fileToDataURL(f, 1000, "#ffffff");
     item.imageUrl = null; item.gpts = null; item.example = false; GAR = null;
     save(); await ensureGarment(); renderItem();
   } catch (err) { toast("That file couldn't be opened as an image."); }

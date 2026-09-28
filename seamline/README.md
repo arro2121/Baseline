@@ -20,23 +20,24 @@ from the measurements, not the picture.
 | --- | --- |
 | `public/` | The site: `index.html`, `style.css`, `app.js` (the changing room) and `fit.js` (the size engine). Your photo, measurements and rack are saved in your browser. |
 | `src/worker.js` | A Cloudflare Worker serving the site plus `/api/*`: opens product links and reads them with Claude, downloads product photos, places body/garment points with Claude, style advice, and starts/polls FASHN try-ons. It stores nothing. |
-| `.github/workflows/deploy.yml` | Tests every push; deploys `main` to Cloudflare. |
+| `../.github/workflows/seamline.yml` | Tests every change; deploys `main` to Cloudflare. |
 
-## Set it up
+## Where it runs
 
-1. **FASHN key** (the try-on): create an account at [fashn.ai](https://fashn.ai), add credit, and create an API key
-   under Developer API. Each try-on costs a few cents.
-2. **Anthropic key** (reading pages, points, advice): create one at [console.anthropic.com](https://console.anthropic.com).
-3. **Cloudflare**: an API token with the "Edit Cloudflare Workers" template and your account ID
-   (the same ones Cosmo Sports uses will work).
-4. In this repository go to **Settings > Secrets and variables > Actions** and add:
-   `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `FASHN_API_KEY`, `ANTHROPIC_API_KEY`, and `ACCESS_CODE`
-   (any passphrase; visitors must enter it, so strangers can't spend your credits).
-5. Run the **Deploy** workflow (Actions tab > Deploy > Run workflow). The site appears at
-   `https://seamline.<your-subdomain>.workers.dev`. To use your own domain, add it under the worker's
-   Settings > Domains & Routes in Cloudflare.
+It lives at **https://seamline.baseline-arro2121-3091.workers.dev** and is deployed by
+`.github/workflows/seamline.yml` in the Baseline repository whenever `seamline/` changes on `main`, using the
+Cloudflare secrets Cosmo Sports already has. It never touches the Cosmo Sports site or workflow.
 
-A feature whose key is missing stays off and the site says so; everything else keeps working.
+The AI features switch on from these repository secrets (Settings > Secrets and variables > Actions), then a re-run
+of the **Seamline** workflow:
+
+| Secret | What it's for |
+| --- | --- |
+| `SEAMLINE_ACCESS_CODE` | Any passphrase. Visitors enter it once; without it the AI features stay off so nobody can spend your credits. |
+| `FASHN_API_KEY` | The AI try-on. Create an account at [fashn.ai](https://fashn.ai), add credit, and make a key under Developer API. A few cents per try-on. |
+| `ANTHROPIC_API_KEY` | Link reading, point placement and style advice (shared with Cosmo Sports). |
+
+Without keys the site still works: measurements, size recommendations, the measured view and the fit map.
 
 ## Develop
 

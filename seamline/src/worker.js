@@ -40,7 +40,7 @@ async function route(request, env, url) {
   checkAccess(request, env);
   if (p === "/api/check" && request.method === "POST") return json({ ok: true });
   if (p === "/api/product" && request.method === "POST") return json(await product(await body(request), env));
-  if (p === "/api/image" && request.method === "POST") return json(await imageFromUrl((await body(request)).url));
+  if (p === "/api/image" && request.method === "POST") return streamImage((await body(request)).url);
   if (p === "/api/extract" && request.method === "POST") {
     const b = await body(request);
     return json(await extract(env, String(b.text || ""), b.image || null));
@@ -48,8 +48,8 @@ async function route(request, env, url) {
   if (p === "/api/points" && request.method === "POST") return json(await points(env, await body(request)));
   if (p === "/api/advice" && request.method === "POST") return json(await advice(env, await body(request)));
   if (p === "/api/tryon" && request.method === "POST") return json(await tryonStart(env, await body(request)));
-  const m = p.match(/^\/api\/tryon\/([A-Za-z0-9_-]{1,100})$/);
-  if (m && request.method === "GET") return json(await tryonStatus(env, m[1]));
+  const m = p.match(/^\/api\/tryon\/([A-Za-z0-9_-]{1,100})(\/image)?$/);
+  if (m && request.method === "GET") return m[2] ? tryonImage(env, m[1]) : json(await tryonStatus(env, m[1]));
   throw new HttpError(404, "Unknown endpoint.");
 }
 
@@ -90,7 +90,7 @@ async function product(b, env) {
     res = await fetch(u.toString(), { headers: { "user-agent": UA, accept: "text/html,application/xhtml+xml", "accept-language": "en-US,en;q=0.9" }, redirect: "follow" });
   } catch { throw new HttpError(502, "The store's page couldn't be reached. Paste the page text instead."); }
   if (!res.ok) throw new HttpError(502, `The store blocked the request (${res.status}). Paste the page text instead.`);
-  const html = (await res.text()).slice(0, 3_000_000);
+  const html = (await res.text()).slice(0, 4_000_000);
   const page = parseProductPage(html, res.url || u.toString());
   if (page.text.length < 200 && !page.ld) throw new HttpError(422, "The page didn't include the product details (the store may load them with scripts). Paste the page text instead.");
   const item = await extract(env, page.forClaude, null);
@@ -124,7 +124,7 @@ export function parseProductPage(html, baseUrl) {
   addImg(meta("og:image:secure_url"));
   addImg(meta("twitter:image"));
   const title = meta("og:title") || (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "";
-  const text = htmlToText(html);
+  const text = htmlToText(focusHtml(html));
   const parts = [];
   if (title) parts.push("Title: " + decodeEntities(title.trim()));
   if (ld) parts.push("Structured product data: " + JSON.stringify(slimLd(ld)).slice(0, 6000));
@@ -145,6 +145,16 @@ function slimLd(d) {
   for (const k of keep) if (d[k] != null) o[k] = d[k];
   if (Array.isArray(d.hasVariant)) o.variantSizes = [...new Set(d.hasVariant.map((v) => v && v.size).filter(Boolean))].slice(0, 30);
   return o;
+}
+// Big store pages can be megabytes; read the start of the body plus the part around the size guide.
+export function focusHtml(html) {
+  if (html.length <= 400_000) return html;
+  const bodyAt = Math.max(0, html.search(/<body[\s>]/i));
+  let out = html.slice(bodyAt, bodyAt + 250_000);
+  const tail = html.slice(bodyAt + 250_000);
+  const m = tail.search(/size\s*(guide|chart)|measurements|pit to pit/i);
+  if (m >= 0) out += " " + tail.slice(Math.max(0, m - 20_000), m + 130_000);
+  return out;
 }
 export function htmlToText(html) {
   return decodeEntities(
@@ -168,7 +178,8 @@ function decodeEntities(s) {
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
 }
 
-async function imageFromUrl(raw) {
+// Images pass straight through (no decoding here), which keeps the worker's CPU time tiny.
+async function streamImage(raw) {
   const u = safeUrl(raw);
   let res;
   try { res = await fetch(u.toString(), { headers: { "user-agent": UA, accept: "image/avif,image/webp,image/png,image/jpeg,*/*" } }); }
@@ -176,15 +187,9 @@ async function imageFromUrl(raw) {
   if (!res.ok) throw new HttpError(502, `The image couldn't be downloaded (${res.status}).`);
   const type = (res.headers.get("content-type") || "").split(";")[0].trim();
   if (!/^image\/(jpeg|png|webp|gif|avif)$/.test(type)) throw new HttpError(415, "That link isn't an image.");
-  const buf = await res.arrayBuffer();
-  if (buf.byteLength > MAX_IMAGE_BYTES) throw new HttpError(413, "That image is too large.");
-  return { dataUrl: `data:${type};base64,${toBase64(buf)}` };
-}
-function toBase64(buf) {
-  const bytes = new Uint8Array(buf);
-  let s = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  return btoa(s);
+  const len = +res.headers.get("content-length") || 0;
+  if (len > MAX_IMAGE_BYTES) throw new HttpError(413, "That image is too large.");
+  return new Response(res.body, { headers: { "content-type": type, "cache-control": "no-store" } });
 }
 function parseDataUrl(d, what) {
   const m = typeof d === "string" && d.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
@@ -406,11 +411,19 @@ async function tryonStatus(env, id) {
     const out = Array.isArray(data.output) ? data.output.filter((x) => typeof x === "string") : [];
     if (!out.length) return { status: "failed", error: "The try-on finished without an image." };
     const first = out[0];
-    // Hand the browser a data URL so it can keep the result; FASHN's links expire.
-    if (/^https:/.test(first)) { const img = await imageFromUrl(first); return { status, output: [img.dataUrl] }; }
+    // The browser downloads it through us (same origin, so it can keep a copy; FASHN's links expire).
+    if (/^https:/.test(first)) return { status, output: [`/api/tryon/${encodeURIComponent(id)}/image`] };
     return { status, output: [first] };
   }
   return { status };
+}
+
+async function tryonImage(env, id) {
+  if (env.MOCK === "1") throw new HttpError(404, "Mock try-ons return their image directly.");
+  const data = await fashn(env, "/status/" + encodeURIComponent(id), { method: "GET" });
+  const first = Array.isArray(data.output) ? data.output.find((x) => typeof x === "string" && /^https:/.test(x)) : null;
+  if (data.status !== "completed" || !first) throw new HttpError(404, "That try-on image isn't ready.");
+  return streamImage(first);
 }
 
 /* ------------------------------------------------------------------ */
