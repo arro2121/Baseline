@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-r19d6knYiwPwj7C4wk3jz/yFwenWNQjkTyoMRTP71Nk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-A7lff7Ff54+fRapX6kxEnWVDBe945ljIxtXEXXEA8sc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -1791,7 +1791,7 @@ body.vplay #starfield{display:none}
 /* names in the insert, legend and moment plates get room for their second line */
 .czcard.czcard.czcard.ch .czc-name,.czcard.czcard.czcard.legend .czc-name{line-height:1.1}.czcard.czcard.czcard.ch .czc-lg,.czcard.czcard.czcard.legend .czc-lg{margin-top:.8cqw}
 /* an event card's banner stays in the middle, clear of the card number */
-.czcard.czcard.czcard .czev{max-width:56%}
+.czcard.czcard.czcard .czev{max-width:86%;font-size:min(.56rem,4.8cqw)}.czcard.czcard.czcard.big .czev{font-size:min(.72rem,4.8cqw)}
 /* inserts: the serial stays light on their dark art (Classic cards print it dark on white), the crown gets its own band above
    the title, and gold lettering on gold art gets a dark edge so it reads */
 .czcard.czcard.czcard.ch .czc-top em{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}.czcard.czcard.czcard.czcard.ch-diamond .czc-top em{color:#1e1b4b;text-shadow:0 0 3px #fff}
@@ -2199,6 +2199,37 @@ body .czflash.t-supernova{background:radial-gradient(circle,rgba(248,250,252,.95
 .czcard.czcard.czcard.clean.t-pulsar .czc-foil{opacity:.16}
 @container (max-width:115px){.czcard.czcard.czcard.clean .czc-name .fn{font-size:6.2cqw;letter-spacing:.1em}.czcard.czcard.czcard.clean .czc-lg{display:none}.czcard.czcard.czcard.clean .czsys{width:68cqw}}
 
+
+/* insert and legend name plates: first name on its own line, last name sized to fit the plate, the team line wraps */
+.czcard.czcard.czcard.czcard.ch .czc-name .fn,.czcard.czcard.czcard.czcard.legend .czc-name .fn{display:block;line-height:1.3;margin-bottom:1.2cqw}
+.czcard.czcard.czcard.czcard.ch .czc-name .ln,.czcard.czcard.czcard.czcard.legend .czc-name .ln{display:block;white-space:nowrap;font-size:min(1em,calc(62cqw / var(--nl)));line-height:1.3}
+.czcard.czcard.czcard.czcard.ch .czc-lg,.czcard.czcard.czcard.czcard.legend .czc-lg,.czcard.czcard.czcard.czcard.clean .czc-lg{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+@container (max-width:115px){.czcard.czcard.czcard.czcard.clean .czc-name{gap:1.8cqw}.czcard.czcard.czcard.czcard.clean .czc-name .fn{line-height:1.3}}
+@container (max-width:90px){.czcard.czcard.czcard .czc-top{gap:1.5cqw}.czcard.czcard.czcard .czc-top span{font-size:6.2cqw;letter-spacing:0;padding:.4cqw 1.4cqw;max-width:none;overflow:visible;text-overflow:clip}.czcard.czcard.czcard .czc-top em{font-size:7cqw;margin-left:auto}}
+.czcard.czcard.czcard.l-5.ch-gold .czchfr text{display:none}   /* the 24K stamp would sit on the first name in this layout */
+/* Binary Star card: two halves, a sun and a name in each, the connection between (everything sized in card widths, cqw) */
+.czcard.czcard.czcard.czduo{display:grid;grid-template-rows:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:0;padding:5.5% 5.5% 4.5%;border-width:5px;
+  --tf:linear-gradient(115deg,#fde68a,#a78bfa 18%,#fff7d6 32%,#7c3aed 48%,#fde68a 62%,#c4b5fd 78%,#fde68a);background-size:auto,300% 100%;animation:czfoilmove 7s linear infinite;
+  background:radial-gradient(60% 30% at 30% 30%,rgba(253,230,138,.22),transparent 70%),radial-gradient(60% 30% at 70% 72%,rgba(253,230,138,.22),transparent 70%),
+    radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 84% 12%,#fff,transparent),radial-gradient(1.4px 1.4px at 72% 44%,#e9d5ff,transparent),radial-gradient(1px 1px at 22% 58%,#fff,transparent),radial-gradient(1px 1px at 88% 90%,#fff,transparent),
+    linear-gradient(180deg,#1e1038,#0b0620 50%,#1e1038) padding-box,var(--tf) border-box;box-shadow:0 0 0 1px rgba(253,230,138,.5),0 0 24px -6px rgba(167,139,250,.8),0 12px 28px -14px #000;overflow:hidden}
+.czduo .czd-top{display:flex;justify-content:space-between;align-items:center;gap:2cqw;min-width:0}
+.czduo .czd-top span{padding:.8cqw 2.6cqw;border-radius:99px;background:linear-gradient(90deg,#fde68a,#a78bfa);color:#1e1038;font:900 3.6cqw/1.2 Archivo,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+.czduo .czd-top em{font:800 4cqw/1 Archivo,system-ui,sans-serif;font-style:normal;color:#fde68a;white-space:nowrap}
+.czduo .czd-half{display:grid;grid-template-columns:42% minmax(0,1fr);align-items:center;gap:3cqw;min-height:0;min-width:0}
+.czduo .czd-half.b{grid-template-columns:minmax(0,1fr) 42%}
+.czduo .czd-sun{width:100%;height:auto;max-width:none;aspect-ratio:1;object-fit:contain;filter:none;margin:0}
+.czduo .czd-half.b .czd-sun{grid-column:2;grid-row:1}.czduo .czd-half.b .czd-name{grid-column:1;grid-row:1;text-align:right;justify-items:end}
+.czduo .czd-name{display:grid;gap:1cqw;min-width:0;max-width:100%}
+.czduo .czd-name small{font:700 min(4.4cqw,calc(40cqw / var(--fl)))/1.25 Archivo,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#c4b5fd;white-space:nowrap}
+.czduo .czd-name b{font:900 min(7.6cqw,calc(62cqw / var(--nl)))/1.15 Archivo,system-ui,sans-serif;font-stretch:88%;text-transform:uppercase;color:#fff7e0;white-space:nowrap;text-shadow:0 .4cqw 1cqw rgba(0,0,0,.6)}
+.czduo .czd-name em{font:700 3.2cqw/1.3 Archivo,system-ui,sans-serif;font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:rgba(253,230,138,.75);overflow-wrap:anywhere;max-width:100%}
+.czduo .czd-link{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2cqw;margin:1.5cqw 0;min-width:0}
+.czduo .czd-link i{height:.4cqw;background:linear-gradient(90deg,transparent,rgba(253,230,138,.7),transparent)}
+.czduo .czd-link span{max-width:66cqw;text-align:center;font:700 3.4cqw/1.3 Archivo,system-ui,sans-serif;color:#fde68a;overflow-wrap:anywhere}
+.czduo .czd-foot{text-align:center;font:800 3cqw/1.2 Archivo,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(233,213,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@container (max-width:115px){.czduo .czd-name em,.czduo .czd-foot,.czduo .czd-name small{display:none}.czduo .czd-name b{font-size:min(9cqw,calc(62cqw / var(--nl)))}.czduo .czd-link span{font-size:4.4cqw}}
+@media (prefers-reduced-motion:reduce){.czcard.czcard.czcard.czduo{animation:none}}
 /* Binary Stars: two players, one 1-of-1, two suns in orbit round each other */
 .czcard.czcard.czcard.duo{--c1:#5b21b6!important;--c2:#fde68a!important;--tf:linear-gradient(115deg,#fde68a,#a78bfa 18%,#fff7d6 32%,#7c3aed 48%,#fde68a 62%,#c4b5fd 78%,#fde68a);background-size:auto,300% 100%;animation:czfoilmove 7s linear infinite}
 .czcard.czcard.czcard.clean.duo .czc-stock{background:radial-gradient(70% 45% at 50% 44%,rgba(253,230,138,.28),transparent 70%),radial-gradient(90% 60% at 50% 110%,rgba(124,58,237,.55),transparent 70%),
@@ -6567,8 +6598,23 @@ function czHero(it, player){
   const vars = `--mo:${Math.round(r(4) * 6 - 3)}%`, badge = "";
   return `<div class="cznh k-${body}${it.moment ? " k-moment" : ""}" aria-hidden="true" style="${vars}"><svg class="czsurf" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">${CZ_SURF[lg] || CZ_SURF.nba}</svg>${con}<div class="czsys${duo ? " czbin" : ""}"><img class="czplimg" src="${czBodyImg(body, h)}" alt="" decoding="async" loading="lazy">${duo ? `<img class="czplimg b2" src="${czBodyImg(body, h + 1)}" alt="" decoding="async" loading="lazy"><i class="czorbit"></i>` : ""}${moons}${it.moment ? `<i class="czcm"></i>` : ""}</div>${badge}</div>`;
 }
+// a Binary Star: each player gets his own half of the card, his own sun beside his name, and the connection runs
+// between them; every line is sized to its own length so nothing leaves the card
+function czDuoCard(it, ed, big){
+  const pair = String(it.name).split(" & "), h = czHash(it.name), teams = [it.team, it.team2];
+  const half = (n, i) => { const w = String(n || "").trim().split(/\s+/), fn = w.length > 1 ? w[0] : "", ln = w.length > 1 ? w.slice(1).join(" ") : w[0] || "";
+    const tm = teams[i] ? simShort(it.lg, teams[i]) : "";
+    return `<div class="czd-half ${i ? "b" : "a"}"><img class="czd-sun" src="${czBodyImg("sun", h + i)}" alt="" decoding="async" loading="lazy">
+      <div class="czd-name" style="--nl:${Math.max(6, ln.length)};--fl:${Math.max(6, fn.length)}">${fn ? `<small>${esc(fn)}</small>` : ""}<b>${esc(ln)}</b>${tm ? `<em>${esc(tm)}</em>` : ""}</div></div>`; };
+  return `<div class="czcard czduo t-singularity ${big ? "big" : ""}">
+    <div class="czd-top"><span>Binary Star</span><em>${ed ? "1 of 1" : "1 exists"}</em></div>
+    ${half(pair[0], 0)}<div class="czd-link"><i></i><span>${esc(it.pos || "")}</span><i></i></div>${half(pair[1], 1)}
+    <div class="czd-foot">${esc(CZ_LG[it.lg] || it.lg)}${it.rank ? ` · #${String(it.rank).padStart(3, "0")}` : ""}</div>
+  </div>`;
+}
 function czCard0(it, ed, big){
   if (it.grail) return czGrailCard(it, ed, big);
+  if (czIsDuo(it)) return czDuoCard(it, ed, big);
   const player = it.kind === "player" && it.team, T = czTeam(it.lg, player ? it.team : it.name), st = T && T.name ? teamStyle(T, it.lg) : null;
   const initials = czInitials(it.name);
   const lv = czLevel(it);
