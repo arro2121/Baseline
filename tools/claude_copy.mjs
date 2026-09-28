@@ -7,6 +7,7 @@
 //
 // Usage: node tools/claude_copy.mjs <out-dir> [path to esbuild's package dir]
 //   then publish <out-dir>/index.html with the data files from docs/ alongside it.
+// It's the owner's test copy, so its Cosmic player never runs out of coins.
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { createRequire } from "module";
 import path from "path";
@@ -38,7 +39,9 @@ const shim = `
   function save(pre, k, s){ if (!ls) return; try { if (s == null) ls.removeItem(pre + k); else if (s.length < 300000) ls.setItem(pre + k, s); } catch (e) {} }
   var clone = function(v){ return v === undefined ? undefined : JSON.parse(JSON.stringify(v)); };
   // one player, nothing shared: the passkey rule (there to stop throwaway accounts on the real service) doesn't apply here
-  var local = function(k, v){ if (k.indexOf("cz:u:") === 0 && v && typeof v === "object" && !v.ident) v.ident = "local-copy"; return v; };
+  // and it's the owner's test copy: coins never run out (the balance tops back up to a billion)
+  var BANK = 1000000000;
+  var local = function(k, v){ if (k.indexOf("cz:u:") === 0 && v && typeof v === "object"){ if (!v.ident) v.ident = "local-copy"; if (!(v.bal >= BANK)) v.bal = BANK; } return v; };
   data.forEach(function(v, k){ local(k, v); });
   var storage = {
     get: async function(k){ return Array.isArray(k) ? new Map(k.filter(function(x){ return data.has(x); }).map(function(x){ return [x, clone(data.get(x))]; })) : clone(data.get(k)); },
