@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-qggMvvL9hpqxVzkO1nUVsh94SRDa/cDG/yDRtYv5kl8='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-d1vkcUyxCgX+jZf+AS7syq3SHAARUHTXkJTWpvsf1Go='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://baseline-alerts.baseline-arro2121-3091.workers.dev https://site.api.espn.com https://site.web.api.espn.com https://cdn.espn.com https://statsapi.mlb.com https://api-web.nhle.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cosmo Sports: live scores, replays and predictions</title>
 <meta name="description" content="Live scores and animated replays, alerts for your teams, an AI sports companion, daily picks and games, box scores, standings and predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.">
@@ -7554,7 +7554,7 @@ function czWheelSvg(){
   const R = 100, seg = (i) => { const a0 = (i * 45 - 90) * Math.PI / 180, a1 = ((i + 1) * 45 - 90) * Math.PI / 180;
     return `M0 0 L${(R * Math.cos(a0)).toFixed(2)} ${(R * Math.sin(a0)).toFixed(2)} A${R} ${R} 0 0 1 ${(R * Math.cos(a1)).toFixed(2)} ${(R * Math.sin(a1)).toFixed(2)}Z`; };
   return `<svg class="czwh" viewBox="-104 -104 208 208" aria-hidden="true"><g class="czwh-r" id="czWheelR">${CZ_WHEEL.map((w, i) => `<path d="${seg(i)}" fill="${CZ_WCOL[i]}" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
-    <g transform="rotate(${i * 45 + 22.5})"><text x="0" y="-62" text-anchor="middle" class="${w.pack ? "pk" : ""}">${w.pack ? (w.pack === "comet" ? "☄️" : "🌟") : esc(w.coins.toLocaleString())}</text><text x="0" y="-48" text-anchor="middle" class="sub">${w.pack ? (w.pack === "comet" ? "COMET" : "SUPERNOVA") : "COINS"}</text></g>`).join("")}
+    <g transform="rotate(${i * 45 + 22.5})"><text x="0" y="-62" text-anchor="middle" class="${w.pack ? "pk" : ""}">${w.pack ? (w.pack === "comet" ? "🪐" : "🌙") : esc(w.coins.toLocaleString())}</text><text x="0" y="-48" text-anchor="middle" class="sub">${w.pack ? (w.pack === "comet" ? "JUPITER" : "MOON") : "COINS"}</text></g>`).join("")}
     <circle r="100" fill="none" stroke="rgba(233,213,255,.6)" stroke-width="3"/>${Array.from({ length: 16 }, (_, k) => `<circle cx="${(96 * Math.cos(k * Math.PI / 8)).toFixed(1)}" cy="${(96 * Math.sin(k * Math.PI / 8)).toFixed(1)}" r="2.2" fill="#fde68a"/>`).join("")}</g>
     <circle r="20" fill="#1e0b3a" stroke="#fde68a" stroke-width="3"/><text y="5" text-anchor="middle" class="hub">SPIN</text></svg><span class="czwh-ptr" aria-hidden="true"></span>`;
 }
