@@ -28,6 +28,6 @@ The owner keeps a private copy of the site on claude.ai: https://claude.ai/artif
 ## Working here
 
 - Develop on the branch you're given, open a PR, merge it; keep `CLAUDE.md` rules above in every round.
-- Tests: `node alerts/test/test_cards.mjs`, `node alerts/test/test_security.mjs`, `node alerts/test/test_round2.mjs`.
+- Tests: `node alerts/test/test_cards.mjs`, `node alerts/test/test_security.mjs`, `node alerts/test/test_round2.mjs`, `node alerts/test/test_games.mjs`.
 - Cards and the site show no team logos, player photos, league marks or video clips (see `docs/terms.html`); the planet
   art is drawn by `tools/planets.py`.

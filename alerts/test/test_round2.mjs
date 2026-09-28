@@ -90,12 +90,10 @@ check("A7 the day before is counted on the calendar", W.dayBefore("20261102") ==
   let crashed = null; const tries = [{ act: "sellmany", uid: "A", cards: "nope" }, { act: "sellmany", uid: "A", cards: [null, 5] }, { act: "parlay", uid: "A", parlay: { stake: 50, legs: [null, null] } }, { act: "parlay", uid: "A", parlay: null }, { act: "toffer", uid: "A", to: "x", give: "abc" }];
   for (const a of tries) { try { const r = await T(a); if (!r || !r.error) crashed = crashed || { a, r }; } catch (e) { crashed = { a: a.act, e: e.message }; } }
   check("A8 malformed requests get an error, not a crash", !crashed, crashed); }
-// B4: the battle judge uses a small model, never Opus, and doesn't call any model for battles against the AI
-{ const src = (await import("fs")).readFileSync(new URL("../worker.js", import.meta.url), "utf8");
-  let called = 0; const env = { ANTHROPIC_API_KEY: "k", AI: { run: async () => { called++; return { response: "{}" }; } } };
-  const v = await W.czJudge(env, { house: true, a: [card("nba.p1.pulsar", 1)], b: [card("nba.p2.pulsar", 1)], fromName: "A", sport: "nba" }, async () => { called++; return new Response("{}"); });
-  check("B4 house battles call no model and still get a recap", called === 0 && v.judge === "formula" && v.report.length > 10, { called, judge: v.judge });
-  check("B4 the judge model is small (not Opus)", /JUDGE_CLAUDE_MODEL = "claude-haiku-4-5"/.test(src) && !/claude-opus-5"/.test(src.match(/judge[\s\S]{0,400}/i)[0])); }
+// B4: battles are decided by the simulated game, which calls no AI model at all (and so costs nothing)
+{ let called = 0; const env = { ANTHROPIC_API_KEY: "k", AI: { run: async () => { called++; return { response: "{}" }; } } };
+  for (const house of [true, false]) { const v = await W.czJudge(env, { house, a: [card("nba.p1.pulsar", 1)], b: [card("nba.p2.pulsar", 1)], fromName: "A", byName: "B", sport: "nba" }, async u => { if (/anthropic/.test(String(u && u.url || u))) called++; return new Response("{}", { status: 404 }); });
+    check(`B4 ${house ? "house" : "player"} battles call no model and still get a recap`, called === 0 && v.judge === "sim" && v.report.length > 10, { called, judge: v.judge }); } }
 
 // ---- batch 2: the shared score normalizers (used by the page and the alerts service) ----
 // A11: postponed, cancelled and suspended games are marked off and never "completed"
