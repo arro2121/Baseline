@@ -1602,7 +1602,7 @@ export async function trackAll(db) {
    supply is shared by everyone, so there is only ever one 1/1 of each. Cards live here, not on a blockchain, so they have
    no cash value either.
    Every change to coins or cards runs as one step inside the Durable Object (czTx), so two people can't buy the same last card. */
-const CZ_SHOP = .85, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;   // the shop pays 85% of a card's value (packs return 70% of their price, so selling never beats not buying)
+const CZ_SHOP = .75, CZ_FEE = .05, CZ_START = 1000, CZ_DAILY = 250, CZ_MIN = 10, CZ_MAX = 5000, CZ_OPEN_MAX = 30, CZ_MARGIN = 1.045;   // the shop pays 75% of a card's value (packs return 70% of their price, so selling never beats not buying)
 // supply is for the whole game: one Singularity of each card exists, ten Supernovas, and so on
 // tiers: [id, name, copies, real-card price in US dollars of an average starter's card in that tier]. Like real parallels: a base
 // card is about $1, a /250 about $4, a /50 about $25, a /10 about $250 and a 1-of-1 about $2,500, before the player's value

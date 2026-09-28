@@ -149,7 +149,7 @@ rarities, each a body in the solar system: the Sun (1 of 1), the Moon (1 of 10),
 Venus (1 of 250) and Jupiter (1 of 1,000). There are also 1-of-1 All-Time legends, Iconic Moments and Binary Stars (two connected
 players on one card), and one Grail per league. Cards come from packs (Jupiter 100, Venus 250, Mars 1,000, Moon 5,000, Sun 10,000,
 Solar System 100,000 coins), each with published
-odds per card; a pack can be limited to one league. Cards can be sold back to the shop (85% of the card's value; the copy returns
+odds per card; a pack can be limited to one league. Cards can be sold back to the shop (75% of the card's value; the copy returns
 to packs) or listed on the Market for other players (5% fee). Supply is shared by everyone and enforced by the alerts service's Durable Object, so there is only ever one
 1/1 of each. Coins and cards have no cash value: coins can't be bought with money or cashed out, cards only trade for coins inside
 Cosmic, and the cards are not blockchain NFTs.
