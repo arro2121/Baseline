@@ -29,6 +29,18 @@ const card = (id, x = {}) => ({ id, n: 3, supply: 100, tier: id.split(".").pop()
   await T({ act: "ident", sub: "M", uid: "M", tok: "t", name: "Marketeer" }); m.set("cz:u:M", { ...m.get("cz:u:M"), bal: 0, items: [card("nba.p5.pulsar", { gr: 10 }), card("nba.p6.pulsar", { gr: 9 })] });
   await T({ act: "list", uid: "M", id: "nba.p5.pulsar", price: 500 }); await T({ act: "aucnew", uid: "M", id: "nba.p6.pulsar", start: 100, hours: 24 });
   check("GR6 the market listing and auction show the grade", (m.get("cz:mkt") || [])[0]?.gr === 10 && (m.get("cz:auc") || [])[0]?.gr === 9, [m.get("cz:mkt"), m.get("cz:auc")]); }
+// a grade is saved: it's still there after the player sells other cards, sells in bulk and trades, and a traded graded copy keeps it
+{ const { m, st } = mem(), T = a => W.czTx(st, { now, ...a });
+  await T({ act: "ident", sub: "G", uid: "G", tok: "t", name: "Keeper" }); await T({ act: "ident", sub: "H", uid: "H", tok: "t", name: "Friend" });
+  m.set("cz:u:G", { ...m.get("cz:u:G"), bal: 5000, items: [card("nba.p7.pulsar"), card("nba.p8.pulsar"), card("nba.p9.pulsar"), card("nba.q1.pulsar")] });
+  const g = (await T({ act: "grade", uid: "G", id: "nba.p7.pulsar", value: 1000 })).grade, g2 = (await T({ act: "grade", uid: "G", id: "nba.q1.pulsar", value: 1000 })).grade;
+  await T({ act: "sell", uid: "G", id: "nba.p8.pulsar", value: 100 }); await T({ act: "sellmany", uid: "G", cards: [{ id: "nba.p9.pulsar", value: 100 }] });
+  const U = m.get("cz:u:G");
+  check("GR7 a grade stays saved through later sales", U.items.length === 2 && U.items.find(i => i.id === "nba.p7.pulsar")?.gr === g && U.items.find(i => i.id === "nba.q1.pulsar")?.gr === g2, U.items);
+  m.set("cz:u:H", { ...m.get("cz:u:H"), items: [card("nba.q2.pulsar")] });
+  const off = await T({ act: "toffer", uid: "G", to: "Friend", give: ["nba.q1.pulsar"], get: ["nba.q2.pulsar"], coins: 0 }), tid = (m.get("cz:trades") || [])[0]?.tid;
+  await T({ act: "tresp", uid: "H", tid, accept: true });
+  check("GR7 a traded graded copy arrives with its grade", !!tid && m.get("cz:u:H").items.find(i => i.id === "nba.q1.pulsar")?.gr === g2, [off, m.get("cz:u:H").items]); }
 
 // DD1-DD6: Daily Drop and Milestones
 const items = [1, 2, 3, 4, 5, 6, 7].flatMap(i => ["comet", "nebula"].map(t => ({ id: `nba.p${i}.${t}`, lg: "nba", kind: "player", tier: t, name: "Player " + i, team: "T", pos: "G", mult: 1 + i / 10, price: 100 * i })));
