@@ -24,7 +24,8 @@ try {
   }
   if (!signedIn) throw new Error("couldn't create the preview account");
   await closeDlg();
-  // open packs for a showcase and a lineup
+  // follow a few big teams so Today and reminders look lived-in, and open packs for a showcase
+  await p.evaluate(() => { const F = { nfl: ["kansas city chiefs", "philadelphia eagles"], nba: ["boston celtics"], mlb: ["los angeles dodgers"], epl: ["arsenal"] }; for (const [lg, a] of Object.entries(F)) FAV[lg] = a.map(tkey); localStorage.setItem("fav-teams", JSON.stringify(FAV)); });
   const packs = await p.evaluate(async key => {
     const log = []; if (!key) return ["no owner key: skipping packs"];
     try { CZ.me = (await czApi("/owner/unlimited", { on: true }, { headers: { "X-Owner-Key": key } })).user; } catch (e) { return ["owner switch failed: " + e.message]; }
@@ -34,18 +35,18 @@ try {
     try { CZ.me = (await czApi("/owner/unlimited", { on: true }, { headers: { "X-Owner-Key": key } })).user; } catch {}   // stay off the leaderboards until deleted
     return log; }, KEY);
   console.log(packs.join("\n"));
-  await p.evaluate(() => czGoTab("home")); await shot("01-cosmic", 5000);
-  // a game: the best NFL cards play the AI, shown mid-game and then at the final whistle
-  const game = await p.evaluate(async () => { const ids = CZ.me.items.filter(i => i.lg === "nfl").sort((a, b) => a.supply - b.supply).slice(0, 5).map(i => i.id);
-    if (!ids.length) return "no NFL cards"; try { const r = await czApi("/battle/house", { cards: ids, stake: 0, sport: "nfl" }); CZ.me = r.user; czGameShow(r.battle, r.sim); return "played " + r.sim.score.join("-"); } catch (e) { return "game failed: " + e.message; } });
-  console.log(game);
-  await shot("02-game", 5500);
-  await p.evaluate(() => document.querySelector("#czgSkip")?.click()); await wait(800); await p.evaluate(() => document.querySelector(".czverdict")?.scrollIntoView()); await shot("03-final", 1500); await closeDlg();
-  await p.evaluate(() => czGoTab("packs")); await shot("04-packs", 3000);
-  await p.evaluate(() => czGoTab("coll")); await wait(1500);
-  await p.evaluate(() => document.querySelector(".czown")?.click()); await shot("05-card", 4000); await closeDlg();
-  await p.evaluate(() => { CZ.lbv = "games"; czGoTab("lb"); }); await shot("06-rankings", 3000);
-  await p.evaluate(() => czGoTab("bet")); await shot("07-bet", 3000);
+  await p.evaluate(() => setSport("universe")); await shot("01-today", 5000);
+  await p.evaluate(() => { setSport("cosmic"); CZ.tab = "home"; }); await wait(1500); await p.evaluate(() => { CZ.tab = "home"; drawCosmic(); czLoad(["me", "board", "lb", "market"]); }); await shot("02-cosmic", 5000);
+  await p.evaluate(() => { CZ.tab = "packs"; drawCosmic(); czLoad(["vault", "me"]); }); await shot("03-packs", 3000);
+  await p.evaluate(() => { CZ.tab = "coll"; drawCosmic(); }); await wait(1500);
+  await p.evaluate(() => document.querySelector(".czown")?.click()); await shot("04-card", 4000); await closeDlg();
+  await p.evaluate(() => { CZ.tab = "bet"; drawCosmic(); czLoad(["board", "me"]); }); await shot("05-bet", 3000);
+  await p.evaluate(() => setSport("nfl")); await wait(3000); await p.evaluate(() => document.querySelector('[data-tt="predict"]')?.click()); await shot("06-predict", 3000);
+  await p.evaluate(() => setSport("nfl")); await wait(1500); await p.evaluate(() => document.querySelector('[data-tt="games"]')?.click()); await shot("07-games", 3000);
+  // a Cosmic Game: the best NFL cards play the AI, shown mid-game
+  console.log(await p.evaluate(async () => { setSport("cosmic"); const ids = CZ.me.items.filter(i => i.lg === "nfl").sort((a, b) => a.supply - b.supply).slice(0, 5).map(i => i.id);
+    if (!ids.length) return "no NFL cards"; try { const r = await czApi("/battle/house", { cards: ids, stake: 0, sport: "nfl" }); CZ.me = r.user; czGameShow(r.battle, r.sim); return "played " + r.sim.score.join("-"); } catch (e) { return "game failed: " + e.message; } }));
+  await shot("08-game", 5500); await closeDlg();
 } finally {
   if (signedIn) { const r = await p.evaluate(async () => { try { await czApi("/delete", { confirm: "DELETE" }); return "preview account deleted"; } catch (e) { return "delete failed: " + e.message; } }); console.log(r); }
   await b.close();

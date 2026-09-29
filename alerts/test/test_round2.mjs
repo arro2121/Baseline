@@ -163,7 +163,7 @@ check("A15 daylight saving is handled (EST after Nov 1)", W.sportsDay(Date.parse
   const bad = await T({ act: "list", uid: "Q", id: "nba.nope.pulsar", price: 100 });
   check("QS2 a failed action doesn't count", !!bad.error && !(m.get("cz:u:Q").qd?.p?.list));
   const ok = await T({ act: "list", uid: "Q", id: "nba.q1.pulsar", price: 100 });
-  check("QS2 a listing moves the quest and the answer shows it", !ok.error && m.get("cz:u:Q").qd.p.list === 1 && ok.user.quests.list.find(x => x.id === "list").have === 1, [ok.error, m.get("cz:u:Q").qd]);
+  check("QS2 a listing moves the quest and the answer shows it", !ok.error && m.get("cz:u:Q").qd.p.list === 1 && W0.czQuests(m.get("cz:u:Q"), t).list.find(x => x.id === "list").have === 1, [ok.error, m.get("cz:u:Q").qd]);
   const bal = m.get("cz:u:Q").bal, c = await T({ act: "qclaim", uid: "Q", id: "list" });
   check("QS3 collecting pays the reward once", c.reward === Q.reward && m.get("cz:u:Q").bal === bal + Q.reward && /Already/.test((await T({ act: "qclaim", uid: "Q", id: "list" })).error || ""), c);
   check("QS3 the all-three bonus waits for all three", /all three/.test((await T({ act: "qclaim", uid: "Q", id: "all" })).error || ""));

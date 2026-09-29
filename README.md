@@ -2,30 +2,56 @@
 
 # Cosmo Sports
 
-**Collect the cards. Play the game.** Cosmo Sports is a sports card game: collect limited-edition cards of real
-NFL, NBA, MLB, NHL, Premier League, tennis and college teams and players with free Cosmic Coins, then play them.
+**Every game, every league, one app.** Live scores, animated play-by-play, box scores,
+standings, team pages, news and data-driven predictions for the NFL, NBA, MLB, NHL, Premier League and tennis.
 It installs on iPhone, Android, Windows and Mac, updates itself every night, and runs on free hosting.
 
-**What's in it**
-* **Cosmic Games:** pick a sport and a lineup of up to five of your cards, and it plays a whole game against a real
-  person or the AI, play by play: nine innings, four quarters (two halves in college basketball), three periods with
-  overtime and a shootout, ninety minutes with penalties, or a singles match for each pair of tennis players. The
-  simulation is in `alerts/sim.js`: each card's game rating comes from its rarity, level and the real athlete or
-  team; a lineup's strength decides the odds of every play, and positions only decide who gets the credit, so two
-  equal lineups are a true 50/50 (the AI's lineup is rated to match yours). Games are seeded, so any game replays
-  exactly. Every card gets a box score line and a grade, and the best one is the player of the game.
-* **Game rankings:** an Elo game rating from 1,000 (up to 32 points a game against players, 8 against the AI), on
-  the Leaders page.
-* **Cards:** seven rarities (Jupiter to the one-of-one Sun), All-Time legends, Iconic Moments, Binary Stars and
-  college teams; levels from real big games, grading, a checklist, wishlist and collection stats.
-* **Packs, the Market, trades and auctions,** and betting free coins on real games and player props.
-* **Getting around:** a five-stop bottom bar (Home, Play, Packs, Cards, More), an in-app **Guide** (More › Guide) and
-  a one-time What's new screen after big updates.
+**What makes it different**
+* **Cosmic Games:** in Cosmic › Play, a lineup of up to five of your cards plays a whole simulated game of its sport
+  against a real person or the AI, play by play (nine innings, four quarters, three periods with overtime and a
+  shootout, ninety minutes with penalties, or tennis matches), with box scores, grades out of 10 and an Elo game
+  rating ranked on Leaders. The engine is `alerts/sim.js`: card ratings come from rarity, level and the real player,
+  lineup strength decides the odds of every play, and games are seeded so they replay exactly.
+* **Picks:** a **Daily 3** of the day's closest calls with a streak, a shareable result grid and friend challenge
+  links (no account needed), plus your running record against the Cosmo model.
+* **Comets:** articles and takes from you to everyone who uses the app, with a reader, share links, a teaser on
+  Today and an optional alert to everyone when you publish. Only the holder of the writer key can post (setup below).
+* **Getting around:** a five-stop bottom bar (Today, Scores, Picks, Following, More), an in-app **Guide** (More ›
+  Guide), a one-time What's new screen after big updates, and an offline notice.
+* **League leaders:** a Leaders tab in every league with the real stat leaders, updated nightly.
+  Tap a player for their season stats and how they rank against the league's best.
+* **Listen Live:** tap 🎧 Listen in any live game and a natural human voice reads new key plays, scores, period
+  changes and the final aloud, like a radio call. The voice comes from the alerts service (Cloudflare Workers AI
+  text to speech, inside the free daily allowance), with the phone's own voice as the backup. Pick the voice and
+  speed in Settings; the spoiler shield keeps it silent until you reveal.
+* **Today:** every game across the five leagues on one screen, with the closest and latest games nearest the center.
+* **Notifications:** game starts, scoring plays, close finishes, final scores and a 9 AM morning briefing for your
+  teams and any game you tap the bell on, even with the app closed.
+* **Spoiler shield:** hide scores for your teams (or every game) until you tap to reveal them, in the app and in
+  alerts. Great if you watch on replay.
+* **Excitement score:** 0-100 for how close and how late each game is; finals are tagged "Thriller" or "Close game".
+* **Turning points:** the plays that swung win probability the most, marked on the chart. Tap one to replay it.
+* **Animated replays:** every play drawn on the field with the players moving, and the camera easing in on the key
+  moment.
+* **Model picks:** the prediction model's strongest picks for today, where it disagrees with the betting market,
+  and toss-ups.
+* **First-run setup, optional sound effects, player of the game, season results chart, power-rankings map and
+  shareable score images.**
 
-The app used to be a scores and predictions app too. Those sections are retired: `COSMIC_ONLY` in `template.html`
-sends every route to Cosmic and hides their navigation, and the alerts service no longer sends score alerts (it
-deletes the push subscriptions it kept for them). Their code is still in the repository. The nightly models still
-run, because card values and the betting board use them.
+**What's in it**
+* **Games:** today's scores (or any other day) with team colours, win chances, betting lines and live situations;
+  follow teams with ☆ to pin their games first; add upcoming games to your calendar.
+* **Play-by-play:** readable plays grouped by inning, quarter or period, with labels for the big
+  moments, and an animated field for every sport that replays each play.
+* **Box scores:** line scores, team stat comparisons and full player tables for every sport, plus top performers.
+* **Game info and previews:** Cosmo's prediction, the betting line, injuries, recent form, venue, weather,
+  officials and news.
+* **Standings, news and team pages:** official standings, league and team news, and a page for every team with
+  its schedule, results and roster.
+* **Following:** your teams across every league in one feed, with live scores, last results and next games.
+* **Search, sharing and links:** find any team; share a game or team with a link that opens it directly.
+* **Predictions:** power ratings and a predictor for any two teams (win chances, fair prices, NFL spreads,
+  soccer draw chances), and a 20-factor tennis model for every ATP and WTA pro with live point-by-point.
 
 ## Set it up from your iPhone (about 20 minutes, no computer needed)
 
@@ -177,6 +203,7 @@ Cloudflare), enter it under **Settings › Pages › Custom domain**, tick **Enf
 
 | When | What happens |
 | --- | --- |
+| While you watch a game | Play-by-play refreshes every 15 seconds, today's games every 30 |
 | Every 5 minutes | A backup copy of today's scores is published to the site (and live tennis updates, when there's no alerts service) |
 | Every 10 minutes | The alerts service locks in picks for games about to start and grades finished ones (the track record) |
 | Every night | New results and rankings download, every league's game history updates and its model is refitted and retested, every rating recalculates, player stats for League Leaders update from real stats, and the site republishes |
