@@ -4,10 +4,10 @@
  "short_name": "Cosmo Sports",
  "lang": "en",
  "dir": "ltr",
- "description": "A sports card game. Collect limited-edition cards of real NFL, NBA, MLB, NHL, Premier League, tennis and college teams and players with free Cosmic Coins, then play them: build a lineup and it plays a whole simulated game, play by play, against a real person or the AI, with a box score, grades for every card and game rankings. Bet coins on real games, trade, sell and grade your cards.",
+ "description": "Every game, every league, one app. Live scores and animated replays of every play, alerts for your teams, Ask Cosmo (an AI sports companion), multi-factor predictions for every game with backtests and a model breakdown, League Leaders, Daily 3 picks, Listen Live play calls, a spoiler shield, box scores, standings, team pages and news for the NFL, NBA, MLB, NHL, Premier League and tennis.",
  "categories": [
-  "games",
   "sports",
+  "news",
   "entertainment"
  ],
  "start_url": "./",
@@ -49,9 +49,53 @@
  ],
  "shortcuts": [
   {
-   "name": "Play a game",
+   "name": "Today: every game",
+   "short_name": "Today",
+   "url": "./?sport=universe",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Ask Cosmo",
+   "short_name": "Ask",
+   "url": "./?ask=1",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Picks: the Daily 3",
+   "short_name": "Picks",
+   "url": "./?sport=play",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Following",
+   "short_name": "Following",
+   "url": "./?sport=following",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Cosmic Games",
    "short_name": "Play",
-   "url": "./?tab=battle",
+   "url": "./?sport=cosmic&tab=battle",
    "icons": [
     {
      "src": "icon-192.png",
@@ -60,31 +104,9 @@
    ]
   },
   {
-   "name": "Open packs",
-   "short_name": "Packs",
-   "url": "./?tab=packs",
-   "icons": [
-    {
-     "src": "icon-192.png",
-     "sizes": "192x192"
-    }
-   ]
-  },
-  {
-   "name": "My cards",
-   "short_name": "Cards",
-   "url": "./?tab=coll",
-   "icons": [
-    {
-     "src": "icon-192.png",
-     "sizes": "192x192"
-    }
-   ]
-  },
-  {
-   "name": "Game rankings",
-   "short_name": "Rankings",
-   "url": "./?tab=lb",
+   "name": "Find a team",
+   "short_name": "Search",
+   "url": "./?search=1",
    "icons": [
     {
      "src": "icon-192.png",
