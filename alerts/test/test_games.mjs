@@ -47,9 +47,16 @@ for (const sp of Object.keys(SIM_SPORTS)) { let eq = 0, st = 0; const N = 400;
   const r4 = await T({ act: "bnew", uid: "A", id: "BT2", sport: "nba", cards: ["nba.pA.pulsar"], stake: 0, house: true, day: "20260928", houseCards: [{ id: "nba.pz.pulsar", name: "Z", tier: "pulsar", n: 1, supply: 100, lg: "nba", kind: "player" }] });
   const before = m.get("cz:u:A").gr, v2 = await W.czJudge({}, r4.battle); delete v2.full; const r5 = await T({ act: "bdone", uid: "A", id: "BT2", ...v2 });
   check("SG6 a game against the AI moves the rating by 8", Math.abs(m.get("cz:u:A").gr - before) === 8 && r5.battle.elo.length === 1, { before, after: m.get("cz:u:A").gr }); }
-// SG7 score alerts are retired: every stored push subscription is deleted
-{ const kv = new Map([["subs", JSON.stringify([{ sub: { endpoint: "https://push.test/1" }, teams: {} }, { sub: { endpoint: "https://push.test/2" }, prefs: {} }])]]);
-  const env = { KV: { get: async k => kv.get(k) ?? null, put: async (k, v) => { kv.set(k, v); } } };
-  const n = await W.pushRetire(env);
-  check("SG7 retired alerts: every push subscription is deleted", n === 2 && JSON.parse(kv.get("subs")).length === 0, { n, left: kv.get("subs") }); }
+// SG7 alerts are back: the subscriptions deleted while they were off come back once from the last backup before that,
+// without touching anything else and without overwriting someone who turned alerts on again since
+{ const { m, st } = mem(), kv = new Map(), now = W.PUSH_GONE_AT + 864e5;
+  const env = { KV: { get: async (k, o) => { const v = kv.get(k); return v == null ? null : o && o.type === "arrayBuffer" ? v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength) : v; }, put: async (k, v) => { kv.set(k, v); } } };
+  m.set("sub:a", { sub: { endpoint: "https://push.test/a" }, teams: { nfl: ["x"] } }); m.set("sub:b", { sub: { endpoint: "https://push.test/b" }, prefs: { old: 1 } }); m.set("cz:u:X", { uid: "X", bal: 5 });
+  await W.czBackupTake(st, env, { now: W.PUSH_GONE_AT - 12 * 3600e3, why: "daily" });
+  await W.czBackupTake(st, env, { now: W.PUSH_GONE_AT + 3600e3, why: "daily" });            // a later one, after the deletion (ignored)
+  kv.set("subs", JSON.stringify([{ sub: { endpoint: "https://push.test/b" }, prefs: { fresh: 1 } }]));   // b turned alerts on again
+  const n = await W.pushRestore(env, now), subs = JSON.parse(kv.get("subs"));
+  check("SG7 deleted alert subscriptions come back from the last backup before", n === 1 && subs.length === 2 && subs.find(x => x.sub.endpoint.endsWith("/a"))?.teams?.nfl?.[0] === "x", { n, subs });
+  check("SG7 someone who turned alerts on again keeps their new choices", subs.find(x => x.sub.endpoint.endsWith("/b")).prefs.fresh === 1, subs);
+  check("SG7 it runs once", await W.pushRestore(env, now) === 0 && JSON.parse(kv.get("subs")).length === 2, kv.get("subs:restored")); }
 console.log(fails ? `\n${fails} failed` : "\nall passed"); process.exit(fails ? 1 : 0);

@@ -260,11 +260,19 @@ async function czBackupTick(env) {                   // once a day, a little aft
   const r = await env.STORE.get(env.STORE.idFromName("main")).fetch("https://store/", { method: "POST", body: JSON.stringify({ op: "backup", why: "daily" }) });
   return r.ok ? (await r.json()).v : "backup " + r.status;
 }
-// score alerts are retired (Cosmo Sports is the Cosmic game), so the push addresses and alert choices kept for them are
-// deleted; one that arrives later from an old copy of the app is deleted the same way on the next run
-export async function pushRetire(env) {
-  const db = store(env), subs = await db.subs().catch(() => []); let n = 0;
-  for (const s of subs) if (s && s.sub && s.sub.endpoint) { await db.subDel(s.sub.endpoint); n++; }
+// Alerts are back after a day switched off (2026-09-28 to 29), when the push subscriptions were deleted. Once, the newest
+// daily backup from before they were deleted gives them back: only the "sub:" records, and only ones not already here
+// (someone who turned alerts on again since keeps their new choices). Nothing else in that backup is touched.
+export const PUSH_GONE_AT = Date.parse("2026-09-28T20:19:00Z");
+export async function pushRestore(env, now = Date.now()) {
+  if (!env.KV || await env.KV.get("subs:restored")) return 0;
+  const rec = JSON.parse(await env.KV.get("bk:index") || "[]").filter(x => x.at < PUSH_GONE_AT && x.until > now).sort((a, b) => b.at - a.at)[0];
+  if (!rec) { await env.KV.put("subs:restored", JSON.stringify({ at: now, n: 0, why: "no backup from before" })); return 0; }
+  const got = await czBackupRead(env, rec.id); if (!got) return "backup unreadable";
+  const snap = JSON.parse(new TextDecoder().decode(await gz(got.z, "gunzip"))), db = store(env);
+  let n = 0;
+  for (const [k, v] of Object.entries(snap.keys || {})) if (k.startsWith("sub:") && v && v.sub && v.sub.endpoint && !(await db.subGet(v.sub.endpoint))) { await db.subPut(v); n++; }
+  await env.KV.put("subs:restored", JSON.stringify({ at: now, n, from: rec.id }));
   return n;
 }
 export function store(env) {
@@ -3489,8 +3497,6 @@ export default {
     return json({ service: "Cosmo Sports live service", ok: true });
   },
   async scheduled(_evt, env, ctx) {
-    // Cosmo Sports is the Cosmic game now: no score alerts, reminders or morning briefings go out (tick and sportsTick send
-    // those). The track record's models still run: card values and the betting board use them.
-    ctx.waitUntil(Promise.allSettled([pushRetire(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env), czBackupTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
+    ctx.waitUntil(Promise.allSettled([pushRestore(env), tick(env), sportsTick(env), trackTick(env), czSettle(env), czLevels(env), czAuctionTick(env), storeGc(env), pwPurge(env), czDropTick(env), czNanFix(env), czBackupTick(env)]).then(r => console.log(JSON.stringify(r.map(x => x.value || String(x.reason))))));
   },
 };
