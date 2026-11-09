@@ -31,39 +31,14 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-02,401929404,South Dakota Coyotes,Mount Marty Lancers,95,57,0,2,233,573,52.8,40.4
 2026-11-03,401906848,Tennessee Volunteers,Wofford Terriers,90,59,0,2,2633,2747,52.3,30.6
 2026-11-04,401920232,Dartmouth Big Green,Framingham State Rams,107,50,0,2,159,126956,53.2,30.4
-2026-11-05,401902276,Butler Bulldogs,Fairleigh Dickinson Knights,99,65,0,2,2086,161,53.7,43.1
 2026-11-05,401909726,Vanderbilt Commodores,Wake Forest Demon Deacons,74,51,0,2,238,154,38.9,35.2
 2026-11-05,401912227,Army Black Knights,Mount St Mary Knights,118,41,0,2,349,289,68.3,23.0
 2026-11-05,401916287,Indiana Hoosiers,Bellarmine Knights,92,69,0,2,84,91,50.0,48.1
 2026-11-05,401917177,Penn State Nittany Lions,Chattanooga Mocs,97,93,0,2,213,236,45.3,51.5
-2026-11-05,401917512,Saint Mary's Gaels,North Dakota State Bison,105,64,0,2,2608,2449,67.2,37.7
-2026-11-05,401917513,Santa Clara Broncos,Milwaukee Panthers,95,72,0,2,2541,270,48.6,37.5
-2026-11-05,401917514,Loyola Marymount Lions,Queens University Royals,95,96,0,2,2351,2511,50.0,58.3
-2026-11-05,401917977,UL Monroe Warhawks,Champion Christian Tigers,99,55,0,2,2433,3134,48.5,37.5
-2026-11-05,401918052,California Golden Bears,Radford Highlanders,84,70,0,2,25,2515,49.2,41.5
-2026-11-05,401919028,Wichita State Shockers,Cal State Northridge Matadors,79,67,0,2,2724,2463,37.3,36.4
 2026-11-05,401919804,Seton Hall Pirates,Long Island University Sharks,67,60,0,2,2550,112358,40.8,36.4
-2026-11-05,401920191,Saint Joseph's Hawks,Longwood Lancers,82,73,0,2,2603,2344,44.4,37.1
-2026-11-05,401920410,High Point Panthers,Maryland Eastern Shore Hawks,63,49,0,2,2272,2379,42.2,26.4
-2026-11-05,401920798,Auburn Tigers,SE Louisiana Lions,92,59,0,2,2,2545,50.8,29.9
 2026-11-05,401920960,Morehead State Eagles,Virginia Lynchburg Dragons,114,60,0,2,2413,3229,60.3,31.9
-2026-11-05,401922030,Montana Grizzlies,Salish Kootenai Bison,105,40,0,2,149,131858,63.2,25.5
-2026-11-05,401922290,UNC Asheville Bulldogs,Erskine Flying Fleet,101,74,0,2,2427,2215,54.2,45.9
-2026-11-05,401923391,Southern Indiana Screaming Eagles,Saint Mary of the Woods Pomeroys,112,42,0,2,88,126824,52.3,29.0
 2026-11-05,401924948,Lafayette Leopards,King's Monarchs,104,67,0,2,322,247,58.0,40.4
 2026-11-05,401925031,North Texas Mean Green,McNeese Cowboys,77,67,0,2,249,2377,46.4,36.4
-2026-11-05,401925893,Norfolk State Spartans,Randolph Wildcats,78,71,0,2,2450,3153,42.9,34.8
-2026-11-05,401925939,Utah Tech Trailblazers,Grace University Lancers,103,52,0,2,3101,134743,51.6,35.9
-2026-11-05,401926111,Furman Paladins,Bob Jones Bruins,121,52,0,2,231,3243,55.6,25.8
-2026-11-05,401926142,SIU Edwardsville Cougars,Concordia Chicago Cougars,85,61,0,2,2565,2151,51.6,43.4
-2026-11-05,401926151,Southeast Missouri State Redhawks,Webster Gorloks,90,65,0,2,2546,2693,50.0,32.3
-2026-11-05,401926214,Tennessee Tech Golden Eagles,Blue Mountain Christian Toppers,117,70,0,2,2635,494,45.3,41.9
-2026-11-05,401927361,Drake Bulldogs,Central College Dutch,101,48,0,2,2181,2964,54.2,30.0
-2026-11-05,401928811,South Dakota Coyotes,Northern Kentucky Norse,94,102,0,2,233,94,53.1,62.5
-2026-11-05,401928853,Morgan State Bears,Virginia Lynchburg Dragons,95,58,0,2,2415,3229,48.6,30.4
-2026-11-05,401929171,Boise State Broncos,West Coast Baptist Eagles,132,53,0,2,68,110418,58.0,28.3
-2026-11-05,401929438,App State Mountaineers,Christendom Crusaders,108,43,0,2,2026,111180,53.8,31.0
-2026-11-05,401929450,Old Dominion Monarchs,Regent Regent Royals,91,47,0,2,295,131784,47.2,27.3
 2026-11-06,401906770,Florida Gators,Jacksonville Dolphins,88,57,0,2,57,294,48.3,33.3
 2026-11-06,401906792,Mississippi State Bulldogs,Northwestern State Demons,82,44,0,2,344,2466,40.6,29.8
 2026-11-06,401906864,Texas Longhorns,Gardner-Webb Runnin' Bulldogs,98,50,0,2,251,2241,60.7,33.3
@@ -232,25 +207,61 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-07,401929385,Eastern Kentucky Colonels,Midway Eagles,106,68,0,2,2198,111166,50.7,37.1
 2026-11-07,401929410,South Dakota State Jackrabbits,Briar Cliff Chargers,71,49,0,2,2571,3065,45.2,30.0
 2026-11-07,401929449,Georgia State Panthers,Andrew Fighting Tigers,111,61,0,2,2247,134851,56.4,32.4
+2026-11-08,401902277,Boise State Broncos,Butler Bulldogs,100,81,0,2,68,2086,45.6,39.2
 2026-11-08,401909513,Georgetown Hoyas,Maryland Terrapins,86,74,0,2,46,120,51.9,41.3
 2026-11-08,401909532,Nebraska Cornhuskers,Providence Friars,67,58,1,2,158,2507,44.9,30.6
 2026-11-08,401911186,Dayton Flyers,Northern Illinois Huskies,76,81,0,2,2168,2459,44.9,40.0
+2026-11-08,401911238,Temple Owls,Richmond Spiders,53,79,1,2,218,257,29.6,50.8
 2026-11-08,401911262,Canisius Golden Griffins,St. Bonaventure Bonnies,49,88,0,2,2099,179,30.8,55.9
+2026-11-08,401911274,Binghamton Bearcats,Rider Broncs,75,63,0,2,2066,2520,51.7,39.3
+2026-11-08,401911306,Lehigh Mountain Hawks,Brown Bears,55,65,0,2,2329,225,36.2,45.8
+2026-11-08,401911335,Air Force Falcons,Idaho State Bengals,89,82,0,2,2005,304,37.3,38.9
 2026-11-08,401911345,Grand Canyon Lopes,Bethune-Cookman Wildcats,99,81,0,2,2253,2065,51.6,47.3
+2026-11-08,401911453,Nevada Wolf Pack,Saint Mary's Gaels,96,95,1,2,2440,2608,57.6,43.4
 2026-11-08,401911470,UC Irvine Anteaters,San José State Spartans,91,79,0,2,300,23,52.4,45.3
 2026-11-08,401917517,Seattle U Redhawks,Portland State Vikings,79,60,0,2,2547,2502,51.9,35.1
 2026-11-08,401917518,Bradley Braves,Pacific Tigers,52,63,0,2,71,279,28.8,42.3
 2026-11-08,401917519,Santa Clara Broncos,Sacramento State Hornets,83,77,0,2,2541,16,40.3,39.3
+2026-11-08,401920134,Cal State Bakersfield Roadrunners,North Dakota State Bison,91,80,0,2,2934,2449,57.9,43.1
+2026-11-08,401920233,Dartmouth Big Green,Central Connecticut Blue Devils,71,78,0,2,159,2115,38.5,50.0
+2026-11-08,401920355,Chicago Maroons,Harvard Crimson,47,63,0,2,80,108,32.7,52.9
 2026-11-08,401920371,UC San Diego Tritons,Fresno State Bulldogs,81,65,0,2,28,278,50.8,38.2
+2026-11-08,401920424,Virginia Cavaliers,Arkansas Razorbacks,91,72,1,2,258,8,46.4,45.8
 2026-11-08,401920435,Weber State Wildcats,Utah Valley Wolverines,93,101,0,2,2692,3084,47.8,59.6
+2026-11-08,401920692,Vermont Catamounts,Quinnipiac Bobcats,76,79,0,2,261,2514,50.9,42.9
+2026-11-08,401920739,Western Michigan Broncos,Campbell Fighting Camels,87,71,0,2,2711,2097,52.6,45.6
 2026-11-08,401920816,Little Rock Trojans,SE Louisiana Lions,79,83,0,2,2031,2545,44.8,52.9
+2026-11-08,401920843,St. Thomas Tommies,Green Bay Phoenix,67,76,0,2,2900,2739,39.1,43.3
+2026-11-08,401920865,NJIT Highlanders,Saint Peter's Peacocks,54,52,0,2,2885,2612,42.9,32.8
+2026-11-08,401921220,Navy Midshipmen,Central Penn Knights,102,46,0,2,2426,3164,50.0,33.3
+2026-11-08,401921683,Bryant Bulldogs,Fairfield Stags,59,68,0,2,2803,2217,38.9,40.4
+2026-11-08,401921684,Maine Black Bears,Manhattan Jaspers,62,68,0,2,311,2363,43.6,42.9
+2026-11-08,401921685,New Hampshire Wildcats,Sacred Heart Pioneers,76,81,0,2,160,2529,41.2,36.2
+2026-11-08,401921686,UAlbany Great Danes,Merrimack Warriors,60,73,0,2,399,2771,45.3,46.0
+2026-11-08,401921687,UMass Lowell River Hawks,Marist Red Foxes,63,61,0,2,2349,2368,34.4,49.0
+2026-11-08,401921820,South Carolina Gamecocks,Southeast Missouri State Redhawks,78,68,0,2,2579,2546,44.7,44.4
+2026-11-08,401922262,Idaho Vandals,Lincoln (CA) Oaklanders,108,69,0,2,70,124946,57.9,40.4
 2026-11-08,401923392,Evansville Purple Aces,Southern Indiana Screaming Eagles,78,76,0,2,339,88,39.1,37.9
+2026-11-08,401924646,St. John's Red Storm,Iona Gaels,104,65,0,2,2599,314,55.2,40.7
+2026-11-08,401924719,Cornell Big Red,Keuka Storm,99,59,0,2,172,6319,50.8,34.3
+2026-11-08,401924734,Siena Saints,Princeton Tigers,82,68,0,2,2561,163,53.4,34.2
 2026-11-08,401924951,Western Illinois Leathernecks,Houston Christian Huskies,67,74,1,2,2710,2277,49.1,55.2
 2026-11-08,401925077,Murray State Racers,Northwestern State Demons,93,71,0,2,93,2466,50.8,50.0
 2026-11-08,401925772,Davidson Wildcats,Mercer Bears,88,76,0,2,2166,2382,51.4,43.5
 2026-11-08,401925780,Duquesne Dukes,Central State Marauders,68,58,0,2,2184,2119,42.6,40.0
+2026-11-08,401925894,William & Mary Tribe,Norfolk State Spartans,104,73,0,2,2729,2450,55.6,36.1
+2026-11-08,401926210,Wofford Terriers,Allen Yellow Jackets,100,67,0,2,2747,2019,53.2,35.8
+2026-11-08,401926215,Tennessee Tech Golden Eagles,Western Kentucky Hilltoppers,97,94,0,2,2635,98,44.8,47.5
 2026-11-08,401926227,UC Riverside Highlanders,Denver Pioneers,64,60,0,2,27,2172,33.8,41.4
+2026-11-08,401926867,Milwaukee Panthers,Ripon Red Hawks,99,48,0,2,270,2891,51.4,29.3
+2026-11-08,401927362,Drake Bulldogs,Southern Jaguars,75,68,0,2,2181,2582,46.2,48.9
 2026-11-08,401928817,Purdue Fort Wayne Mastodons,Albion Britons,103,65,0,2,2870,2790,56.8,42.9
 2026-11-08,401929399,Oral Roberts Golden Eagles,Northwestern (OK) Rangers,94,39,0,2,198,2823,48.6,25.0
 2026-11-08,401931055,Southern Utah Thunderbirds,Bethesda Flames,143,49,0,2,253,3246,63.5,24.2
 2026-11-08,401931195,Pepperdine Waves,Bethesda Flames,116,43,0,2,2492,3246,55.2,21.4
+2026-11-09,401909707,Penn State Nittany Lions,Pittsburgh Panthers,76,82,1,2,213,221,42.0,49.2
+2026-11-09,401918053,Houston Cougars,California Golden Bears,86,68,1,2,248,25,52.2,43.9
+2026-11-09,401919029,USC Trojans,Wichita State Shockers,93,86,1,2,30,2724,44.3,48.1
+2026-11-09,401929002,Hawai'i Rainbow Warriors,UT Arlington Mavericks,71,62,0,2,62,250,37.9,37.7
+2026-11-09,401929352,UTEP Miners,Incarnate Word Cardinals,79,60,0,2,2638,2916,50.9,39.6
+2026-11-09,401930195,Bethesda Flames,Portland Pilots,56,130,1,2,3246,2501,29.4,59.8
