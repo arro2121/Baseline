@@ -237,16 +237,10 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-15,401929458,Florida Gulf Coast Eagles,Abraham Baldwin Agricultural Stallions,99,31,0,2,526,134875,48.6,26.0
 2026-11-15,401934396,Pacific Tigers,Air Force Falcons,93,69,0,2,279,2005,55.9,33.3
 2026-11-16,401911211,George Washington Revolutionaries,Ferrum Panthers,94,57,0,2,45,366,54.5,32.7
-2026-11-16,401911472,San José State Spartans,Alabama State Hornets,80,68,0,2,23,2011,51.9,49.1
 2026-11-16,401916298,Maryland Terrapins,Alcorn State Braves,117,57,0,2,120,2016,62.9,26.7
 2026-11-16,401916317,Ohio State Buckeyes,Prairie View A&M Panthers,86,59,0,2,194,2504,51.0,43.1
-2026-11-16,401920681,St. John's Red Storm,Syracuse Orange,79,62,0,2,2599,183,47.5,43.9
-2026-11-16,401920896,Wisconsin Badgers,Coastal Carolina Chanticleers,89,81,0,2,275,324,43.8,44.4
 2026-11-16,401920962,Morehead State Eagles,Miami (OH) Hamilton Harriers,104,69,0,2,2413,124809,54.9,39.1
 2026-11-16,401921087,UMBC Retrievers,Iona Gaels,75,67,0,2,2378,314,38.6,40.6
-2026-11-16,401925718,Bethune-Cookman Wildcats,Stillman Tigers,88,64,0,2,2065,2948,55.9,38.5
-2026-11-16,401926772,USC Trojans,Arkansas-Pine Bluff Golden Lions,122,46,0,2,30,2029,65.7,24.0
-2026-11-16,401929200,UTSA Roadrunners,Texas State Bobcats,67,87,0,2,2636,326,38.7,51.8
 2026-11-16,401929371,North Alabama Lions,Fisk Bulldogs,87,49,0,2,2453,2225,52.9,25.0
 2026-11-16,401929419,UTEP Miners,Florida A&M Rattlers,79,46,0,2,2638,50,43.3,40.0
 2026-11-17,401906773,Florida Gators,Notre Dame Fighting Irish,86,78,1,2,57,87,52.7,49.1
@@ -368,6 +362,7 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-19,401917902,West Georgia Wolves,Columbia (SC) Fighting Koalas,85,50,0,2,2698,130401,46.5,35.4
 2026-11-19,401917965,Abilene Christian Wildcats,McMurry War Hawks,103,41,0,2,2000,241,56.9,25.0
 2026-11-19,401917982,LSU Tigers,UL Monroe Warhawks,79,67,0,2,99,2433,41.7,40.0
+2026-11-19,401918959,NC State Wolfpack,Murray State Racers,93,83,1,2,152,93,53.6,46.9
 2026-11-19,401919735,UIC Flames,Chicago State Cougars,60,52,0,2,82,2130,37.0,36.8
 2026-11-19,401919760,Fairleigh Dickinson Knights,NJIT Highlanders,78,66,0,2,161,2885,43.4,33.9
 2026-11-19,401919808,Long Island University Sharks,UNC Wilmington Seahawks,115,114,0,2,112358,350,50.0,50.0
@@ -376,6 +371,8 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-19,401920158,UCLA Bruins,Cal State Fullerton Titans,75,71,0,2,26,2239,37.0,41.1
 2026-11-19,401920515,West Virginia Mountaineers,Kansas Jayhawks,82,86,1,2,277,2305,40.6,49.1
 2026-11-19,401920516,Auburn Tigers,UNLV Rebels,86,71,1,2,2,2439,53.7,40.4
+2026-11-19,401920517,West Virginia Mountaineers,Florida Gators,72,85,1,2,277,57,42.9,58.3
+2026-11-19,401920519,Auburn Tigers,Notre Dame Fighting Irish,73,78,1,2,2,87,40.7,49.0
 2026-11-19,401920682,St. John's Red Storm,Siena Saints,119,72,0,2,2599,2561,55.3,34.7
 2026-11-19,401920694,Yale Bulldogs,Vermont Catamounts,76,74,0,2,43,261,45.6,40.0
 2026-11-19,401920751,Cincinnati Bearcats,Youngstown State Penguins,91,54,0,2,2132,2754,54.1,38.2
@@ -414,3 +411,36 @@ date,id,home,away,hs,as,neutral,type,hid,aid,hfg,afg
 2026-11-19,401929176,Colorado State Rams,North Dakota State Bison,71,64,0,2,36,2449,40.7,40.4
 2026-11-19,401929201,Texas State Bobcats,Incarnate Word Cardinals,84,51,0,2,326,2916,54.4,31.9
 2026-11-19,401929420,UTSA Roadrunners,Florida A&M Rattlers,98,78,0,2,2636,50,42.7,34.3
+2026-11-20,401902280,Butler Bulldogs,Northeastern Huskies,84,77,0,2,2086,111,45.6,41.5
+2026-11-20,401906867,Texas Longhorns,Southern Utah Thunderbirds,92,68,0,2,251,253,56.9,44.4
+2026-11-20,401911021,St. Bonaventure Bonnies,Buffalo Bulls,78,69,0,2,179,2084,47.4,38.2
+2026-11-20,401911534,New Mexico State Aggies,UTEP Miners,69,84,0,2,166,2638,34.1,43.6
+2026-11-20,401912211,American University Eagles,Mary Baldwin Fighting Squirrels,82,51,0,2,44,124942,44.1,32.8
+2026-11-20,401916318,Ohio State Buckeyes,UMBC Retrievers,101,62,0,2,194,2378,52.8,38.3
+2026-11-20,401917536,Santa Clara Broncos,VCU Rams,77,83,0,2,2541,2670,40.6,47.2
+2026-11-20,401918056,California Golden Bears,East Texas A&M Lions,86,54,0,2,25,2837,50.0,38.0
+2026-11-20,401918950,Louisville Cardinals,Stetson Hatters,83,69,0,2,97,56,48.5,40.8
+2026-11-20,401919005,Louisiana Tech Bulldogs,Tulane Green Wave,74,67,0,2,2348,2655,38.4,38.9
+2026-11-20,401919050,TCU Horned Frogs,Texas A&M Aggies,92,97,0,2,2628,245,45.9,52.9
+2026-11-20,401920349,Stanford Cardinal,Sacramento State Hornets,78,65,0,2,24,16,53.8,40.7
+2026-11-20,401920413,High Point Panthers,Montana State Bobcats,85,74,0,2,2272,147,42.9,40.0
+2026-11-20,401920518,Kansas Jayhawks,Houston Cougars,83,92,1,2,2305,248,38.9,45.8
+2026-11-20,401920520,UNLV Rebels,Rutgers Scarlet Knights,70,89,1,2,2439,164,43.4,48.6
+2026-11-20,401920845,St. Thomas Tommies,Southeast Missouri State Redhawks,93,61,0,2,2900,2546,52.8,35.6
+2026-11-20,401920878,Jacksonville Dolphins,Little Rock Trojans,72,78,0,2,294,2031,42.6,47.2
+2026-11-20,401920888,Wisconsin Badgers,Seton Hall Pirates,69,74,1,2,275,2550,44.4,48.2
+2026-11-20,401921028,Houston Christian Huskies,Georgia Southern Eagles,79,86,0,2,2277,290,46.2,49.1
+2026-11-20,401923304,Quinnipiac Bobcats,Maine Black Bears,67,69,0,2,2514,311,30.1,52.3
+2026-11-20,401925916,Portland State Vikings,Northwest Indian RedHawks,132,41,0,2,2502,3218,67.1,28.1
+2026-11-20,401925941,Washington Huskies,Utah Tech Trailblazers,82,69,0,2,264,3101,46.9,43.3
+2026-11-20,401926144,SIU Edwardsville Cougars,North Park Vikings,64,45,0,2,2565,75,49.0,36.6
+2026-11-20,401926773,USC Trojans,Tarleton State Texans,96,51,0,2,30,2627,53.7,33.3
+2026-11-20,401926814,Drake Bulldogs,Charleston Cougars,86,70,0,2,2181,232,49.2,42.4
+2026-11-20,401927375,Illinois State Redbirds,Eureka Red Devils,123,48,0,2,2287,101,62.7,30.0
+2026-11-20,401928354,Pepperdine Waves,UC Santa Barbara Gauchos,80,88,0,2,2492,2540,51.0,52.9
+2026-11-20,401928388,Grambling Tigers,Southern Miss Golden Eagles,100,103,0,2,2755,2572,34.9,48.4
+2026-11-20,401928812,Northern Kentucky Norse,Berea Mountaineers,93,41,0,2,94,2061,50.0,27.8
+2026-11-20,401928826,Toledo Rockets,Robert Morris Colonials,83,76,0,2,2649,2523,46.2,43.8
+2026-11-20,401929373,North Alabama Lions,Tusculum Pioneers,74,67,0,2,2453,2839,37.1,38.8
+2026-11-20,401929409,North Dakota Fighting Hawks,Mayville State Comets,91,66,0,2,155,561,46.8,32.8
+2026-11-20,401930884,Oregon Ducks,Oregon State Beavers,71,82,1,2,2483,204,41.3,41.0
